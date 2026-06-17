@@ -1,0 +1,453 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CTAButton from '../components/CTAButton.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import ServiceCard from '../components/ServiceCard.astro';
+import ProcessStep from '../components/ProcessStep.astro';
+import FAQItem from '../components/FAQItem.astro';
+import IndustryCard from '../components/IndustryCard.astro';
+import ReviewForm from '../components/ReviewForm.astro';
+
+const services = [
+  {
+    href: '/services/customer-acquisition-page',
+    title: 'صفحه جذب مشتری',
+    description: 'یک صفحه ساده، سریع و واضح که بازدیدکننده را به مشتری بالقوه تبدیل می‌کند.',
+    icon: 'M13 10V3L4 14h7v7l9-11h-7z',
+  },
+  {
+    href: '/services/light-business-website',
+    title: 'سایت خدماتی یا شرکتی سبک',
+    description: 'سایتی سبک، سریع و حرفه‌ای که خدمات شما را به‌وضوح معرفی می‌کند.',
+    icon: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9',
+  },
+  {
+    href: '/services/light-online-store',
+    title: 'فروشگاه آنلاین سبک',
+    description: 'فروشگاهی ساده و سبک برای کسب‌وکارهایی که محصولات محدود ولی با ارزش دارند.',
+    icon: 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z',
+  },
+  {
+    href: '/services/conversion-path-optimization',
+    title: 'بهینه‌سازی مسیر جذب و تبدیل',
+    description: 'بررسی و بهبود مسیری که بازدیدکننده طی می‌کند تا به مشتری تبدیل شود.',
+    icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+  },
+  {
+    href: '/services/lead-management',
+    title: 'ثبت و مدیریت لید',
+    description: 'سیستمی ساده برای ثبت، دسته‌بندی و پیگیری مشتریان بالقوه.',
+    icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
+  },
+  {
+    href: '/services/monthly-care-reporting',
+    title: 'نگهداری، گزارش و بهبود ماهانه',
+    description: 'مراقبت ماهانه از سایت، گزارش عملکرد و بهبود مستمر.',
+    icon: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15',
+  },
+];
+
+const processSteps = [
+  { step: 1, title: 'شناخت کسب‌وکار', description: 'خدمات، مزایا و شرایط کسب‌وکار شما را می‌شناسیم.' },
+  { step: 2, title: 'شناخت مشتری هدف', description: 'مشخص می‌کنیم مشتری ایده‌آل شما کیست و چه نیازی دارد.' },
+  { step: 3, title: 'بررسی مسیر فعلی', description: 'مسیر فعلی جذب مشتری را بررسی و ارزیابی می‌کنیم.' },
+  { step: 4, title: 'طراحی ساختار صفحه', description: 'ساختار صفحه یا سایت را بر اساس هدف طراحی می‌کنیم.' },
+  { step: 5, title: 'نوشتن پیام و مسیر اقدام', description: 'پیام فروش و مسیر اقدام روشن برای بازدیدکننده می‌نویسیم.' },
+  { step: 6, title: 'اجرا و ساخت سایت', description: 'سایت یا لندینگ را با سرعت و کیفیت می‌سازیم.' },
+  { step: 7, title: 'اتصال ابزارها', description: 'فرم، تماس، واتساپ یا سیستم ثبت لید را متصل می‌کنیم.' },
+  { step: 8, title: 'تست و تحویل', description: 'همه چیز را تست کرده و سایت را تحویل می‌دهیم.' },
+  { step: 9, title: 'گزارش و بهبود', description: 'بعد از انتشار، عملکرد را بررسی و بهبود می‌دهیم.' },
+];
+
+const faqItems = [
+  {
+    q: 'آیا نوونو فقط طراحی سایت انجام می‌دهد؟',
+    a: 'خیر. نوونو یک کسب‌وکار خدماتی-سیستمی است که برای کسب‌وکارهای کوچک و متوسط، سیستم جذب، ثبت، پیگیری و بهبود مسیر مشتری می‌سازد. محصول اصلی آن فقط سایت یا لندینگ نیست؛ بلکه ترکیب پیام فروش، صفحه موبایل‌محور، CTA، فرم، تماس/واتساپ، ثبت لید، گزارش و بهینه‌سازی است.',
+  },
+  {
+    q: 'آیا فروش را تضمین می‌کنید؟',
+    a: 'خیر. وعده فروش قطعی یا نتیجه تضمینی داده نمی‌شود. کار ما طراحی یک مسیر بهتر و قابل اندازه‌گیری است. نتیجه نهایی به عوامل متعددی بستگی دارد اما مسیر جذب و پیگیری شفاف، قابل اندازه‌گیری و قابل بهبود خواهد بود.',
+  },
+  {
+    q: 'برای چه کسب‌وکارهایی مناسب است؟',
+    a: 'برای کسب‌وکارهای کوچک و متوسط که محصول یا خدمت مشخصی دارند و از هر مشتری جدید ارزش اقتصادی واقعی به دست می‌آورند. مانند کلینیک‌ها، آموزشگاه‌ها، سالن‌های زیبایی، مشاوران املاک، خدمات فنی، فروشگاه‌های محلی و مشاوران مستقل.',
+  },
+  {
+    q: 'اگر سایت یا پیج داشته باشم باز هم نیاز دارم؟',
+    a: 'اگر مسیر جذب مشتری شاخص و قابل پیگیری نیست، بله. بسیاری از کسب‌وکارها پیج یا سایت دارند ولی مشتری بالقوه می‌بیند اما اقدام نمی‌کند؛ یا اقدام می‌کند ولی در واتساپ، دایرکت، تماس و ذهن صاحب کسب‌وکار گم می‌شود.',
+  },
+  {
+    q: 'سیستم ثبت لید یعنی چه؟',
+    a: 'هر اقدامی که مشتری انجام می‌دهد باید تا حد امکان قابل ثبت، قابل دیدن و قابل پیگیری باشد. این سیستم ممکن است بسیار ساده باشد (مثلاً یک Google Sheet یا Notion)، اما مهم این است که اطلاعات مشتریان گم نشود و صاحب کسب‌وکار بتواند بفهمد چه کسی درخواست داده، از کجا آمده و آیا پیگیری شده یا نه.',
+  },
+  {
+    q: 'پشتیبانی ماهانه شامل چیست؟',
+    a: 'نگهداری فنی، اصلاحات محدود، بررسی ورودی‌ها، گزارش ساده و پیشنهاد بهبود. این بخش برای تبدیل نوونو از کسب‌وکار پروژه‌ای به کسب‌وکار دارای درآمد تکرارشونده اهمیت زیادی دارد. سه پلن پایه، رشد و فعال داریم.',
+  },
+  {
+    q: 'هزینه چطور تعیین می‌شود؟',
+    a: 'قیمت‌گذاری بر اساس خروجی، ارزش و پیچیدگی پروژه است، نه صرفاً ساعت کار. عوامل مؤثر شامل اندازه پروژه، تعداد صفحات، نیاز به محتوا، فرم، ثبت لید، گزارش و فوریت تحویل هستند. پس از بررسی اولیه، پیشنهاد شفاف ارائه می‌شود.',
+  },
+  {
+    q: 'پروژه چقدر زمان می‌برد؟',
+    a: 'شروع هوشمند ۷ روز کاری، رشد هدفمند ۱۴ روز کاری، فروشگاه سبک ۱۴ تا ۲۱ روز کاری. نقشه جذب مشتری ۲ تا ۴ روز کاری. زمان دقیق پس از بررسی نیاز مشتری اعلام می‌شود.',
+  },
+  {
+    q: 'آیا برای کسب‌وکارهای کوچک مناسب است؟',
+    a: 'بله. دقیقاً برای کسب‌وکارهایی طراحی شده که بودجه محدود ولی نیاز به نتیجه واقعی دارند. نوونو باید در بازار به‌عنوان گزینه‌ای بین «فریلنسر ارزان وردپرسی» و «آژانس اختصاصی گران» قرار بگیرد.',
+  },
+];
+
+const industries = [
+  { name: 'کلینیک‌های زیبایی و بهداشتی', description: 'سیستم نوبت‌دهی، فرم مشاوره و مسیر پیگیری بیماران', icon: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z' },
+  { name: 'آموزشگاه‌ها و دوره‌ها', description: 'فرم ثبت‌نام، معرفی دوره و پیگیری متقاضیان', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
+  { name: 'سالن‌های زیبایی', description: 'نوبت‌دهی آنلاین، معرفی خدمات و جذب مشتری جدید', icon: 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z' },
+  { name: 'مشاوران املاک', description: 'صفحه معرفی ملک، فرم درخواست بازدید و پیگیری', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+  { name: 'فروشگاه‌های محلی', description: 'معرفی محصول، فرم سفارش و مسیر خرید ساده', icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z' },
+  { name: 'خدمات فنی و تعمیرات', description: 'صفحه معرفی خدمات، فرم درخواست تعمیر و پیگیری', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+];
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'نوونو',
+  url: 'https://noveno.ir',
+  logo: 'https://noveno.ir/logo.svg',
+  description: 'سیستم ساده، قابل پیگیری و قابل اندازه‌گیری جذب مشتری برای کسب‌وکارهای کوچک و متوسط ایرانی.',
+  contactPoint: {
+    '@type': 'ContactPoint',
+    telephone: '+98-XX-XXXXXXXX',
+    contactType: 'customer service',
+    availableLanguage: 'Persian',
+  },
+};
+
+const webSiteData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'نوونو',
+  url: 'https://noveno.ir',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: 'https://noveno.ir/search?q={search_term_string}',
+    'query-input': 'required name=search_term_string',
+  },
+};
+
+const faqData = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqItems.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.a,
+    },
+  })),
+};
+---
+
+<BaseLayout
+  title="نوونو | سیستم جذب مشتری برای کسب‌وکارهای کوچک و متوسط"
+  description="نوونو به کسب‌وکارهای کوچک و متوسط ایرانی کمک می‌کند مسیر جذب، ثبت و پیگیری مشتری را ساده، قابل اندازه‌گیری و قابل بهبود کنند. نه فقط سایت، بلکه سیستم."
+  structuredData={{ ...structuredData, ...webSiteData, ...faqData }}
+>
+
+  <!-- Hero Section -->
+  <section class="bg-gradient-to-b from-lavender-100 to-surface-50 section-padding">
+    <div class="container-page">
+      <div class="mx-auto max-w-3xl text-center">
+        <p class="mb-4 text-sm font-medium text-brand-600">سیستم جذب و پیگیری مشتری برای کسب‌وکارهای کوچک</p>
+        <h1 class="text-3xl font-bold text-neutral-800 sm:text-4xl lg:text-5xl">
+          سایت شما باید مشتری واقعی بیاورد، <span class="text-brand-600">نه فقط بازدید.</span>
+        </h1>
+        <p class="mt-5 text-base leading-7 text-neutral-600 sm:text-lg">
+          بسیاری از کسب‌وکارها مشتری بالقوه دارند ولی مسیر تبدیل آن‌ها مبهم، پراکنده یا غیرقابل پیگیری است. نوونو این مشکل را با یک سیستم ساده حل می‌کند: پیام روشن، صفحه موبایل‌محور، CTA واضح، فرم، واتساپ، ثبت لید و گزارش.
+        </p>
+        <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <CTAButton href="/customer-acquisition-review" size="lg">
+            بررسی رایگان مسیر جذب مشتری
+          </CTAButton>
+          <CTAButton href="/services" variant="outline" size="lg">
+            مشاهده پکیج‌ها و قیمت‌ها
+          </CTAButton>
+        </div>
+      </div>
+
+      <!-- Visual Path Diagram -->
+      <div class="mx-auto mt-12 max-w-2xl rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <p class="mb-4 text-center text-sm font-medium text-neutral-500">مسیر ساده جذب مشتری</p>
+        <div class="flex flex-wrap items-center justify-center gap-3 text-sm">
+          <div class="flex items-center gap-2 rounded-lg bg-lavender-100 px-3 py-2 text-brand-700">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+            بازدیدکننده
+          </div>
+          <svg class="h-4 w-4 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+          <div class="flex items-center gap-2 rounded-lg bg-lavender-100 px-3 py-2 text-brand-700">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            پیام واضح
+          </div>
+          <svg class="h-4 w-4 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+          <div class="flex items-center gap-2 rounded-lg bg-lavender-100 px-3 py-2 text-brand-700">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+            فرم / تماس / واتساپ
+          </div>
+          <svg class="h-4 w-4 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+          <div class="flex items-center gap-2 rounded-lg bg-brand-100 px-3 py-2 font-medium text-brand-700">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+            مشتری جدید
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem Section -->
+  <section class="section-padding bg-white">
+    <div class="container-page">
+      <SectionHeading
+        title="مشکل واقعی چیست؟"
+        subtitle="مسئله اصلی بسیاری از کسب‌وکارها فقط نداشتن سایت نیست؛ مشکل آن‌ها نداشتن یک مسیر منظم برای تبدیل توجه مشتری به اقدام واقعی است."
+      />
+        <div class="mx-auto mt-10 grid max-w-4xl gap-6 sm:grid-cols-2">
+        <div class="flex gap-3 rounded-xl border border-neutral-100 bg-neutral-50 p-5">
+          <svg class="h-5 w-5 shrink-0 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          <div>
+            <h3 class="text-sm font-semibold text-neutral-800">مشتری بالقوه وارد مسیر کسب‌وکار می‌شود ولی اقدام نمی‌کند</h3>
+            <p class="mt-1 text-sm text-neutral-500">سایت یا پیج بیشتر شبیه ویترین است تا ابزار جذب مشتری. پیام واضح نیست و مسیر اقدام پیچیده است.</p>
+          </div>
+        </div>
+        <div class="flex gap-3 rounded-xl border border-neutral-100 bg-neutral-50 p-5">
+          <svg class="h-5 w-5 shrink-0 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          <div>
+            <h3 class="text-sm font-semibold text-neutral-800">فرم، تماس، واتساپ و پیام‌رسان‌ها به شکل منظم به هم وصل نیستند</h3>
+            <p class="mt-1 text-sm text-neutral-500">لیدها در دایرکت، تماس، پیامک، واتساپ یا ذهن صاحب کسب‌وکار گم می‌شوند.</p>
+          </div>
+        </div>
+        <div class="flex gap-3 rounded-xl border border-neutral-100 bg-neutral-50 p-5">
+          <svg class="h-5 w-5 shrink-0 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          <div>
+            <h3 class="text-sm font-semibold text-neutral-800">تبلیغات یا محتوا انجام می‌شود ولی خروجی قابل اندازه‌گیری نیست</h3>
+            <p class="mt-1 text-sm text-neutral-500">صاحب کسب‌وکار نمی‌داند کدام کانال مشتری می‌آورد و کدام فقط وقت یا پول می‌سوزاند.</p>
+          </div>
+        </div>
+        <div class="flex gap-3 rounded-xl border border-neutral-100 bg-neutral-50 p-5">
+          <svg class="h-5 w-5 shrink-0 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          <div>
+            <h3 class="text-sm font-semibold text-neutral-800">وابستگی به یک کانال مثل اینستاگرام مسیر فروش را شکننده می‌کند</h3>
+            <p class="mt-1 text-sm text-neutral-500">در شرایط فیلترینگ و اختلال اینترنت، تکیه بر یک شبکه اجتماعی ریسک بالایی دارد.</p>
+          </div>
+        </div>
+        <div class="flex gap-3 rounded-xl border border-neutral-100 bg-neutral-50 p-5">
+          <svg class="h-5 w-5 shrink-0 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          <div>
+            <h3 class="text-sm font-semibold text-neutral-800">صاحب کسب‌وکار به راه‌حل ساده نیاز دارد، نه سیستم پیچیده سازمانی</h3>
+            <p class="mt-1 text-sm text-neutral-500">ابزارهای سنگین CRM، اتوماسیون پیچیده و سایت‌های بیش از حد بزرگ برای کسب‌وکار کوچک مناسب نیستند.</p>
+          </div>
+        </div>
+        <div class="flex gap-3 rounded-xl border border-neutral-100 bg-neutral-50 p-5">
+          <svg class="h-5 w-5 shrink-0 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          <div>
+            <h3 class="text-sm font-semibold text-neutral-800">ترکیب اعتماد، وضوح، مسیر اقدام و پیگیری وجود ندارد</h3>
+            <p class="mt-1 text-sm text-neutral-500">مسئله اصلی فقط تکنولوژی نیست؛ ترکیبی از اعتماد، وضوح، مسیر اقدام، ثبت اطلاعات، پیگیری و گزارش است.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Solution Section -->
+  <section class="section-padding bg-lavender-50">
+    <div class="container-page">
+      <SectionHeading
+        title="راه‌حل نوونو چیست؟"
+        subtitle="نوونو حضور آنلاین پراکنده کسب‌وکار شما را به یک سیستم ساده‌تر، منظم‌تر و قابل پیگیری‌تر تبدیل می‌کند."
+      />
+      <div class="mx-auto mt-10 grid max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-xl bg-white p-5 shadow-sm">
+          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+          </div>
+          <h3 class="mt-3 text-sm font-semibold text-neutral-800">پیام فروش واضح</h3>
+          <p class="mt-1 text-xs text-neutral-500">توضیح ساده اینکه کسب‌وکار چه مشکلی را برای چه کسی حل می‌کند. مشتری فوراً می‌فهمد چرا باید اعتماد کند.</p>
+        </div>
+        <div class="rounded-xl bg-white p-5 shadow-sm">
+          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+          </div>
+          <h3 class="mt-3 text-sm font-semibold text-neutral-800">صفحه موبایل‌محور</h3>
+          <p class="mt-1 text-xs text-neutral-500">نمایش سریع و خوانا برای کاربری که بیشتر با موبایل تصمیم می‌گیرد. سرعت بالا و طراحی حرفه‌ای.</p>
+        </div>
+        <div class="rounded-xl bg-white p-5 shadow-sm">
+          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+          </div>
+          <h3 class="mt-3 text-sm font-semibold text-neutral-800">CTA و مسیر اقدام</h3>
+          <p class="mt-1 text-xs text-neutral-500">هدایت کاربر به تماس، فرم، واتساپ، رزرو یا درخواست مشاوره. بدون ابهام.</p>
+        </div>
+        <div class="rounded-xl bg-white p-5 shadow-sm">
+          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+          </div>
+          <h3 class="mt-3 text-sm font-semibold text-neutral-800">ثبت لید و گزارش</h3>
+          <p class="mt-1 text-xs text-neutral-500">ثبت منظم نام، شماره، نیاز، منبع ورودی و وضعیت پیگیری. مشخص کردن اینکه کدام صفحه یا کانال بهتر خروجی می‌دهد.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section class="section-padding bg-white">
+    <div class="container-page">
+      <SectionHeading
+        title="خدمات ما"
+        subtitle="هر خدمت یک مشکل مشخص را حل می‌کند."
+      />
+      <div class="mx-auto mt-10 grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {services.map((service) => (
+          <ServiceCard {...service} />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Who It's For -->
+  <section class="section-padding bg-surface-50">
+    <div class="container-page">
+      <SectionHeading
+        title="برای چه کسب‌وکارهایی مناسب است؟"
+        subtitle="کسب‌وکارهایی که هر مشتری جدید ارزش اقتصادی واقعی دارد."
+      />
+      <div class="mx-auto mt-10 grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {industries.map((industry) => (
+          <IndustryCard {...industry} />
+        ))}
+      </div>
+      <div class="mx-auto mt-10 max-w-3xl rounded-xl border border-amber-200 bg-amber-50 p-5">
+        <h3 class="text-sm font-semibold text-amber-800">کسب‌وکارهایی که مناسب نیستند</h3>
+        <p class="mt-2 text-sm leading-6 text-amber-700">
+          پروژه‌های غیرقانونی، قمار و شرط‌بندی، فروش فالوور فیک، سیگنال‌فروشی، سرمایه‌گذاری کلاهبرداری، پروژه‌های خاکستری، افرادی که بودجه واقعی ندارند، کسانی که فروش تضمینی می‌خواهند، و کسانی که از تعریف دقیق پروژه اجتناب می‌کنند.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Process Section -->
+  <section class="section-padding bg-white">
+    <div class="container-page">
+      <SectionHeading
+        title="فرآیند کار ما"
+        subtitle="از شناخت کسب‌وکار تا گزارش و بهبود بعد از انتشار."
+      />
+      <div class="mx-auto mt-10 grid max-w-3xl gap-6">
+        {processSteps.map((step) => (
+          <ProcessStep {...step} />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust Section -->
+  <section class="section-padding bg-lavender-50">
+    <div class="container-page">
+      <SectionHeading
+        title="چرا نوونو؟"
+        subtitle="ترکیبی از فهم شرایط واقعی ایران، اجرای سریع، سیستم‌سازی و پیگیری قابل فهم."
+      />
+      <div class="mx-auto mt-10 grid max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="flex items-start gap-3 rounded-xl bg-white p-5 shadow-sm">
+          <svg class="h-5 w-5 shrink-0 text-brand-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+          <div>
+            <h3 class="text-sm font-semibold text-neutral-800">فهم شرایط واقعی ایران</h3>
+            <p class="mt-1 text-xs text-neutral-500">ابزارهایی که در ایران کار می‌کنند: واتساپ، تلفن، فرم‌های ساده. بدون وابستگی به ابزارهای خارجی شکننده.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 rounded-xl bg-white p-5 shadow-sm">
+          <svg class="h-5 w-5 shrink-0 text-brand-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+          <div>
+            <h3 class="text-sm font-semibold text-neutral-800">ترکیب وب‌سایت با مسیر فروش</h3>
+            <p class="mt-1 text-xs text-neutral-500">سایت فقط ویترین نیست؛ بخشی از سیستم جذب و پیگیری مشتری است.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 rounded-xl bg-white p-5 shadow-sm">
+          <svg class="h-5 w-5 shrink-0 text-brand-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+          <div>
+            <h3 class="text-sm font-semibold text-neutral-800">زبان ساده برای صاحب کسب‌وکار</h3>
+            <p class="mt-1 text-xs text-neutral-500">بدون اصطلاحات پیچیده. گزارش و عملیات برای صاحب کسب‌وکار قابل فهم است.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 rounded-xl bg-white p-5 shadow-sm">
+          <svg class="h-5 w-5 shrink-0 text-brand-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+          <div>
+            <h3 class="text-sm font-semibold text-neutral-800">سرعت در اجرا</h3>
+            <p class="mt-1 text-xs text-neutral-500">شروع هوشمند در ۷ روز کاری تحویل می‌شود. بدون فرآیندهای اداری سنگین.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 rounded-xl bg-white p-5 shadow-sm">
+          <svg class="h-5 w-5 shrink-0 text-brand-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+          <div>
+            <h3 class="text-sm font-semibold text-neutral-800">تمرکز بر خروجی قابل پیگیری</h3>
+            <p class="mt-1 text-xs text-neutral-500">نه فقط سایت زیبا؛ بلکه سیستمی که مشتری واقعی بیاورد و قابل اندازه‌گیری باشد.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 rounded-xl bg-white p-5 shadow-sm">
+          <svg class="h-5 w-5 shrink-0 text-brand-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+          <div>
+            <h3 class="text-sm font-semibold text-neutral-800">نگاه بلندمدت به پشتیبانی</h3>
+            <p class="mt-1 text-xs text-neutral-500">بعد از تحویل، بسته همراهی ماهانه برای نگهداری، گزارش و بهبود تدریجی فعال می‌شود.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="section-padding bg-brand-600">
+    <div class="container-page text-center">
+      <h2 class="text-2xl font-bold text-white sm:text-3xl">
+        مسیر جذب مشتری خود را بررسی کنید.
+      </h2>
+      <p class="mt-3 text-base text-brand-100 sm:text-lg">
+        یک بررسی ساده و رایگان از وضعیت فعلی جذب مشتری شما. بدون تعهد.
+      </p>
+      <div class="mt-8">
+        <a href="/customer-acquisition-review" class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-bold text-brand-700 shadow-lg transition-all duration-200 hover:bg-brand-50 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+          درخواست بررسی مسیر جذب
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="section-padding bg-white" id="faq">
+    <div class="container-page">
+      <SectionHeading
+        title="سؤالات متداول"
+      />
+      <div class="mx-auto mt-10 max-w-3xl divide-y divide-neutral-200">
+        {faqItems.map((item) => (
+          <FAQItem question={item.q}>
+            <p>{item.a}</p>
+          </FAQItem>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Review Form Section -->
+  <section class="section-padding bg-surface-50">
+    <div class="container-page">
+      <div class="mx-auto max-w-2xl">
+        <SectionHeading
+          title="درخواست بررسی مسیر جذب مشتری"
+          subtitle="فرم زیر را پر کنید تا وضعیت فعلی مسیر جذب مشتری شما را بررسی کنیم."
+        />
+        <div class="mt-10 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
+          <ReviewForm />
+        </div>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

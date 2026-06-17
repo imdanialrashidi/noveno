@@ -1,0 +1,188 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import CTAButton from '../components/CTAButton.astro';
+import FAQItem from '../components/FAQItem.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  problem: string;
+  problemDetails: string[];
+  solution: string;
+  solutionDetails: string[];
+  output: string[];
+  suitableFor: string[];
+  included: string[];
+  notIncluded: string[];
+  process: string[];
+  timeline: string;
+  faqs: Array<{ q: string; a: string }>;
+  structuredData?: object;
+}
+
+const {
+  title,
+  description,
+  problem,
+  problemDetails,
+  solution,
+  solutionDetails,
+  output,
+  suitableFor,
+  included,
+  notIncluded,
+  process,
+  timeline,
+  faqs,
+  structuredData,
+} = Astro.props;
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  structuredData={structuredData}
+>
+  <section class="bg-gradient-to-b from-lavender-100 to-surface-50 section-padding">
+    <div class="container-page">
+      <Breadcrumbs items={[{ label: 'خدمات', href: '/services' }, { label: title }]} />
+      <div class="mx-auto max-w-3xl text-center">
+        <h1 class="text-3xl font-bold text-neutral-800 sm:text-4xl text-balance">{title}</h1>
+        <p class="mt-4 text-base leading-7 text-neutral-600 sm:text-lg">{description}</p>
+        <div class="mt-6">
+          <CTAButton href="/customer-acquisition-review" size="lg">
+            درخواست بررسی مسیر جذب
+          </CTAButton>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-padding bg-white">
+    <div class="container-page">
+      <div class="mx-auto max-w-3xl space-y-12">
+        <!-- Problem -->
+        <div>
+          <h2 class="text-xl font-bold text-neutral-800 sm:text-2xl">{problem}</h2>
+          <ul class="mt-4 space-y-3">
+            {problemDetails.map((item) => (
+              <li class="flex items-start gap-3">
+                <svg class="h-5 w-5 shrink-0 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                <span class="text-sm text-neutral-600">{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- Solution -->
+        <div>
+          <h2 class="text-xl font-bold text-neutral-800 sm:text-2xl">{solution}</h2>
+          <ul class="mt-4 space-y-3">
+            {solutionDetails.map((item) => (
+              <li class="flex items-start gap-3">
+                <svg class="h-5 w-5 shrink-0 text-brand-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                <span class="text-sm text-neutral-600">{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- Output -->
+        <div>
+          <h2 class="text-xl font-bold text-neutral-800 sm:text-2xl">خروجی چیست؟</h2>
+          <ul class="mt-4 space-y-3">
+            {output.map((item) => (
+              <li class="flex items-start gap-3">
+                <svg class="h-5 w-5 shrink-0 text-brand-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span class="text-sm text-neutral-600">{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- Suitable For -->
+        <div>
+          <h2 class="text-xl font-bold text-neutral-800 sm:text-2xl">برای چه کسب‌وکارهایی مناسب است؟</h2>
+          <div class="mt-4 flex flex-wrap gap-2">
+            {suitableFor.map((item) => (
+              <span class="rounded-full bg-lavender-200 px-3 py-1 text-xs font-medium text-brand-700">{item}</span>
+            ))}
+          </div>
+        </div>
+
+        <div class="grid gap-8 sm:grid-cols-2">
+          <!-- Included -->
+          <div>
+            <h2 class="text-lg font-bold text-neutral-800">شامل چیست؟</h2>
+            <ul class="mt-3 space-y-2">
+              {included.map((item) => (
+                <li class="flex items-start gap-2">
+                  <svg class="h-4 w-4 shrink-0 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                  <span class="text-sm text-neutral-600">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <!-- Not Included -->
+          <div>
+            <h2 class="text-lg font-bold text-neutral-800">شامل چیست نیست؟</h2>
+            <ul class="mt-3 space-y-2">
+              {notIncluded.map((item) => (
+                <li class="flex items-start gap-2">
+                  <svg class="h-4 w-4 shrink-0 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                  <span class="text-sm text-neutral-600">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <!-- Process -->
+        <div>
+          <h2 class="text-xl font-bold text-neutral-800 sm:text-2xl">فرآیند اجرا</h2>
+          <ol class="mt-4 space-y-3">
+            {process.map((step, i) => (
+              <li class="flex items-start gap-3">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white">{i + 1}</span>
+                <span class="text-sm text-neutral-600">{step}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <!-- Timeline -->
+        <div class="rounded-xl border border-neutral-200 bg-surface-50 p-5">
+          <h3 class="text-sm font-semibold text-neutral-800">زمان‌بندی تقریبی</h3>
+          <p class="mt-2 text-sm text-neutral-600">{timeline}</p>
+        </div>
+
+        <!-- FAQ -->
+        {faqs.length > 0 && (
+          <div>
+            <h2 class="text-xl font-bold text-neutral-800 sm:text-2xl">سؤالات متداول</h2>
+            <div class="mt-4 divide-y divide-neutral-200">
+              {faqs.map((faq) => (
+                <FAQItem question={faq.q}>
+                  <p>{faq.a}</p>
+                </FAQItem>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- CTA -->
+        <div class="rounded-2xl bg-brand-600 p-6 text-center sm:p-8">
+          <h2 class="text-xl font-bold text-white">آماده‌اید مسیر جذب مشتری خود را بهبود دهید؟</h2>
+          <p class="mt-2 text-sm text-brand-100">یک بررسی ساده و رایگان از وضعیت فعلی شما.</p>
+          <div class="mt-4">
+            <a href="/customer-acquisition-review" class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-3 text-base font-bold text-brand-700 shadow-lg transition-all duration-200 hover:bg-brand-50 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+              درخواست بررسی مسیر جذب
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

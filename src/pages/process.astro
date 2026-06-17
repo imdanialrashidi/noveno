@@ -1,0 +1,139 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import CTAButton from '../components/CTAButton.astro';
+
+const steps = [
+  {
+    number: '۱',
+    title: 'شناخت کسب‌وکار',
+    description: 'خدمات، مزایا و شرایط کسب‌وکار شما را می‌شناسیم. چه چیزی شما را متفاوت می‌کند؟',
+    details: ['خدمات و محصولات', 'مزیت رقابتی', 'مشتریان فعلی', 'وضعیت بازار'],
+  },
+  {
+    number: '۲',
+    title: 'شناخت مشتری هدف',
+    description: 'مشخص می‌کنیم مشتری ایده‌آل شما کیست و چه نیازی دارد.',
+    details: ['جنسیت و سن', 'نیاز اصلی', 'کانال‌های ارتباطی', 'مدل تصمیم‌گیری'],
+  },
+  {
+    number: '۳',
+    title: 'بررسی مسیر فعلی',
+    description: 'مسیر فعلی جذب مشتری را بررسی و ارزیابی می‌کنیم.',
+    details: ['کانال‌های فعلی', 'نرخ تبدیل', 'هزینه هر مشتری', 'مشکلات اصلی'],
+  },
+  {
+    number: '۴',
+    title: 'طراحی ساختار صفحه',
+    description: 'ساختار صفحه یا سایت را بر اساس هدف طراحی می‌کنیم.',
+    details: ['ساختار محتوا', 'ترتیب بخش‌ها', 'مسیر اقدام', 'نقشه سایت'],
+  },
+  {
+    number: '۵',
+    title: 'نوشتن پیام و مسیر اقدام',
+    description: 'پیام فروش و مسیر اقدام روشن برای بازدیدکننده می‌نویسیم.',
+    details: ['تیتر اصلی', 'مزایای کلیدی', 'اثبات اجتماعی', 'دکمه اقدام'],
+  },
+  {
+    number: '۶',
+    title: 'اجرا و ساخت سایت',
+    description: 'سایت یا لندینگ را با سرعت و کیفیت می‌سازیم.',
+    details: ['طراحی موبایل‌محور', 'سرعت بالا', 'RTL کامل', 'تست مرورگر'],
+  },
+  {
+    number: '۷',
+    title: 'اتصال ابزارها',
+    description: 'فرم، تماس، واتساپ یا سیستم ثبت لید را متصل می‌کنیم.',
+    details: ['فرم تماس', 'واتساپ', 'تلفن', 'ثبت لید'],
+  },
+  {
+    number: '۸',
+    title: 'تست و تحویل',
+    description: 'همه چیز را تست کرده و سایت را تحویل می‌دهیم.',
+    details: ['تست فرم', 'تست لینک‌ها', 'تست سرعت', 'تست موبایل'],
+  },
+  {
+    number: '۹',
+    title: 'گزارش و بهبود',
+    description: 'بعد از انتشار، عملکرد را بررسی و بهبود می‌دهیم.',
+    details: ['گزارش عملکرد', 'تحلیل رفتار', 'بهبود مسیر', 'پیشنهاد بعدی'],
+  },
+];
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: 'فرآیند کار نوونو',
+  description: 'فرآیند ۹ مرحله‌ای نوونو از شناخت کسب‌وکار تا گزارش و بهبود بعد از انتشار.',
+  url: 'https://noveno.ir/process',
+  step: steps.map((step, i) => ({
+    '@type': 'HowToStep',
+    position: i + 1,
+    name: step.title,
+    text: step.description,
+  })),
+};
+---
+
+<BaseLayout
+  title="فرآیند کار"
+  description="فرآیند ۹ مرحله‌ای نوونو: از شناخت کسب‌وکار تا گزارش و بهبود بعد از انتشار. شفاف، ساده و قابل پیگیری."
+  structuredData={structuredData}
+>
+  <section class="section-padding bg-gradient-to-b from-lavender-100 to-surface-50">
+    <div class="container-page">
+      <Breadcrumbs items={[{ label: 'فرآیند کار' }]} />
+
+      <div class="mx-auto max-w-3xl text-center">
+        <h1 class="text-3xl font-bold text-neutral-800 sm:text-4xl text-balance">
+          از شناخت تا بهبود مستمر
+        </h1>
+        <p class="mt-4 text-base leading-7 text-neutral-600 sm:text-lg">
+          فرآیند کار نوونو ۹ مرحله ساده و شفاف دارد. از شناخت کسب‌وکار شما شروع می‌کنیم و بعد از انتشار، عملکرد را بررسی و بهبود می‌دهیم.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-padding bg-white">
+    <div class="container-page">
+      <div class="mx-auto max-w-3xl space-y-8">
+        {steps.map((step, index) => (
+          <div class="flex gap-5">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-600 text-lg font-bold text-white">
+              {step.number}
+            </div>
+            <div class="pt-1">
+              <h2 class="text-lg font-semibold text-neutral-800">{step.title}</h2>
+              <p class="mt-1 text-sm leading-6 text-neutral-500">{step.description}</p>
+              <div class="mt-3 flex flex-wrap gap-2">
+                {step.details.map((detail) => (
+                  <span class="rounded-lg bg-lavender-100 px-2.5 py-1 text-xs font-medium text-brand-700">
+                    {detail}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section-padding bg-brand-600">
+    <div class="container-page text-center">
+      <h2 class="text-2xl font-bold text-white sm:text-3xl">
+        آماده شروع هستید؟
+      </h2>
+      <p class="mt-3 text-base text-brand-100 sm:text-lg">
+        همین حالا مسیر جذب مشتری خود را بررسی کنید. بدون تعهد.
+      </p>
+      <div class="mt-8">
+        <a href="/customer-acquisition-review" class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-bold text-brand-700 shadow-lg transition-all duration-200 hover:bg-brand-50 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+          درخواست بررسی مسیر جذب
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

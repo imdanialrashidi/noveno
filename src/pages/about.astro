@@ -1,0 +1,169 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import CTAButton from '../components/CTAButton.astro';
+
+const values = [
+  {
+    title: 'سادگی',
+    description: 'هر چیزی که می‌سازیم باید ساده، قابل فهم و قابل مدیریت باشد. صاحب کسب‌وکار باید بتواند خروجی را بدون اصطلاحات پیچیده بفهمد.',
+    icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
+  },
+  {
+    title: 'شفافیت',
+    description: 'دقیقاً می‌دانید چه کاری انجام می‌دهیم و چرا. Scope مکتوب، قیمت شفاف، بدون هزینه پنهان. هر پروژه باید Scope مشخص داشته باشد.',
+    icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z',
+  },
+  {
+    title: 'نتیجه‌محوری',
+    description: 'هر تصمیم بر اساس تأثیر آن بر نتیجه نهایی گرفته می‌شود. هدف فقط سایت زیبا نیست؛ هدف مشتری واقعی و قابل پیگیری است.',
+    icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
+  },
+  {
+    title: 'صداقت',
+    description: 'قول‌های واقعی می‌دهیم. فروش تضمینی نمی‌دهیم. ادعاهای اغراق‌آمیز نداریم. کیفیت، شفافیت و پایداری نباید قربانی سرعت یا گرفتن پول کوتاه‌مدت شود.',
+    icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+  },
+];
+
+const whatWeAre = [
+  'یک کسب‌وکار خدماتی-سیستمی در حوزه وب، جذب مشتری و بهینه‌سازی مسیر فروش',
+  'سازنده سیستم جذب و ثبت لید برای کسب‌وکارهای کوچک و متوسط',
+  'مجری راه‌حل‌های ساده، سبک و کاربردی برای مسیر مشتری',
+  'ترکیبی از طراحی سایت، کپی‌رایتینگ، ساختار فروش، ابزارهای ساده CRM و بهینه‌سازی تبدیل',
+  'یک برند اجرایی و تحلیلی که خروجی آن باید برای صاحب کسب‌وکار قابل فهم باشد',
+];
+
+const whatWeAreNot = [
+  'شرکت بزرگ دیجیتال مارکتینگ با همه خدمات ممکن',
+  'طراح سایت صرفاً گرافیکی یا ارزان',
+  'فروشنده تبلیغات بدون مسئولیت نتیجه',
+  'مشاور تئوری بدون اجرای عملی',
+  'فروشنده فالوور، بازدید، سیگنال یا روش‌های خاکستری',
+  'کسب‌وکاری با وعده‌های تضمینی و اغراق‌آمیز',
+];
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: 'درباره نوونو',
+  description: 'نوونو یک کسب‌وکار خدماتی-سیستمی است که برای کسب‌وکارهای کوچک و متوسط ایرانی، سیستم جذب، ثبت، پیگیری و بهبود مسیر مشتری می‌سازد.',
+  url: 'https://noveno.ir/about',
+};
+---
+
+<BaseLayout
+  title="درباره نوونو | کسب‌وکار خدماتی-سیستمی جذب مشتری"
+  description="نوونو یک کسب‌وکار خدماتی-سیستمی است که برای کسب‌وکارهای کوچک و متوسط ایرانی، سیستم جذب، ثبت، پیگیری و بهبود مسیر مشتری می‌سازد. نه فقط سایت، بلکه سیستم."
+  structuredData={structuredData}
+>
+  <section class="section-padding bg-gradient-to-b from-lavender-100 to-surface-50">
+    <div class="container-page">
+      <Breadcrumbs items={[{ label: 'درباره ما' }]} />
+
+      <div class="mx-auto max-w-3xl text-center">
+        <h1 class="text-3xl font-bold text-neutral-800 sm:text-4xl text-balance">
+          نوونو چیست؟
+        </h1>
+        <p class="mt-4 text-base leading-7 text-neutral-600 sm:text-lg">
+          نوونو یک کسب‌وکار خدماتی-سیستمی در حوزه وب، جذب مشتری و بهینه‌سازی مسیر فروش است. کار اصلی نوونو این است که برای کسب‌وکارهای کوچک و متوسط، یک مسیر قابل فهم، قابل پیگیری و قابل بهبود از «دیدن کسب‌وکار» تا «اقدام مشتری» طراحی و اجرا کند.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-padding bg-white">
+    <div class="container-page">
+      <div class="mx-auto max-w-4xl">
+        <div class="grid gap-10 lg:grid-cols-2">
+          <div>
+            <h2 class="text-2xl font-bold text-neutral-800">ایده مرکزی</h2>
+            <p class="mt-4 text-sm leading-7 text-neutral-600">
+              بسیاری از کسب‌وکارها مشکل «نداشتن سایت» ندارند؛ مشکل واقعی آن‌ها نداشتن یک مسیر منظم برای تبدیل توجه مشتری به اقدام واقعی است.
+            </p>
+            <p class="mt-3 text-sm leading-7 text-neutral-600">
+              یک کسب‌وکار ممکن است پیج اینستاگرام داشته باشد، مشتری حضوری داشته باشد، تبلیغ کند، شماره تماس منتشر کند یا حتی سایت داشته باشد، اما اگر مسیر ارتباط مشتری با کسب‌وکار مبهم، شلوغ، غیرقابل اندازه‌گیری یا بدون پیگیری باشد، بخشی از مشتریان بالقوه از دست می‌روند.
+            </p>
+            <p class="mt-3 text-sm leading-7 text-neutral-600">
+              نوونو روی همین نقطه کار می‌کند: تبدیل حضور پراکنده آنلاین و آفلاین کسب‌وکار به یک سیستم ساده‌تر، منظم‌تر و قابل پیگیری‌تر.
+            </p>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-neutral-800">چه کاری انجام نمی‌دهیم؟</h2>
+            <ul class="mt-4 space-y-3">
+              {whatWeAreNot.map((item) => (
+                <li class="flex items-start gap-3">
+                  <svg class="h-5 w-5 shrink-0 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                  <span class="text-sm text-neutral-600">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-padding bg-surface-50">
+    <div class="container-page">
+      <SectionHeading
+        title="ارزش‌های ما"
+      />
+      <div class="mx-auto mt-10 grid max-w-4xl gap-6 sm:grid-cols-2">
+        {values.map((value) => (
+          <div class="flex gap-4 rounded-2xl bg-white p-6 shadow-sm">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={value.icon} />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-base font-semibold text-neutral-800">{value.title}</h3>
+              <p class="mt-1 text-sm leading-6 text-neutral-500">{value.description}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section-padding bg-white">
+    <div class="container-page">
+      <div class="mx-auto max-w-4xl">
+        <SectionHeading
+          title="نوونو چیست؟"
+        />
+        <ul class="mt-8 space-y-3">
+          {whatWeAre.map((item) => (
+            <li class="flex items-start gap-3">
+              <svg class="h-5 w-5 shrink-0 text-brand-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+              <span class="text-sm text-neutral-600">{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-padding bg-white">
+    <div class="container-page">
+      <div class="mx-auto max-w-3xl text-center">
+        <h2 class="text-2xl font-bold text-neutral-800 sm:text-3xl">
+          آیا نوونو برای کسب‌وکار من مناسب است؟
+        </h2>
+        <p class="mt-3 text-base text-neutral-600">
+          اگر هر مشتری جدید برایتان ارزش اقتصادی واقعی دارد، تصمیم‌گیرنده اصلی در دسترس هستید و به راه‌حل ساده و قابل اجرا نیاز دارید، بله.
+        </p>
+        <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <CTAButton href="/customer-acquisition-review" size="lg">
+            بررسی رایگان مسیر جذب مشتری
+          </CTAButton>
+          <CTAButton href="/services" variant="outline" size="lg">
+            مشاهده پکیج‌ها و قیمت‌ها
+          </CTAButton>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

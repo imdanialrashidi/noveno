@@ -1,0 +1,92 @@
+---
+import SEOHead from '../components/SEOHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { ViewTransitions } from 'astro:transitions';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  ogImage?: string;
+  ogType?: string;
+  structuredData?: object;
+}
+
+const {
+  title,
+  description,
+  canonical,
+  ogImage,
+  ogType,
+  structuredData,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="theme-color" content="#5631A5" />
+    <meta name="robots" content="index, follow" />
+
+    <SEOHead
+      title={title}
+      description={description}
+      canonical={canonical}
+      ogImage={ogImage}
+      ogType={ogType}
+      structuredData={structuredData}
+    />
+
+    <ViewTransitions />
+
+    <link rel="icon" type="image/svg+xml" href="/logo-icon.svg" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/IRANSansWeb.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/IRANSansWeb_Bold.woff2" crossorigin />
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:right-4 focus:z-50 focus:rounded-lg focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-white focus:outline-none">
+      رفتن به محتوای اصلی
+    </a>
+    <Header />
+    <main id="main-content" class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      document.addEventListener('astro:page-load', () => {
+        const toggle = document.getElementById('mobile-menu-toggle');
+        const menu = document.getElementById('mobile-menu');
+        const openIcon = document.getElementById('menu-icon-open');
+        const closeIcon = document.getElementById('menu-icon-close');
+
+        if (toggle && menu) {
+          toggle.addEventListener('click', () => {
+            const isOpen = !menu.classList.contains('hidden');
+            menu.classList.toggle('hidden');
+            toggle.setAttribute('aria-expanded', String(!isOpen));
+            if (openIcon) openIcon.classList.toggle('hidden');
+            if (closeIcon) closeIcon.classList.toggle('hidden');
+          });
+        }
+
+        // Close mobile menu on navigation
+        document.querySelectorAll('#mobile-menu a').forEach((link) => {
+          link.addEventListener('click', () => {
+            if (menu && !menu.classList.contains('hidden')) {
+              menu.classList.add('hidden');
+              toggle?.setAttribute('aria-expanded', 'false');
+              openIcon?.classList.remove('hidden');
+              closeIcon?.classList.add('hidden');
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

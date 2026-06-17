@@ -1,0 +1,46 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CTAButton from '../components/CTAButton.astro';
+---
+
+<BaseLayout
+  title="متشکریم"
+  description="درخواست شما با موفقیت ثبت شد."
+>
+  <section class="section-padding">
+    <div class="container-page">
+      <div class="mx-auto max-w-lg text-center">
+        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+          <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h1 class="mt-6 text-2xl font-bold text-neutral-800 sm:text-3xl">
+          متشکریم!
+        </h1>
+        <p class="mt-4 text-base leading-7 text-neutral-600">
+          درخواست شما با موفقیت ثبت شد. تیم نوونو در اسرع وقت با شما تماس خواهد گرفت تا جزئیات بیشتر را بررسی کنیم.
+        </p>
+        <div class="mt-8 space-y-3">
+          <div class="rounded-xl bg-surface-100 p-4 text-sm text-neutral-600">
+            <p class="font-medium text-neutral-800">بعد از ارسال فرم چه اتفاقی می‌افتد؟</p>
+            <ul class="mt-2 space-y-1 text-right">
+              <li>۱. درخواست شما بررسی می‌شود.</li>
+              <li>۲. با شما تماس گرفته می‌شود.</li>
+              <li>۳. یک جلسه کوتاه برای شناخت بهتر کسب‌وکار تنظیم می‌شود.</li>
+              <li>۴. پیشنهاد عملی ارائه می‌شود.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <CTAButton href="/" size="md">
+            بازگشت به صفحه اصلی
+          </CTAButton>
+          <CTAButton href="/services" variant="outline" size="md">
+            مشاهده خدمات
+          </CTAButton>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

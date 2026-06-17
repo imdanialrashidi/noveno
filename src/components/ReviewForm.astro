@@ -1,0 +1,257 @@
+---
+---
+
+<form id="review-form" class="space-y-5" novalidate>
+  <input type="hidden" name="source" value="customer-acquisition-review" />
+  <input type="hidden" name="page_url" value={Astro.url.href} />
+  <input type="hidden" name="submitted_at" value="" />
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label for="review-fullname" class="mb-1.5 block text-sm font-medium text-neutral-700">
+        نام و نام خانوادگی <span class="text-red-500" aria-hidden="true">*</span>
+      </label>
+      <input
+        type="text"
+        id="review-fullname"
+        name="fullname"
+        required
+        autocomplete="name"
+        class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
+        placeholder="نام و نام خانوادگی"
+      />
+    </div>
+
+    <div>
+      <label for="review-business-name" class="mb-1.5 block text-sm font-medium text-neutral-700">
+        نام کسب‌وکار <span class="text-red-500" aria-hidden="true">*</span>
+      </label>
+      <input
+        type="text"
+        id="review-business-name"
+        name="business_name"
+        required
+        class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
+        placeholder="نام کسب‌وکار"
+      />
+    </div>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label for="review-business-type" class="mb-1.5 block text-sm font-medium text-neutral-700">
+        نوع کسب‌وکار <span class="text-red-500" aria-hidden="true">*</span>
+      </label>
+      <input
+        type="text"
+        id="review-business-type"
+        name="business_type"
+        required
+        class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
+        placeholder="مثلاً: کلینیک زیبایی، آموزشگاه زبان"
+      />
+    </div>
+
+    <div>
+      <label for="review-city" class="mb-1.5 block text-sm font-medium text-neutral-700">
+        شهر <span class="text-red-500" aria-hidden="true">*</span>
+      </label>
+      <input
+        type="text"
+        id="review-city"
+        name="city"
+        required
+        class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
+        placeholder="شهر"
+      />
+    </div>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label for="review-phone" class="mb-1.5 block text-sm font-medium text-neutral-700">
+        شماره تماس <span class="text-red-500" aria-hidden="true">*</span>
+      </label>
+      <input
+        type="tel"
+        id="review-phone"
+        name="phone"
+        required
+        autocomplete="tel"
+        dir="ltr"
+        class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
+        placeholder="09XXXXXXXXX"
+      />
+    </div>
+
+    <div>
+      <label for="review-url" class="mb-1.5 block text-sm font-medium text-neutral-700">
+        آدرس پیج یا سایت
+      </label>
+      <input
+        type="url"
+        id="review-url"
+        name="website_or_page"
+        class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
+        placeholder="https://..."
+        dir="ltr"
+      />
+    </div>
+  </div>
+
+  <div>
+    <label for="review-main-problem" class="mb-1.5 block text-sm font-medium text-neutral-700">
+      مهم‌ترین مشکل فعلی در جذب مشتری <span class="text-red-500" aria-hidden="true">*</span>
+    </label>
+    <textarea
+      id="review-main-problem"
+      name="main_problem"
+      required
+      rows="3"
+      class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors resize-none"
+      placeholder="مهم‌ترین مشکلی که در جذب مشتری دارید چیست؟"
+    ></textarea>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label for="review-ads" class="mb-1.5 block text-sm font-medium text-neutral-700">
+        آیا تبلیغات انجام می‌دهید؟
+      </label>
+      <select
+        id="review-ads"
+        name="does_advertising"
+        class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
+      >
+        <option value="">انتخاب کنید</option>
+        <option value="yes">بله</option>
+        <option value="no">خیر</option>
+        <option value="sometimes">گاهی</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="review-source" class="mb-1.5 block text-sm font-medium text-neutral-700">
+        مشتری‌ها بیشتر از کجا می‌آیند؟
+      </label>
+      <input
+        type="text"
+        id="review-source"
+        name="customer_source"
+        class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
+        placeholder="مثلاً: اینستاگرام، معرفی دوستان"
+      />
+    </div>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label for="review-leads" class="mb-1.5 block text-sm font-medium text-neutral-700">
+        آیا لیدها جایی ثبت می‌شوند؟
+      </label>
+      <select
+        id="review-leads"
+        name="leads_tracked"
+        class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
+      >
+        <option value="">انتخاب کنید</option>
+        <option value="yes">بله، در فایل یا نرم‌افزار</option>
+        <option value="no">خیر، ثبت نمی‌شود</option>
+        <option value="partial">بخشی ثبت می‌شود</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="review-contact-method" class="mb-1.5 block text-sm font-medium text-neutral-700">
+        روش ترجیحی تماس
+      </label>
+      <select
+        id="review-contact-method"
+        name="preferred_contact"
+        class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
+      >
+        <option value="">انتخاب کنید</option>
+        <option value="phone">تماس تلفنی</option>
+        <option value="whatsapp">واتساپ</option>
+        <option value="form">فرم سایت</option>
+      </select>
+    </div>
+  </div>
+
+  <div>
+    <label for="review-extra" class="mb-1.5 block text-sm font-medium text-neutral-700">
+      توضیح اختیاری
+    </label>
+    <textarea
+      id="review-extra"
+      name="extra_info"
+      rows="3"
+      class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors resize-none"
+      placeholder="هر توضیح دیگری که فکر می‌کنید مفید است..."
+    ></textarea>
+  </div>
+
+  <div>
+    <button
+      type="submit"
+      class="w-full rounded-xl bg-brand-600 px-5 py-3 text-base font-medium text-white transition-colors hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:opacity-50"
+    >
+      ارسال درخواست بررسی
+    </button>
+  </div>
+
+  <p class="text-xs text-neutral-400 text-center">
+    این فرم برای بررسی مسیر جذب مشتری شماست و به معنای فروش تضمینی نیست. خروجی بررسی یک پیشنهاد عملی برای بهبود مسیر جذب خواهد بود.
+  </p>
+
+  <div id="review-success" class="hidden rounded-xl bg-green-50 p-4 text-sm text-green-700 text-center" role="status">
+    درخواست شما با موفقیت ثبت شد. به زودی با شما تماس خواهیم گرفت.
+  </div>
+
+  <div id="review-error" class="hidden rounded-xl bg-red-50 p-4 text-sm text-red-700 text-center" role="alert">
+    در ارسال درخواست مشکلی پیش آمده است. لطفاً دوباره تلاش کنید.
+  </div>
+</form>
+
+<script>
+  const form = document.getElementById('review-form') as HTMLFormElement;
+  if (form) {
+    const submittedAt = form.querySelector('input[name="submitted_at"]') as HTMLInputElement;
+    if (submittedAt) submittedAt.value = new Date().toISOString();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const successEl = document.getElementById('review-success');
+      const errorEl = document.getElementById('review-error');
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const endpoint = import.meta.env.PUBLIC_REVIEW_FORM_ENDPOINT;
+      if (!endpoint) {
+        window.location.href = '/thank-you';
+        return;
+      }
+
+      try {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        if (response.ok) {
+          window.location.href = '/thank-you';
+        } else {
+          throw new Error('Form submission failed');
+        }
+      } catch {
+        if (errorEl) errorEl.classList.remove('hidden');
+        if (successEl) successEl.classList.add('hidden');
+      }
+    });
+  }
+</script>

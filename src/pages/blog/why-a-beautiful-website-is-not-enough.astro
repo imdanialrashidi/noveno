@@ -1,0 +1,122 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import CTAButton from '../../components/CTAButton.astro';
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: 'چرا یک سایت زیبا به تنهایی کافی نیست؟',
+  description: 'طراحی زیبا مهم است، ولی بدون مسیر جذب مشتری مشخص، فقط یک دکوراسیون گران‌قیمت است.',
+  url: 'https://noveno.ir/blog/why-a-beautiful-website-is-not-enough',
+  datePublished: '2025-06-05',
+  author: {
+    '@type': 'Organization',
+    name: 'نوونو',
+  },
+};
+---
+
+<BaseLayout
+  title="چرا یک سایت زیبا به تنهایی کافی نیست؟"
+  description="طراحی زیبا مهم است، ولی بدون مسیر جذب مشتری مشخص، فقط یک دکوراسیون گران‌قیمت است. چگونه مسیر جذب مشتری خود را بهبود دهید."
+  structuredData={structuredData}
+>
+  <article class="section-padding bg-white">
+    <div class="container-page">
+      <div class="mx-auto max-w-3xl">
+        <Breadcrumbs items={[
+          { label: 'بلاگ', href: '/blog' },
+          { label: 'چرا یک سایت زیبا کافی نیست' },
+        ]} />
+
+        <div class="mb-8">
+          <div class="flex items-center gap-3 text-xs text-neutral-400">
+            <time>۱۴۰۴/۰۳/۱۵</time>
+            <span>·</span>
+            <span>۵ دقیقه مطالعه</span>
+          </div>
+          <h1 class="mt-3 text-2xl font-bold text-neutral-800 sm:text-3xl">
+            چرا یک سایت زیبا به تنهایی کافی نیست؟
+          </h1>
+        </div>
+
+        <div class="prose prose-neutral max-w-none">
+          <p class="text-base leading-8 text-neutral-600">
+            بسیاری از کسب‌وکارها فکر می‌کنند اگر سایت زیبایی داشته باشند، مشتری خودش می‌آید. ولی واقعیت این است که طراحی زیبا فقط بخشی از ماجراست.
+          </p>
+
+          <h2 class="mt-8 text-xl font-bold text-neutral-800">زیبایی مهم است، ولی کافی نیست</h2>
+          <p class="mt-3 text-sm leading-7 text-neutral-600">
+            یک سایت زیبا می‌تواند توجه بازدیدکننده را جلب کند. ولی اگر بازدیدکننده نداند دقیقاً چه کاری انجام می‌دهید، چرا باید به شما مراجعه کند، و چگونه می‌تواند با شما تماس بگیرد، از سایت شما خارج می‌شود و فراموشتان می‌کند.
+          </p>
+
+          <h2 class="mt-8 text-xl font-bold text-neutral-800">مشکل اصلی: مسیر جذب مشتری نامشخص</h2>
+          <p class="mt-3 text-sm leading-7 text-neutral-600">
+            بسیاری از کسب‌وکارها مشتری بالقوه دارند ولی مسیر تبدیل آن‌ها مشخص نیست. بازدیدکننده سایت یا پیج شما را می‌بیند ولی اقدام نمی‌کند. چرا؟
+          </p>
+          <ul class="mt-3 space-y-2 text-sm text-neutral-600">
+            <li class="flex items-start gap-2">
+              <span class="text-brand-600 mt-1">•</span>
+              پیام کسب‌وکار نامشخص است
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-brand-600 mt-1">•</span>
+              مسیر تماس پیچیده است
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-brand-600 mt-1">•</span>
+              دکمه اقدام واضح نیست
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-brand-600 mt-1">•</span>
+              اعتمادسازی کافی نیست
+            </li>
+          </ul>
+
+          <h2 class="mt-8 text-xl font-bold text-neutral-800">راه‌حل: یک مسیر ساده و واضح</h2>
+          <p class="mt-3 text-sm leading-7 text-neutral-600">
+            به جای تمرکز روی زیبایی، روی مسیر جذب مشتری تمرکز کنید:
+          </p>
+          <ol class="mt-3 space-y-2 text-sm text-neutral-600">
+            <li class="flex items-start gap-2">
+              <span class="font-bold text-brand-600">۱.</span>
+              <span>پیام واضح: مشتری فوراً بفهمد چه می‌کنید</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="font-bold text-brand-600">۲.</span>
+              <span>مسیر اقدام ساده: فرم، تماس یا واتساپ در یک نگاه</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="font-bold text-brand-600">۳.</span>
+              <span>اعتمادسازی: نمونه کار، نظرات مشتریان، اطلاعات شفاف</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="font-bold text-brand-600">۴.</span>
+              <span>سرعت: سایت سریع و موبایل‌محور</span>
+            </li>
+          </ol>
+
+          <h2 class="mt-8 text-xl font-bold text-neutral-800">نتیجه‌گیری</h2>
+          <p class="mt-3 text-sm leading-7 text-neutral-600">
+            یک سایت زیبا مهم است، ولی بدون مسیر جذب مشتری مشخص، فقط یک دکوراسیون گران‌قیمت است. اول مسیر جذب مشتری خود را مشخص کنید، بعد روی زیبایی کار کنید.
+          </p>
+        </div>
+
+        <div class="mt-12 rounded-2xl bg-lavender-50 p-8 text-center">
+          <h2 class="text-xl font-bold text-neutral-800">
+            آیا مسیر جذب مشتری خود را می‌شناسید؟
+          </h2>
+          <p class="mt-2 text-sm text-neutral-600">
+            اگر مطمئن نیستید مسیر جذب مشتری شما درست کار می‌کند، ما می‌توانیم آن را بررسی کنیم.
+          </p>
+          <div class="mt-6">
+            <CTAButton href="/customer-acquisition-review" size="lg">
+              درخواست بررسی مسیر جذب
+            </CTAButton>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+</BaseLayout>

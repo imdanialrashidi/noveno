@@ -1,0 +1,48 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import CTAButton from '../../components/CTAButton.astro';
+---
+
+<BaseLayout
+  title="دارایی‌ها و قالب‌های آماده"
+  description="قالب‌ها و ابزارهای آماده برای سرعت بخشیدن به پروژه‌های جذب مشتری. به‌زودی."
+>
+  <section class="section-padding bg-gradient-to-b from-lavender-100 to-surface-50">
+    <div class="container-page">
+      <Breadcrumbs items={[{ label: 'خدمات', href: '/services' }, { label: 'دارایی‌ها و قالب‌های آماده' }]} />
+      <div class="mx-auto max-w-3xl text-center">
+        <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800 mb-4">
+          به‌زودی
+        </span>
+        <h1 class="text-3xl font-bold text-neutral-800 sm:text-4xl text-balance">
+          دارایی‌ها و قالب‌های آماده
+        </h1>
+        <p class="mt-4 text-base leading-7 text-neutral-600 sm:text-lg">
+          قالب‌ها و ابزارهای آماده برای سرعت بخشیدن به پروژه‌های جذب مشتری.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-padding bg-white">
+    <div class="container-page">
+      <div class="mx-auto max-w-2xl text-center">
+        <div class="rounded-2xl border-2 border-dashed border-neutral-300 p-12">
+          <svg class="mx-auto h-12 w-12 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          <h2 class="mt-4 text-lg font-semibold text-neutral-800">این بخش در حال آماده‌سازی است</h2>
+          <p class="mt-2 text-sm text-neutral-500">
+            قالب‌ها و ابزارهای آماده برای صفحات جذب مشتری، فرم‌ها و ساختارهای رایج به‌زودی ارائه خواهند شد.
+          </p>
+          <div class="mt-6">
+            <CTAButton href="/contact" size="md">
+              تماس برای کسب اطلاعات بیشتر
+            </CTAButton>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

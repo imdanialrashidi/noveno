@@ -1,0 +1,361 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import CTAButton from '../../components/CTAButton.astro';
+
+const packages = [
+  {
+    level: '۰',
+    name: 'بررسی اولیه رایگان',
+    price: 'رایگان',
+    priceNote: 'فقط برای مشتریان واجد شرایط',
+    duration: '۱۰ تا ۲۰ دقیقه',
+    description: 'ابزار فروش برای ایجاد اعتماد و فهم مشکل مشتری.',
+    features: [
+      'بررسی اولیه مسیر جذب مشتری',
+      '۳ نکته درباره پیام، مسیر اقدام و ثبت لید',
+      'تشخیص تناسب مشتری',
+      'پیشنهاد پکیج مناسب',
+    ],
+    notIncluded: [
+      'تحلیل عمیق و گزارش مفصل',
+      'طراحی ساختار صفحه',
+      'بررسی رقبا',
+      'نقشه اجرایی',
+    ],
+    suitableFor: 'مشتریانی که سایت یا پیج دارند و نمی‌دانند چرا درخواست کافی نمی‌گیرند.',
+    icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
+  },
+  {
+    level: '۱',
+    name: 'نقشه جذب مشتری',
+    price: '۴ تا ۹ میلیون تومان',
+    priceNote: 'قیمت نهایی پس از بررسی نیاز مشتری',
+    duration: '۲ تا ۴ روز کاری',
+    description: 'گزارش ۵ تا ۱۰ صفحه‌ای + نقشه اصلاحات + پیشنهاد پکیج مناسب.',
+    features: [
+      'بررسی صفحه/سایت و اینستاگرام فعلی',
+      'بررسی CTA، فرم، مسیر تماس',
+      'بررسی اعتمادسازی و FAQ',
+      'بررسی ثبت لید',
+      'گزارش ۵ تا ۱۰ صفحه‌ای',
+      'نقشه اصلاحات',
+      'پیشنهاد پکیج مناسب',
+    ],
+    notIncluded: [
+      'تحلیل عمیق رقبا',
+      'طراحی صفحه',
+      'اجرا و کدنویسی',
+    ],
+    suitableFor: 'مشتریان مردد که قبل از هزینه سنگین می‌خواهند بفهمند کجای مسیر جذب خراب است.',
+    icon: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7',
+    highlighted: true,
+  },
+  {
+    level: '۲',
+    name: 'شروع هوشمند',
+    price: '۱۸ تا ۳۰ میلیون تومان',
+    priceNote: 'قیمت نهایی پس از بررسی نیاز مشتری',
+    duration: '۷ روز کاری',
+    description: 'سایت/صفحه سریع برای حضور حرفه‌ای و اقدام واضح.',
+    features: [
+      '۱ تا ۵ صفحه: خانه، خدمات، درباره، تماس، FAQ',
+      'طراحی سبک و حرفه‌ای',
+      'CTA واضح',
+      'فرم یا واتساپ',
+      'سئوی پایه فنی',
+      'نصب رهگیری رویدادهای اصلی',
+      'کلیک تماس/واتساپ',
+      'ارسال فرم',
+      'نرخ اقدام اولیه',
+    ],
+    notIncluded: [
+      'تولید محتوای سنگین',
+      'فروشگاه',
+      'اتوماسیون پیچیده',
+      'سئوی ماهانه',
+      'تبلیغات',
+    ],
+    suitableFor: 'آموزشگاه، کلینیک کوچک، خدمات محلی، مشاور مستقل، کسب‌وکار اینستاگرامی.',
+    icon: 'M13 10V3L4 14h7v7l9-11h-7z',
+  },
+  {
+    level: '۳',
+    name: 'رشد هدفمند',
+    price: '۳۵ تا ۹۰ میلیون تومان',
+    priceNote: 'قیمت نهایی پس از بررسی نیاز مشتری',
+    duration: '۱۴ روز کاری',
+    description: 'سیستم کامل‌تر جذب، لندینگ، CRO اولیه و ثبت لید.',
+    features: [
+      'تمام موارد شروع هوشمند',
+      'لندینگ اختصاصی',
+      'CRO اولیه',
+      'ثبت لید در Sheet/Notion/CRM سبک',
+      'داشبورد ساده گزارش',
+      'جلسه بررسی',
+      'شاخص‌های موفقیت: کیفیت سرنخ، نرخ تبدیل، تعداد لید',
+    ],
+    notIncluded: [
+      'تبلیغات',
+      'اتوماسیون پیچیده',
+      'سئوی پیشرفته',
+    ],
+    suitableFor: 'کسب‌وکارهایی که تبلیغ، پیج، معرفی یا ترافیک دارند اما مسیر تبدیل و پیگیری ضعیف است.',
+    icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
+    highlighted: true,
+  },
+  {
+    level: '۴',
+    name: 'فروش آنلاین سبک',
+    price: '۷۰ تا ۱۴۰ میلیون تومان',
+    priceNote: 'قیمت نهایی پس از بررسی نیاز مشتری',
+    duration: '۱۴ تا ۲۱ روز کاری',
+    description: 'فروشگاه سبک با مسیر خرید، پرداخت و رهگیری.',
+    features: [
+      'راه‌اندازی WooCommerce یا ساختار فروش سبک',
+      'دسته‌بندی و فیلتر استاندارد',
+      'تنظیم پرداخت/ارسال/کد تخفیف',
+      'رهگیری Cart/Checkout/Purchase',
+      'شاخص‌های موفقیت: افزودن به سبد، تکمیل پرداخت، ریزش',
+    ],
+    notIncluded: [
+      'اپلیکیشن',
+      'مارکت‌پلیس چندفروشنده',
+      'ERP',
+      'انبارداری پیچیده',
+      'توسعه اختصاصی سنگین',
+    ],
+    suitableFor: 'فروشگاه محلی، فروشگاه اینستاگرامی، فروشگاه تخصصی با تعداد محصول محدود تا متوسط.',
+    icon: 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z',
+  },
+  {
+    level: '۵',
+    name: 'همراهی ماهانه',
+    price: '۴ تا ۲۵ میلیون تومان / ماه',
+    priceNote: 'سه پلن: پایه، رشد، فعال',
+    duration: 'ماهانه',
+    description: 'نگهداری، گزارش و بهبود مستمر پس از تحویل.',
+    features: [
+      'پایه: بکاپ، بروزرسانی، پایش، ۱ درخواست کوچک',
+      'رشد: همه موارد پایه + گزارش KPI + ۲ درخواست کوچک + پیشنهاد CRO',
+      'فعال: همه موارد رشد + بررسی قیف + اصلاحات بیشتر + جلسه ماهانه',
+    ],
+    notIncluded: [
+      'پشتیبانی رایگان نامحدود',
+      'تغییرات بزرگ خارج از Scope',
+    ],
+    suitableFor: 'سایت‌هایی که لید می‌گیرند و نیاز به گزارش و بهبود مستمر دارند.',
+    icon: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15',
+  },
+];
+
+const addons = [
+  { service: 'لندینگ اضافه برای کمپین', price: '۸ تا ۲۰ میلیون تومان', description: 'برای یک خدمت، محصول یا کمپین مشخص' },
+  { service: 'کپی‌رایتینگ صفحه خدمات', price: '۳ تا ۱۲ میلیون تومان', description: 'بازنویسی پیام، ارزش پیشنهادی، CTA و FAQ' },
+  { service: 'اتصال CRM سبک', price: '۴ تا ۱۵ میلیون تومان', description: 'فرم، ستون‌بندی لیدها، وضعیت پیگیری، گزارش پایه' },
+  { service: 'داشبورد KPI ساده', price: '۵ تا ۱۸ میلیون تومان', description: 'نمایش فرم‌ها، کلیک‌ها، منبع ورودی و وضعیت لید' },
+  { service: 'بهینه‌سازی سرعت و امنیت', price: '۵ تا ۱۸ میلیون تومان', description: 'کش، تصاویر، پالگین‌ها، بکاپ، تنظیمات امنیتی' },
+  { service: 'سئوی پایه ساختاری', price: '۶ تا ۲۰ میلیون تومان', description: 'ساختار عنوان‌ها، متا، اسکیما پایه، سرچ کنسول، sitemap' },
+  { service: 'زبان دوم', price: '۱۵٪+ تا ۳۰٪+ قیمت پروژه', description: 'راست‌به‌چپ/چپ‌به‌راست بودن زبان' },
+  { service: 'تولید محتوای اولیه و وبلاگ', price: 'هر مقاله ۱.۵ تا ۴ میلیون تومان', description: 'تحقیق، ساختار، نگارش و انتشار اولیه' },
+];
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'خدمات و قیمت‌گذاری نوونو',
+  description: 'پکیج‌های خدماتی نوونو برای سیستم جذب مشتری: از بررسی رایگان تا فروشگاه آنلاین و همراهی ماهانه.',
+  url: 'https://noveno.ir/services',
+};
+---
+
+<BaseLayout
+  title="خدمات و قیمت‌گذاری"
+  description="پکیج‌های خدماتی نوونو برای سیستم جذب مشتری: بررسی رایگان، نقشه جذب، شروع هوشمند، رشد هدفمند، فروش آنلاین و همراهی ماهانه. قیمت‌های روز بازار ایران."
+  structuredData={structuredData}
+>
+  <!-- Hero -->
+  <section class="section-padding bg-gradient-to-b from-lavender-100 to-surface-50">
+    <div class="container-page">
+      <Breadcrumbs items={[{ label: 'خدمات و قیمت‌گذاری' }]} />
+      <div class="mx-auto max-w-3xl text-center">
+        <h1 class="text-3xl font-bold text-neutral-800 sm:text-4xl text-balance">
+          خدمات و قیمت‌گذاری نوونو
+        </h1>
+        <p class="mt-4 text-base leading-7 text-neutral-600 sm:text-lg">
+          ما فقط سایت نمی‌سازیم؛ مسیر اقدام مشتری را طوری طراحی می‌کنیم که تماس، فرم یا واتساپ قابل پیگیری شود.
+        </p>
+        <p class="mt-2 text-sm text-neutral-500">
+          قیمت‌ها بر اساس شرایط بازار ایران (خرداد ۱۴۰۵) تنظیم شده‌اند و اعتبار ۳۰ روزه دارند.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Packages -->
+  <section class="section-padding bg-white">
+    <div class="container-page">
+      <SectionHeading
+        title="پکیج‌های خدماتی"
+        subtitle="از یک بررسی کم‌ریسک رایگان شروع کنید و در صورت نیاز به پروژه کامل ارتقا پیدا کنید."
+      />
+
+      <div class="mx-auto mt-12 max-w-6xl space-y-8">
+        {packages.map((pkg) => (
+          <div class={`rounded-2xl border-2 p-6 sm:p-8 transition-all duration-200 ${pkg.highlighted ? 'border-brand-400 bg-brand-50 shadow-md' : 'border-neutral-200 bg-white shadow-sm hover:border-brand-200 hover:shadow-md'}`}>
+            <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+              <!-- Left: Info -->
+              <div class="flex-1">
+                <div class="flex items-center gap-3">
+                  <span class={`flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold ${pkg.highlighted ? 'bg-brand-600 text-white' : 'bg-lavender-200 text-brand-700'}`}>
+                    {pkg.level}
+                  </span>
+                  <div>
+                    <h2 class="text-xl font-bold text-neutral-800">{pkg.name}</h2>
+                    <p class="text-sm text-neutral-500">{pkg.duration}</p>
+                  </div>
+                </div>
+
+                <p class="mt-4 text-sm leading-7 text-neutral-600">{pkg.description}</p>
+
+                <div class="mt-4">
+                  <h3 class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">مناسب برای</h3>
+                  <p class="mt-1 text-sm text-neutral-600">{pkg.suitableFor}</p>
+                </div>
+
+                <div class="mt-4">
+                  <h3 class="text-xs font-semibold text-green-600 uppercase tracking-wider">شامل چیست</h3>
+                  <ul class="mt-2 grid gap-1.5 sm:grid-cols-2">
+                    {pkg.features.map((feature) => (
+                      <li class="flex items-start gap-2 text-sm text-neutral-600">
+                        <svg class="h-4 w-4 shrink-0 text-green-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {pkg.notIncluded.length > 0 && (
+                  <div class="mt-3">
+                    <h3 class="text-xs font-semibold text-red-500 uppercase tracking-wider">شامل چیست نیست</h3>
+                    <ul class="mt-2 flex flex-wrap gap-1.5">
+                      {pkg.notIncluded.map((item) => (
+                        <li class="flex items-center gap-1 text-xs text-neutral-400">
+                          <svg class="h-3 w-3 shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              <!-- Right: Price & CTA -->
+              <div class="lg:w-64 shrink-0">
+                <div class={`rounded-xl p-5 text-center ${pkg.highlighted ? 'bg-brand-600 text-white' : 'bg-surface-100 text-neutral-800'}`}>
+                  <p class={`text-2xl font-bold ${pkg.highlighted ? 'text-white' : 'text-brand-700'}`}>{pkg.price}</p>
+                  <p class={`mt-1 text-xs ${pkg.highlighted ? 'text-brand-100' : 'text-neutral-500'}`}>{pkg.priceNote}</p>
+                </div>
+                <div class="mt-4">
+                  <a href="/customer-acquisition-review" class={`flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-all duration-200 ${pkg.highlighted ? 'bg-brand-600 text-white hover:bg-brand-700 shadow-sm hover:shadow-md' : 'bg-brand-600 text-white hover:bg-brand-700'}`}>
+                    شروع
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Add-on Services -->
+  <section class="section-padding bg-surface-50">
+    <div class="container-page">
+      <SectionHeading
+        title="خدمات افزوده"
+        subtitle="خدمات تکمیلی برای پروژه‌هایی که نیاز به امکانات بیشتر دارند."
+      />
+
+      <div class="mx-auto mt-10 max-w-5xl overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-neutral-200">
+              <th class="py-3 pr-4 text-right font-semibold text-neutral-800">خدمت</th>
+              <th class="py-3 px-4 text-right font-semibold text-neutral-800">قیمت پیشنهادی</th>
+              <th class="py-3 pl-4 text-right font-semibold text-neutral-800 hidden sm:table-cell">توضیح</th>
+            </tr>
+          </thead>
+          <tbody>
+            {addons.map((addon) => (
+              <tr class="border-b border-neutral-100 hover:bg-white transition-colors">
+                <td class="py-3 pr-4 font-medium text-neutral-700">{addon.service}</td>
+                <td class="py-3 px-4 text-brand-700 font-semibold whitespace-nowrap">{addon.price}</td>
+                <td class="py-3 pl-4 text-neutral-500 hidden sm:table-cell">{addon.description}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Payment Policy -->
+  <section class="section-padding bg-white">
+    <div class="container-page">
+      <SectionHeading
+        title="سیاست پرداخت و تحویل"
+      />
+
+      <div class="mx-auto mt-10 max-w-4xl grid gap-4 sm:grid-cols-2">
+        <div class="rounded-xl border border-neutral-200 bg-surface-50 p-5">
+          <h3 class="text-sm font-semibold text-neutral-800">پرداخت پروژه‌های کوچک</h3>
+          <p class="mt-2 text-sm text-neutral-600">۵۰٪ در شروع، ۵۰٪ قبل از تحویل نهایی یا انتشار</p>
+        </div>
+        <div class="rounded-xl border border-neutral-200 bg-surface-50 p-5">
+          <h3 class="text-sm font-semibold text-neutral-800">پرداخت پروژه‌های متوسط و بزرگ</h3>
+          <p class="mt-2 text-sm text-neutral-600">۵۰٪ شروع، ۳۰٪ پس از تأیید ساختار، ۲۰٪ قبل از انتشار</p>
+        </div>
+        <div class="rounded-xl border border-neutral-200 bg-surface-50 p-5">
+          <h3 class="text-sm font-semibold text-neutral-800">اصلاحات</h3>
+          <p class="mt-2 text-sm text-neutral-600">۲ چرخه اصلاح در محدوده توافق‌شده؛ خارج از Scope با Quote</p>
+        </div>
+        <div class="rounded-xl border border-neutral-200 bg-surface-50 p-5">
+          <h3 class="text-sm font-semibold text-neutral-800">دامنه و هاست</h3>
+          <p class="mt-2 text-sm text-neutral-600">جداگانه، ترجیحاً به مالکیت مشتری و جدا از هزینه طراحی</p>
+        </div>
+        <div class="rounded-xl border border-neutral-200 bg-surface-50 p-5">
+          <h3 class="text-sm font-semibold text-neutral-800">مالکیت نهایی</h3>
+          <p class="mt-2 text-sm text-neutral-600">پس از تسویه، سورس/دسترسی‌ها طبق قرارداد منتقل می‌شود</p>
+        </div>
+        <div class="rounded-xl border border-neutral-200 bg-surface-50 p-5">
+          <h3 class="text-sm font-semibold text-neutral-800">محتوا</h3>
+          <p class="mt-2 text-sm text-neutral-600">محتوای خام با مشتری است؛ بازنویسی و کپی‌رایتینگ در صورت نیاز جداگانه</p>
+        </div>
+        <div class="rounded-xl border border-neutral-200 bg-surface-50 p-5 sm:col-span-2">
+          <h3 class="text-sm font-semibold text-neutral-800">پشتیبانی پس از تحویل</h3>
+          <p class="mt-2 text-sm text-neutral-600">جداگانه قیمت‌گذاری می‌شود. به‌صورت بسته ماهانه؛ پشتیبانی رایگان نامحدود ممنوع است.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section-padding bg-brand-600">
+    <div class="container-page text-center">
+      <h2 class="text-2xl font-bold text-white sm:text-3xl">
+        آماده‌اید مسیر جذب مشتری خود را بهبود دهید؟
+      </h2>
+      <p class="mt-3 text-base text-brand-100 sm:text-lg">
+        با یک بررسی رایگان شروع کنید. بدون تعهد.
+      </p>
+      <div class="mt-8">
+        <a href="/customer-acquisition-review" class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-bold text-brand-700 shadow-lg transition-all duration-200 hover:bg-brand-50 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+          درخواست بررسی مسیر جذب
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

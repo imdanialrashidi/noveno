@@ -1,0 +1,135 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import IndustryCard from '../components/IndustryCard.astro';
+
+const industries = [
+  {
+    name: 'کلینیک‌های زیبایی و درمانی',
+    description: 'هر مشتری جدید ارزش بالایی دارد و پیگیری منظم ضروری است. نوبت‌دهی تلفنی وقت‌گیر است و بسیاری از درخواست‌ها گم می‌شوند.',
+    icon: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
+    details: ['نوبت‌دهی آنلاین', 'فرم مشاوره رایگان', 'پیگیری درمان', 'معرفی خدمات تخصصی', 'اعتمادسازی با معرفی پزشک'],
+  },
+  {
+    name: 'آموزشگاه‌ها و دوره‌ها',
+    description: 'ثبت‌نام‌های ناقص و عدم پیگیری مهم‌ترین مشکل است. متقاضیان زیادی هستند ولی ثبت‌نام نهایی نمی‌شوند.',
+    icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253',
+    details: ['معرفی دوره‌ها', 'فرم ثبت‌نام', 'پیگیری متقاضیان', 'تخفیف‌های ویژه', 'گزارش ثبت‌نام'],
+  },
+  {
+    name: 'سالن‌های زیبایی و مزون‌ها',
+    description: 'رقابت بالا و نیاز به تمایز مشخص. مشتری باید فوراً بفهمد چه خدماتی ارائه می‌دهید و چرا باید به شما مراجعه کند.',
+    icon: 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z',
+    details: ['نوبت‌دهی آنلاین', 'معرفی خدمات', 'گالری نمونه کار', 'جذب مشتری جدید', 'مسیر سفارش'],
+  },
+  {
+    name: 'مشاوران املاک',
+    description: 'هر لید ارزش اقتصادی بالایی دارد. فرم درخواست بازدید و پیگیری مشتری حیاتی است.',
+    icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
+    details: ['معرفی ملک', 'فرم درخواست بازدید', 'پیگیری مشتری', 'مشاوره رایگان', 'مسیر اقدام واضح'],
+  },
+  {
+    name: 'فروشگاه‌های محلی',
+    description: 'محصولات محدود ولی با ارزش. مسیر خرید ساده و اطلاع‌رسانی موجودی مهم است.',
+    icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z',
+    details: ['معرفی محصول', 'فرم سفارش', 'اطلاع‌رسانی موجودی', 'تخفیف‌های ویژه', 'مسیر خرید ساده'],
+  },
+  {
+    name: 'خدمات فنی و تعمیرات',
+    description: 'اعتمادسازی مهم‌ترین عامل است. مشتری باید مطمئن شود کسب‌وکار شما قابل اتکا و حرفه‌ای است.',
+    icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
+    details: ['معرفی خدمات', 'فرم درخواست تعمیر', 'پیگیری سفارش', 'گارانتی خدمات', 'اعتمادسازی'],
+  },
+  {
+    name: 'مشاوران و متخصصان مستقل',
+    description: 'اعتمادسازی و نمایش تخصص حیاتی است. مشتری باید قبل از تماس، اعتماد کافی پیدا کند.',
+    icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
+    details: ['معرفی تخصص', 'فرم رزرو مشاوره', 'نمونه پروژه‌ها', 'مشاوره اولیه رایگان', 'مسیر اقدام واضح'],
+  },
+  {
+    name: 'کسب‌وکارهای B2B کوچک',
+    description: 'خدماتی که به مشتریان تجاری ارائه می‌شوند. فرم درخواست همکاری و پیگیری حیاتی است.',
+    icon: 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
+    details: ['معرفی خدمات', 'فرم درخواست همکاری', 'نمونه پروژه‌ها', 'مشاوره اولیه'],
+  },
+];
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'صنایع مناسب برای نوونو',
+  description: 'کسب‌وکارهایی که نوونو برای آن‌ها طراحی شده: کلینیک‌ها، آموزشگاه‌ها، سالن‌های زیبایی، مشاوران املاک و غیره.',
+  url: 'https://noveno.ir/industries',
+};
+---
+
+<BaseLayout
+  title="صنایع مناسب"
+  description="نوونو برای کسب‌وکارهایی طراحی شده که هر مشتری جدید ارزش اقتصادی واقعی دارد. صنایع مناسب و ویژگی‌های آن‌ها را بشناسید."
+  structuredData={structuredData}
+>
+  <section class="section-padding bg-gradient-to-b from-lavender-100 to-surface-50">
+    <div class="container-page">
+      <Breadcrumbs items={[{ label: 'صنایع مناسب' }]} />
+
+      <div class="mx-auto max-w-3xl text-center">
+        <h1 class="text-3xl font-bold text-neutral-800 sm:text-4xl text-balance">
+          کسب‌وکارهایی که برای آن‌ها طراحی شده‌ایم
+        </h1>
+        <p class="mt-4 text-base leading-7 text-neutral-600 sm:text-lg">
+          نوونو برای کسب‌وکارهایی مناسب است که از هر مشتری جدید ارزش اقتصادی واقعی می‌گیرند و به راه‌حل ساده، قابل فهم و قابل اجرا نیاز دارند. مشتری هدف، کسب‌وکاری است که محصول یا خدمت مشخصی دارد و می‌خواهد مسیر جذب مشتری‌اش منظم‌تر و قابل پیگیری‌تر شود.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-padding bg-white">
+    <div class="container-page">
+      <div class="mx-auto grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {industries.map((industry) => (
+          <div class="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-lavender-200 text-brand-600">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={industry.icon} />
+              </svg>
+            </div>
+            <h2 class="mt-4 text-lg font-semibold text-neutral-800">{industry.name}</h2>
+            <p class="mt-2 text-sm leading-6 text-neutral-500">{industry.description}</p>
+            <ul class="mt-4 space-y-1.5">
+              {industry.details.map((detail) => (
+                <li class="flex items-center gap-2 text-sm text-neutral-600">
+                  <svg class="h-4 w-4 shrink-0 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  {detail}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section-padding bg-surface-50">
+    <div class="container-page">
+      <div class="mx-auto max-w-3xl text-center">
+        <h2 class="text-2xl font-bold text-neutral-800 sm:text-3xl">
+          کسب‌وکار شما در لیست نیست؟
+        </h2>
+        <p class="mt-3 text-base text-neutral-600">
+          اگر کسب‌وکار شما در لیست بالا نیست ولی فکر می‌کنید نوونو می‌تواند کمک کند، با ما تماس بگیرید. بررسی اولیه رایگان است.
+        </p>
+        <div class="mt-6">
+          <a href="/customer-acquisition-review" class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-6 py-3 text-sm font-medium text-white hover:bg-brand-700 transition-colors">
+            درخواست بررسی مسیر جذب
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

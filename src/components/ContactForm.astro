@@ -1,0 +1,121 @@
+---
+interface Props {
+  source?: string;
+}
+
+const { source = 'contact' } = Astro.props;
+---
+
+<form id="contact-form" class="space-y-4" novalidate>
+  <input type="hidden" name="source" value={source} />
+  <input type="hidden" name="page_url" value={Astro.url.href} />
+  <input type="hidden" name="submitted_at" value="" />
+
+  <div>
+    <label for="contact-name" class="mb-1.5 block text-sm font-medium text-neutral-700">
+      نام <span class="text-red-500" aria-hidden="true">*</span>
+    </label>
+    <input
+      type="text"
+      id="contact-name"
+      name="name"
+      required
+      autocomplete="name"
+      class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
+      placeholder="نام خود را وارد کنید"
+    />
+    <p class="mt-1 hidden text-xs text-red-600" role="alert"></p>
+  </div>
+
+  <div>
+    <label for="contact-phone" class="mb-1.5 block text-sm font-medium text-neutral-700">
+      شماره تماس <span class="text-red-500" aria-hidden="true">*</span>
+    </label>
+    <input
+      type="tel"
+      id="contact-phone"
+      name="phone"
+      required
+      autocomplete="tel"
+      dir="ltr"
+      class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
+      placeholder="09XXXXXXXXX"
+    />
+    <p class="mt-1 hidden text-xs text-red-600" role="alert"></p>
+  </div>
+
+  <div>
+    <label for="contact-message" class="mb-1.5 block text-sm font-medium text-neutral-700">
+      پیام کوتاه
+    </label>
+    <textarea
+      id="contact-message"
+      name="message"
+      rows="3"
+      class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors resize-none"
+      placeholder="پیام خود را بنویسید..."
+    ></textarea>
+  </div>
+
+  <div>
+    <button
+      type="submit"
+      class="w-full rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:opacity-50"
+    >
+      ارسال پیام
+    </button>
+  </div>
+
+  <div id="contact-success" class="hidden rounded-xl bg-green-50 p-4 text-sm text-green-700" role="status">
+    پیام شما با موفقیت ارسال شد. به زودی با شما تماس خواهیم گرفت.
+  </div>
+
+  <div id="contact-error" class="hidden rounded-xl bg-red-50 p-4 text-sm text-red-700" role="alert">
+    در ارسال پیام مشکلی پیش آمده است. لطفاً دوباره تلاش کنید یا با ما تماس بگیرید.
+  </div>
+</form>
+
+<script>
+  const form = document.getElementById('contact-form') as HTMLFormElement;
+  if (form) {
+    const submittedAt = form.querySelector('input[name="submitted_at"]') as HTMLInputElement;
+    if (submittedAt) submittedAt.value = new Date().toISOString();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const successEl = document.getElementById('contact-success');
+      const errorEl = document.getElementById('contact-error');
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const endpoint = import.meta.env.PUBLIC_FORM_ENDPOINT;
+      if (!endpoint) {
+        if (successEl) successEl.classList.remove('hidden');
+        if (errorEl) errorEl.classList.add('hidden');
+        form.reset();
+        return;
+      }
+
+      try {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        if (response.ok) {
+          window.location.href = '/thank-you';
+        } else {
+          throw new Error('Form submission failed');
+        }
+      } catch {
+        if (errorEl) errorEl.classList.remove('hidden');
+        if (successEl) successEl.classList.add('hidden');
+      }
+    });
+  }
+</script>
