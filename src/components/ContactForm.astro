@@ -6,10 +6,20 @@ interface Props {
 const { source = 'contact' } = Astro.props;
 ---
 
-<form id="contact-form" class="space-y-4" novalidate>
+<form
+  id="contact-form"
+  action="https://api.web3forms.com/submit"
+  method="POST"
+  class="space-y-4"
+>
+  <input type="hidden" name="access_key" value="57f6da33-cef2-4b2b-a3de-f4b279030c53" />
+  <input type="hidden" name="from_name" value="Noveno Website" />
+  <input type="hidden" name="redirect" value="https://noveno.ir/thank-you?source=contact" />
+  <input type="hidden" name="subject" value="پیام تماس سریع - Noveno" />
+  <input type="hidden" name="botcheck" value="" class="hidden" />
+  <input type="hidden" name="form_name" value="quick_contact" />
+  <input type="hidden" name="site_domain" value="noveno.ir" />
   <input type="hidden" name="source" value={source} />
-  <input type="hidden" name="page_url" value={Astro.url.href} />
-  <input type="hidden" name="submitted_at" value="" />
 
   <div>
     <label for="contact-name" class="mb-1.5 block text-sm font-medium text-neutral-700">
@@ -24,7 +34,6 @@ const { source = 'contact' } = Astro.props;
       class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
       placeholder="نام خود را وارد کنید"
     />
-    <p class="mt-1 hidden text-xs text-red-600" role="alert"></p>
   </div>
 
   <div>
@@ -41,7 +50,6 @@ const { source = 'contact' } = Astro.props;
       class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
       placeholder="09XXXXXXXXX"
     />
-    <p class="mt-1 hidden text-xs text-red-600" role="alert"></p>
   </div>
 
   <div>
@@ -66,54 +74,7 @@ const { source = 'contact' } = Astro.props;
     </button>
   </div>
 
-  <div id="contact-success" class="hidden rounded-xl bg-green-50 p-4 text-sm text-green-700" role="status">
-    پیام شما با موفقیت ارسال شد. به زودی با شما تماس خواهیم گرفت.
-  </div>
-
-  <div id="contact-error" class="hidden rounded-xl bg-red-50 p-4 text-sm text-red-700" role="alert">
-    در ارسال پیام مشکلی پیش آمده است. لطفاً دوباره تلاش کنید یا با ما تماس بگیرید.
-  </div>
+  <p class="text-xs text-neutral-400 text-center">
+    اطلاعات شما فقط برای بررسی درخواست و تماس با شما استفاده می‌شود.
+  </p>
 </form>
-
-<script>
-  const form = document.getElementById('contact-form') as HTMLFormElement;
-  if (form) {
-    const submittedAt = form.querySelector('input[name="submitted_at"]') as HTMLInputElement;
-    if (submittedAt) submittedAt.value = new Date().toISOString();
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const successEl = document.getElementById('contact-success');
-      const errorEl = document.getElementById('contact-error');
-
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-      }
-
-      const endpoint = import.meta.env.PUBLIC_FORM_ENDPOINT;
-      if (!endpoint) {
-        window.location.href = '/thank-you?source=contact';
-        return;
-      }
-
-      try {
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
-        if (response.ok) {
-          window.location.href = '/thank-you?source=contact';
-        } else {
-          throw new Error('Form submission failed');
-        }
-      } catch {
-        if (errorEl) errorEl.classList.remove('hidden');
-        if (successEl) successEl.classList.add('hidden');
-      }
-    });
-  }
-</script>

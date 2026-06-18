@@ -1,10 +1,19 @@
 ---
 ---
 
-<form id="review-form" class="space-y-5" novalidate>
-  <input type="hidden" name="source" value="customer-acquisition-review" />
-  <input type="hidden" name="page_url" value={Astro.url.href} />
-  <input type="hidden" name="submitted_at" value="" />
+<form
+  id="review-form"
+  action="https://api.web3forms.com/submit"
+  method="POST"
+  class="space-y-5"
+>
+  <input type="hidden" name="access_key" value="57f6da33-cef2-4b2b-a3de-f4b279030c53" />
+  <input type="hidden" name="from_name" value="Noveno Website" />
+  <input type="hidden" name="redirect" value="https://noveno.ir/thank-you?source=review" />
+  <input type="hidden" name="subject" value="درخواست بررسی مسیر جذب - Noveno" />
+  <input type="hidden" name="botcheck" value="" class="hidden" />
+  <input type="hidden" name="form_name" value="customer_acquisition_review" />
+  <input type="hidden" name="site_domain" value="noveno.ir" />
 
   <div class="grid gap-4 sm:grid-cols-2">
     <div>
@@ -14,7 +23,7 @@
       <input
         type="text"
         id="review-fullname"
-        name="fullname"
+        name="full_name"
         required
         autocomplete="name"
         class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
@@ -91,7 +100,7 @@
       <input
         type="url"
         id="review-url"
-        name="website_or_page"
+        name="website_or_social"
         class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
         placeholder="https://..."
         dir="ltr"
@@ -105,7 +114,7 @@
     </label>
     <textarea
       id="review-main-problem"
-      name="main_problem"
+      name="main_customer_acquisition_problem"
       required
       rows="3"
       class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors resize-none"
@@ -120,13 +129,13 @@
       </label>
       <select
         id="review-ads"
-        name="does_advertising"
+        name="running_ads"
         class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
       >
         <option value="">انتخاب کنید</option>
-        <option value="yes">بله</option>
-        <option value="no">خیر</option>
-        <option value="sometimes">گاهی</option>
+        <option value="بله">بله</option>
+        <option value="خیر">خیر</option>
+        <option value="گاهی">گاهی</option>
       </select>
     </div>
 
@@ -137,7 +146,7 @@
       <input
         type="text"
         id="review-source"
-        name="customer_source"
+        name="lead_sources"
         class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
         placeholder="مثلاً: اینستاگرام، معرفی دوستان"
       />
@@ -151,13 +160,13 @@
       </label>
       <select
         id="review-leads"
-        name="leads_tracked"
+        name="lead_tracking_status"
         class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
       >
         <option value="">انتخاب کنید</option>
-        <option value="yes">بله، در فایل یا نرم‌افزار</option>
-        <option value="no">خیر، ثبت نمی‌شود</option>
-        <option value="partial">بخشی ثبت می‌شود</option>
+        <option value="بله، در فایل یا نرم‌افزار">بله، در فایل یا نرم‌افزار</option>
+        <option value="خیر، ثبت نمی‌شود">خیر، ثبت نمی‌شود</option>
+        <option value="بخشی ثبت می‌شود">بخشی ثبت می‌شود</option>
       </select>
     </div>
 
@@ -167,13 +176,13 @@
       </label>
       <select
         id="review-contact-method"
-        name="preferred_contact"
+        name="preferred_contact_method"
         class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors"
       >
         <option value="">انتخاب کنید</option>
-        <option value="phone">تماس تلفنی</option>
-        <option value="whatsapp">واتساپ</option>
-        <option value="form">فرم سایت</option>
+        <option value="تماس تلفنی">تماس تلفنی</option>
+        <option value="واتساپ">واتساپ</option>
+        <option value="فرم سایت">فرم سایت</option>
       </select>
     </div>
   </div>
@@ -184,7 +193,7 @@
     </label>
     <textarea
       id="review-extra"
-      name="extra_info"
+      name="extra_notes"
       rows="3"
       class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-colors resize-none"
       placeholder="هر توضیح دیگری که فکر می‌کنید مفید است..."
@@ -204,54 +213,7 @@
     این فرم برای بررسی مسیر جذب مشتری شماست و به معنای فروش تضمینی نیست. خروجی بررسی یک پیشنهاد عملی برای بهبود مسیر جذب خواهد بود.
   </p>
 
-  <div id="review-success" class="hidden rounded-xl bg-green-50 p-4 text-sm text-green-700 text-center" role="status">
-    درخواست شما با موفقیت ثبت شد. به زودی با شما تماس خواهیم گرفت.
-  </div>
-
-  <div id="review-error" class="hidden rounded-xl bg-red-50 p-4 text-sm text-red-700 text-center" role="alert">
-    در ارسال درخواست مشکلی پیش آمده است. لطفاً دوباره تلاش کنید.
-  </div>
+  <p class="text-xs text-neutral-400 text-center">
+    اطلاعات شما فقط برای بررسی درخواست و تماس با شما استفاده می‌شود.
+  </p>
 </form>
-
-<script>
-  const form = document.getElementById('review-form') as HTMLFormElement;
-  if (form) {
-    const submittedAt = form.querySelector('input[name="submitted_at"]') as HTMLInputElement;
-    if (submittedAt) submittedAt.value = new Date().toISOString();
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const successEl = document.getElementById('review-success');
-      const errorEl = document.getElementById('review-error');
-
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-      }
-
-      const endpoint = import.meta.env.PUBLIC_REVIEW_FORM_ENDPOINT;
-      if (!endpoint) {
-        window.location.href = '/thank-you?source=review';
-        return;
-      }
-
-      try {
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
-        if (response.ok) {
-          window.location.href = '/thank-you?source=review';
-        } else {
-          throw new Error('Form submission failed');
-        }
-      } catch {
-        if (errorEl) errorEl.classList.remove('hidden');
-        if (successEl) successEl.classList.add('hidden');
-      }
-    });
-  }
-</script>
