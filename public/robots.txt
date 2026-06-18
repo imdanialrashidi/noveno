@@ -1,4 +1,15 @@
 User-agent: *
 Allow: /
+Disallow: /thank-you
 
 Sitemap: https://noveno.ir/sitemap.xml
+
+# AI crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /

@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CTAButton from '../components/CTAButton.astro';
+---
+
+<BaseLayout
+  title="صفحه مورد نظر یافت نشد"
+  description="صفحه‌ای که دنبال آن می‌گردید وجود ندارد یا جابجا شده است."
+  noindex={true}
+>
+  <section class="section-padding">
+    <div class="container-page">
+      <div class="mx-auto max-w-lg text-center">
+        <div class="mb-6 text-8xl font-bold text-brand-200">۴۰۴</div>
+        <h1 class="text-2xl font-bold text-neutral-800 sm:text-3xl">
+          صفحه مورد نظر یافت نشد
+        </h1>
+        <p class="mt-4 text-base text-neutral-500">
+          صفحه‌ای که دنبال آن می‌گردید وجود ندارد یا به آدرس دیگری جابجا شده است.
+        </p>
+        <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <CTAButton href="/" size="md">
+            بازگشت به صفحه اصلی
+          </CTAButton>
+          <CTAButton href="/contact" variant="outline" size="md">
+            تماس با ما
+          </CTAButton>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

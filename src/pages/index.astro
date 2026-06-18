@@ -107,51 +107,80 @@ const industries = [
   { name: 'خدمات فنی و تعمیرات', description: 'صفحه معرفی خدمات، فرم درخواست تعمیر و پیگیری', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
 ];
 
-const structuredData = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'نوونو',
-  url: 'https://noveno.ir',
-  logo: 'https://noveno.ir/logo.svg',
-  description: 'سیستم ساده، قابل پیگیری و قابل اندازه‌گیری جذب مشتری برای کسب‌وکارهای کوچک و متوسط ایرانی.',
-  contactPoint: {
-    '@type': 'ContactPoint',
-    telephone: '+98-XX-XXXXXXXX',
-    contactType: 'customer service',
-    availableLanguage: 'Persian',
-  },
-};
-
-const webSiteData = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'نوونو',
-  url: 'https://noveno.ir',
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: 'https://noveno.ir/search?q={search_term_string}',
-    'query-input': 'required name=search_term_string',
-  },
-};
-
-const faqData = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: faqItems.map((item) => ({
-    '@type': 'Question',
-    name: item.q,
-    acceptedAnswer: {
-      '@type': 'Answer',
-      text: item.a,
+const structuredData = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'نوونو',
+    url: 'https://noveno.ir',
+    logo: 'https://noveno.ir/logo.svg',
+    description: 'نوونو یک کسب‌وکار خدماتی-سیستمی است که برای کسب‌وکارهای کوچک و متوسط ایرانی، سیستم جذب، ثبت، پیگیری و بهبود مسیر مشتری می‌سازد.',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      telephone: '+98-9353598620',
+      contactType: 'customer service',
+      availableLanguage: 'Persian',
     },
-  })),
-};
+    sameAs: [
+      'https://instagram.com/noveno.ir',
+      'https://t.me/noveno.ir',
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'نوونو',
+    url: 'https://noveno.ir',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: 'https://noveno.ir/search?q={search_term_string}',
+      'query-input': 'required name=search_term_string',
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqItems.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.a,
+      },
+    })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: 'سیستم جذب مشتری نوونو',
+    provider: {
+      '@type': 'Organization',
+      name: 'نوونو',
+    },
+    description: 'سیستم ساده، قابل پیگیری و قابل اندازه‌گیری جذب مشتری برای کسب‌وکارهای کوچک و متوسط ایرانی.',
+    areaServed: {
+      '@type': 'Country',
+      name: 'ایران',
+    },
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'پکیج‌های خدماتی نوونو',
+      itemListElement: [
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'نقشه جذب مشتری' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'شروع هوشمند' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'رشد هدفمند' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'فروش آنلاین سبک' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'همراهی ماهانه' } },
+      ],
+    },
+  },
+];
 ---
 
 <BaseLayout
   title="نوونو | سیستم جذب مشتری برای کسب‌وکارهای کوچک و متوسط"
   description="نوونو به کسب‌وکارهای کوچک و متوسط ایرانی کمک می‌کند مسیر جذب، ثبت و پیگیری مشتری را ساده، قابل اندازه‌گیری و قابل بهبود کنند. نه فقط سایت، بلکه سیستم."
-  structuredData={{ ...structuredData, ...webSiteData, ...faqData }}
+  structuredData={structuredData}
 >
 
   <!-- Hero Section -->

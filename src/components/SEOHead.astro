@@ -5,39 +5,106 @@ interface Props {
   canonical?: string;
   ogImage?: string;
   ogType?: string;
-  structuredData?: object;
+  structuredData?: object | object[];
+  noindex?: boolean;
 }
 
 const {
   title,
   description,
   canonical = Astro.url.href,
-  ogImage = '/logo.svg',
+  ogImage = 'https://noveno.ir/og-image.png',
   ogType = 'website',
   structuredData,
+  noindex = false,
 } = Astro.props;
 
 const siteName = 'نوونو';
 const fullTitle = title.includes('نوونو') ? title : `${title} | ${siteName}`;
+const siteUrl = 'https://noveno.ir';
+
+// Breadcrumb data
+const pathSegments = Astro.url.pathname.split('/').filter(Boolean);
+const breadcrumbs = pathSegments.map((segment, index) => {
+  const url = `${siteUrl}/${pathSegments.slice(0, index + 1).join('/')}`;
+  const names: Record<string, string> = {
+    'services': 'خدمات',
+    'industries': 'صنایع',
+    'process': 'فرآیند کار',
+    'about': 'درباره ما',
+    'portfolio': 'نمونه کار',
+    'contact': 'تماس',
+    'blog': 'بلاگ',
+    'customer-acquisition-review': 'بررسی مسیر جذب',
+    'thank-you': 'متشکریم',
+    'customer-acquisition-page': 'صفحه جذب مشتری',
+    'light-business-website': 'سایت خدماتی سبک',
+    'light-online-store': 'فروشگاه آنلاین سبک',
+    'conversion-path-optimization': 'بهینه‌سازی مسیر جذب',
+    'lead-management': 'ثبت و مدیریت لید',
+    'monthly-care-reporting': 'نگهداری ماهانه',
+    'templates-assets': 'قالب‌های آماده',
+    'why-a-beautiful-website-is-not-enough': 'چرا سایت زیبا کافی نیست',
+  };
+  return {
+    name: names[segment] || segment,
+    url: url,
+  };
+});
+
+// BreadcrumbList schema
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'خانه',
+      item: siteUrl,
+    },
+    ...breadcrumbs.map((crumb, index) => ({
+      '@type': 'ListItem',
+      position: index + 2,
+      name: crumb.name,
+      item: crumb.url,
+    })),
+  ],
+};
+
+// Combine all structured data
+const allStructuredData = Array.isArray(structuredData)
+  ? [...structuredData, breadcrumbSchema]
+  : structuredData
+    ? [structuredData, breadcrumbSchema]
+    : [breadcrumbSchema];
 ---
 
 <title>{fullTitle}</title>
 <meta name="description" content={description} />
 <link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
 
+<!-- Open Graph -->
 <meta property="og:type" content={ogType} />
 <meta property="og:title" content={fullTitle} />
 <meta property="og:description" content={description} />
 <meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={fullTitle} />
 <meta property="og:url" content={canonical} />
 <meta property="og:site_name" content={siteName} />
 <meta property="og:locale" content="fa_IR" />
 
+<!-- Twitter/X -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={fullTitle} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={ogImage} />
+<meta name="twitter:image:alt" content={fullTitle} />
 
-{structuredData && (
-  <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
-)}
+<!-- Structured Data -->
+{allStructuredData.map((data) => (
+  <script type="application/ld+json" set:html={JSON.stringify(data)} />
+))}

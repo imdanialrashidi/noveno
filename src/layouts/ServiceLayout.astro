@@ -37,12 +37,37 @@ const {
   faqs,
   structuredData,
 } = Astro.props;
+
+// Build comprehensive structured data
+const serviceSchema = structuredData || {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: title,
+  provider: { '@type': 'Organization', name: 'نوونو' },
+  description: description,
+  areaServed: { '@type': 'Country', name: 'ایران' },
+};
+
+const faqSchema = faqs.length > 0 ? {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((faq) => ({
+    '@type': 'Question',
+    name: faq.q,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: faq.a,
+    },
+  })),
+} : null;
+
+const allStructuredData = faqSchema ? [serviceSchema, faqSchema] : [serviceSchema];
 ---
 
 <BaseLayout
   title={title}
   description={description}
-  structuredData={structuredData}
+  structuredData={allStructuredData}
 >
   <section class="bg-gradient-to-b from-lavender-100 to-surface-50 section-padding">
     <div class="container-page">
