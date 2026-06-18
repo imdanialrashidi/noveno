@@ -1,38 +1,151 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CTAButton from '../components/CTAButton.astro';
+
+const source = Astro.url.searchParams.get('source') || 'default';
+
+const content = {
+  review: {
+    title: 'درخواست بررسی شما ثبت شد!',
+    subtitle: 'متشکریم که وقت گذاشتید.',
+    description: 'درخواست بررسی مسیر جذب مشتری شما با موفقیت ثبت شد. تیم نوونو در اسرع وقت با شما تماس خواهد گرفت تا جزئیات بیشتر را بررسی کنیم.',
+    steps: [
+      { icon: 'search', text: 'درخواست شما توسط تیم فنی بررسی می‌شود.' },
+      { icon: 'phone', text: 'با شما تماس گرفته می‌شود تا جزئیات بیشتر را بدانیم.' },
+      { icon: 'document', text: 'یک گزارش ساده از وضعیت فعلی مسیر جذب مشتری شما تهیه می‌شود.' },
+      { icon: 'lightbulb', text: 'پیشنهادهای عملی و کاربردی برای بهبود ارائه می‌شود.' },
+    ],
+    whatsapp: true,
+  },
+  contact: {
+    title: 'پیام شما ثبت شد!',
+    subtitle: 'متشکریم.',
+    description: 'پیام شما با موفقیت ارسال شد. تیم نوونو به زودی با شما تماس خواهد گرفت.',
+    steps: [
+      { icon: 'check', text: 'پیام شما دریافت و ثبت شد.' },
+      { icon: 'phone', text: 'در اسرع وقت با شما تماس خواهیم گرفت.' },
+      { icon: 'chat', text: 'اگر سؤالی دارید، می‌توانید از طریق واتساپ هم پیام دهید.' },
+    ],
+    whatsapp: true,
+  },
+  default: {
+    title: 'متشکریم!',
+    subtitle: 'درخواست شما ثبت شد.',
+    description: 'درخواست شما با موفقیت ثبت شد. تیم نوونو در اسرع وقت با شما تماس خواهد گرفت.',
+    steps: [
+      { icon: 'check', text: 'درخواست شما ثبت شد.' },
+      { icon: 'phone', text: 'به زودی با شما تماس خواهیم گرفت.' },
+    ],
+    whatsapp: false,
+  },
+};
+
+const currentContent = content[source as keyof typeof content] || content.default;
+
+const icons: Record<string, string> = {
+  search: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
+  phone: 'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z',
+  document: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+  lightbulb: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
+  check: 'M5 13l4 4L19 7',
+  chat: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
+};
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'متشکریم',
+  description: 'درخواست شما با موفقیت ثبت شد.',
+  url: 'https://noveno.ir/thank-you',
+  noindex: true,
+};
 ---
 
 <BaseLayout
-  title="متشکریم"
-  description="درخواست شما با موفقیت ثبت شد."
+  title="متشکریم | ثبت درخواست موفق"
+  description="درخواست شما با موفقیت ثبت شد. تیم نوونو به زودی با شما تماس خواهد گرفت."
+  noindex={true}
+  structuredData={structuredData}
 >
   <section class="section-padding">
     <div class="container-page">
-      <div class="mx-auto max-w-lg text-center">
-        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-          <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
+      <div class="mx-auto max-w-2xl text-center">
+        <!-- Success Icon -->
+        <div class="relative mx-auto mb-8">
+          <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+            <svg class="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <!-- Decorative circles -->
+          <div class="absolute inset-0 -m-4 rounded-full border-2 border-green-200 animate-pulse opacity-50"></div>
         </div>
-        <h1 class="mt-6 text-2xl font-bold text-neutral-800 sm:text-3xl">
-          متشکریم!
+
+        <!-- Title -->
+        <h1 class="text-3xl font-bold text-neutral-800 sm:text-4xl">
+          {currentContent.title}
         </h1>
-        <p class="mt-4 text-base leading-7 text-neutral-600">
-          درخواست شما با موفقیت ثبت شد. تیم نوونو در اسرع وقت با شما تماس خواهد گرفت تا جزئیات بیشتر را بررسی کنیم.
+        <p class="mt-2 text-lg text-brand-600 font-medium">
+          {currentContent.subtitle}
         </p>
-        <div class="mt-8 space-y-3">
-          <div class="rounded-xl bg-surface-100 p-4 text-sm text-neutral-600">
-            <p class="font-medium text-neutral-800">بعد از ارسال فرم چه اتفاقی می‌افتد؟</p>
-            <ul class="mt-2 space-y-1 text-right">
-              <li>۱. درخواست شما بررسی می‌شود.</li>
-              <li>۲. با شما تماس گرفته می‌شود.</li>
-              <li>۳. یک جلسه کوتاه برای شناخت بهتر کسب‌وکار تنظیم می‌شود.</li>
-              <li>۴. پیشنهاد عملی ارائه می‌شود.</li>
-            </ul>
+
+        <!-- Description -->
+        <p class="mt-4 text-base leading-7 text-neutral-600">
+          {currentContent.description}
+        </p>
+
+        <!-- Steps -->
+        <div class="mt-10 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm text-right">
+          <h2 class="mb-4 text-center text-sm font-semibold text-neutral-800">
+            {source === 'review' ? 'بعد از ارسال فرم چه اتفاقی می‌افتد؟' : 'مراحل بعدی'}
+          </h2>
+          <div class="space-y-4">
+            {currentContent.steps.map((step, index) => (
+              <div class="flex items-start gap-4">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-600">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={icons[step.icon]} />
+                  </svg>
+                </div>
+                <div class="pt-1">
+                  <span class="text-sm font-medium text-neutral-800">مرحله {index + 1}</span>
+                  <p class="text-sm text-neutral-600">{step.text}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-        <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+
+        <!-- WhatsApp CTA -->
+        {currentContent.whatsapp && (
+          <div class="mt-8 rounded-2xl border border-green-200 bg-green-50 p-6">
+            <div class="flex items-center justify-center gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-500 text-white">
+                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+              </div>
+              <div class="text-right">
+                <p class="text-sm font-semibold text-green-800">سوالی دارید؟</p>
+                <p class="text-xs text-green-600">همین الان در واتساپ پیام دهید</p>
+              </div>
+            </div>
+            <a
+              href="https://wa.me/989353598620?text=%D9%85%D8%B3%D8%AA%D8%B4%DA%A9%D8%B1%DB%8C%D9%85%20%D8%A8%D8%A7%20%D8%B3%D9%84%D8%A7%D9%85%20%D8%AF%D8%B1%D8%AE%D9%88%D8%A7%D8%B3%D8%AA%20%D9%81%D8%B1%D9%85%20%D8%B1%D8%A7%20%D9%BE%D8%B1%20%D9%86%D9%88%D8%B4%D8%AA%D9%85"
+              class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-green-700"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+              ارسال پیام در واتساپ
+            </a>
+          </div>
+        )}
+
+        <!-- Action Buttons -->
+        <div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <CTAButton href="/" size="md">
             بازگشت به صفحه اصلی
           </CTAButton>

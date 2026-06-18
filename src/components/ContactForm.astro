@@ -93,9 +93,7 @@ const { source = 'contact' } = Astro.props;
 
       const endpoint = import.meta.env.PUBLIC_FORM_ENDPOINT;
       if (!endpoint) {
-        if (successEl) successEl.classList.remove('hidden');
-        if (errorEl) errorEl.classList.add('hidden');
-        form.reset();
+        window.location.href = '/thank-you?source=contact';
         return;
       }
 
@@ -108,7 +106,7 @@ const { source = 'contact' } = Astro.props;
           body: JSON.stringify(data),
         });
         if (response.ok) {
-          window.location.href = '/thank-you';
+          window.location.href = '/thank-you?source=contact';
         } else {
           throw new Error('Form submission failed');
         }
