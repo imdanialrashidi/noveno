@@ -1,10 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
-import SectionHeading from '../components/SectionHeading.astro';
 import CTAButton from '../components/CTAButton.astro';
 
-const projects = [
+const portfolioItems = [
   {
     id: 'mobilekhorsandi',
     title: 'موبایل خرسندی',
@@ -12,8 +11,8 @@ const projects = [
     coverImage: '/images/portfolio/mobilekhorsandi.ir/cover.webp',
     type: 'فروشگاه اینترنتی موبایل و لوازم جانبی',
     category: 'فروشگاه آنلاین',
-    description: 'طراحی و پیاده‌سازی فروشگاه اینترنتی برای عرضه موبایل، لوازم جانبی، قطعات و گجت‌های کاربردی با مسیر خرید و دسته‌بندی محصول.',
-    tags: ['فروشگاه آنلاین', 'موبایل و لوازم جانبی', 'دسته‌بندی محصول', 'مسیر خرید', 'وردپرس / فروشگاهی'],
+    shortDescription: 'طراحی و پیاده‌سازی فروشگاه اینترنتی برای عرضه موبایل، لوازم جانبی، قطعات و گجت‌های کاربردی با مسیر خرید و دسته‌بندی محصول.',
+    tags: ['فروشگاه آنلاین', 'موبایل و لوازم جانبی', 'دسته‌بندی محصول', 'مسیر خرید', 'وردپرس'],
     alt: 'نمایی از وب‌سایت فروشگاهی موبایل خرسندی',
     featured: true,
   },
@@ -24,7 +23,7 @@ const projects = [
     coverImage: '/images/portfolio/elsahamrah.com/cover.webp',
     type: 'فروشگاه اینترنتی گوشی، تبلت و ساعت هوشمند',
     category: 'فروشگاه آنلاین',
-    description: 'طراحی فروشگاه اینترنتی برای فروش گوشی، تبلت، ساعت هوشمند و محصولات دیجیتال با تمرکز بر تجربه خرید ساده و قابل اعتماد.',
+    shortDescription: 'طراحی فروشگاه اینترنتی برای فروش گوشی، تبلت، ساعت هوشمند و محصولات دیجیتال با تمرکز بر تجربه خرید ساده و قابل اعتماد.',
     tags: ['فروشگاه کالای دیجیتال', 'گوشی و تبلت', 'ساعت هوشمند', 'اعتمادسازی', 'تجربه خرید'],
     alt: 'نمایی از وب‌سایت فروشگاهی السا همراه',
     featured: true,
@@ -36,7 +35,7 @@ const projects = [
     coverImage: '/images/portfolio/phpieltshouse.ir/cover.webp',
     type: 'وب‌سایت آموزشی زبان و آیلتس',
     category: 'سایت آموزشی / خدماتی',
-    description: 'طراحی سایت آموزشی برای معرفی خدمات تخصصی زبان و آیلتس در کرج با تمرکز بر ثبت‌نام، اعتمادسازی و ارتباط سریع با مخاطب.',
+    shortDescription: 'طراحی سایت آموزشی برای معرفی خدمات تخصصی زبان و آیلتس در کرج با تمرکز بر ثبت‌نام، اعتمادسازی و ارتباط سریع با مخاطب.',
     tags: ['سایت آموزشی', 'آیلتس', 'زبان انگلیسی', 'ثبت‌نام', 'خدمات آموزشی'],
     alt: 'نمایی از وب‌سایت آموزشی خانه آیلتس PHP',
     featured: true,
@@ -48,7 +47,7 @@ const projects = [
     coverImage: '/images/portfolio/isbatab.ir/cover.webp',
     type: 'وب‌سایت شرکتی خدمات ایمنی، آموزش و بازرسی فنی',
     category: 'سایت شرکتی / خدماتی',
-    description: 'طراحی وب‌سایت شرکتی برای معرفی خدمات مشاوره، آموزش، ایمنی و بازرسی فنی با ساختار رسمی و قابل اعتماد.',
+    shortDescription: 'طراحی وب‌سایت شرکتی برای معرفی خدمات مشاوره، آموزش، ایمنی و بازرسی فنی با ساختار رسمی و قابل اعتماد.',
     tags: ['سایت شرکتی', 'خدمات ایمنی', 'بازرسی فنی', 'آموزش', 'اعتبارسازی'],
     alt: 'نمایی از وب‌سایت شرکتی ایمن صنعت باتاب',
     featured: true,
@@ -60,38 +59,37 @@ const projects = [
     coverImage: '/images/portfolio/imdanialrashidi.github.io/cover.webp',
     type: 'وب‌سایت شخصی و معرفی مهارت‌ها',
     category: 'سایت شخصی / پرتفولیو',
-    description: 'طراحی وب‌سایت شخصی برای معرفی مسیر کاری، مهارت‌ها، علاقه‌مندی‌ها و هویت حرفه‌ای در حوزه وب و سیستم‌های هوش مصنوعی.',
+    shortDescription: 'طراحی وب‌سایت شخصی برای معرفی مسیر کاری، مهارت‌ها، علاقه‌مندی‌ها و هویت حرفه‌ای در حوزه وب و سیستم‌های هوش مصنوعی.',
     tags: ['سایت شخصی', 'پرتفولیو', 'هویت حرفه‌ای', 'وب و هوش مصنوعی', 'طراحی سبک'],
     alt: 'نمایی از وب‌سایت شخصی دانیال رشیدی',
     featured: false,
   },
 ];
 
-const featuredProjects = projects.filter(p => p.featured);
-const otherProjects = projects.filter(p => !p.featured);
+const featuredItems = portfolioItems.filter(item => item.featured);
+const otherItems = portfolioItems.filter(item => !item.featured);
 
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
   name: 'نمونه کارهای نوونو',
-  description: 'نمونه‌هایی از وب‌سایت‌ها و سیستم‌هایی که نوونو با تمرکز بر معرفی بهتر کسب‌وکار، مسیر اقدام کاربر و حضور حرفه‌ای آنلاین طراحی و اجرا کرده است.',
+  description: 'نمونه‌هایی از وب‌سایت‌ها و سیستم‌هایی که با تمرکز بر معرفی بهتر کسب‌وکار، مسیر اقدام کاربر و حضور حرفه‌ای آنلاین طراحی و اجرا شده‌اند.',
   url: 'https://noveno.ir/portfolio',
 };
 ---
 
 <BaseLayout
-  title="نمونه کارها"
-  description="نمونه‌هایی از وب‌سایت‌ها و سیستم‌هایی که نوونو با تمرکز بر معرفی بهتر کسب‌وکار، مسیر اقدام کاربر و حضور حرفه‌ای آنلاین طراحی و اجرا کرده است."
+  title="نمونه کار"
+  description="نمونه‌هایی از وب‌سایت‌ها و سیستم‌هایی که با تمرکز بر معرفی بهتر کسب‌وکار، مسیر اقدام کاربر و حضور حرفه‌ای آنلاین طراحی و اجرا شده‌اند."
   structuredData={structuredData}
 >
-  <!-- Hero -->
   <section class="section-padding bg-gradient-to-b from-lavender-100 to-surface-50">
     <div class="container-page">
-      <Breadcrumbs items={[{ label: 'نمونه کارها' }]} />
+      <Breadcrumbs items={[{ label: 'نمونه کار' }]} />
 
       <div class="mx-auto max-w-3xl text-center">
         <h1 class="text-3xl font-bold text-neutral-800 sm:text-4xl text-balance">
-          نمونه کارهای نوونو
+          نمونه‌کارهای نوونو
         </h1>
         <p class="mt-4 text-base leading-7 text-neutral-600 sm:text-lg">
           چند نمونه از وب‌سایت‌ها و سیستم‌هایی که با تمرکز بر معرفی بهتر کسب‌وکار، مسیر اقدام کاربر و حضور حرفه‌ای آنلاین طراحی و اجرا شده‌اند.
@@ -103,60 +101,55 @@ const structuredData = {
   <!-- Featured Projects -->
   <section class="section-padding bg-white">
     <div class="container-page">
-      <div class="mx-auto grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {featuredProjects.map((project) => (
+      <div class="mx-auto grid max-w-5xl gap-8 sm:grid-cols-2">
+        {featuredItems.map((item) => (
           <a
-            href={project.url}
+            href={item.url}
             target="_blank"
             rel="noopener noreferrer"
-            class="group block rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 hover:border-brand-300 hover:shadow-lg hover:-translate-y-1 overflow-hidden"
+            class="group block overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 hover:border-brand-300 hover:shadow-lg hover:-translate-y-1"
           >
             <!-- Image -->
-            <div class="relative aspect-[16/10] overflow-hidden bg-lavender-50">
+            <div class="aspect-[16/10] overflow-hidden bg-neutral-100">
               <img
-                src={project.coverImage}
-                alt={project.alt}
+                src={item.coverImage}
+                alt={item.alt}
                 class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
                 width="800"
                 height="500"
               />
-              <!-- Category badge -->
-              <div class="absolute top-3 right-3">
-                <span class="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-brand-700 backdrop-blur-sm shadow-sm">
-                  {project.category}
-                </span>
-              </div>
             </div>
 
             <!-- Content -->
-            <div class="p-5">
-              <h2 class="text-lg font-bold text-neutral-800 group-hover:text-brand-600 transition-colors">
-                {project.title}
+            <div class="p-6">
+              <div class="flex items-center gap-2">
+                <span class="rounded-full bg-brand-100 px-3 py-1 text-xs font-medium text-brand-700">
+                  {item.category}
+                </span>
+              </div>
+
+              <h2 class="mt-3 text-xl font-bold text-neutral-800 group-hover:text-brand-600 transition-colors">
+                {item.title}
               </h2>
-              <p class="mt-1 text-xs text-neutral-400">{project.type}</p>
-              <p class="mt-3 text-sm leading-6 text-neutral-500 line-clamp-2">
-                {project.description}
+
+              <p class="mt-1 text-sm text-neutral-500">{item.type}</p>
+
+              <p class="mt-3 text-sm leading-6 text-neutral-600">
+                {item.shortDescription}
               </p>
 
-              <!-- Tags -->
-              <div class="mt-4 flex flex-wrap gap-1.5">
-                {project.tags.slice(0, 3).map((tag) => (
-                  <span class="rounded-md bg-lavender-50 px-2 py-0.5 text-[11px] font-medium text-brand-600">
+              <div class="mt-4 flex flex-wrap gap-2">
+                {item.tags.map((tag) => (
+                  <span class="rounded-lg bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-600">
                     {tag}
                   </span>
                 ))}
-                {project.tags.length > 3 && (
-                  <span class="rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
-                    +{project.tags.length - 3}
-                  </span>
-                )}
               </div>
 
-              <!-- CTA -->
-              <div class="mt-4 flex items-center gap-2 text-sm font-semibold text-brand-600 group-hover:text-brand-700">
+              <div class="mt-5 flex items-center gap-2 text-sm font-bold text-brand-600 group-hover:gap-3 transition-all">
                 مشاهده سایت
-                <svg class="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
               </div>
@@ -168,52 +161,49 @@ const structuredData = {
   </section>
 
   <!-- Other Projects -->
-  {otherProjects.length > 0 && (
+  {otherItems.length > 0 && (
     <section class="section-padding bg-surface-50">
       <div class="container-page">
-        <div class="mx-auto max-w-6xl">
-          <h2 class="mb-8 text-xl font-bold text-neutral-800">سایر پروژه‌ها</h2>
-          <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {otherProjects.map((project) => (
+        <div class="mx-auto max-w-5xl">
+          <h2 class="mb-8 text-center text-xl font-bold text-neutral-800">پروژه‌های دیگر</h2>
+          <div class="grid gap-6 sm:grid-cols-2">
+            {otherItems.map((item) => (
               <a
-                href={project.url}
+                href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="group block rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 hover:border-brand-300 hover:shadow-lg hover:-translate-y-1 overflow-hidden"
+                class="group block overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 hover:border-brand-300 hover:shadow-lg hover:-translate-y-1"
               >
-                <div class="relative aspect-[16/10] overflow-hidden bg-lavender-50">
+                <div class="aspect-[16/10] overflow-hidden bg-neutral-100">
                   <img
-                    src={project.coverImage}
-                    alt={project.alt}
+                    src={item.coverImage}
+                    alt={item.alt}
                     class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                     width="800"
                     height="500"
                   />
-                  <div class="absolute top-3 right-3">
-                    <span class="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-brand-700 backdrop-blur-sm shadow-sm">
-                      {project.category}
-                    </span>
-                  </div>
                 </div>
                 <div class="p-5">
-                  <h3 class="text-lg font-bold text-neutral-800 group-hover:text-brand-600 transition-colors">
-                    {project.title}
+                  <span class="rounded-full bg-brand-100 px-3 py-1 text-xs font-medium text-brand-700">
+                    {item.category}
+                  </span>
+                  <h3 class="mt-2 text-lg font-bold text-neutral-800 group-hover:text-brand-600 transition-colors">
+                    {item.title}
                   </h3>
-                  <p class="mt-1 text-xs text-neutral-400">{project.type}</p>
-                  <p class="mt-3 text-sm leading-6 text-neutral-500 line-clamp-2">
-                    {project.description}
+                  <p class="mt-2 text-sm leading-6 text-neutral-500">
+                    {item.shortDescription}
                   </p>
-                  <div class="mt-4 flex flex-wrap gap-1.5">
-                    {project.tags.slice(0, 3).map((tag) => (
-                      <span class="rounded-md bg-lavender-50 px-2 py-0.5 text-[11px] font-medium text-brand-600">
+                  <div class="mt-3 flex flex-wrap gap-1.5">
+                    {item.tags.slice(0, 3).map((tag) => (
+                      <span class="rounded-lg bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600">
                         {tag}
                       </span>
                     ))}
                   </div>
-                  <div class="mt-4 flex items-center gap-2 text-sm font-semibold text-brand-600 group-hover:text-brand-700">
+                  <div class="mt-4 flex items-center gap-2 text-sm font-bold text-brand-600 group-hover:gap-3 transition-all">
                     مشاهده سایت
-                    <svg class="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                   </div>
@@ -230,16 +220,13 @@ const structuredData = {
   <section class="section-padding bg-brand-600">
     <div class="container-page text-center">
       <h2 class="text-2xl font-bold text-white sm:text-3xl">
-        می‌خواهید سایت شما هم فقط یک ویترین نباشد؟
+        می‌خواهید سایت شما هم فقط یک ویترین نباشد و به مسیر جذب مشتری تبدیل شود؟
       </h2>
-      <p class="mt-3 text-base text-brand-100 sm:text-lg">
-        به مسیر جذب مشتری تبدیل شود؟
-      </p>
       <div class="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-        <a href="/customer-acquisition-review" class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-bold text-brand-700 shadow-lg transition-all duration-200 hover:bg-brand-50 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+        <a href="/customer-acquisition-review" class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-bold text-brand-700 shadow-lg transition-all duration-200 hover:bg-brand-50 hover:shadow-xl">
           درخواست بررسی رایگان
         </a>
-        <a href="/services" class="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white/30 px-8 py-3.5 text-base font-bold text-white transition-all duration-200 hover:border-white hover:bg-white/10">
+        <a href="/services" class="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white/30 px-8 py-3.5 text-base font-bold text-white transition-all duration-200 hover:border-white/60 hover:bg-white/10">
           مشاهده تعرفه‌ها
         </a>
       </div>
