@@ -1,0 +1,50 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Confidential project/client material
+docs/private/**
+!docs/private/.gitkeep
+
+# Pi local runtime and installed project packages
+.pi/npm/
+.pi/git/
+.pi/sessions/
+.pi/cache/
+.pi/auth.json
+.pi/models.json
+.pi/trust.json
+.pi/mcp.json
+.pi/mcp-oauth/
+.pi/mcp-traces/
+
+# Dependencies and environments
+node_modules/
+.venv/
+venv/
+vendor/
+
+# Build, test, browser, and framework output
+dist/
+build/
+coverage/
+target/
+.next/
+.turbo/
+.vite/
+.artifacts/
+playwright-report/
+test-results/
+*.log
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
