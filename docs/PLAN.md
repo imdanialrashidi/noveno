@@ -1,89 +1,96 @@
-# Product Roadmap
+# Product Roadmap — Noveno Website
 
-Use this file for the product-level path from idea to production. Put task-level, multi-session execution state in `docs/exec-plans/active/`. Delete inapplicable stages and stale commitments.
+Product-level path from idea to production. Task-level, multi-session execution state belongs in `docs/exec-plans/active/`. Source: Master Spec §72–73 plus accepted bootstrap decisions.
 
 ## Outcome and boundaries
 
-- Product outcome:
-- Measurable success:
-- Explicit non-goals:
-- Deadline / capital / compliance constraints:
-- Current stage:
+- Product outcome: a Persian-first, RTL, mobile-first marketing site that converts qualified SMB visitors into **audit requests** (primary conversion) and demonstrates Noveno's own philosophy: clear, measured, simple, transparent.
+- Measurable success: qualified audit requests generated; audit completion rate and CTA click rate improving; every submission persisted + notified (Spec §6).
+- Explicit non-goals: no client portal/auth/CMS/SSR/backend beyond the audit-form function; no blog or industry pages at launch; no fabricated proof; no infrastructure for hypothetical scale.
+- Deadline / capital / compliance constraints: none accepted; Cloudflare free-tier-compatible where practical; Iranian network realities are product requirements, not afterthoughts.
+- Current stage: **Stage 1 entry — bootstrap complete; the next lifecycle step is `/design`** (experience direction), then `/plan` for the Phase 1 build. No application code exists yet.
 
 ## Evidence ledger
 
 | Claim or assumption | Status | Evidence | Next test / decision |
 |---|---|---|---|
-|  | confirmed / assumed / blocked / unmeasured |  |  |
+| Master Spec v1.0 is the product source of truth | confirmed | `docs/Noveno_Website_Master_Spec.md` (84 sections) | Keep current |
+| Business DNA v1.1 is the identity source | confirmed | `docs/Noveno Business DNA.md` | Keep current |
+| Brand anchors: light/dark palettes, contact facts, assets under `branding_assests/` | confirmed | Accepted bootstrap prompt; asset files present | /design token development |
+| Astro + TS + static Cloudflare Pages, no client framework, Supabase + email via one Pages Function, Cloudflare analytics | confirmed (accepted) | Bootstrap prompt overrides | First build validates practicality |
+| SMB owners complete a multi-step audit form | assumed | None yet | Launch → measure audit completion rate |
+| Web Analytics + Zaraz satisfy acquisition measurement | assumed | None yet | Configure at build; verify events in staging |
+| Self-hosted licensed Persian font is feasible on Cloudflare free tier | assumed | None yet | /design type selection + performance proof |
+| Audit free-vs-paid policy | deferred | — | Business decision (Spec §15) |
+| Prices on site | deferred | — | Business decision (Spec §39) |
 
 ## Stage gates
 
 ### 0. Discovery proof
+- Scope: target user (SMB service businesses), painful job (lost/trackless leads), current alternative (scattered channels), riskiest assumption (audit-form conversion).
+- Exit evidence: **done** — thesis in `docs/PRODUCT.md`, positioning in Master Spec §3, ICP in §4.
+- Next smallest experiment: launch Phase 1 and measure audit completion.
 
-- Scope: target user, painful job, current alternative, riskiest assumption.
-- Exit evidence: user/problem signal and a measurable product thesis in `docs/PRODUCT.md`.
-- Next smallest experiment:
-
-### 1. Experience direction
-
-- Scope: critical journey, information architecture, content, brand character, visual thesis, prototype.
+### 1. Experience direction  ← CURRENT
+- Scope: critical journey (understand → qualify → audit), IA (Spec §8.1), brand character, visual thesis, theme tokens, typography (licensed Persian font), RTL/mobile composition, light/dark mechanics.
 - Exit evidence: accepted `docs/DESIGN.md`; critical states and desktop/mobile proof plan defined.
-- Decision owner:
+- Decision owner: `/design` run, evaluated against `docs/QUALITY.md` + `frontend-design` gates.
 
 ### 2. Walking skeleton
-
-- Scope: one deployable end-to-end path through real boundaries with observability.
-- Exit evidence: canonical install/start/test path works; architecture and rollback assumptions are proven.
-- Verification:
+- Scope: one deployable end-to-end path: static site shell on Cloudflare Pages + audit function → Supabase → email, with analytics tags.
+- Exit evidence: canonical install/start/test path works (`npm install`/`npm run dev`/`npm run build`/`npm run test` once the app lands), `scripts/verify.sh` green, function exercised in a real browser with a test lead (staging), rollback = redeploy previous commit.
+- Verification: verification routes in `.pi/verification.json` extended with `src/**` evidence once the app exists.
 
 ### 3. Vertical MVP
-
-- Scope: smallest useful end-to-end behavior that tests the riskiest product assumption.
-- Exit evidence: must-have journeys function with real data/state, negative paths, analytics, and accepted visual quality.
-- Non-goals:
+- Scope: Phase 1 launch scope (Spec §73) — homepage, services, work, process, about, audit, thank-you, contact, privacy, terms; analytics events (Spec §36); lead persistence + notification; acceptance criteria from `docs/PRODUCT.md` (Spec §74).
+- Exit evidence: must-have journeys function with real submission data, negative paths (validation errors, abuse, offline), attribution preserved, accepted visual quality.
+- Non-goals: insights, industry pages, testimonials without real data, dashboards.
 
 ### 4. Internal alpha
-
-- Scope: team use with seeded/realistic data and controlled failure testing.
-- Exit evidence: no release-blocking correctness/security/accessibility issues; support and recovery path exercised.
-- Feedback sample / owner:
+- Scope: founder-led use; real audit submissions flow to Supabase + email; controlled failure testing (function outage, Supabase outage → visible error, no silent loss).
+- Exit evidence: no release-blocking correctness/security/accessibility issues; recovery path (lead data backup/restore reasoning) exercised.
+- Feedback sample / owner: founder.
 
 ### 5. External beta
-
-- Scope: bounded cohort, feature flags or reversible rollout, support channel.
-- Exit evidence: activation and guardrail metrics meet targets; field performance and reliability are measured; top UX failures resolved.
-- Rollback trigger:
+- Scope: bounded promotion; monitor audit completion, CTA clicks, phone/messaging clicks; support via WhatsApp/Telegram/phone.
+- Exit evidence: activation and guardrail metrics meet targets; field performance (Web Analytics) measured; top UX failures resolved.
+- Rollback trigger: form failure rate spike or silent-loss incident → revert deployment, alert founder via email.
 
 ### 6. Release candidate
-
-- Scope: frozen release boundary; compatibility, data, security, visual, performance, operational hardening.
-- Exit evidence: `/ship` is `READY`; no unresolved BLOCKER/MAJOR; recovery/rollback and runbook proven.
-- Sign-off owners:
+- Scope: frozen launch scope; security review of the form boundary (`risk-review` + `security-auditor`); performance lab budget; accessibility pass; `/ship` READY.
+- Exit evidence: no unresolved BLOCKER/MAJOR; recovery/rollback and runbook proven.
+- Sign-off owners: founder.
 
 ### 7. Staged production
-
-- Scope: progressive exposure with telemetry and explicit stop conditions.
-- Exit evidence: health window passes at each stage; incident/support ownership is active.
-- Stages and stop conditions:
+- Scope: progressive exposure with telemetry; explicit stop conditions on conversion or reliability metrics.
+- Exit evidence: health window passes per stage; incident/support ownership active (founder).
+- Stages and stop conditions: internal → referral/limited → public; stop on silent form failure or conversion collapse.
 
 ### 8. Learning loop
-
-- Scope: product outcomes, failures, support signals, agent/harness evals.
-- Exit evidence: validated learning changes `docs/PRODUCT.md`, roadmap priorities, regression tests, or workflow eval cases.
-- Review cadence:
+- Scope: qualified-audit outcomes, failed conversions, support signals.
+- Exit evidence: validated learning updates `docs/PRODUCT.md`, roadmap, regression tests.
+- Review cadence: monthly with the monthly reporting offer in mind (DNA §24).
 
 ## Critical path and risks
 
 | Risk / dependency | Control or experiment | Owner | Decision date / trigger |
 |---|---|---|---|
-|  |  |  |  |
+| Audit-form conversion unproven | Measure starts/completion from launch; keep form short | founder | 30 days after launch |
+| Email/Supabase deliverability in Iran | Choose replaceable providers; contact redundancy on site (Spec §64.1) | founder | implementation |
+| Persian font licensing/performance | /design selection of licensed self-hosted font; performance proof | /design | design stage |
+| Cloudflare Pages function limits on free tier | One narrow function; static by default | /design+build | build stage |
+| Fabricated-proof drift in content | Proof policy (Spec §19) enforced in QUALITY + copy review | review agents | every content change |
 
 ## Next bounded slice
 
-- Goal:
-- Acceptance proof:
-- Recovery / rollback:
+- Goal: **`/design`** — accepted visual/experience direction (theme tokens from the accepted anchors, typography, RTL composition, light/dark mechanics, screen-level proof plan) without implementation.
+- Acceptance proof: `docs/DESIGN.md` updated per its own contract; rendered-proof plan defined; evaluated with `frontend-design` gates; `scripts/verify.sh` stays green.
+- Recovery / rollback: design changes are doc-only; Git revert of `docs/DESIGN.md` if the direction is rejected.
 
 ## Deferred decisions
 
--
+- Full visual system, tokens beyond the accepted anchors, typography, motion, media direction → `/design`.
+- Astro project scaffolding details, package manager (npm/pnpm), Tailwind config → `/plan` (first build).
+- Supabase schema/table names, email transport provider, function route shape → `/plan` (with risk review).
+- Prices, audit pricing policy, headline copy, hero visual → business decisions (see `docs/PRODUCT.md` open decisions).
+- Insights, industry pages, productized platform (Spec §72 Phases 3–5) → only after real evidence.

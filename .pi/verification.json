@@ -31,6 +31,28 @@
       ]
     },
     {
+      "id": "project-contract",
+      "include": [
+        "docs/PRODUCT.md",
+        "docs/ARCHITECTURE.md",
+        "docs/QUALITY.md",
+        "docs/PLAN.md",
+        "docs/DESIGN.md",
+        "docs/Noveno_Website_Master_Spec.md",
+        "docs/Noveno Business DNA.md",
+        "branding_assests/**",
+        ".env.example",
+        "README.md",
+        "scripts/project-verify.sh",
+        "scripts/check-project-contract.mjs",
+        "tests/project-contract.test.mjs"
+      ],
+      "commands": [
+        ["bash", "scripts/project-verify.sh"],
+        ["node", "--test", "tests/project-contract.test.mjs"]
+      ]
+    },
+    {
       "id": "workflow-contract",
       "include": ["AGENTS.md", ".mcp.json", ".pi/**", ".github/**", "p", "*.md", "docs/**", "scripts/*.sh", "scripts/verify-package-integrity.mjs", "Dockerfile.pi", ".dockerignore"],
       "commands": [

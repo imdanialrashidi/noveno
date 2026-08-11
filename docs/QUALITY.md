@@ -123,8 +123,27 @@ Then inspect cross-cutting regression risk only where the diff makes it relevant
 
 The overall task cannot be called complete while a required criterion is `FAIL` or `UNPROVEN`, or while a required independent review has an unresolved BLOCKER/MAJOR finding.
 
-## Project-specific quality invariants
+## Project-specific quality invariants — Noveno website
 
-`/bootstrap` should replace this paragraph with a concise set of confirmed project-specific rules and canonical commands where the repository provides enough evidence. Examples might include an architectural dependency direction, exact accessibility target, API compatibility guarantee, performance budget, supported browser/device matrix, or canonical release gate.
+Confirmed rules for this project (source: `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, Master Spec §19/§50/§51/§61/§62). Enforce mechanically where a check already exists; future checks are listed under each rule.
+
+1. **Persian-first, RTL-first.** Every page renders `fa` + `dir="rtl"`; no LTR leakage in layouts or copy. Mechanical check once the Astro app exists: structural test over built HTML.
+2. **Static by default; no client UI framework.** No React/Vue/Svelte; interactivity only via Astro components and framework-free TS modules; no SSR. Mechanical check once the app exists: `package.json` dependency assertion + build output inspection.
+3. **No fabricated proof.** Case studies/projects must be real; results evidence-backed (Spec §19, §21.7); demo/concept content must be visibly labeled; no fake testimonials/logos; no sales guarantees in copy. Check: content review step in `/review` plus copy fixtures in tests when content lands.
+4. **Audit form is business-critical.** Server-side validation, abuse mitigation, no silent failure, duplicate-submission handling, attribution preserved; every accepted submission persisted to Supabase and triggers email notification (Spec §61–62). Check: function-level tests at implementation (defect-sensitive: must fail on pre-fix behavior).
+5. **Secrets stay out of the repository.** `.env*` ignored except `.env.example` (names only, never values); credentials only in Cloudflare Pages secrets. Check: `scripts/pi-doctor.sh` secret scan (exists) + `.env.example` value scan in `scripts/check-project-contract.mjs` (exists, run via `scripts/project-verify.sh`).
+6. **Light/dark themes with system default, persisted override, no incorrect-theme flash; tokens from the accepted anchors in `docs/DESIGN.md`.** Check: browser theme-flash/contrast evidence per `browser-qa` at design/build.
+7. **Accessibility baseline WCAG 2.2 AA** (keyboard, focus, labels, contrast 4.5:1/3:1, reduced motion, no color-only meaning) and **mobile-first** (320px reflow, tap targets, click-to-call). Check: browser QA gates.
+8. **Performance is a product requirement**: static rendering, minimal JS, optimized self-hosted assets; CWV `good` targets pending an accepted lab budget. Check: lab measurement at build, RUM via Cloudflare Web Analytics after launch.
+9. **No speculative infrastructure**: new dependencies/services need a concrete current benefit; Cloudflare free-tier compatibility where practical. Check: dependency review in `/review`.
+
+Canonical commands (current bootstrap state; app commands added when the Astro project lands):
+
+- Full canonical gate: `bash scripts/verify.sh` (runs `scripts/pi-doctor.sh --ci` + `scripts/project-verify.sh`; CI mirrors this in `.github/workflows/quality.yml`).
+- Project doc/branding/contract checks: `bash scripts/project-verify.sh` (fast, static).
+- Affected-change routing: `node scripts/verify-affected.mjs --file <path> [--plan]` (routes in `.pi/verification.json`; unmatched files fall back to the full gate).
+- Harness/workflow tests: `node --test tests/*.test.mjs`.
+- Install (harness): `./p` installs pinned Pi packages; app install (`npm install` or `pnpm install`) arrives with the Astro scaffolding.
+- Browser QA: lazy Playwright MCP (`/mcp status`), screenshots under `.artifacts/playwright/`; deterministic browser tests separate from MCP exploration.
 
 Do not invent quality targets that the product or repository has not accepted.
