@@ -1,0 +1,23 @@
+---
+/**
+ * SectionHeader — square node marker before the H2 + hairline rule
+ * (DESIGN §8). The node sits on the rule like a station on the route —
+ * the only chrome-level route reference.
+ */
+
+interface Props {
+  title: string;
+  lead?: string;
+  id?: string;
+}
+
+const { title, lead, id } = Astro.props;
+---
+
+<div class="mb-10 lg:mb-14">
+  <div class="relative border-b border-line">
+    <span class="section-node absolute -bottom-[3px] start-0" aria-hidden="true"></span>
+    <h2 id={id} class="text-h2 pb-6">{title}</h2>
+  </div>
+  {lead && <p class="mt-6 text-lead text-text-muted measure-prose">{lead}</p>}
+</div>

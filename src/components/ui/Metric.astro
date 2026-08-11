@@ -1,0 +1,28 @@
+---
+/**
+ * Metric — evidence-bound values only (DESIGN §10, Spec §66).
+ * Every metric is paired with its unit, period, source note, and a
+ * limitation footnote affordance. No standalone floating numbers.
+ */
+
+interface Props {
+  value: string;
+  name: string;
+  source: string;
+  limitation?: string;
+}
+
+const { value, name, source, limitation } = Astro.props;
+---
+
+<div class="flex flex-col gap-1 border-t border-line pt-4">
+  <p class="text-data text-3xl text-text tnum">{value}</p>
+  <p class="text-ui font-medium text-text-muted">{name}</p>
+  <p class="text-caption text-text-faint">منبع: {source}</p>
+  {limitation && (
+    <p class="flex items-start gap-1.5 text-caption text-text-faint">
+      <span aria-hidden="true" class="mt-1.5 h-1 w-1 flex-none rounded-[1px] bg-line-strong"></span>
+      {limitation}
+    </p>
+  )}
+</div>

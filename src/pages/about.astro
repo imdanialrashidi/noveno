@@ -1,0 +1,128 @@
+---
+/**
+ * About page (Spec §40): Why Noveno Exists → What Noveno Believes →
+ * Principles → How Noveno Works → Founder → CTA.
+ * No invented team, no fabricated biography; founder-led is stated
+ * plainly and the founder links to the same contact channels.
+ */
+
+import PageLayout from "../layouts/PageLayout.astro";
+import SectionHeader from "../components/layout/SectionHeader.astro";
+import CTASection from "../components/layout/CTASection.astro";
+import Button from "../components/ui/Button.astro";
+import JourneyLine from "../components/business/JourneyLine.astro";
+import { PROCESS_STAGES, CONTACT } from "../data/site";
+---
+
+<PageLayout
+  title="درباره نوونو"
+  description="چرا نوونو وجود دارد، چه باوری دارد و چگونه کار می‌کند: سیستمی برای جذب مشتری که خودش هم با همین اصول ساخته شده است."
+  path="/about"
+>
+  <section aria-labelledby="about-hero-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
+      <div class="relative border-b border-line">
+        <span class="section-node absolute -bottom-[3px] start-0" aria-hidden="true"></span>
+        <h1 id="about-hero-title" class="text-h2 max-w-3xl pb-6">نوونو چرا وجود دارد</h1>
+      </div>
+      <p class="mt-6 max-w-2xl text-lead text-text-muted">
+        خیلی از کسب‌وکارهای خدماتی مشکل «نداشتن مشتری» ندارند؛ مشکل «ندیدن مسیر» دارند. درخواست می‌آید، اما در پیام‌ها گم می‌شود؛ کانال نتیجه می‌دهد، اما کسی نمی‌داند کدام کانال.
+      </p>
+      <p class="mt-4 max-w-2xl text-body text-text-muted">
+        نوونو برای همین به وجود آمد: تبدیل توجه پراکنده به یک مسیر قابل‌پیگیری — از دیدن شما تا تماس، ثبت درخواست، پیگیری و نتیجه. این وب‌سایت هم با همین اصول ساخته شده است.
+      </p>
+    </div>
+  </section>
+
+  <!-- What Noveno believes -->
+  <section class="border-t border-line" aria-labelledby="beliefs-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+      <SectionHeader id="beliefs-title" title="چه چیزی را باور داریم" />
+      <div class="grid gap-x-10 gap-y-8 sm:grid-cols-2">
+        {[
+          { title: "وضوح بر جلوه", text: "کسب‌وکار به سیستمی که می‌فهمد اعتماد می‌کند، نه به جلوه‌ای که نمی‌فهمد." },
+          { title: "شواهد بر نظر", text: "هر تغییری باید در داده دیده شود؛ نظر مهم است اما جای داده را نمی‌گیرد." },
+          { title: "سادگی بر پیچیدگی", text: "سیستمی که فقط یک نفر بلد است کار کند، برای کسب‌وکار کوچک بدهی است." },
+          { title: "صداقت بر خوش‌قولی", text: "نتیجه‌ای که اندازه‌گیری نشده، گزارش نمی‌شود — حتی اگر گزارشش خوشایندتر باشد." },
+        ].map((item) => (
+          <div class="border-t border-line pt-4">
+            <h3 class="flex items-center gap-2 text-ui font-semibold text-text">
+              <span class="h-1.5 w-1.5 flex-none rounded-[1px] bg-primary" aria-hidden="true"></span>
+              {item.title}
+            </h3>
+            <p class="mt-2 text-body text-text-muted">{item.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- How Noveno works -->
+  <section class="border-t border-line" aria-labelledby="how-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+      <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
+        <div class="lg:col-span-5">
+          <SectionHeader
+            id="how-title"
+            title="چگونه کار می‌کنیم"
+            lead="یک چرخه مشخص، نه وعده‌های پراکنده. هر همکاری با بررسی مسیر فعلی شروع می‌شود."
+          />
+          <Button href="/process" variant="secondary">دیدن فرآیند کامل</Button>
+        </div>
+        <div class="lg:col-span-7">
+          <div class="diagram-well rounded-[4px] p-6 sm:p-10">
+            <JourneyLine
+              stations={PROCESS_STAGES.map((stage) => ({ label: stage.label }))}
+              label="چرخه کار نوونو: بررسی، طراحی، اجرا، اندازه‌گیری، بهبود"
+              loop
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Founder -->
+  <section class="border-t border-line" aria-labelledby="founder-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+      <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
+        <div class="lg:col-span-5">
+          <SectionHeader
+            id="founder-title"
+            title="چه کسی پشت نوونو است"
+            lead="نوونو در حال حاضر توسط یک نفر اداره می‌شود؛ تیم بزرگ‌تر را ادعا نمی‌کنیم."
+          />
+        </div>
+        <div class="lg:col-span-7">
+          <div class="flex flex-col gap-6 border-t border-line pt-6">
+            <p class="text-h3 text-text">دانیال رشیدی</p>
+            <p class="text-body text-text-muted measure-prose">
+              بنیان‌گذار نوونو. پیش‌زمینه کار بر روی وب، محصول و سیستم‌های کوچک برای کسب‌وکارها؛ با این باور که مشکل بیشتر کسب‌وکارهای خدماتی، نبودِ مسیر است، نه نبودِ ابزار.
+            </p>
+            <p class="text-body text-text-muted measure-prose">
+              همین وب‌سایت، اجرای عملی همان چیزی است که برای مشتریان طراحی می‌شود: مسیر مشخص، ثبت درخواست، اندازه‌گیری و پیگیری.
+            </p>
+            <ul class="flex flex-wrap gap-x-8 gap-y-2 border-t border-line pt-6">
+              <li>
+                <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-primary-active">
+                  <span class="tnum" dir="ltr">{CONTACT.phone}</span>
+                </a>
+              </li>
+              <li>
+                <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui text-accent-strong transition-colors duration-150 hover:text-primary-active" target="_blank" rel="noopener noreferrer">واتساپ</a>
+              </li>
+              <li>
+                <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui text-accent-strong transition-colors duration-150 hover:text-primary-active" target="_blank" rel="noopener noreferrer">تلگرام</a>
+              </li>
+              <li>
+                <a href={CONTACT.emailHref} class="inline-flex min-h-11 items-center text-ui text-accent-strong transition-colors duration-150 hover:text-primary-active">{CONTACT.email}</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <CTASection />
+</PageLayout>

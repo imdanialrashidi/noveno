@@ -1,0 +1,146 @@
+---
+/**
+ * JourneyLine — مسیر (DESIGN §4.1 pattern 1).
+ * A right-to-left monoline route with stations; the route line passes
+ * through the station nodes (monoline, §4.2). Two static renderings:
+ * horizontal on desktop (nodes evenly distributed, line behind them,
+ * labels below), vertical spine on mobile (labels beside nodes,
+ * segments between). Line-style code: solid = real/current, dashed =
+ * demo/recommended/future (§4.3). Square = system station (§4.2).
+ * Geometry: 2px line, 6–8px square nodes (radius 1px), 4px gaps,
+ * 12–13px Estedad labels adjacent to nodes — never inside them.
+ *
+ * Accessible name via a visually-hidden ordered list; the visual route
+ * is aria-hidden and mirrors that list.
+ */
+
+export interface JourneyStation {
+  label: string;
+  description?: string;
+  /** Filled (primary) station — current/active stage. */
+  active?: boolean;
+}
+
+interface Props {
+  stations: readonly JourneyStation[];
+  /** solid = real/current; dashed = demo/recommended/future. */
+  variant?: "solid" | "dashed";
+  /** Process loop-back arrow after the last station. */
+  loop?: boolean;
+  /** Descriptive accessible name for the route. */
+  label: string;
+  /** Compact variant — horizontal at all sizes (footer mini route). */
+  compact?: boolean;
+}
+
+const { stations, variant = "solid", loop = false, label, compact = false } = Astro.props;
+
+const lineClass =
+  variant === "dashed"
+    ? "border-dashed border-line-strong"
+    : "border-solid border-line-strong";
+
+const nodeClass = (active: boolean | undefined) =>
+  [
+    "flex-none rounded-[1px] h-1.5 w-1.5",
+    active
+      ? "bg-primary"
+      : variant === "dashed"
+        ? "border border-dashed border-line-strong"
+        : "border border-line-strong",
+  ].join(" ");
+
+const labelClass = (active: boolean | undefined) =>
+  [
+    "font-display font-medium leading-tight text-caption",
+    active ? "font-semibold text-primary-active" : "text-text-muted",
+  ].join(" ");
+---
+
+<div class={compact ? "" : "w-full"}>
+  <ol class="sr-only">
+    {stations.map((station) => (
+      <li>{station.label}{station.description ? ` — ${station.description}` : ""}</li>
+    ))}
+    {loop && <li>بازگشت به ابتدای چرخه</li>}
+  </ol>
+
+  {compact ? (
+    <div class="flex flex-wrap items-center gap-y-1.5" aria-hidden="true">
+      {stations.map((station, index) => (
+        <div class="contents" >
+          <div class="flex items-center gap-1.5">
+            <span class={nodeClass(station.active)}></span>
+            <span class={labelClass(station.active)}>{station.label}</span>
+          </div>
+          {index < stations.length - 1 && (
+            <span class:list={["mx-2 h-0 w-5 border-t-2", lineClass]}></span>
+          )}
+        </div>
+      ))}
+      {loop && (
+        <span class="ms-2 text-line-strong" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 3-6.7" />
+            <path d="M3 4v5h5" />
+          </svg>
+        </span>
+      )}
+    </div>
+  ) : (
+    <>
+      {/* Desktop — horizontal route, line behind the nodes */}
+      <div class="hidden lg:block" aria-hidden="true">
+        <div class="relative pt-2">
+          <span
+            class:list={[
+              "absolute inset-x-1 top-[10px] h-0 border-t-2",
+              lineClass,
+            ]}
+          ></span>
+          <div class="relative flex justify-between gap-3">
+            {stations.map((station) => (
+              <div class="flex max-w-44 flex-1 flex-col items-center gap-1.5 text-center">
+                <span class={nodeClass(station.active)}></span>
+                <span class={labelClass(station.active)}>{station.label}</span>
+              </div>
+            ))}
+            {loop && (
+              <span class="mt-1 flex-none text-line-strong" aria-hidden="true">
+                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 12a9 9 0 1 0 3-6.7" />
+                  <path d="M3 4v5h5" />
+                </svg>
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile — vertical spine, segments between stations */}
+      <div class="lg:hidden" aria-hidden="true">
+        <div class="flex flex-col items-start">
+          {stations.map((station, index) => (
+            <div class="contents" >
+              <div class="flex items-center gap-2">
+                <span class={nodeClass(station.active)}></span>
+                <span class={labelClass(station.active)}>{station.label}</span>
+              </div>
+              {index < stations.length - 1 && (
+                <span class:list={["ms-[3px] my-1 h-6 w-0 border-s-2", lineClass]}></span>
+              )}
+            </div>
+          ))}
+          {loop && (
+            <span class="ms-[3px] mt-1 text-line-strong" aria-hidden="true">
+              <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 3-6.7" />
+                <path d="M3 4v5h5" />
+              </svg>
+            </span>
+          )}
+        </div>
+      </div>
+    </>
+  )}
+</div>

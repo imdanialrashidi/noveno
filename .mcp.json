@@ -22,6 +22,8 @@
         "@playwright/mcp@0.0.79",
         "--headless",
         "--isolated",
+        "--browser",
+        "chromium",
         "--block-service-workers",
         "--image-responses",
         "omit",

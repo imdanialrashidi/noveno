@@ -1,0 +1,91 @@
+---
+import { toFaDigits } from "../../data/site";
+
+/**
+ * StepperLine — audit progress (DESIGN §11, Spec §31; Slice 2 consumer).
+ * Stations ۱–۶ with names, RTL. Desktop: horizontal line with
+ * complete = filled square + check, current = primary outline,
+ * upcoming = dashed. Mobile: compact «مرحله ۳ از ۶» + thin progress bar
+ * (no tiny tap targets). Progress is announced via aria-live by the
+ * /audit page (Slice 2); this component is the stable visual contract.
+ */
+
+export interface Step {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  steps: readonly Step[];
+  current: number; // 1-based index of the current step
+  totalLabel?: string;
+}
+
+const { steps, current, totalLabel = "مرحله" } = Astro.props;
+const progress = Math.round(((current - 1) / steps.length) * 100);
+---
+
+<div class="w-full">
+  <!-- Desktop: horizontal route with station names -->
+  <ol class="hidden items-center lg:flex" aria-label="مراحل بررسی مسیر جذب">
+    {steps.map((step, index) => {
+      const number = index + 1;
+      const isComplete = number < current;
+      const isCurrent = number === current;
+      const isUpcoming = number > current;
+      return (
+        <li class="flex flex-1 items-center" >
+          <span class="flex flex-col items-center gap-1.5">
+            <span
+              class:list={[
+                "flex h-6 w-6 items-center justify-center rounded-[1px] border",
+                isComplete && "border-primary bg-primary text-on-primary",
+                isCurrent && "border-2 border-primary bg-surface",
+                isUpcoming && "border border-dashed border-line-strong",
+              ]}
+              aria-hidden="true"
+            >
+              {isComplete && (
+                <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              )}
+            </span>
+            <span
+              class:list={[
+                "text-caption font-medium",
+                isComplete && "text-text-muted",
+                isCurrent && "font-semibold text-primary-active",
+                isUpcoming && "text-text-faint",
+              ]}
+            >
+              {step.label}
+            </span>
+          </span>
+          {index < steps.length - 1 && (
+            <span
+              class:list={[
+                "mx-2 h-0 flex-1 border-t-2",
+                number < current ? "border-solid border-primary" : "border-dashed border-line-strong",
+              ]}
+              aria-hidden="true"
+            ></span>
+          )}
+        </li>
+      );
+    })}
+  </ol>
+
+  <!-- Mobile: compact stage counter + thin progress bar -->
+  <div class="lg:hidden" role="status" aria-live="polite">
+    <p class="mb-2 flex items-baseline justify-between text-caption">
+      <span class="font-medium text-text-muted">
+        {totalLabel} {toFaDigits(current)} از {toFaDigits(steps.length)}
+      </span>
+      <span class="text-text-faint">{steps[current - 1]?.label}</span>
+    </p>
+    <span class="block h-0.5 w-full overflow-hidden rounded-[1px] bg-line" aria-hidden="true">
+      <span class="block h-full rounded-[1px] bg-primary transition-[width] duration-250" style={`width: ${progress}%`}></span>
+    </span>
+  </div>
+</div>

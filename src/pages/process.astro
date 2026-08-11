@@ -1,0 +1,100 @@
+---
+/**
+ * Process page (Spec §24, DESIGN §15 screen 4).
+ * Five-stage loop: بررسی ← طراحی ← اجرا ← اندازه‌گیری ← بهبود ↺.
+ * The process is a cycle, not build→deliver→disappear.
+ */
+
+import PageLayout from "../layouts/PageLayout.astro";
+import SectionHeader from "../components/layout/SectionHeader.astro";
+import CTASection from "../components/layout/CTASection.astro";
+import JourneyLine from "../components/business/JourneyLine.astro";
+import { PROCESS_STAGES, CTA_URL, PRIMARY_CTA_LABEL, toFaDigits } from "../data/site";
+import Button from "../components/ui/Button.astro";
+---
+
+<PageLayout
+  title="فرآیند — یک چرخه، نه تحویل و خداحافظی"
+  description="فرآیند نوونو در پنج مرحله: بررسی، طراحی، اجرا، اندازه‌گیری و بهبود — به صورت چرخه‌ای که بر اساس داده واقعی بهتر می‌شود."
+  path="/process"
+>
+  <section aria-labelledby="process-hero-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
+      <div class="relative border-b border-line">
+        <span class="section-node absolute -bottom-[3px] start-0" aria-hidden="true"></span>
+        <h1 id="process-hero-title" class="text-h2 max-w-3xl pb-6">
+          بررسی ← طراحی ← اجرا ← اندازه‌گیری ← بهبود؛ و دوباره از اول
+        </h1>
+      </div>
+      <p class="mt-6 max-w-2xl text-lead text-text-muted">
+        این چرخه همان چیزی است که برای کسب‌وکار شما طراحی می‌شود. هر دور بر اساس داده‌ای که دور قبل جمع شده، مسیر را دقیق‌تر می‌کند.
+      </p>
+      <div class="mt-8 flex flex-wrap gap-4">
+        <Button href={CTA_URL} size="lg">{PRIMARY_CTA_LABEL}</Button>
+      </div>
+    </div>
+  </section>
+
+  <!-- The loop -->
+  <section class="border-t border-line" aria-labelledby="loop-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+      <SectionHeader id="loop-title" title="چرخه پنج مرحله‌ای" />
+      <div class="diagram-well rounded-[4px] p-6 sm:p-12">
+        <JourneyLine
+          stations={PROCESS_STAGES.map((stage) => ({ label: stage.label }))}
+          label="چرخه فرآیند: بررسی، طراحی، اجرا، اندازه‌گیری، بهبود — و بازگشت به بررسی"
+          loop
+        />
+      </div>
+
+      <ol class="mt-12 flex flex-col gap-0">
+        {PROCESS_STAGES.map((stage, index) => (
+          <li class="grid gap-4 border-t border-line py-8 lg:grid-cols-[120px_minmax(0,1fr)] lg:gap-10">
+            <div class="flex items-center gap-3 lg:flex-col lg:items-start lg:gap-2">
+              <span class="flex h-6 w-6 items-center justify-center rounded-[1px] bg-primary-soft text-caption font-semibold text-accent-strong tnum">
+                {toFaDigits(index + 1)}
+              </span>
+              <h2 class="text-h3 text-text">{stage.label}</h2>
+            </div>
+            <div>
+              <p class="text-body text-text-muted measure-prose">{stage.description}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- Why a cycle -->
+  <section class="border-t border-line" aria-labelledby="cycle-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+      <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
+        <div class="lg:col-span-5">
+          <SectionHeader
+            id="cycle-title"
+            title="چرا چرخه، نه پروژه خطی؟"
+            lead="«ساخت → تحویل → خداحافظی» با واقعیت جذب مشتری نمی‌خواند؛ مسیر باید بعد از داده اصلاح شود."
+          />
+        </div>
+        <ul class="flex flex-col gap-6 lg:col-span-7">
+          {[
+            { title: "داده حرف می‌زند", text: "اولین دور، فرضیه‌های طراحی را با داده واقعی جایگزین می‌کند: کدام CTA، کدام فرم، کدام کانال." },
+            { title: "تغییر کوچک، اثر بزرگ", text: "بهبودها بر اساس شواهد اولویت‌بندی می‌شوند؛ نه سلیقه و نه «همه چیز را عوض کنیم»." },
+            { title: "هزینه قابل پیش‌بینی", text: "هر دور بهبود در محدوده تعریف‌شده انجام می‌شود؛ بدون Scope پنهان و بدون کار بی‌پایان." },
+            { title: "مسئولیت نتیجه", text: "اگر چیزی بهتر نشد، اندازه‌گیری همان را نشان می‌دهد — و مسیر اصلاح می‌شود." },
+          ].map((item) => (
+            <li class="border-t border-line pt-5">
+              <h3 class="flex items-center gap-2 text-ui font-semibold text-text">
+                <span class="h-1.5 w-1.5 flex-none rounded-[1px] bg-primary" aria-hidden="true"></span>
+                {item.title}
+              </h3>
+              <p class="mt-2 text-body text-text-muted measure-prose">{item.text}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <CTASection />
+</PageLayout>

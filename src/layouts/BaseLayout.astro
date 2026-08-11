@@ -1,0 +1,58 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+  path: string;
+}
+
+const { title, description, path } = Astro.props;
+const site = Astro.site ?? new URL("https://noveno.ir/");
+const canonical = new URL(path.replace(/\/index\.html$/, "/"), site).toString();
+const ogImage = new URL("/og.png", site).toString();
+const htmlTitle = title.endsWith("نوونو") ? title : `${title} — نوونو`;
+---
+
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>{htmlTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph metadata foundation (Slice 1; completion in Slice 2) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="نوونو" />
+    <meta property="og:locale" content="fa_IR" />
+    <meta property="og:title" content={htmlTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary" />
+
+    <!-- No wrong-theme flash (DESIGN §7.3): read the persisted override
+         before first paint; no stored value = media-query default. -->
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem("noveno-theme");
+          if (t === "light" || t === "dark") {
+            document.documentElement.setAttribute("data-theme", t);
+          }
+        } catch (e) {}
+      })();
+    </script>
+
+    <!-- LCP text is the hero headline → preload its face only (§5.3) -->
+    <link rel="preload" href="/fonts/estedad-arabic-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

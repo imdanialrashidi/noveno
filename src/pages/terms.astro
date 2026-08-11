@@ -1,0 +1,80 @@
+---
+/**
+ * Terms page — plain usage terms for the website. No guarantee
+ * language, honest about limitations (Spec §52, §74).
+ */
+
+import PageLayout from "../layouts/PageLayout.astro";
+import { CONTACT } from "../data/site";
+
+const sections = [
+  {
+    title: "استفاده از وب‌سایت",
+    body: "محتوای این وب‌سایت برای آشنایی با نوونو و خدمات آن منتشر شده است. استفاده از مطالب با ذکر منبع برای مقاصد غیرتجاری آزاد است؛ استفاده تجاری یا بازنشر گسترده نیاز به اجازه قبلی دارد.",
+  },
+  {
+    title: "ماهیت اطلاعات",
+    body: "مطالب این وب‌سایت (شامل نمونه‌های نمایشی) برای اطلاع‌رسانی است و پیشنهاد قراردادی محسوب نمی‌شود. هر همکاری پس از بررسی مسیر جذب، با توافق مشخص درباره Scope، هزینه و خروجی‌ها شکل می‌گیرد.",
+  },
+  {
+    title: "بدون تضمین",
+    body: "نوونو هیچ تضمینی درباره نتیجه فروش یا بازدهی سرمایه‌گذاری ارائه نمی‌دهد. هر عددی که در این وب‌سایت منتشر می‌شود، منبع و محدودیت تفسیر خود را دارد و به معنای تضمین نتیجه مشابه برای کسب‌وکار شما نیست.",
+  },
+  {
+    title: "نمونه‌های نمایشی",
+    body: "کارهایی که با برچسب «نمونه نمایشی» یا «سناریوی مفهومی» مشخص شده‌اند، سناریوهای طراحی‌اند، نه پروژه اجراشده. اهداف و KPIهای آن‌ها پیشنهاد طراحی است و داده عملکردی ندارند.",
+  },
+  {
+    title: "مسئولیت",
+    body: "نوونو تلاش می‌کند اطلاعات این وب‌سایت به‌روز و دقیق باشد، اما مسئولیتی بابت خسارت‌های ناشی از اتکا به مطالب (به ویژه در تصمیم‌های تجاری) نمی‌پذیرد.",
+  },
+  {
+    title: "قانون حاکم",
+    body: "روابط ناشی از این وب‌سایت تابع قوانین جمهوری اسلامی ایران است.",
+  },
+  {
+    title: "تماس",
+    body: "برای هر پرسش درباره این شرایط، از راه‌های تماس صفحه «حریم خصوصی» یا صفحه تماس اقدام کنید.",
+  },
+];
+---
+
+<PageLayout
+  title="شرایط استفاده"
+  description="شرایط استفاده از وب‌سایت نوونو: ماهیت اطلاعات، نبود تضمین نتیجه، نمونه‌های نمایشی و قانون حاکم."
+  path="/terms"
+>
+  <section aria-labelledby="terms-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
+      <div class="relative border-b border-line">
+        <span class="section-node absolute -bottom-[3px] start-0" aria-hidden="true"></span>
+        <h1 id="terms-title" class="text-h2 max-w-3xl pb-6">شرایط استفاده</h1>
+      </div>
+      <p class="mt-6 text-caption text-text-faint">آخرین به‌روزرسانی: مرداد ۱۴۰۵</p>
+    </div>
+  </section>
+
+  <section class="border-t border-line" aria-label="متن شرایط استفاده">
+    <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
+      <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
+        <div class="lg:col-span-4">
+          <h2 class="text-ui font-semibold text-text">خلاصه</h2>
+          <p class="mt-4 text-body text-text-muted">
+            این وب‌سایت برای آشنایی با نوونو است؛ وعده و تضمینی درباره نتیجه نمی‌دهد و نمونه‌های نمایشی، نمایشی هستند.
+          </p>
+        </div>
+        <div class="flex flex-col gap-10 lg:col-span-8">
+          {sections.map((section) => (
+            <div class="border-t border-line pt-5">
+              <h2 class="text-h3 text-text">{section.title}</h2>
+              <p class="mt-3 text-body text-text-muted measure-prose">{section.body}</p>
+            </div>
+          ))}
+          <p class="border-t border-line pt-5 text-caption text-text-faint">
+            {CONTACT.phone} — {CONTACT.email}
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</PageLayout>

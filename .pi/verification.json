@@ -54,9 +54,28 @@
     },
     {
       "id": "workflow-contract",
-      "include": ["AGENTS.md", ".mcp.json", ".pi/**", ".github/**", "p", "*.md", "docs/**", "scripts/*.sh", "scripts/verify-package-integrity.mjs", "Dockerfile.pi", ".dockerignore"],
+      "include": ["AGENTS.md", ".mcp.json", ".pi/**", ".github/**", "p", "package.json", "*.md", "docs/**", "scripts/*.sh", "scripts/verify-package-integrity.mjs", "Dockerfile.pi", ".dockerignore", "tests/gate-order.test.mjs"],
       "commands": [
-        ["bash", "scripts/pi-doctor.sh", "--ci", "--static"]
+        ["bash", "scripts/pi-doctor.sh", "--ci", "--static"],
+        ["node", "--test", "tests/gate-order.test.mjs"]
+      ]
+    },
+    {
+      "id": "app",
+      "include": ["src/**", "package.json", "package-lock.json", "astro.config.mjs", "tsconfig.json", "wrangler.jsonc", "tests/structural.test.mjs", "tests/content.test.mjs"],
+      "commands": [
+        ["npm", "run", "check"],
+        ["npm", "run", "build"],
+        ["node", "--test", "tests/structural.test.mjs"],
+        ["node", "--test", "tests/content.test.mjs"]
+      ]
+    },
+    {
+      "id": "functions",
+      "include": ["functions/**", "tests/audit-function.test.mjs"],
+      "commands": [
+        ["npm", "run", "check"],
+        ["npm", "run", "build"]
       ]
     }
   ],

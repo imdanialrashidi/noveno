@@ -137,9 +137,9 @@ Confirmed rules for this project (source: `docs/PRODUCT.md`, `docs/ARCHITECTURE.
 8. **Performance is a product requirement**: static rendering, minimal JS, optimized self-hosted assets; CWV `good` targets pending an accepted lab budget. Check: lab measurement at build, RUM via Cloudflare Web Analytics after launch.
 9. **No speculative infrastructure**: new dependencies/services need a concrete current benefit; Cloudflare free-tier compatibility where practical. Check: dependency review in `/review`.
 
-Canonical commands (current bootstrap state; app commands added when the Astro project lands):
+Canonical commands:
 
-- Full canonical gate: `bash scripts/verify.sh` (runs `scripts/pi-doctor.sh --ci` + `scripts/project-verify.sh`; CI mirrors this in `.github/workflows/quality.yml`).
+- Full canonical gate: `bash scripts/verify.sh` (builds the project so structural tests run against a fresh `dist/`, then runs `scripts/pi-doctor.sh --ci` + `scripts/project-verify.sh`; CI mirrors this in `.github/workflows/quality.yml`).
 - Project doc/branding/contract checks: `bash scripts/project-verify.sh` (fast, static).
 - Affected-change routing: `node scripts/verify-affected.mjs --file <path> [--plan]` (routes in `.pi/verification.json`; unmatched files fall back to the full gate).
 - Harness/workflow tests: `node --test tests/*.test.mjs`.

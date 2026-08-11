@@ -1,0 +1,62 @@
+---
+/**
+ * CTASection — recurring final CTA (Spec §29, DESIGN §13).
+ * The primary conversion is the same fixed language everywhere:
+ * «درخواست بررسی مسیر جذب» → CTA_URL; secondary = direct contact.
+ * Includes NextStepsRail so the action has no dead end.
+ */
+
+import Button from "../ui/Button.astro";
+import NextStepsRail from "../business/NextStepsRail.astro";
+import { CTA_URL, PRIMARY_CTA_LABEL, CONTACT } from "../../data/site";
+
+interface Props {
+  title?: string;
+  support?: string;
+  /** Override the primary CTA target (e.g. on /contact itself). */
+  primaryHref?: string;
+  primaryLabel?: string;
+  /** Hide the next-steps rail (used where the rail already appears). */
+  hideRail?: boolean;
+}
+
+const {
+  title = "ببینیم مسیر فعلی جذب مشتری شما کجا می‌تواند بهتر شود.",
+  support = "چند سؤال کوتاه درباره کسب‌وکارتان پاسخ دهید تا قبل از تماس، تصویر دقیق‌تری از وضعیت فعلی داشته باشیم.",
+  primaryHref = CTA_URL,
+  primaryLabel = PRIMARY_CTA_LABEL,
+  hideRail = false,
+} = Astro.props;
+---
+
+<section class="border-t border-line" aria-labelledby="cta-title">
+  <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+    <div class="relative border-b border-line">
+      <span class="section-node absolute -bottom-[3px] start-0" aria-hidden="true"></span>
+      <h2 id="cta-title" class="text-h2 max-w-3xl pb-6">{title}</h2>
+    </div>
+
+    <div class:list={["mt-8 grid gap-10", hideRail ? "" : "lg:grid-cols-2 lg:gap-16"]}>
+      <div class="flex flex-col items-start gap-6">
+        <p class="text-lead text-text-muted measure-prose">{support}</p>
+        <div class="flex flex-wrap items-center gap-4">
+          <Button href={primaryHref} size="lg">{primaryLabel}</Button>
+          <Button href={CONTACT.phoneHref} variant="secondary" size="lg">
+            تماس مستقیم
+            <span class="text-caption tnum" dir="ltr">{CONTACT.phone}</span>
+          </Button>
+        </div>
+        <p class="text-caption text-text-faint">
+          بدون وعده فروش تضمینی؛ ابتدا مسیر فعلی کسب‌وکار بررسی می‌شود.
+        </p>
+      </div>
+
+      {!hideRail && (
+        <div>
+          <p class="mb-4 text-ui font-medium text-text-muted">پس از درخواست چه اتفاقی می‌افتد؟</p>
+          <NextStepsRail />
+        </div>
+      )}
+    </div>
+  </div>
+</section>

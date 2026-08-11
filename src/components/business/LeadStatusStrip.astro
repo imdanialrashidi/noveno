@@ -1,0 +1,55 @@
+---
+/**
+ * LeadStatusStrip — نوار وضعیت (DESIGN §4.1 pattern 4).
+ * A compact horizontal status row with one active position, rendered in
+ * CSS. It is the honesty device: statuses are real states, never
+ * invented percentages. Semantic content → rendered as a real <ol>.
+ */
+
+import { LEAD_STATUSES } from "../../data/site";
+
+interface Props {
+  /** Index of the active status (0-based). */
+  active: number;
+  label?: string;
+}
+
+const { active, label = "وضعیت لید" } = Astro.props;
+---
+
+<div>
+  <ol class="flex flex-wrap items-center gap-y-2" aria-label={label}>
+    {LEAD_STATUSES.map((status, index) => (
+      <li class="flex items-center" >
+        <span class="flex items-center gap-1.5">
+          <span
+            aria-hidden="true"
+            class:list={[
+              "h-1.5 w-1.5 flex-none rounded-[1px]",
+              index === active
+                ? "bg-primary"
+                : index < active
+                  ? "border border-line-strong"
+                  : "border border-dashed border-line-strong",
+            ]}
+          ></span>
+          <span
+            class:list={[
+              "text-caption font-medium",
+              index === active
+                ? "font-semibold text-primary-active"
+                : index < active
+                  ? "text-text-muted"
+                  : "text-text-faint",
+            ]}
+          >
+            {status}
+          </span>
+        </span>
+        {index < LEAD_STATUSES.length - 1 && (
+          <span class="mx-2 h-0 w-4 border-t-2 border-line-strong" aria-hidden="true"></span>
+        )}
+      </li>
+    ))}
+  </ol>
+</div>

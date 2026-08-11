@@ -1,0 +1,41 @@
+---
+/**
+ * 404 — the route language applied to an error state: the path simply
+ * does not continue here. Calm, actionable, no dead end.
+ */
+
+import PageLayout from "../layouts/PageLayout.astro";
+import Button from "../components/ui/Button.astro";
+import { CTA_URL, PRIMARY_CTA_LABEL } from "../data/site";
+---
+
+<PageLayout
+  title="این نشانی روی مسیر نیست"
+  description="صفحه موردنظر پیدا نشد؛ از اینجا به مسیر اصلی برگردید."
+  path="/404"
+>
+  <section aria-labelledby="notfound-title">
+    <div class="mx-auto flex max-w-[1200px] flex-col items-start gap-8 px-5 py-20 sm:px-8 lg:py-28">
+      <div class="flex items-center gap-3" aria-hidden="true">
+        <span class="h-2 w-2 rounded-[1px] border border-line-strong"></span>
+        <span class="h-6 w-0 border-s-2 border-dashed border-line-strong"></span>
+        <span class="h-2 w-2 rounded-[1px] border border-dashed border-line-strong"></span>
+        <span class="h-6 w-0 border-s-2 border-dashed border-line-strong"></span>
+        <span class="flex h-6 w-6 items-center justify-center rounded-[1px] border border-dashed border-line-strong text-caption font-semibold text-text-faint tnum">۴۰۴</span>
+      </div>
+
+      <h1 id="notfound-title" class="text-h2 max-w-2xl text-text">
+        این نشانی روی مسیر نیست.
+      </h1>
+      <p class="max-w-xl text-lead text-text-muted">
+        صفحه‌ای که دنبالش بودید وجود ندارد یا جابه‌جا شده است. از این‌جا می‌توانید به مسیر اصلی برگردید.
+      </p>
+
+      <div class="flex flex-wrap gap-4">
+        <Button href="/">صفحه اصلی</Button>
+        <Button href="/work" variant="secondary">دیدن پروژه‌ها</Button>
+        <Button href={CTA_URL} variant="secondary">{PRIMARY_CTA_LABEL}</Button>
+      </div>
+    </div>
+  </section>
+</PageLayout>

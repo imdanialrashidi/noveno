@@ -1,0 +1,106 @@
+---
+/**
+ * Work page (Spec §20, DESIGN §15 screen 5).
+ * A curated list of rows with line-style codes: solid+filled =
+ * case study, solid+hollow = project, dashed+hollow = concept.
+ * The legend block makes the honesty grammar explicit (DESIGN §4.3).
+ */
+
+import PageLayout from "../../layouts/PageLayout.astro";
+import SectionHeader from "../../components/layout/SectionHeader.astro";
+import CTASection from "../../components/layout/CTASection.astro";
+import ProofRow from "../../components/business/ProofRow.astro";
+import Button from "../../components/ui/Button.astro";
+import { getCollection } from "astro:content";
+
+const entries = (await getCollection("work")).sort((a, b) => {
+  if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
+  return b.data.published_at.valueOf() - a.data.published_at.valueOf();
+});
+
+const jalali = (date: Date) =>
+  new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "long" }).format(date);
+
+const typeMeta: Record<string, string> = {
+  "case-study": "مطالعه موردی — نتیجه واقعی با شواهد",
+  project: "پروژه — اجرای واقعی؛ نتیجه در دست اندازه‌گیری",
+  concept: "نمونه نمایشی — سناریوی مفهومی بدون داده",
+};
+---
+
+<PageLayout
+  title="پروژه‌ها — کارهایی که می‌سازیم"
+  description="کارهای نوونو با سه دسته صریح: مطالعه موردی (نتیجه واقعی با شواهد)، پروژه (اجرای واقعی) و نمونه نمایشی (سناریوی مفهومی). هیچ عددی بدون داده منتشر نمی‌شود."
+  path="/work"
+>
+  <section aria-labelledby="work-hero-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
+      <div class="relative border-b border-line">
+        <span class="section-node absolute -bottom-[3px] start-0" aria-hidden="true"></span>
+        <h1 id="work-hero-title" class="text-h2 max-w-3xl pb-6">کارهایی که می‌سازیم — با خط صادقانه</h1>
+      </div>
+      <p class="mt-6 max-w-2xl text-lead text-text-muted">
+        اینجا سه نوع کار وجود دارد و تفاوت‌شان از روی خطِ کنار هر ردیف خوانده می‌شود. اگر عددی می‌بینید، داده واقعی پشت آن است؛ اگر نمی‌بینید، ادعایی هم نیست.
+      </p>
+
+      <!-- The honesty grammar, made explicit -->
+      <ul class="mt-10 flex flex-col gap-4 sm:flex-row sm:gap-10">
+        <li class="flex items-center gap-2.5 text-caption text-text-muted">
+          <span class="flex h-3 w-8 items-center" aria-hidden="true"><span class="h-0 w-full border-t-2 border-solid border-primary"></span></span>
+          <span class="h-2 w-2 flex-none bg-primary" aria-hidden="true"></span>
+          مطالعه موردی — واقعی، با شواهد
+        </li>
+        <li class="flex items-center gap-2.5 text-caption text-text-muted">
+          <span class="flex h-3 w-8 items-center" aria-hidden="true"><span class="h-0 w-full border-t-2 border-solid border-line-strong"></span></span>
+          <span class="h-2 w-2 flex-none border border-line-strong" aria-hidden="true"></span>
+          پروژه — واقعی، بدون ادعای نتیجه
+        </li>
+        <li class="flex items-center gap-2.5 text-caption text-text-muted">
+          <span class="flex h-3 w-8 items-center" aria-hidden="true"><span class="h-0 w-full border-t-2 border-dashed border-line-strong"></span></span>
+          <span class="h-2 w-2 flex-none border border-dashed border-line-strong" aria-hidden="true"></span>
+          نمونه نمایشی — سناریوی مفهومی
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="border-t border-line" aria-labelledby="work-list-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
+      <SectionHeader id="work-list-title" title="فهرست کارها" />
+
+      {entries.length > 0 ? (
+        <div class="flex flex-col">
+          {entries.map((entry) => (
+            <ProofRow
+              kind={entry.data.type}
+              title={entry.data.title}
+              summary={entry.data.summary}
+              meta={`${entry.data.industry} — ${jalali(entry.data.published_at)}`}
+              href={`/work/${entry.id}`}
+              outcome={
+                entry.data.type === "project"
+                  ? "نتیجه: در دست اندازه‌گیری"
+                  : entry.data.type === "concept"
+                    ? "نمونه نمایشی — بدون داده عملکردی"
+                    : undefined
+              }
+            />
+          ))}
+        </div>
+      ) : (
+        <div class="border-t border-line py-16">
+          <p class="text-body text-text-muted">
+            هنوز کاری منتشر نشده است. به محض در دسترس بودن اولین پروژه واقعی یا نمونه نمایشی، اینجا اضافه می‌شود.
+          </p>
+        </div>
+      )}
+
+      <div class="mt-6 flex flex-col gap-3 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-caption text-text-faint">معیار انتشار: واقعی بودن، شواهد قابل ارجاع، و برچسب صادقانه — به این ترتیب.</p>
+        <Button href="/contact" variant="secondary">شروع یک همکاری</Button>
+      </div>
+    </div>
+  </section>
+
+  <CTASection />
+</PageLayout>
