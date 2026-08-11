@@ -58,6 +58,24 @@
       "commands": [
         ["bash", "scripts/pi-doctor.sh", "--ci", "--static"]
       ]
+    },
+    {
+      "id": "app",
+      "include": ["src/**", "package.json", "package-lock.json", "astro.config.mjs", "tsconfig.json", "wrangler.jsonc", "tests/structural.test.mjs", "tests/content.test.mjs"],
+      "commands": [
+        ["npm", "run", "check"],
+        ["npm", "run", "build"],
+        ["node", "--test", "tests/structural.test.mjs"],
+        ["node", "--test", "tests/content.test.mjs"]
+      ]
+    },
+    {
+      "id": "functions",
+      "include": ["functions/**", "tests/audit-function.test.mjs"],
+      "commands": [
+        ["npm", "run", "check"],
+        ["npm", "run", "build"]
+      ]
     }
   ],
   "fallback": [

@@ -8,7 +8,7 @@ Product-level path from idea to production. Task-level, multi-session execution 
 - Measurable success: qualified audit requests generated; audit completion rate and CTA click rate improving; every submission persisted + notified (Spec §6).
 - Explicit non-goals: no client portal/auth/CMS/SSR/backend beyond the audit-form function; no blog or industry pages at launch; no fabricated proof; no infrastructure for hypothetical scale.
 - Deadline / capital / compliance constraints: none accepted; Cloudflare free-tier-compatible where practical; Iranian network realities are product requirements, not afterthoughts.
-- Current stage: **Stage 1 entry — bootstrap complete; the next lifecycle step is `/design`** (experience direction), then `/plan` for the Phase 1 build. No application code exists yet.
+- Current stage: **Stage 2 entry — bootstrap and `/design` complete; the launch build plan is accepted in `docs/exec-plans/active/noveno-launch.md`** (two slices: flagship site → acquisition flow & production integration). No application code exists yet.
 
 ## Evidence ledger
 
@@ -20,7 +20,10 @@ Product-level path from idea to production. Task-level, multi-session execution 
 | Astro + TS + static Cloudflare Pages, no client framework, Supabase + email via one Pages Function, Cloudflare analytics | confirmed (accepted) | Bootstrap prompt overrides | First build validates practicality |
 | SMB owners complete a multi-step audit form | assumed | None yet | Launch → measure audit completion rate |
 | Web Analytics + Zaraz satisfy acquisition measurement | assumed | None yet | Configure at build; verify events in staging |
-| Self-hosted licensed Persian font is feasible on Cloudflare free tier | assumed | None yet | /design type selection + performance proof |
+| Self-hosted licensed Persian font is feasible on Cloudflare free tier | confirmed | DESIGN §5.4 (≈165 KB measured) + npm packages verified | Slice 1 font pipeline proof |
+| Two-slice launch plan maps the accepted scope | confirmed | `docs/exec-plans/active/noveno-launch.md` (A1) | Execute Slices 1–2 |
+| Web3Forms free tier requires client-side submission | confirmed | docs.web3forms.com API reference (server-side = paid plan + IP whitelist) | Slice 2 notification wiring |
+| Web Analytics lacks custom events; Analytics Engine is the Cloudflare-native store | confirmed | Web Analytics FAQ + Pages Functions binding docs | Slice 2 `/api/events` |
 | Audit free-vs-paid policy | deferred | — | Business decision (Spec §15) |
 | Prices on site | deferred | — | Business decision (Spec §39) |
 
@@ -31,7 +34,7 @@ Product-level path from idea to production. Task-level, multi-session execution 
 - Exit evidence: **done** — thesis in `docs/PRODUCT.md`, positioning in Master Spec §3, ICP in §4.
 - Next smallest experiment: launch Phase 1 and measure audit completion.
 
-### 1. Experience direction  ← CURRENT
+### 1. Experience direction  ✔ DONE (exit evidence: accepted `docs/DESIGN.md`, 2026-08-11; screen-proof plan in DESIGN §15)
 - Scope: critical journey (understand → qualify → audit), IA (Spec §8.1), brand character, visual thesis, theme tokens, typography (licensed Persian font), RTL/mobile composition, light/dark mechanics.
 - Exit evidence: accepted `docs/DESIGN.md`; critical states and desktop/mobile proof plan defined.
 - Decision owner: `/design` run, evaluated against `docs/QUALITY.md` + `frontend-design` gates.
@@ -83,9 +86,9 @@ Product-level path from idea to production. Task-level, multi-session execution 
 
 ## Next bounded slice
 
-- Goal: **`/design`** — accepted visual/experience direction (theme tokens from the accepted anchors, typography, RTL composition, light/dark mechanics, screen-level proof plan) without implementation.
-- Acceptance proof: `docs/DESIGN.md` updated per its own contract; rendered-proof plan defined; evaluated with `frontend-design` gates; `scripts/verify.sh` stays green.
-- Recovery / rollback: design changes are doc-only; Git revert of `docs/DESIGN.md` if the direction is rejected.
+- Goal: **Slice 1 — Flagship Website Experience** per `docs/exec-plans/active/noveno-launch.md` (Astro scaffold, design system, theme/typography/fonts, Journey Line patterns, content layer, all Slice 1 pages), then Slice 2 — Acquisition Flow & Production Integration.
+- Acceptance proof: the plan's criteria A1–A7; DESIGN §15 screen matrix (slices 1–7, 10–12 then 8–9); `frontend-design` flagship gates; `scripts/verify.sh` green.
+- Recovery / rollback: build work is reversible on a task branch; Git revert of the slice diff if the direction is rejected.
 
 ## Deferred decisions
 

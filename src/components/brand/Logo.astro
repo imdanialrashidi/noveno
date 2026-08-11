@@ -1,0 +1,53 @@
+---
+import { SITE_NAME_EN, SITE_NAME_FA } from "../../data/site";
+
+interface Props {
+  /** Show the Persian wordmark next to the mark. */
+  wordmark?: boolean;
+  /** Wordmark size class (defaults to header size). */
+  size?: "md" | "lg";
+}
+
+const { wordmark = true, size = "md" } = Astro.props;
+
+/**
+ * Brand mark — geometry reused unchanged from branding_assests/
+ * (Noveno_Logo_SVG_Outline.svg path), fill from the semantic text token
+ * (accepted recolor, DESIGN §9 / §17). The Tahoma «NOVENO» embedded text
+ * is replaced by an Estedad-rendered wordmark (DESIGN §5.2, §9).
+ */
+---
+
+<span class:list={["inline-flex items-center gap-2.5", size === "lg" ? "gap-3" : ""]}>
+  <svg
+    viewBox="0 0 438 394"
+    class:list={[size === "lg" ? "h-9 w-auto" : "h-7 w-auto"]}
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path
+      d="M266.458,392.827L124.074,174.407L63.904,318.218L0.5,317.995L114.581,51.524L265.649,288.586C265.649,288.586 347.798,174.154 371.997,84.837L317.715,62.386L263.782,84.45C263.782,84.45 269.742,147.856 313.528,163.292L284.862,214.638C284.862,214.638 208.851,188.767 199.035,49.522L317.889,0.5L436.986,49.522C436.986,49.522 436.866,152.092 266.458,392.827Z"
+      fill="currentColor"
+    />
+  </svg>
+  {wordmark && (
+    <span class="flex flex-col leading-none">
+      <span
+        class:list={[
+          "font-display font-extrabold text-text",
+          size === "lg" ? "text-xl" : "text-lg",
+        ]}
+        lang="fa"
+      >
+        {SITE_NAME_FA}
+      </span>
+      <span
+        class="font-display font-bold tracking-[0.04em] text-text-faint"
+        style={`font-size:${size === "lg" ? "0.55rem" : "0.5rem"}`}
+        lang="en"
+      >
+        {SITE_NAME_EN}
+      </span>
+    </span>
+  )}
+</span>

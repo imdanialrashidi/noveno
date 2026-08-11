@@ -1,0 +1,68 @@
+---
+/**
+ * MobileMenu (DESIGN §9.2 — no mega-menu).
+ * Panel toggled by the header trigger; nav links are full-width ≥44px
+ * targets; theme toggle + contact redundancy row are included. Focus
+ * moves into the panel on open, Escape closes, focus returns to the
+ * trigger (src/scripts/menu.ts).
+ */
+
+import Button from "../ui/Button.astro";
+import ThemeToggle from "./ThemeToggle.astro";
+import { NAV_LINKS, CTA_URL, CONTACT } from "../../data/site";
+
+const pathname = Astro.url.pathname;
+const isCurrent = (href: string) =>
+  href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
+---
+
+<div
+  id="mobile-menu"
+  hidden
+  class="border-b border-line bg-canvas lg:hidden"
+>
+  <nav class="mx-auto max-w-[1200px] px-5 py-4 sm:px-8" aria-label="منوی موبایل">
+    <ul class="flex flex-col">
+      {NAV_LINKS.map((link) => (
+        <li class="border-b border-line last:border-b-0">
+          <a
+            href={link.href}
+            class:list={[
+              "flex min-h-12 items-center gap-3 py-2 text-lg font-medium transition-colors duration-150",
+              isCurrent(link.href) ? "text-primary-active" : "text-text hover:text-primary-active",
+            ]}
+          >
+            <span
+              class:list={[
+                "h-1.5 w-1.5 flex-none rounded-[1px]",
+                isCurrent(link.href) ? "bg-primary" : "border border-line-strong",
+              ]}
+              aria-hidden="true"
+            ></span>
+            {link.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <div class="mt-4 flex items-center justify-between gap-4">
+      <Button href={CTA_URL} class="flex-1">درخواست بررسی</Button>
+      <ThemeToggle id="theme-toggle-menu" />
+    </div>
+
+    <p class="mt-6 mb-2 text-caption text-text-faint">تماس مستقیم</p>
+    <ul class="flex flex-col">
+      <li>
+        <a href={CONTACT.phoneHref} class="flex min-h-11 items-center gap-2 text-ui font-medium text-text hover:text-primary-active">
+          <span class="text-caption tnum" dir="ltr">{CONTACT.phone}</span>
+          <span class="text-caption text-text-faint">(تماس)</span>
+        </a>
+      </li>
+      <li class="flex flex-wrap gap-x-6 gap-y-1 py-1">
+        <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui text-text-muted hover:text-primary-active" target="_blank" rel="noopener noreferrer">واتساپ</a>
+        <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui text-text-muted hover:text-primary-active" target="_blank" rel="noopener noreferrer">تلگرام</a>
+        <a href={CONTACT.emailHref} class="inline-flex min-h-11 items-center text-ui text-text-muted hover:text-primary-active">ایمیل</a>
+      </li>
+    </ul>
+  </nav>
+</div>

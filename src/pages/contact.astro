@@ -1,0 +1,130 @@
+---
+/**
+ * Contact page (Spec §41, DESIGN §15 screen 11).
+ * Contact redundancy is a resilience requirement (§64.1): phone
+ * (click-to-call), WhatsApp, Telegram, email, Instagram — all always
+ * visible. No dead-end generic contact form (Spec §41); the request
+ * path with next steps is explained instead.
+ */
+
+import PageLayout from "../layouts/PageLayout.astro";
+import CTASection from "../components/layout/CTASection.astro";
+import Button from "../components/ui/Button.astro";
+import NextStepsRail from "../components/business/NextStepsRail.astro";
+import { CONTACT } from "../data/site";
+
+const channels = [
+  {
+    title: "تماس تلفنی",
+    detail: "پاسخ‌گویی در ساعات کاری",
+    href: CONTACT.phoneHref,
+    value: CONTACT.phone,
+    ltr: true,
+  },
+  {
+    title: "واتساپ",
+    detail: "برای ارسال پیام و فایل",
+    href: CONTACT.whatsappHref,
+    value: "واتساپ",
+    external: true,
+  },
+  {
+    title: "تلگرام",
+    detail: "برای ارسال پیام",
+    href: CONTACT.telegramHref,
+    value: "تلگرام",
+    external: true,
+  },
+  {
+    title: "ایمیل",
+    detail: "برای توضیحات و مدارک",
+    href: CONTACT.emailHref,
+    value: CONTACT.email,
+    ltr: true,
+  },
+  {
+    title: "اینستاگرام",
+    detail: "دیدن نمونه‌کارها و گفتگو",
+    href: CONTACT.instagramHref,
+    value: CONTACT.instagramHandle,
+    external: true,
+  },
+];
+---
+
+<PageLayout
+  title="تماس با نوونو"
+  description="راه‌های تماس با نوونو: تلفن ۰۹۳۵۳۵۹۸۶۲۰، واتساپ، تلگرام، ایمیل و اینستاگرام. یا درخواست بررسی مسیر جذب را ثبت کنید."
+  path="/contact"
+>
+  <section aria-labelledby="contact-hero-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
+      <div class="relative border-b border-line">
+        <span class="section-node absolute -bottom-[3px] start-0" aria-hidden="true"></span>
+        <h1 id="contact-hero-title" class="text-h2 max-w-3xl pb-6">تماس مستقیم؛ هر کانالی که برای شما راحت‌تر است</h1>
+      </div>
+      <p class="mt-6 max-w-2xl text-lead text-text-muted">
+        چند کانال مستقل در دسترس است تا مسیر تماس هیچ‌وقت به یک نقطه وابسته نباشد. اگر سؤال کوتاهی دارید، مستقیم بپرسید.
+      </p>
+    </div>
+  </section>
+
+  <!-- Channels -->
+  <section class="border-t border-line" aria-labelledby="channels-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
+      <ul class="flex flex-col">
+        {channels.map((channel) => (
+          <li class="border-t border-line first:border-t-0">
+            <a
+              href={channel.href}
+              class="group grid grid-cols-1 gap-1 py-6 transition-colors duration-150 hover:bg-surface-soft/40 sm:grid-cols-[220px_1fr_auto] sm:items-center sm:gap-6"
+              {...(channel.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+            >
+              <span class="flex items-center gap-3 text-h3 text-text">
+                <span class="h-2 w-2 flex-none rounded-[1px] border border-line-strong bg-transparent transition-colors duration-150 group-hover:bg-primary" aria-hidden="true"></span>
+                {channel.title}
+              </span>
+              <span class="text-body text-text-muted">{channel.detail}</span>
+              <span class="flex items-center gap-1.5 text-ui font-medium text-accent-strong">
+                <span class={channel.ltr ? "tnum" : ""} dir={channel.ltr ? "ltr" : undefined}>{channel.value}</span>
+                <svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M19 12H5" />
+                  <path d="m12 19-7-7 7-7" />
+                </svg>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- What happens next -->
+  <section class="border-t border-line" aria-labelledby="next-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
+      <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
+        <div class="lg:col-span-5">
+          <h2 id="next-title" class="text-h3 text-text">پس از تماس یا درخواست، چه اتفاقی می‌افتد؟</h2>
+          <p class="mt-4 text-body text-text-muted measure-prose">
+            گفتگو کوتاه و مشخص است: اول وضعیت فعلی جذب شما فهمیده می‌شود، بعد پیشنهاد. اگر همکاری مناسب نباشد، همان‌جا گفته می‌شود.
+          </p>
+          <div class="mt-6">
+            <Button href={CONTACT.phoneHref} size="lg">
+              تماس تلفنی
+              <span class="text-caption tnum" dir="ltr">{CONTACT.phone}</span>
+            </Button>
+          </div>
+        </div>
+        <div class="lg:col-span-7">
+          <NextStepsRail />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <CTASection
+    primaryHref={CONTACT.phoneHref}
+    primaryLabel="تماس تلفنی برای شروع"
+    hideRail
+  />
+</PageLayout>

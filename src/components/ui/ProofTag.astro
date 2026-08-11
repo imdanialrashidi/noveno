@@ -1,0 +1,49 @@
+---
+import { CONCEPT_DISCLAIMER } from "../../data/site";
+
+export type ProofKind = "case-study" | "project" | "concept";
+
+interface Props {
+  kind: ProofKind;
+}
+
+/**
+ * ProofTag — the only badge in the system (DESIGN §4.3, §10).
+ * Line-style code + label, never color alone:
+ *  case-study → solid line, filled square;  project → solid, hollow square;
+ *  concept → dashed line, hollow square.
+ */
+const config: Record<
+  ProofKind,
+  { label: string; line: string; square: string; classes: string }
+> = {
+  "case-study": {
+    label: "مطالعه موردی",
+    line: "border-t-2 border-solid border-primary",
+    square: "bg-primary",
+    classes: "text-accent-strong",
+  },
+  project: {
+    label: "پروژه",
+    line: "border-t-2 border-solid border-line-strong",
+    square: "bg-transparent border border-line-strong",
+    classes: "text-text-muted",
+  },
+  concept: {
+    label: CONCEPT_DISCLAIMER,
+    line: "border-t-2 border-dashed border-line-strong",
+    square: "bg-transparent border border-dashed border-line-strong",
+    classes: "text-text-faint",
+  },
+};
+
+const c = config[Astro.props.kind];
+---
+
+<span class:list={["inline-flex items-center gap-2 rounded-[4px] border border-line bg-surface px-2.5 py-1 text-caption", c.classes]}>
+  <span class="flex h-3 w-6 items-center" aria-hidden="true">
+    <span class:list={["h-0 w-full", c.line]}></span>
+  </span>
+  <span class:list={["h-2 w-2 flex-none", c.square]} aria-hidden="true"></span>
+  {c.label}
+</span>

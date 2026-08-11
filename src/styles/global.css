@@ -1,0 +1,494 @@
+/*
+ * Noveno design foundation — tokens, themes, typography, base styles.
+ * Contract: docs/DESIGN.md §5 (typography), §6 (tokens), §7 (themes).
+ * Theme anchors: #679e86 (light primary) / #619881 (dark primary).
+ * Tokens are runtime CSS custom properties; Tailwind utilities reference
+ * them via `@theme inline` so every utility follows the active theme.
+ */
+
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ */
+/* 1. Fonts — self-hosted variable subsets (arabic + latin only)       */
+/* ------------------------------------------------------------------ */
+
+@font-face {
+  font-family: "Estedad";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("/fonts/estedad-arabic-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1,
+    U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74,
+    U+FE76-FEFC;
+}
+
+@font-face {
+  font-family: "Estedad";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("/fonts/estedad-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("/fonts/vazirmatn-arabic-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1,
+    U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74,
+    U+FE76-FEFC;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("/fonts/vazirmatn-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Metric-matched local fallback (CLS-safe degradation to Tahoma).
+   Estedad: upm 1000, ascent 1025, descent -500 → size-adjust 1.2634,
+   ascent-override 81.1%, descent-override 191.6% vs Tahoma (upm 2048,
+   ascent 2049, descent -423). Vazirmatn: upm 2048, ascent 2100, descent
+   -1100 → size-adjust 1.2945, ascent-override 79.2%, descent-override
+   200.9%. */
+@font-face {
+  font-family: "Estedad Fallback";
+  src: local("Tahoma");
+  font-display: swap;
+  size-adjust: 126.34%;
+  ascent-override: 81.1%;
+  descent-override: 191.6%;
+}
+
+@font-face {
+  font-family: "Vazirmatn Fallback";
+  src: local("Tahoma");
+  font-display: swap;
+  size-adjust: 129.45%;
+  ascent-override: 79.2%;
+  descent-override: 200.9%;
+}
+
+/* ------------------------------------------------------------------ */
+/* 2. Semantic tokens — Light «روز کاری» (Workday)                     */
+/* ------------------------------------------------------------------ */
+
+:root {
+  color-scheme: light dark;
+
+  /* color roles (DESIGN §6.1 / §6.2) */
+  --canvas: #f9fafa;
+  --surface: #ffffff;
+  --surface-soft: #f1f4f2;
+  --text: #070808;
+  --text-muted: #4c5751;
+  --text-faint: #68736d;
+  --line: #dfe3e1;
+  --line-strong: #7e8a83;
+  --primary: #679e86;
+  --primary-hover: #578d75;
+  --primary-active: #4f8a6f;
+  --primary-soft: #e3efe9;
+  --accent: #82c4a8;
+  --accent-strong: #3b7d61;
+  --accent-light: #3b7d61;
+  --success: #2e7d5b;
+  --danger: #b03a34;
+  --focus: #2f7a5e;
+  --on-primary: #06130d;
+
+  /* depth — one soft shadow token; everything else flat */
+  --shadow-panel: 0 1px 2px rgba(7, 8, 8, 0.06), 0 8px 24px rgba(7, 8, 8, 0.08);
+
+  /* motion (DESIGN §6.3, §12) */
+  --dur-1: 150ms;
+  --dur-2: 250ms;
+  --dur-3: 400ms;
+  --dur-hero: 700ms;
+  --ease-standard: cubic-bezier(0.2, 0.7, 0.3, 1);
+
+  /* type */
+  --font-display: "Estedad", "Estedad Fallback", "Vazirmatn", "Noto Sans Arabic",
+    "Segoe UI", Tahoma, sans-serif;
+  --font-body: "Vazirmatn", "Vazirmatn Fallback", "Noto Sans Arabic", "Segoe UI",
+    Tahoma, sans-serif;
+}
+
+/* Dark «اتاق عملیات» (Ops Room) — via persisted override … */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --canvas: #050606;
+  --surface: #0d1110;
+  --surface-soft: #101715;
+  --text: #f7f8f8;
+  --text-muted: #aab5af;
+  --text-faint: #7f8a84;
+  --line: #232b28;
+  --line-strong: #8d9a93;
+  --primary: #619881;
+  --primary-hover: #6fae93;
+  --primary-active: #6fae93;
+  --primary-soft: #173026;
+  --accent: #3b7d61;
+  --accent-strong: #8fd4b0;
+  --accent-light: #8fd4b0;
+  --success: #9dd8b7;
+  --danger: #e07b74;
+  --focus: #6fae93;
+  --on-primary: #06130d;
+
+  /* dark: no shadows — elevation via surface tones + top hairline */
+  --shadow-panel: none;
+}
+
+/* … or via OS preference when the visitor never picked an override. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --canvas: #050606;
+    --surface: #0d1110;
+    --surface-soft: #101715;
+    --text: #f7f8f8;
+    --text-muted: #aab5af;
+    --text-faint: #7f8a84;
+    --line: #232b28;
+    --line-strong: #8d9a93;
+    --primary: #619881;
+    --primary-hover: #6fae93;
+    --primary-active: #6fae93;
+    --primary-soft: #173026;
+    --accent: #3b7d61;
+    --accent-strong: #8fd4b0;
+    --accent-light: #8fd4b0;
+    --success: #9dd8b7;
+    --danger: #e07b74;
+    --focus: #6fae93;
+    --on-primary: #06130d;
+
+    --shadow-panel: none;
+  }
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* ------------------------------------------------------------------ */
+/* 3. Tailwind v4 theme mapping — utilities read runtime tokens        */
+/* ------------------------------------------------------------------ */
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-soft: var(--surface-soft);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-light: var(--accent-light);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-focus: var(--focus);
+  --color-on-primary: var(--on-primary);
+
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+
+  --radius-control: 4px;
+  --radius-panel: 8px;
+
+  --shadow-panel: var(--shadow-panel);
+
+  --ease-standard: var(--ease-standard);
+}
+
+/* ------------------------------------------------------------------ */
+/* 4. Base styles                                                      */
+/* ------------------------------------------------------------------ */
+
+@layer base {
+  html {
+    scroll-behavior: auto;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.9;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    line-height: 1.4;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background-color: var(--primary-soft);
+    color: var(--text);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  img,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  button {
+    font: inherit;
+  }
+
+  /* Persian text never gets letter-spacing (breaks joining); the Latin
+     NOVENO wordmark is the only place tracking is applied (§5.2). */
+  [dir="rtl"] {
+    letter-spacing: 0;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 5. Type roles (DESIGN §5.2)                                         */
+/* ------------------------------------------------------------------ */
+
+@layer components {
+  .text-display {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2.125rem, 1.2rem + 4.2vw, 4rem); /* 34 → 64px */
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+
+  .text-h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.625rem, 1.2rem + 2vw, 2.75rem); /* 26 → 44px */
+    line-height: 1.3;
+    text-wrap: balance;
+  }
+
+  .text-h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem); /* 20 → 24px */
+    line-height: 1.5;
+  }
+
+  .text-lead {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: clamp(1.125rem, 1.08rem + 0.3vw, 1.25rem); /* 18 → 20px */
+    line-height: 1.9;
+  }
+
+  .text-body {
+    font-family: var(--font-body);
+    font-size: clamp(1rem, 0.97rem + 0.15vw, 1.125rem); /* 16 → 18px */
+    line-height: 1.9;
+  }
+
+  .text-ui {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.7;
+  }
+
+  .text-caption {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.8125rem; /* 13px */
+    line-height: 1.6;
+  }
+
+  .text-data {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  /* Content measure: paragraphs ≤ 66ch (~640px) */
+  .measure-prose {
+    max-width: 66ch;
+  }
+
+  /* Square node marker before section H2 — the only chrome-level route
+     reference (DESIGN §8, §3). */
+  .section-node {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background-color: var(--primary);
+    border-radius: 1px;
+    flex: none;
+  }
+
+  /* Diagram well: 24px dot-grid only inside diagram wells (§4.2) */
+  .diagram-well {
+    background-color: var(--surface-soft);
+    background-image: radial-gradient(
+      color-mix(in srgb, var(--line-strong) 22%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 24px 24px;
+  }
+
+  /* Hairline rule used for section rhythm (DESIGN §8) */
+  .rule {
+    border: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  /* Focusable text link */
+  .text-link {
+    color: var(--accent-strong);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    transition: color var(--dur-1) var(--ease-standard);
+  }
+  .text-link:hover {
+    color: var(--primary-hover);
+  }
+
+  /* Persian digits are default in Estedad/Vazirmatn; keep data numerals
+     tabular where they repeat (proof footnotes, status strips). */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Markdown body inside work detail pages (66ch measure, system type) */
+  .work-prose {
+    max-width: 66ch;
+  }
+  .work-prose > * + * {
+    margin-top: 1.5rem;
+  }
+  .work-prose h2 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+    line-height: 1.5;
+    margin-top: 3rem;
+  }
+  .work-prose h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.125rem;
+    line-height: 1.6;
+    margin-top: 2rem;
+  }
+  .work-prose p {
+    font-size: clamp(1rem, 0.97rem + 0.15vw, 1.125rem);
+    line-height: 1.9;
+    color: var(--text-muted);
+  }
+  .work-prose strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .work-prose ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    color: var(--text-muted);
+    font-size: clamp(1rem, 0.97rem + 0.15vw, 1.125rem);
+    line-height: 1.9;
+  }
+  .work-prose li {
+    position: relative;
+    padding-inline-start: 1.25rem;
+  }
+  .work-prose li::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0.25rem;
+    top: 0.75rem;
+    width: 6px;
+    height: 6px;
+    border-radius: 1px;
+    background-color: var(--line-strong);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 5.5 Hero JourneyLine draw (DESIGN §12.1 — the one orchestrated      */
+/*     moment; pure CSS, no runtime JS)                                */
+/* ------------------------------------------------------------------ */
+
+/* Default state is fully drawn; the animation plays once on load.     */
+@keyframes jl-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes jl-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.jl-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: jl-draw 700ms cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+.jl-fade {
+  opacity: 0;
+  animation: jl-fade 400ms cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+/* ------------------------------------------------------------------ */
+/* 6. Motion guard (DESIGN §12.4)                                      */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

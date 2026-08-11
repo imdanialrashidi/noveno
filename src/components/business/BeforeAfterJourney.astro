@@ -1,0 +1,123 @@
+---
+/**
+ * BeforeAfterJourney — قبل و بعد (DESIGN §4.1 pattern 2).
+ * Scatter state vs. structured state side by side: a loose cloud of
+ * labeled attention dots (circles) collapsing into one ordered route
+ * (squares + monoline). Used for problem recognition (§12) and case
+ * study "previous journey → what changed" (§21.4–21.5).
+ * Desktop: side by side; mobile: stacked (DESIGN §15 screen 2).
+ *
+ * The scatter panel is an inline SVG with deterministic positions
+ * (static markup); the route panel reuses the JourneyLine component.
+ * Informative diagram → aria-hidden + adjacent text equivalent.
+ */
+
+import JourneyLine, { type JourneyStation } from "./JourneyLine.astro";
+import { HERO_JOURNEY } from "../../data/site";
+
+interface Props {
+  /** Route shown on the «بعد» side. */
+  route?: readonly JourneyStation[];
+  /** Scatter labels (attention dots). */
+  scatter?: readonly string[];
+  /** Lost-state labels rendered as hollow dashed dots. */
+  scatterLost?: readonly string[];
+  beforeLabel?: string;
+  afterLabel?: string;
+}
+
+const {
+  route = HERO_JOURNEY,
+  scatter = ["اینستاگرام", "گوگل", "معرفی", "تبلیغ", "تماس مستقیم", "مشتری قبلی"],
+  scatterLost = ["درخواست بی‌پاسخ", "پیگیری نامنظم"],
+  beforeLabel = "قبل — پراکنده",
+  afterLabel = "بعد — یک مسیر",
+} = Astro.props;
+
+/* Deterministic scatter positions (viewBox 0 0 360 300). */
+const DOT_POSITIONS: Array<[number, number]> = [
+  [262, 52],
+  [110, 40],
+  [196, 140],
+  [58, 100],
+  [296, 178],
+  [128, 238],
+];
+const LOST_POSITIONS: Array<[number, number]> = [
+  [52, 200],
+  [240, 262],
+];
+---
+
+<div class="grid gap-6 lg:grid-cols-2 lg:gap-8">
+  <!-- قبل — scatter -->
+  <div class="diagram-well rounded-[4px] p-6 lg:p-8">
+    <div class="mb-6 flex items-center gap-2">
+      <span class="section-node" aria-hidden="true"></span>
+      <p class="text-ui font-medium text-text-muted">{beforeLabel}</p>
+    </div>
+
+    <p class="sr-only">
+      {scatter.join("، ")}{scatterLost.length > 0 ? `، ${scatterLost.join("، ")}` : ""} — توجه در کانال‌های پراکنده می‌ماند و درخواست‌ها ثبت و پیگیری نمی‌شوند.
+    </p>
+    <svg
+      viewBox="0 0 360 300"
+      class="h-auto w-full max-w-[360px]"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <!-- connection hints between scattered dots (sporadic, non-linear) -->
+      <g stroke="var(--line)" stroke-width="1" fill="none">
+        <path d="M 258 56 C 230 80, 210 100, 200 136" />
+        <path d="M 118 44 C 140 70, 150 100, 190 136" />
+        <path d="M 292 174 C 250 160, 230 150, 202 144" />
+      </g>
+
+      {DOT_POSITIONS.map(([x, y], i) => (
+        <g>
+          <circle cx={x} cy={y} r="5" fill="var(--accent)" />
+          <text
+            x={x + 12}
+            y={y + 4}
+            font-size="13"
+            font-family="var(--font-display)"
+            font-weight="500"
+            fill="var(--text-muted)"
+          >
+            {scatter[i]}
+          </text>
+        </g>
+      ))}
+
+      {LOST_POSITIONS.map(([x, y], i) => (
+        <g>
+          <circle cx={x} cy={y} r="5" fill="none" stroke="var(--line-strong)" stroke-width="1.5" stroke-dasharray="3 3" />
+          <text
+            x={x + 12}
+            y={y + 4}
+            font-size="13"
+            font-family="var(--font-display)"
+            font-weight="500"
+            fill="var(--text-faint)"
+          >
+            {scatterLost[i]}
+          </text>
+        </g>
+      ))}
+    </svg>
+  </div>
+
+  <!-- بعد — one route -->
+  <div class="diagram-well rounded-[4px] p-6 lg:p-8">
+    <div class="mb-6 flex items-center gap-2">
+      <span class="section-node bg-primary" aria-hidden="true"></span>
+      <p class="text-ui font-medium text-text-muted">{afterLabel}</p>
+    </div>
+
+    <div class="flex min-h-[300px] items-center justify-center py-4">
+      <div class="w-full max-w-[420px]">
+        <JourneyLine stations={route} label="مسیر مرتب: هر توجه به یک درخواست ثبت‌شده و قابل‌پیگیری تبدیل می‌شود" />
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,14 @@
+// Cloudflare Pages local/dev configuration — committed placeholder for Slice 1.
+// Names only: NO secrets or real values ever enter this file.
+// Full Pages production settings (project env names) are documented in
+// docs/exec-plans/active/noveno-launch.md §5.9 and land with Slice 2.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "noveno",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "pages_build_output_dir": "./dist",
+  "observability": {
+    "enabled": true
+  }
+}

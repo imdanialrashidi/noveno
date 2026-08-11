@@ -1,0 +1,30 @@
+---
+/**
+ * NextStepsRail — what happens after a request (Spec §33, DESIGN §11
+ * thank-you). Numbered square stations on a rail; used on /contact and
+ * the final CTA section so the primary conversion has no dead end.
+ */
+
+import { toFaDigits } from "../../data/site";
+
+const STEPS = [
+  "درخواست بررسی می‌شود.",
+  "اگر همکاری مناسب باشد، Noveno تماس می‌گیرد.",
+  "یک گفت‌وگوی کوتاه برای فهم دقیق‌تر مسئله انجام می‌شود.",
+  "در صورت نیاز، Scope و پیشنهاد همکاری ارائه می‌شود.",
+] as const;
+---
+
+<ol class="grid gap-0 sm:grid-cols-2 lg:grid-cols-4">
+  {STEPS.map((step, index) => (
+    <li class="relative border-t border-line pt-5 pb-6 sm:pe-6 lg:border-s lg:border-t-0 lg:pt-0 lg:ps-6 lg:first:border-s-0 lg:first:ps-0" >
+      <span class="mb-3 flex items-center gap-2">
+        <span class="flex h-5 w-5 items-center justify-center rounded-[1px] bg-primary-soft text-caption font-semibold text-accent-strong tnum">
+          {toFaDigits(index + 1)}
+        </span>
+        <span class="h-0 flex-1 border-t border-line" aria-hidden="true"></span>
+      </span>
+      <p class="text-body text-text-muted">{step}</p>
+    </li>
+  ))}
+</ol>

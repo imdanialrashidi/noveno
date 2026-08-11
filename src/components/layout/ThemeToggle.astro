@@ -1,0 +1,36 @@
+---
+/**
+ * ThemeToggle — accessible theme switch (DESIGN §7.3).
+ * Real button, ≥44px target, aria-pressed reflects the effective dark
+ * state, current-state label announced. Works in the header and the
+ * mobile menu; behavior lives in src/scripts/theme.ts.
+ */
+
+interface Props {
+  id: string;
+  class?: string;
+}
+
+const { id, class: className = "" } = Astro.props;
+---
+
+<button
+  type="button"
+  id={id}
+  class:list={[
+    "inline-flex h-11 w-11 items-center justify-center rounded-[4px] text-text-muted transition-colors duration-150 hover:bg-surface-soft hover:text-text",
+    className,
+  ]}
+  aria-pressed="false"
+  aria-label="حالت روشن فعال است؛ تاریک کردن"
+  data-theme-toggle
+  data-theme-label
+>
+  <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-theme-icon-light aria-hidden="true">
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+  </svg>
+  <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-theme-icon-dark aria-hidden="true" style="display: none">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+  </svg>
+</button>

@@ -1,0 +1,98 @@
+---
+/**
+ * FAQItem — accordion (DESIGN §10, §12.2 state feedback 250ms).
+ * Framework-free: one delegated script initializes every
+ * [data-accordion] on the page; only one item is open at a time.
+ */
+
+interface Props {
+  question: string;
+  answer: string;
+  open?: boolean;
+}
+
+const { question, answer, open = false } = Astro.props;
+const id = `faq-${question.replace(/\s+/g, "-")}`;
+const buttonId = `${id}-trigger`;
+---
+
+<div class="border-b border-line" data-accordion>
+  <h3>
+    <button
+      type="button"
+      id={buttonId}
+      class="flex w-full items-center justify-between gap-4 py-5 text-start text-h3 text-text transition-colors duration-150 hover:text-primary-active"
+      aria-expanded={open ? "true" : "false"}
+      aria-controls={id}
+      data-accordion-trigger
+    >
+      {question}
+      <svg
+        viewBox="0 0 24 24"
+        class="h-5 w-5 flex-none text-line-strong transition-transform duration-250"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        data-accordion-icon
+        aria-hidden="true"
+      >
+        <path d="m6 9 6 6 6-6" />
+      </svg>
+    </button>
+  </h3>
+  <div id={id} role="region" aria-labelledby={buttonId} class="accordion-panel" data-accordion-panel>
+    <p class="pb-6 text-body text-text-muted measure-prose">{answer}</p>
+  </div>
+</div>
+
+<script>
+  /**
+   * One delegated initializer for all accordions on the page.
+   * Height animation via grid-template-rows trick (no JS measuring).
+   */
+  const items = Array.from(document.querySelectorAll<HTMLElement>("[data-accordion]"));
+  const closeOthers = (current: HTMLElement) => {
+    for (const item of items) {
+      if (item === current) continue;
+      const trigger = item.querySelector<HTMLButtonElement>("[data-accordion-trigger]");
+      const panel = item.querySelector<HTMLElement>("[data-accordion-panel]");
+      trigger?.setAttribute("aria-expanded", "false");
+      panel?.classList.remove("is-open");
+    }
+  };
+  for (const item of items) {
+    const trigger = item.querySelector<HTMLButtonElement>("[data-accordion-trigger]");
+    const panel = item.querySelector<HTMLElement>("[data-accordion-panel]");
+    if (!trigger || !panel) continue;
+    trigger.addEventListener("click", () => {
+      const isOpen = trigger.getAttribute("aria-expanded") === "true";
+      closeOthers(item);
+      if (!isOpen) {
+        trigger.setAttribute("aria-expanded", "true");
+        panel.classList.add("is-open");
+      }
+    });
+  }
+</script>
+
+<style>
+  .accordion-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 250ms var(--ease-standard), opacity 250ms var(--ease-standard);
+    opacity: 0;
+  }
+  .accordion-panel.is-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+  .accordion-panel > p {
+    overflow: hidden;
+    min-height: 0;
+  }
+  [aria-expanded="true"] [data-accordion-icon] {
+    transform: rotate(180deg);
+  }
+</style>

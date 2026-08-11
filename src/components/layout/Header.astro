@@ -1,0 +1,97 @@
+---
+/**
+ * Header (DESIGN §8–9).
+ * Desktop: hairline bottom border, non-sticky; nav Estedad 500 14px;
+ * primary CTA. Mobile: compact sticky header with the CTA always
+ * visible and a ≤44px menu trigger; the panel is MobileMenu.
+ * Active nav link carries aria-current + a square node marker.
+ */
+
+import Logo from "../brand/Logo.astro";
+import Button from "../ui/Button.astro";
+import ThemeToggle from "./ThemeToggle.astro";
+import MobileMenu from "./MobileMenu.astro";
+import { NAV_LINKS, CTA_URL } from "../../data/site";
+import { initThemeToggle } from "../../scripts/theme";
+import { initMobileMenu } from "../../scripts/menu";
+
+const pathname = Astro.url.pathname;
+
+const isCurrent = (href: string) =>
+  href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
+---
+
+<header class="sticky top-0 z-40 border-b border-line bg-canvas lg:static">
+  <div class="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-3 px-5 sm:px-8 lg:h-20 lg:gap-8">
+    <a
+      href="/"
+      class="inline-flex min-h-11 items-center gap-2.5 rounded-[4px] text-text"
+      aria-label="نوونو — صفحه اصلی"
+    >
+      <Logo />
+    </a>
+
+    <nav class="hidden items-center gap-8 lg:flex" aria-label="ناوبری اصلی">
+      {NAV_LINKS.map((link) => (
+        <a
+          href={link.href}
+          aria-current={isCurrent(link.href) ? "page" : undefined}
+          class:list={[
+            "relative inline-flex min-h-11 items-center rounded-[4px] text-ui font-medium transition-colors duration-150",
+            isCurrent(link.href)
+              ? "font-semibold text-primary-active"
+              : "text-text-muted hover:text-text",
+          ]}
+        >
+          {link.label}
+          {isCurrent(link.href) && (
+            <span class="absolute -bottom-1.5 start-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-[1px] bg-primary" aria-hidden="true"></span>
+          )}
+        </a>
+      ))}
+    </nav>
+
+    <div class="flex items-center gap-2 lg:gap-3">
+      <ThemeToggle id="theme-toggle-desktop" class="hidden lg:inline-flex" />
+      <Button
+        href={CTA_URL}
+        class="px-3.5 text-sm lg:px-6"
+        ariaLabel="درخواست بررسی مسیر جذب"
+      >
+        <span class="hidden sm:inline">درخواست بررسی مسیر جذب</span>
+        <span class="sm:hidden">درخواست بررسی</span>
+      </Button>
+      <button
+        type="button"
+        class="inline-flex h-11 w-11 items-center justify-center rounded-[4px] text-text-muted transition-colors duration-150 hover:bg-surface-soft hover:text-text lg:hidden"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        data-menu-trigger
+        aria-label="باز کردن منو"
+      >
+        <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<MobileMenu />
+
+<script>
+  import { initThemeToggle } from "../../scripts/theme";
+  import { initMobileMenu } from "../../scripts/menu";
+
+  const toggleDesktop = document.querySelector<HTMLButtonElement>("#theme-toggle-desktop");
+  if (toggleDesktop) initThemeToggle(toggleDesktop);
+
+  const toggleMenu = document.querySelector<HTMLButtonElement>("#theme-toggle-menu");
+  if (toggleMenu) initThemeToggle(toggleMenu);
+
+  const trigger = document.querySelector<HTMLButtonElement>("[data-menu-trigger]");
+  const panel = document.querySelector<HTMLElement>("#mobile-menu");
+  if (trigger && panel) {
+    initMobileMenu(trigger, panel, () => {});
+  }
+</script>

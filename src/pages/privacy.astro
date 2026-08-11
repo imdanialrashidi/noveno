@@ -1,0 +1,94 @@
+---
+/**
+ * Privacy page (Spec §63) — collected data, purpose, and the
+ * correction/deletion path. Honest about what exists today (direct
+ * contact only) and what the audit request adds when it launches.
+ */
+
+import PageLayout from "../layouts/PageLayout.astro";
+import { CONTACT } from "../data/site";
+
+const sections = [
+  {
+    title: "این صفحه درباره چیست",
+    body: "نوونو (نوونو — دانیال رشیدی) این صفحه را برای توضیح ساده و صریح جمع‌آوری و استفاده از اطلاعات نگه می‌دارد. اگر سؤالی داشتید، از راه‌های تماس زیر بپرسید؛ پاسخ دقیق‌تر از هر متن کلی است.",
+  },
+  {
+    title: "چه اطلاعاتی جمع‌آوری می‌شود",
+    body: "در وضعیت فعلی، این وب‌سایت فرمی ندارد و اطلاعاتی از بازدیدکنندگان ثبت نمی‌کند. اگر با ما تماس بگیرید یا پیام بدهید، اطلاعاتی که خودتان ارسال می‌کنید (مانند نام، شماره تماس یا توضیح مسئله) نزد ما می‌ماند. آمار بازدید به صورت جمعی و بدون شناسایی شخصی جمع‌آوری می‌شود.",
+  },
+  {
+    title: "فرم درخواست بررسی مسیر جذب",
+    body: "پس از راه‌اندازی فرم درخواست بررسی مسیر جذب، این اطلاعات ثبت می‌شود: نام، شماره تماس، نام کسب‌وکار (اختیاری)، کانال‌هایی که مشتری از آن‌ها می‌آید، مشکل اصلی، محدوده ارزش مشتری و روش تماس ترجیحی. هدف، تشخیص اولیه وضعیت جذب و تماس برای گفتگو است — نه چیز دیگر.",
+  },
+  {
+    title: "اطلاعات به چه کاری می‌آید",
+    body: "پاسخ به درخواست شما، برقراری تماس، و بهبود کیفیت همکاری. اطلاعات شما فروخته نمی‌شود و برای تبلیغات به اشتراک گذاشته نمی‌شود.",
+  },
+  {
+    title: "نگهداری و امنیت",
+    body: "اطلاعات تماس در سرویس‌های استاندارد با دسترسی محدود نگهداری می‌شود. دسترسی به این اطلاعات فقط برای اداره نوونو است.",
+  },
+  {
+    title: "اصلاح و حذف",
+    body: "هر زمان خواستید اطلاعات خود را اصلاح یا حذف کنید، کافی است با همین راه‌های تماس درخواست بدهید: تلفن، واتساپ، تلگرام یا ایمیل. درخواست حذف ظرف مدت معقول انجام می‌شود.",
+  },
+  {
+    title: "تغییرات",
+    body: "اگر این صفحه تغییر کند، تاریخ به‌روزرسانی پایین صفحه ثبت می‌شود.",
+  },
+];
+---
+
+<PageLayout
+  title="حریم خصوصی"
+  description="سیاست حریم خصوصی نوونو: چه اطلاعاتی جمع‌آوری می‌شود، به چه کاری می‌آید و چگونه می‌توانید آن را اصلاح یا حذف کنید."
+  path="/privacy"
+>
+  <section aria-labelledby="privacy-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
+      <div class="relative border-b border-line">
+        <span class="section-node absolute -bottom-[3px] start-0" aria-hidden="true"></span>
+        <h1 id="privacy-title" class="text-h2 max-w-3xl pb-6">حریم خصوصی</h1>
+      </div>
+      <p class="mt-6 text-caption text-text-faint">آخرین به‌روزرسانی: مرداد ۱۴۰۵</p>
+    </div>
+  </section>
+
+  <section class="border-t border-line" aria-label="متن سیاست حریم خصوصی">
+    <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
+      <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
+        <div class="lg:col-span-4">
+          <h2 class="text-ui font-semibold text-text">راه‌های تماس برای پرسش و درخواست</h2>
+          <ul class="mt-4 flex flex-col gap-2">
+            <li>
+              <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui text-accent-strong hover:text-primary-active">
+                <span class="tnum" dir="ltr">{CONTACT.phone}</span>
+              </a>
+            </li>
+            <li>
+              <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui text-accent-strong hover:text-primary-active" target="_blank" rel="noopener noreferrer">واتساپ</a>
+            </li>
+            <li>
+              <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui text-accent-strong hover:text-primary-active" target="_blank" rel="noopener noreferrer">تلگرام</a>
+            </li>
+            <li>
+              <a href={CONTACT.emailHref} class="inline-flex min-h-11 items-center text-ui text-accent-strong hover:text-primary-active">{CONTACT.email}</a>
+            </li>
+          </ul>
+        </div>
+        <div class="flex flex-col gap-10 lg:col-span-8">
+          {sections.map((section) => (
+            <div class="border-t border-line pt-5">
+              <h2 class="text-h3 text-text">{section.title}</h2>
+              <p class="mt-3 text-body text-text-muted measure-prose">{section.body}</p>
+            </div>
+          ))}
+          <p class="border-t border-line pt-5 text-caption text-text-faint">
+            پیش از راه‌اندازی عمومی، متن این صفحه از نظر الزام‌های حقوقی ایران بازبینی می‌شود.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</PageLayout>
