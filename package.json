@@ -14,7 +14,7 @@
     "preview": "astro preview",
     "check": "astro check",
     "test": "node --test tests/*.test.mjs",
-    "ci": "npm run check && npm run test && npm run build"
+    "ci": "npm run check && npm run build && npm run test"
   },
   "dependencies": {
     "@fontsource-variable/estedad": "5.3.0",

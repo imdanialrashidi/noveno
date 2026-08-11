@@ -54,9 +54,10 @@
     },
     {
       "id": "workflow-contract",
-      "include": ["AGENTS.md", ".mcp.json", ".pi/**", ".github/**", "p", "*.md", "docs/**", "scripts/*.sh", "scripts/verify-package-integrity.mjs", "Dockerfile.pi", ".dockerignore"],
+      "include": ["AGENTS.md", ".mcp.json", ".pi/**", ".github/**", "p", "package.json", "*.md", "docs/**", "scripts/*.sh", "scripts/verify-package-integrity.mjs", "Dockerfile.pi", ".dockerignore", "tests/gate-order.test.mjs"],
       "commands": [
-        ["bash", "scripts/pi-doctor.sh", "--ci", "--static"]
+        ["bash", "scripts/pi-doctor.sh", "--ci", "--static"],
+        ["node", "--test", "tests/gate-order.test.mjs"]
       ]
     },
     {

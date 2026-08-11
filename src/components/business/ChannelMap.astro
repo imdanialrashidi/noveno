@@ -85,7 +85,7 @@ const mStationYs = Array.from(
       const dotY = 40 + i * ((DH - 80) / Math.max(channels.length - 1, 1));
       const dotX = DW - 60;
       return (
-        <g key={channel} class={animate ? "jl-fade" : undefined} style={animate ? { animationDelay: `${0.15 + i * 0.1}s` } : undefined}>
+        <g class={animate ? "jl-fade" : undefined} style={animate ? { animationDelay: `${0.15 + i * 0.1}s` } : undefined}>
           <circle cx={dotX} cy={dotY} r="5" fill="var(--accent)" />
           <text
             x={dotX - 16}

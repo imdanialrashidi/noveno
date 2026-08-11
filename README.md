@@ -4,7 +4,7 @@ The production website for **Noveno** — an Iranian service-and-systems busines
 
 ## Repository state
 
-This repository bootstrapped the Pi-assisted workflow (harness) and is now identified as the **Noveno production website project**. No application code exists yet — the next lifecycle step is `/design` (experience direction), then `/plan` for the Phase 1 build. Do not implement the full website during bootstrap-stage tasks.
+This repository bootstrapped the Pi-assisted workflow (harness) and is now the **Noveno production website project**: Slice 1 (flagship site — Astro app, «مسیر» design system, all public routes) is committed and verified; Slice 2 (audit flow and production integration) is the next slice.
 
 ## Source of truth
 
@@ -27,28 +27,28 @@ This repository bootstrapped the Pi-assisted workflow (harness) and is now ident
 - Analytics: **Cloudflare Web Analytics** (baseline) + **Cloudflare Zaraz** (custom acquisition events); UTM/referrer/landing-page attribution persisted with the lead.
 - **Persian-first, RTL-first**; light + dark themes (system default, persisted override, no theme flash); accepted color anchors in `docs/DESIGN.md`.
 
-## Canonical commands (current bootstrap state)
+## Canonical commands
 
 ```bash
 ./p                          # launch Pi with project trust + pinned packages
-bash scripts/verify.sh       # canonical full gate (pi-doctor + project contract)
+bash scripts/verify.sh       # canonical full gate (build + pi-doctor + project contract)
 bash scripts/project-verify.sh   # fast static project-contract check
 node scripts/verify-affected.mjs --file <path> [--plan]  # affected-change routing
 node --test tests/*.test.mjs # workflow + project-contract behavior tests
 bash scripts/pi-doctor.sh --ci --static   # static harness validation
 ```
 
-App commands (`npm install` / `npm run dev` / `npm run build` / `npm run test`) arrive with the Astro scaffolding at `/plan`; `.pi/verification.json` routes will then gain `src/**` evidence routes.
+App commands: `npm install` / `npm run dev` / `npm run check` / `npm run build` / `npm run test` / `npm run ci` (check → build → test). `.pi/verification.json` routes `src/**` changes to the app lane (check + build + structural/content tests) and falls back to the full gate for unmatched files.
 
 ## Verification lanes
 
 - **Targeted/affected:** `node scripts/verify-affected.mjs --file <path>` — routes in `.pi/verification.json`; unmatched files fall back to the canonical full gate.
 - **Feature:** once after a bounded slice: project contract + relevant tests + build (once the app exists).
-- **Full:** `bash scripts/verify.sh` — runs `scripts/pi-doctor.sh --ci` (harness integrity, security scan, context budgets, workflow tests) then `scripts/project-verify.sh` (Noveno doc/branding/env contract). CI mirrors this in `.github/workflows/quality.yml`.
+- **Full:** `bash scripts/verify.sh` — builds the project (fresh `dist/` for the structural tests), then runs `scripts/pi-doctor.sh --ci` (harness integrity, security scan, context budgets, workflow tests) and `scripts/project-verify.sh` (Noveno doc/branding/env contract). CI mirrors this in `.github/workflows/quality.yml`.
 
 ## Browser QA
 
-Lazy Playwright MCP (`/mcp status`); accessibility snapshots and DOM/console/network evidence first, screenshots under `.artifacts/playwright/` as reproducible artifacts. Deterministic browser tests (once the app exists) stay separate from interactive MCP exploration.
+Lazy Playwright MCP (`/mcp status`); accessibility snapshots and DOM/console/network evidence first, screenshots under `.artifacts/playwright/` as reproducible artifacts. Deterministic browser tests stay separate from interactive MCP exploration.
 
 ## Contact / facts
 

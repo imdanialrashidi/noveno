@@ -4,6 +4,23 @@ set -Eeuo pipefail
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+# The canonical gate verifies the built project: structural tests assert
+# production output under dist/ (built HTML, compiled theme tokens, JS
+# budget, links, source maps, secrets). Produce a fresh build before the
+# workflow test suite runs so the gate is deterministic on a clean checkout
+# and never relies on stale local build output. Skipped for projects that
+# define no build script.
+if [[ -f package.json ]] && node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts.build ? 0 : 1)" >/dev/null 2>&1; then
+  if [[ -f pnpm-lock.yaml ]]; then pnpm run build
+  elif [[ -f yarn.lock ]]; then yarn build
+  else npm run build
+  fi
+fi
+
+# Note: the npm run ci fallback below is a template fallback only; the build
+# above is the gate's explicit artifact relationship and must not be removed
+# as "redundant" while structural tests run inside pi-doctor's test suite.
+
 bash scripts/pi-doctor.sh --ci
 
 if [[ -x scripts/project-verify.sh ]]; then
