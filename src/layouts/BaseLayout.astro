@@ -5,13 +5,46 @@ interface Props {
   title: string;
   description: string;
   path: string;
+  /** robots meta override (e.g. noindex for post-submission pages). */
+  robots?: string;
 }
 
-const { title, description, path } = Astro.props;
+const { title, description, path, robots } = Astro.props;
 const site = Astro.site ?? new URL("https://noveno.ir/");
 const canonical = new URL(path.replace(/\/index\.html$/, "/"), site).toString();
 const ogImage = new URL("/og.png", site).toString();
 const htmlTitle = title.endsWith("نوونو") ? title : `${title} — نوونو`;
+
+// Build-time public values (names only in .env.example; no secrets).
+// The Web Analytics token is public by design and only injects the
+// beacon when a real token is configured.
+const cfAnalyticsToken = import.meta.env.PUBLIC_CF_ANALYTICS_TOKEN ?? "";
+
+// Structured data (Spec §43) — genuinely appropriate launch scope:
+// Organization (identity + contact point) and WebSite identity.
+const organizationJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "نوونو",
+  alternateName: "NOVENO",
+  url: site.toString(),
+  logo: new URL("/favicon.svg", site).toString(),
+  sameAs: ["https://instagram.com/noveno.ir"],
+  contactPoint: {
+    "@type": "ContactPoint",
+    telephone: "+98-935-359-8620",
+    contactType: "customer service",
+    availableLanguage: ["fa"],
+  },
+});
+const websiteJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "نوونو",
+  alternateName: "NOVENO",
+  url: site.toString(),
+  inLanguage: "fa-IR",
+});
 ---
 
 <html lang="fa" dir="rtl">
@@ -21,6 +54,7 @@ const htmlTitle = title.endsWith("نوونو") ? title : `${title} — نوون�
     <meta name="color-scheme" content="light dark" />
     <title>{htmlTitle}</title>
     <meta name="description" content={description} />
+    {robots && <meta name="robots" content={robots} />}
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
@@ -32,7 +66,21 @@ const htmlTitle = title.endsWith("نوونو") ? title : `${title} — نوون�
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Structured data: Organization + WebSite identity (Spec §43) -->
+    <script type="application/ld+json" set:html={organizationJsonLd}></script>
+    <script type="application/ld+json" set:html={websiteJsonLd}></script>
+
+    {cfAnalyticsToken !== "" && (
+      <script
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={JSON.stringify({ token: cfAnalyticsToken })}>
+      </script>
+    )}
 
     <!-- No wrong-theme flash (DESIGN §7.3): read the persisted override
          before first paint; no stored value = media-query default. -->
@@ -51,8 +99,16 @@ const htmlTitle = title.endsWith("نوونو") ? title : `${title} — نوون�
     <link rel="preload" href="/fonts/estedad-arabic-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
 
     <meta name="generator" content={Astro.generator} />
+    <slot name="head" />
   </head>
   <body>
     <slot />
   </body>
 </html>
+
+<script>
+  // Acquisition telemetry: declarative data-event clicks + attribution
+  // capture (plan §5.8). Non-blocking; never contains lead PII.
+  import { initAnalytics } from "../scripts/analytics";
+  initAnalytics();
+</script>

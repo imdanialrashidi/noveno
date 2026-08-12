@@ -52,17 +52,17 @@ const year = jalaliYear();
           <p class="mb-3 text-caption text-text-faint">تماس مستقیم</p>
           <ul class="flex flex-col gap-1">
             <li>
-              <a href={CONTACT.phoneHref} class="inline-flex min-h-10 items-center gap-2 text-ui font-medium text-text transition-colors duration-150 hover:text-primary-active">
+              <a href={CONTACT.phoneHref} class="inline-flex min-h-10 items-center gap-2 text-ui font-medium text-text transition-colors duration-150 hover:text-primary-active" data-event="phone_click" data-event-payload='{"section":"footer"}'>
                 <span class="tnum" dir="ltr">{CONTACT.phone}</span>
               </a>
             </li>
             <li>
-              <a href={CONTACT.whatsappHref} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-primary-active" target="_blank" rel="noopener noreferrer">
+              <a href={CONTACT.whatsappHref} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-primary-active" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"footer","channel":"whatsapp"}'>
                 واتساپ
               </a>
             </li>
             <li>
-              <a href={CONTACT.telegramHref} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-primary-active" target="_blank" rel="noopener noreferrer">
+              <a href={CONTACT.telegramHref} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-primary-active" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"footer","channel":"telegram"}'>
                 تلگرام
               </a>
             </li>

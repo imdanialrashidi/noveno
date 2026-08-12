@@ -1,0 +1,76 @@
+---
+/**
+ * FormField — labeled text input with optional hint and a linked error
+ * slot (DESIGN §10, §11 validation). The error element is rendered
+ * hidden; the audit page script fills and reveals it (aria-describedby
+ * linkage is pre-wired via the shared error id).
+ */
+
+interface Props {
+  id: string;
+  label: string;
+  type?: "text" | "tel" | "email" | "url";
+  value?: string;
+  placeholder?: string;
+  hint?: string;
+  optional?: boolean;
+  autocomplete?: string;
+  inputmode?: "tel" | "email" | "url" | "text";
+  maxlength?: number;
+  dir?: "ltr";
+}
+
+const {
+  id,
+  label,
+  type = "text",
+  value = "",
+  placeholder,
+  hint,
+  optional = false,
+  autocomplete,
+  inputmode,
+  maxlength,
+  dir,
+} = Astro.props;
+const errorId = `${id}-error`;
+---
+
+<div class="flex flex-col gap-1.5">
+  <label for={id} class="text-ui font-medium text-text">
+    {label}
+    {optional && <span class="font-normal text-text-faint"> (اختیاری)</span>}
+  </label>
+  <input
+    id={id}
+    name={id}
+    type={type}
+    class="h-12 w-full rounded-[4px] border border-line-strong bg-surface px-3.5 text-body text-text transition-colors duration-150 placeholder:text-text-faint focus:border-focus focus:ring-2 focus:ring-focus/25"
+    value={value}
+    placeholder={placeholder}
+    autocomplete={autocomplete}
+    inputmode={inputmode}
+    maxlength={maxlength}
+    dir={dir}
+    data-save={id}
+    aria-describedby={hint ? `${id}-hint` : undefined}
+  />
+  {hint && (
+    <p id={`${id}-hint`} class="text-caption text-text-faint">
+      {hint}
+    </p>
+  )}
+  <p
+    id={errorId}
+    class="flex items-center gap-1.5 text-caption font-medium text-danger"
+    data-field-error
+    hidden
+  >
+    <svg viewBox="0 0 24 24" class="h-4 w-4 flex-none" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8v5" />
+      <path d="M12 16.5v.01" />
+    </svg>
+    <span data-error-text></span>
+  </p>
+</div>

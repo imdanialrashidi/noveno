@@ -4,7 +4,7 @@ The production website for **Noveno** — an Iranian service-and-systems busines
 
 ## Repository state
 
-This repository bootstrapped the Pi-assisted workflow (harness) and is now the **Noveno production website project**: Slice 1 (flagship site — Astro app, «مسیر» design system, all public routes) is committed and verified; Slice 2 (audit flow and production integration) is the next slice.
+This repository bootstrapped the Pi-assisted workflow (harness) and is now the **Noveno production website project**: Slice 1 (flagship site — Astro app, «مسیر» design system, all public routes) and **Slice 2 (acquisition flow + production integration — `/audit`, `/audit/thank-you`, the Pages Function trust boundary, Supabase + Turnstile + Web3Forms wiring, analytics, SEO/production artifacts)** are committed and verified; launch awaits founder provisioning (`docs/ops/setup-checklist.md`) and a preview-deploy smoke.
 
 ## Source of truth
 
@@ -24,7 +24,7 @@ This repository bootstrapped the Pi-assisted workflow (harness) and is now the *
 - **Astro + TypeScript**, statically rendered, deployed to **Cloudflare Pages** (free-tier-compatible). No SSR.
 - **No client UI framework** (no React/Vue/Svelte); interactivity via Astro components and small framework-free TypeScript modules.
 - **No backend/auth/CMS/CRM/client portal.** One narrowly scoped Cloudflare Pages Function handles the business-critical **audit-form submission boundary**: server-side validation, abuse protection, persistence to **Supabase**, and **email notification**.
-- Analytics: **Cloudflare Web Analytics** (baseline) + **Cloudflare Zaraz** (custom acquisition events); UTM/referrer/landing-page attribution persisted with the lead.
+- Analytics: **Cloudflare Web Analytics** (baseline page views/CWV) + a **Cloudflare-native events path** (Analytics Engine binding via `functions/api/events.ts`) for custom acquisition events (Spec §36); UTM/referrer/landing-page attribution persisted with the lead. Zaraz is deferred until a third-party destination is explicitly wanted (plan §5.8).
 - **Persian-first, RTL-first**; light + dark themes (system default, persisted override, no theme flash); accepted color anchors in `docs/DESIGN.md`.
 
 ## Canonical commands
@@ -38,7 +38,9 @@ node --test tests/*.test.mjs # workflow + project-contract behavior tests
 bash scripts/pi-doctor.sh --ci --static   # static harness validation
 ```
 
-App commands: `npm install` / `npm run dev` / `npm run check` / `npm run build` / `npm run test` / `npm run ci` (check → build → test). `.pi/verification.json` routes `src/**` changes to the app lane (check + build + structural/content tests) and falls back to the full gate for unmatched files.
+App commands: `npm install` / `npm run dev` / `npm run check` / `npm run build` / `npm run test` / `npm run ci` (check → build → test). `.pi/verification.json` routes `src/**` + `public/**` changes to the app lane (check + build + structural/SEO/content tests), `functions/**` + `supabase/**` to the function lane (check + trust-boundary tests + build), and falls back to the full gate for unmatched files.
+
+Slice 2 tooling: `node scripts/slice2-test-server.mjs [--mode ok|supabase-down|web3forms-down|turnstile-fail] [--port 8788]` serves the built site + the real Pages Functions with mock Supabase/Web3Forms and a recording Analytics Engine binding for deterministic browser QA of every trust-boundary state (inspection endpoints under `/api/__test/`). Local Turnstile testing uses the official always-pass sitekey/secret (see `docs/ops/setup-checklist.md`); production builds must never contain test keys (`tests/seo-contract.test.mjs` guards this).
 
 ## Verification lanes
 

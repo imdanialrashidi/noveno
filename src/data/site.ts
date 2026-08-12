@@ -10,10 +10,11 @@
 /* ------------------------------------------------------------------ */
 
 /**
- * Primary CTA destination. Slice 1 → /contact (no /audit route exists).
- * Slice 2 flips this constant to /audit — single-line swap.
+ * Primary CTA destination — the launch contract (plan §11, Spec §3.5).
+ * Slice 1 → /contact; Slice 2 flips to /audit (the production
+ * acquisition route). Direct-contact fallback routes remain available.
  */
-export const CTA_URL = "/contact";
+export const CTA_URL = "/audit";
 
 /**
  * Hero headline — approved candidate A (Spec §11.2). Single-line swap;

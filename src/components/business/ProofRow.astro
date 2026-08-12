@@ -23,6 +23,12 @@ interface Props {
 
 const { kind, title, summary, meta, href, outcome } = Astro.props;
 
+// Acquisition-event wiring (Spec §36): real work types map to their
+// event; concepts are labeled demos and fire nothing.
+const openEvent =
+  kind === "case-study" ? "case_study_opened" : kind === "project" ? "project_opened" : null;
+const slug = href.split("/").filter(Boolean).pop() ?? "";
+
 const code = {
   "case-study": {
     node: "bg-primary",
@@ -42,6 +48,12 @@ const code = {
 <a
   href={href}
   class="group grid grid-cols-[24px_1fr] gap-x-4 gap-y-2 border-t border-line py-6 transition-colors duration-150 hover:bg-surface-soft/40 focus-visible:bg-surface-soft/40 sm:grid-cols-[24px_1fr_auto] sm:items-start lg:gap-x-6 lg:py-8"
+  {...(openEvent
+    ? {
+        "data-event": openEvent,
+        "data-event-payload": JSON.stringify({ slug }),
+      }
+    : {})}
 >
   <!-- line-style code column -->
   <span class="relative flex h-full min-h-16 w-6 justify-center" aria-hidden="true">

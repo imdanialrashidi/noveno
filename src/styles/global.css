@@ -107,6 +107,7 @@
   --danger: #b03a34;
   --focus: #2f7a5e;
   --on-primary: #06130d;
+  --on-primary-soft: #0c3d2b;
 
   /* depth — one soft shadow token; everything else flat */
   --shadow-panel: 0 1px 2px rgba(7, 8, 8, 0.06), 0 8px 24px rgba(7, 8, 8, 0.08);
@@ -148,6 +149,7 @@
   --danger: #e07b74;
   --focus: #6fae93;
   --on-primary: #06130d;
+  --on-primary-soft: #e8f3ed;
 
   /* dark: no shadows — elevation via surface tones + top hairline */
   --shadow-panel: none;
@@ -177,6 +179,7 @@
     --danger: #e07b74;
     --focus: #6fae93;
     --on-primary: #06130d;
+    --on-primary-soft: #e8f3ed;
 
     --shadow-panel: none;
   }
@@ -210,6 +213,7 @@
   --color-danger: var(--danger);
   --color-focus: var(--focus);
   --color-on-primary: var(--on-primary);
+  --color-on-primary-soft: var(--on-primary-soft);
 
   --font-sans: var(--font-body);
   --font-display: var(--font-display);
@@ -384,6 +388,85 @@
     color: var(--primary-hover);
   }
 
+  /* ------------------------------------------------------------------ */
+  /* StepperLine states (DESIGN §11) — driven by `data-state` on each    */
+  /* station; the audit script flips the attribute as the user advances. */
+  /* ------------------------------------------------------------------ */
+
+  .stepper-node {
+    border: 1px solid var(--line-strong);
+    background-color: transparent;
+    color: var(--on-primary);
+  }
+  .stepper-check {
+    display: none;
+  }
+  .stepper-station[data-state="complete"] .stepper-node {
+    border-color: var(--primary);
+    background-color: var(--primary);
+  }
+  .stepper-station[data-state="complete"] .stepper-check {
+    display: block;
+  }
+  .stepper-station[data-state="current"] .stepper-node {
+    border: 2px solid var(--primary);
+    background-color: var(--surface);
+  }
+  .stepper-station[data-state="upcoming"] .stepper-node {
+    border: 1px dashed var(--line-strong);
+  }
+  .stepper-label {
+    font-weight: 500;
+    color: var(--text-faint);
+  }
+  .stepper-station[data-state="complete"] .stepper-label {
+    color: var(--text-muted);
+  }
+  .stepper-station[data-state="current"] .stepper-label {
+    color: var(--primary-active);
+    font-weight: 600;
+  }
+  .stepper-connector {
+    border-color: var(--line-strong);
+    border-style: dashed;
+  }
+  .stepper-station[data-state="complete"] .stepper-connector {
+    border-color: var(--primary);
+    border-style: solid;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* MultiSelect chips (DESIGN §11) — state from aria-checked alone so   */
+  /* selection never depends on color only (check glyph + fill + border). */
+  /* ------------------------------------------------------------------ */
+
+  .chip[aria-checked="true"] {
+    border-color: var(--primary);
+    background-color: var(--primary-soft);
+    color: var(--on-primary-soft);
+  }
+  .chip[aria-checked="true"] .chip-check {
+    display: inline-flex;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Audit step transition (DESIGN §12.2: fade + 16px shift, 250ms)      */
+  /* ------------------------------------------------------------------ */
+
+  @keyframes step-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  [data-step-section]:not([hidden]) {
+    animation: step-in 250ms var(--ease-standard);
+  }
+
   /* Persian digits are default in Estedad/Vazirmatn; keep data numerals
      tabular where they repeat (proof footnotes, status strips). */
   .tnum {
@@ -442,6 +525,16 @@
     border-radius: 1px;
     background-color: var(--line-strong);
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Thank-you direct-visitor guard — hidden before first paint when the */
+/* session completed a submission (zero CLS on the submit path).       */
+/* Unlayered so it beats the Tailwind `flex` utility on the guard.     */
+/* ------------------------------------------------------------------ */
+
+[data-audit-done] #thankyou-guard {
+  display: none;
 }
 
 /* ------------------------------------------------------------------ */

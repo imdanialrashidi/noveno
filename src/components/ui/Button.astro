@@ -8,9 +8,11 @@ interface Props {
   ariaLabel?: string;
   disabled?: boolean;
   class?: string;
+  /** Arbitrary attributes (e.g. analytics data-event wiring). */
+  data?: Record<string, string>;
 }
 
-const { href, variant = "primary", size = "md", type = "button", ariaLabel, disabled = false } = Astro.props;
+const { href, variant = "primary", size = "md", type = "button", ariaLabel, disabled = false, data = {} } = Astro.props;
 const className = Astro.props["class"] ?? "";
 
 /**
@@ -45,6 +47,7 @@ const classes = [base, variantClasses[variant], sizeClasses[size], className].jo
     class={classes}
     aria-label={ariaLabel}
     aria-disabled={disabled ? "true" : undefined}
+    {...data}
   >
     <slot />
   </a>
@@ -55,6 +58,7 @@ const classes = [base, variantClasses[variant], sizeClasses[size], className].jo
     class={classes}
     aria-label={ariaLabel}
     disabled={disabled}
+    {...data}
   >
     <slot />
   </button>

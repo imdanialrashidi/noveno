@@ -62,8 +62,17 @@ const jalali = (date: Date) => {
           نوونو برای کسب‌وکارهای خدماتی، مسیر مشتری را از دیدن شما تا تماس، ثبت درخواست و پیگیری طراحی و اجرا می‌کند.
         </p>
         <div class="flex flex-wrap items-center gap-4">
-          <Button href={CTA_URL} size="lg">{PRIMARY_CTA_LABEL}</Button>
-          <Button href="/work" variant="secondary" size="lg">{SECONDARY_CTA_LABEL}</Button>
+          <Button
+            href={CTA_URL}
+            size="lg"
+            data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"hero"}' }}
+          >{PRIMARY_CTA_LABEL}</Button>
+          <Button
+            href="/work"
+            variant="secondary"
+            size="lg"
+            data={{ "data-event": "secondary_cta_click", "data-event-payload": '{"section":"hero"}' }}
+          >{SECONDARY_CTA_LABEL}</Button>
         </div>
         <p class="text-caption text-text-faint">
           بدون وعده فروش تضمینی؛ ابتدا مسیر فعلی کسب‌وکار بررسی می‌شود.

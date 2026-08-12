@@ -1,0 +1,7 @@
+# Noveno robots.txt — allow crawling of the public site.
+# /audit/thank-you is a post-submission page (noindexed via meta robots too).
+User-agent: *
+Allow: /
+Disallow: /audit/thank-you
+
+Sitemap: https://noveno.ir/sitemap.xml

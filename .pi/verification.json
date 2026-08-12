@@ -62,19 +62,22 @@
     },
     {
       "id": "app",
-      "include": ["src/**", "package.json", "package-lock.json", "astro.config.mjs", "tsconfig.json", "wrangler.jsonc", "tests/structural.test.mjs", "tests/content.test.mjs"],
+      "include": ["src/**", "package.json", "package-lock.json", "astro.config.mjs", "tsconfig.json", "wrangler.jsonc", "public/**", "tests/structural.test.mjs", "tests/seo-contract.test.mjs", "tests/content.test.mjs"],
       "commands": [
         ["npm", "run", "check"],
         ["npm", "run", "build"],
         ["node", "--test", "tests/structural.test.mjs"],
+        ["node", "--test", "tests/seo-contract.test.mjs"],
         ["node", "--test", "tests/content.test.mjs"]
       ]
     },
     {
       "id": "functions",
-      "include": ["functions/**", "tests/audit-function.test.mjs"],
+      "include": ["functions/**", "supabase/**", "tests/audit-function.test.mjs", "tests/supabase-contract.test.mjs"],
       "commands": [
         ["npm", "run", "check"],
+        ["node", "--test", "tests/audit-function.test.mjs"],
+        ["node", "--test", "tests/supabase-contract.test.mjs"],
         ["npm", "run", "build"]
       ]
     }

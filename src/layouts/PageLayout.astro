@@ -12,12 +12,15 @@ interface Props {
   title: string;
   description: string;
   path: string;
+  /** Forwarded to BaseLayout (e.g. noindex for post-submission pages). */
+  robots?: string;
 }
 
-const { title, description, path } = Astro.props;
+const { title, description, path, robots } = Astro.props;
 ---
 
-<BaseLayout title={title} description={description} path={path}>
+<BaseLayout title={title} description={description} path={path} robots={robots}>
+  <slot name="head" slot="head" />
   <a
     href="#main"
     class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:start-3 focus:z-50 focus:rounded-[4px] focus:bg-primary focus:px-4 focus:py-2 focus:text-on-primary focus:shadow-panel"

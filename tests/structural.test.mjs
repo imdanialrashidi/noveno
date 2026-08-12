@@ -22,6 +22,8 @@ const PAGE_PATHS = [
   "/work/language-school-concept/index.html",
   "/process/index.html",
   "/about/index.html",
+  "/audit/index.html",
+  "/audit/thank-you/index.html",
   "/contact/index.html",
   "/privacy/index.html",
   "/terms/index.html",
@@ -116,14 +118,24 @@ test("interactive JS ≤ 15 KB gzip and no client framework runtime", () => {
   }
 });
 
-test("primary CTA flows to /contact in Slice 1 (no /audit stubs)", () => {
-  const home = fs.readFileSync(path.join(dist, "index.html"), "utf8");
-  // The audit route must not exist anywhere in built HTML.
-  for (const file of walk(dist).filter((f) => f.endsWith(".html"))) {
+test("primary CTA flows to /audit in Slice 2 (launch contract), contact fallback intact", () => {
+  const pages = walk(dist).filter((f) => f.endsWith(".html"));
+  // The header CTA is the canonical primary conversion on every page.
+  for (const file of pages) {
     const html = fs.readFileSync(file, "utf8");
-    assert.ok(!html.includes('href="/audit'), `${file}: unexpected /audit link`);
+    assert.ok(html.includes('href="/audit"'), `${path.relative(dist, file)}: missing header/primary CTA to /audit`);
   }
-  assert.ok(home.includes('href="/contact"'), "homepage must link the primary CTA to /contact");
+  // Homepage: primary = audit, secondary = work (Spec §3.5–3.6).
+  const home = fs.readFileSync(path.join(dist, "index.html"), "utf8");
+  assert.ok(home.includes('href="/audit"'), "homepage must link the primary CTA to /audit");
+  assert.ok(home.includes('href="/work"'), "homepage must keep the secondary CTA to /work");
+  // Direct contact stays reachable everywhere (resilience, Spec §64.1).
+  const contact = fs.readFileSync(path.join(dist, "contact", "index.html"), "utf8");
+  assert.ok(contact.includes('href="tel:09353598620"'), "contact page must keep click-to-call");
+  for (const file of pages) {
+    const html = fs.readFileSync(file, "utf8");
+    assert.ok(html.includes('href="tel:09353598620"'), `${path.relative(dist, file)}: footer contact fallback missing`);
+  }
 });
 
 test("no dead internal links in built pages", () => {

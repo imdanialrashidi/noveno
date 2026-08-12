@@ -42,6 +42,8 @@ const { offer, href } = Astro.props;
       <a
         href={href}
         class="inline-flex min-h-11 items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-primary-active"
+        data-event="service_opened"
+        data-event-payload={JSON.stringify({ service: offer.id })}
       >
         مشاهده جزئیات
         <svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

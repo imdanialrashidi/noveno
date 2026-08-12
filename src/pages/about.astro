@@ -104,15 +104,15 @@ import { PROCESS_STAGES, CONTACT } from "../data/site";
             </p>
             <ul class="flex flex-wrap gap-x-8 gap-y-2 border-t border-line pt-6">
               <li>
-                <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-primary-active">
+                <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-primary-active" data-event="phone_click" data-event-payload='{"section":"about"}'>
                   <span class="tnum" dir="ltr">{CONTACT.phone}</span>
                 </a>
               </li>
               <li>
-                <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui text-accent-strong transition-colors duration-150 hover:text-primary-active" target="_blank" rel="noopener noreferrer">واتساپ</a>
+                <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui text-accent-strong transition-colors duration-150 hover:text-primary-active" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"about","channel":"whatsapp"}'>واتساپ</a>
               </li>
               <li>
-                <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui text-accent-strong transition-colors duration-150 hover:text-primary-active" target="_blank" rel="noopener noreferrer">تلگرام</a>
+                <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui text-accent-strong transition-colors duration-150 hover:text-primary-active" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"about","channel":"telegram"}'>تلگرام</a>
               </li>
               <li>
                 <a href={CONTACT.emailHref} class="inline-flex min-h-11 items-center text-ui text-accent-strong transition-colors duration-150 hover:text-primary-active">{CONTACT.email}</a>

@@ -30,7 +30,7 @@ Durable constraints and accepted decisions only. Where the Master Spec (Spec §5
 | Interactivity | Astro islands with framework-free TS modules | No client framework accepted; audit form is the main interactive surface | — |
 | Lead persistence | Supabase | Accepted bootstrap override; managed Postgres, free tier, no ops burden | Volume or compliance demands change |
 | Audit submission | One Cloudflare Pages Function (`/api/audit`-style route) | Keeps credentials private, server-side validation, abuse protection, persistence + email trigger (accepted override) | Backend demand grows beyond one form |
-| Analytics | Cloudflare Web Analytics + Zaraz | Cloudflare-native, free-tier compatible, privacy-aware; attribution (UTM/referrer/landing) persisted with the lead | Product requires non-Cloudflare tooling |
+| Analytics | Cloudflare Web Analytics (baseline) + Analytics Engine via a Pages Function events endpoint (custom acquisition events) | Cloudflare-native, free-tier compatible, privacy-aware; attribution (UTM/referrer/landing) persisted with the lead. Zaraz deferred — it is a tag manager, not a store; revisit only when the founder wants a third-party destination | Product requires non-Cloudflare tooling |
 | Content | Astro Content Collections (Markdown) for case studies when content exists | No CMS until editing needs justify it (Spec §59) | Editing needs arise |
 | Theme | CSS custom properties per light/dark palette; system default + persisted override; inline early script to avoid flash | Accepted bootstrap prompt requirement | /design defines the full token set |
 

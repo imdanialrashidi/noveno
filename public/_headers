@@ -1,0 +1,17 @@
+# Cloudflare Pages response headers (plan §5.9).
+# Fonts are content-hashed build artifacts → immutable caching.
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Baseline security headers + a pragmatic CSP for a static Astro site:
+# - 'unsafe-inline' script-src covers the no-flash theme snippet
+#   (accepted plan note: no inline-script ban on the theme snippet);
+# - Turnstile (challenges.cloudflare.com) loads only on /audit;
+# - Cloudflare Web Analytics beacon is async and non-blocking.
+# - form-action 'self': the audit form posts via fetch, never a form action.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://static.cloudflareinsights.com; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com https://api.web3forms.com https://cloudflareinsights.com https://static.cloudflareinsights.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'

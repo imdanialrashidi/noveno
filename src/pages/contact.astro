@@ -20,6 +20,7 @@ const channels = [
     href: CONTACT.phoneHref,
     value: CONTACT.phone,
     ltr: true,
+    event: { name: "phone_click", payload: { section: "contact" } },
   },
   {
     title: "واتساپ",
@@ -27,6 +28,7 @@ const channels = [
     href: CONTACT.whatsappHref,
     value: "واتساپ",
     external: true,
+    event: { name: "messaging_click", payload: { section: "contact", channel: "whatsapp" } },
   },
   {
     title: "تلگرام",
@@ -34,6 +36,7 @@ const channels = [
     href: CONTACT.telegramHref,
     value: "تلگرام",
     external: true,
+    event: { name: "messaging_click", payload: { section: "contact", channel: "telegram" } },
   },
   {
     title: "ایمیل",
@@ -79,6 +82,12 @@ const channels = [
               href={channel.href}
               class="group grid grid-cols-1 gap-1 py-6 transition-colors duration-150 hover:bg-surface-soft/40 sm:grid-cols-[220px_1fr_auto] sm:items-center sm:gap-6"
               {...(channel.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+              {...(channel.event
+                ? {
+                    "data-event": channel.event.name,
+                    "data-event-payload": JSON.stringify(channel.event.payload),
+                  }
+                : {})}
             >
               <span class="flex items-center gap-3 text-h3 text-text">
                 <span class="h-2 w-2 flex-none rounded-[1px] border border-line-strong bg-transparent transition-colors duration-150 group-hover:bg-primary" aria-hidden="true"></span>

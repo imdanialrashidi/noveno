@@ -1,7 +1,7 @@
-// Cloudflare Pages local/dev configuration — committed placeholder for Slice 1.
+// Cloudflare Pages local/dev configuration.
 // Names only: NO secrets or real values ever enter this file.
-// Full Pages production settings (project env names) are documented in
-// docs/exec-plans/active/noveno-launch.md §5.9 and land with Slice 2.
+// Pages project settings (env names + secrets) are documented in
+// docs/ops/setup-checklist.md.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "noveno",
@@ -10,5 +10,11 @@
   "pages_build_output_dir": "./dist",
   "observability": {
     "enabled": true
-  }
+  },
+  "analytics_engine_datasets": [
+    {
+      "binding": "NOVENO_EVENTS",
+      "dataset": "noveno_events"
+    }
+  ]
 }

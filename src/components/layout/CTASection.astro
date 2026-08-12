@@ -40,8 +40,17 @@ const {
       <div class="flex flex-col items-start gap-6">
         <p class="text-lead text-text-muted measure-prose">{support}</p>
         <div class="flex flex-wrap items-center gap-4">
-          <Button href={primaryHref} size="lg">{primaryLabel}</Button>
-          <Button href={CONTACT.phoneHref} variant="secondary" size="lg">
+          <Button
+            href={primaryHref}
+            size="lg"
+            data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"cta-section"}' }}
+          >{primaryLabel}</Button>
+          <Button
+            href={CONTACT.phoneHref}
+            variant="secondary"
+            size="lg"
+            data={{ "data-event": "phone_click", "data-event-payload": '{"section":"cta-section"}' }}
+          >
             تماس مستقیم
             <span class="text-caption tnum" dir="ltr">{CONTACT.phone}</span>
           </Button>
