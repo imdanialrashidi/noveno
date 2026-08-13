@@ -142,7 +142,7 @@ Budget: **≤ 200 KB woff2 total**; skip `latin-ext`/`vietnamese` subsets (unuse
 
 ### 6.1 Color — Light «روز کاری» (Workday)
 
-Semantic roles, values, and **verified WCAG 2.2 contrast** (computed 2026-08-11; re-verify at build with the real stack):
+Semantic roles, values, and **verified WCAG 2.2 contrast** (computed 2026-08-11; faint token re-proved 2026-08-13; re-verify at build with the real stack):
 
 | Token | Value | Used for | Contrast vs canvas (verified) |
 |---|---|---|---|
@@ -151,7 +151,7 @@ Semantic roles, values, and **verified WCAG 2.2 contrast** (computed 2026-08-11;
 | `surface-soft` | `#f1f4f2` | diagram wells, alternating section tint | — |
 | `text` | `#070808` | primary text (anchor) | 19.2:1 |
 | `text-muted` | `#4c5751` | secondary text | 7.2:1 |
-| `text-faint` | `#68736d` | tertiary/labels ≥ 4.5:1 only | 4.7:1 |
+| `text-faint` | `#66716b` | tertiary/labels ≥ 4.5:1 only | 4.9:1 vs canvas; **4.6:1 vs `surface-soft`** (StepperLine rail labels, diagram captions) |
 | `line` | `#dfe3e1` | decorative hairlines/dividers | decorative (not required to identify controls) |
 | `line-strong` | `#7e8a83` | **form-control borders**, diagram strokes on light | 3.4:1 (non-text ✓) |
 | `primary` | `#679e86` | action fills, active path, buttons (anchor) | button text `#06130d` on it: **6.2:1** |
@@ -319,6 +319,7 @@ Evidence per `browser-qa` + the visual-quality rubric: screenshots with state pr
 |---|---|---|---|
 | 2026-08-11 | **Visual thesis «مسیر»** accepted; route language in exactly 5 places; square=system / circle=attention / solid=real / dashed=demo | Product transformation (Spec §3.3), business-component list (Spec §57), anti-template review; alternatives B/C rejected (see §3) | A new surface needs the language → design review |
 | 2026-08-11 | **Type system:** Estedad (display/UI) + Vazirmatn (body), both SIL OFL 1.1, variable, self-hosted, ≈165KB | License research (GitHub/npm/Google Fonts, 2026-08-11); Morabba rejected — commercial; measured subset sizes | License terms change; a licensed Morabba is purchased |
+| 2026-08-13 | `text-faint` light darkened `#68736d` → `#66716b` after independent design review measured 4.45:1 on `surface-soft` (below the 4.5:1 AA floor); dark theme unchanged | Computed WCAG 2.2 ratios (2026-08-13): light 4.6:1 on soft / 4.9:1 on canvas / 5.1:1 on surface; dark 5.1:1 on soft / 5.7:1 on canvas | Token value changes → re-prove contrast |
 | 2026-08-11 | Semantic tokens per §6 with verified AA contrast; buttons use dark ink on green (white fails 3.1:1) | Computed WCAG 2.2 ratios (2026-08-11) | Token value changes → re-prove contrast |
 | 2026-08-11 | Light = paper-and-ink Workday; Dark = surface-lifted Ops Room; shared roles, theme-specific depth/green roles | Two complete designs, not inversions (§7) | — |
 | 2026-08-11 | Proof integrity = line-style code (solid/hollow/dashed) + tags; «نمونه رابط سیستم» fixed label | Spec §18–19, §11.5; no color-only meaning | — |

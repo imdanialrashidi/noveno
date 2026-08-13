@@ -3,13 +3,20 @@
 Generate public/og.png — the social-share poster (1200×630).
 
 Reproducible generator using the accepted brand tokens (docs/DESIGN.md §6):
-canvas #f9fafa, ink #070808, muted #4c5751, faint #68736d, line-strong
+canvas #f9fafa, ink #070808, muted #4c5751, faint #66716b, line-strong
 #7e8a83, primary #679e86. Composition follows the «مسیر» thesis: the
 NOVENO wordmark + the journey route (squares = system stations, solid
 line = real path) — no fabricated metrics, no text on small nodes.
 
 Requires: python3 + Pillow with raqm (Arabic shaping).
 Run:  python3 scripts/generate-og-image.py
+
+Note: public/og.png was last generated with faint #68736d; the constant
+below now matches the design tokens (docs/DESIGN.md §6.1, #66716b). The
+committed artifact is intentionally not regenerated: FAINT is used on the
+canvas background only, where both values pass WCAG AA (4.71:1 vs 4.85:1),
+and regeneration requires font tooling. Regenerate when tooling is next
+available so the artifact matches this script exactly.
 """
 
 from PIL import Image, ImageDraw, ImageFont
@@ -18,7 +25,7 @@ W, H = 1200, 630
 CANVAS = "#f9fafa"
 INK = "#070808"
 MUTED = "#4c5751"
-FAINT = "#68736d"
+FAINT = "#66716b"
 LINE = "#7e8a83"
 PRIMARY = "#679e86"
 ON_PRIMARY = "#06130d"

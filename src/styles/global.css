@@ -93,7 +93,11 @@
   --surface-soft: #f1f4f2;
   --text: #070808;
   --text-muted: #4c5751;
-  --text-faint: #68736d;
+  /* #66716b: darken of the original #68736d — soft-surface (StepperLine
+     rail labels, diagram captions) measured 4.45:1 at #68736d, below the
+     4.5:1 WCAG 2.2 AA floor; 4.58:1 on surface-soft with this value
+     (design-review repair, verified 2026-08-13). */
+  --text-faint: #66716b;
   --line: #dfe3e1;
   --line-strong: #7e8a83;
   --primary: #679e86;

@@ -23,10 +23,10 @@ import {
   normalizePhoneClient,
   requiredFieldsForStep,
   validateFieldClient,
-} from "../data/audit";
-import { readAttribution, track, type Attribution } from "./analytics";
-import { effectiveTheme } from "./theme";
-import { toFaDigits } from "../data/site";
+} from "../data/audit.ts";
+import { readAttribution, track, type Attribution } from "./analytics.ts";
+import { effectiveTheme } from "./theme.ts";
+import { toFaDigits } from "../data/site.ts";
 
 export interface AuditConfig {
   turnstileSiteKey: string;
@@ -146,11 +146,13 @@ class TurnstileBridge {
   private scriptLoaded = false;
   private scriptFailed = false;
   private waiters: ((token: string | null) => void)[] = [];
+  private readonly siteKey: string;
+  private readonly container: HTMLElement;
 
-  constructor(
-    private siteKey: string,
-    private container: HTMLElement,
-  ) {}
+  constructor(siteKey: string, container: HTMLElement) {
+    this.siteKey = siteKey;
+    this.container = container;
+  }
 
   private async ensureScript(): Promise<void> {
     if (this.scriptLoaded || this.scriptFailed) return;
@@ -216,6 +218,18 @@ class TurnstileBridge {
   /** A token was rejected server-side: clear it and force a fresh challenge. */
   invalidate(): void {
     this.token = null;
+  }
+
+  /**
+   * Retry recovery (banner «تلاش دوباره»): a token that was already sent
+   * may be consumed server-side regardless of the response, so drop it and
+   * force a fresh challenge; also let a previously failed script load be
+   * retried. The next getToken() then resets the widget and waits for a
+   * brand-new token.
+   */
+  retry(): void {
+    this.token = null;
+    this.scriptFailed = false;
   }
 
   syncTheme(): void {
