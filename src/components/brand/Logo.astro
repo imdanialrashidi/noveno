@@ -21,7 +21,14 @@ const { wordmark = true, size = "md" } = Astro.props;
 <span class:list={["inline-flex items-center gap-2.5 text-text", size === "lg" ? "gap-3" : ""]}>
   <svg
     viewBox="0 0 438 394"
-    class:list={[size === "lg" ? "h-11 w-auto" : "h-9 w-auto"]}
+    class:list={[
+      size === "lg" ? "h-11 w-auto" : "h-9 w-auto",
+      // Non-zero width floor: the mark must stay visible while webfont
+      // fallback text renders wider at narrow viewports (flex would
+      // otherwise shrink the auto-width SVG to 0). Natural width is
+      // larger at all real sizes, so this only constrains the squeeze.
+      "min-w-6",
+    ]}
     aria-hidden="true"
     focusable="false"
   >

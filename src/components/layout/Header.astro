@@ -22,7 +22,7 @@ const isCurrent = (href: string) =>
 ---
 
 <header class="sticky top-0 z-40 border-b border-line bg-canvas lg:static">
-  <div class="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-3 px-5 sm:px-8 lg:h-20 lg:gap-8">
+  <div class="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-3 px-5 max-[359px]:px-4 sm:px-8 lg:h-20 lg:gap-8">
     <a
       href="/"
       class="inline-flex min-h-11 items-center gap-2.5 rounded-[4px] text-text"
@@ -55,7 +55,7 @@ const isCurrent = (href: string) =>
       <ThemeToggle id="theme-toggle-desktop" class="hidden lg:inline-flex" />
       <Button
         href={CTA_URL}
-        class="px-3.5 text-sm lg:px-6"
+        class="px-3.5 text-sm max-[359px]:px-3 max-[359px]:text-[13px] lg:px-6"
         ariaLabel="درخواست بررسی مسیر جذب"
         data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"header"}' }}
       >
