@@ -60,6 +60,22 @@ const breadcrumbJsonLd = JSON.stringify({
 <PageLayout title={pageTitle} description={data.summary} path={`/work/${entry.id}`}>
   <script slot="head" type="application/ld+json" set:html={breadcrumbJsonLd}></script>
 
+  {preview.type === "image" && preview.src && (
+    /* LCP media on work detail: the main preview is above the fold and
+       the first image — preload at high priority (was lazy + no preload
+       before; measured LCP regression). */
+    <link
+      slot="head"
+      rel="preload"
+      as="image"
+      href={preview.src}
+      imagesrcset={preview.srcset}
+      imagesizes="(min-width: 1024px) 1136px, 92vw"
+      type="image/webp"
+      fetchpriority="high"
+    />
+  )}
+
   <!-- Breadcrumbs -->
   <nav aria-label="مسیر صفحه" class="border-b border-line">
     <div class="mx-auto max-w-[1200px] px-5 py-3 sm:px-8">
@@ -109,7 +125,7 @@ const breadcrumbJsonLd = JSON.stringify({
             sizes="(min-width: 1024px) 1136px, 92vw"
             width="1440"
             height="900"
-            loading="lazy"
+            fetchpriority="high"
             decoding="async"
             alt={preview.alt ?? data.title}
           />

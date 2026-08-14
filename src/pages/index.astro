@@ -29,6 +29,7 @@ import WorkCard from "../components/business/WorkCard.astro";
 import FAQItem from "../components/ui/FAQItem.astro";
 import { getCollection } from "astro:content";
 import { previewFor } from "../data/work-previews";
+import { imageUrl } from "../generated/image-manifest";
 import {
   HERO_HEADLINE,
   PRIMARY_CTA_LABEL,
@@ -66,6 +67,21 @@ const PROBLEM_PHOTO = {
   alt: "سالن زیبایی در مشهد — کسب‌وکار خدماتی که درخواست مشتری دریافت می‌کند",
   caption: "سالن زیبایی در مشهد — عکس: Mostafa Meraji (CC0)",
 };
+
+/* Content-hashed image URLs (image-manifest) — never hard-code /images paths. */
+const HERO_AVIF = {
+  w1600: imageUrl("photography/barbershop-workday-1600.avif"),
+  w800: imageUrl("photography/barbershop-workday-800.avif"),
+};
+const HERO_WEBP = {
+  w1600: imageUrl("photography/barbershop-workday-1600.webp"),
+  w800: imageUrl("photography/barbershop-workday-800.webp"),
+};
+const HERO_SRCSET = `${HERO_AVIF.w1600} 1600w, ${HERO_AVIF.w800} 800w`;
+const HERO_SIZES = "(min-width: 1024px) 560px, 92vw";
+const SALON_SRCSET =
+  `${imageUrl("photography/salon-workday-1600.webp")} 1600w, ` +
+  `${imageUrl("photography/salon-workday-800.webp")} 800w`;
 ---
 
 <PageLayout
@@ -73,14 +89,17 @@ const PROBLEM_PHOTO = {
   description="نوونو مسیر مشتری را از دیدن شما تا تماس، ثبت درخواست و پیگیری طراحی و اجرا می‌کند؛ بدون وعده فروش تضمینی. درخواست بررسی مسیر جذب را ثبت کنید."
   path="/"
 >
-  <!-- LCP media: preload the hero photograph (AVIF first). -->
+  <!-- LCP media: preload the hero photograph (AVIF first) at HIGH
+       priority — without fetchpriority the preload can be fetched
+       behind the fonts and delay LCP (measured baseline finding). -->
   <link
     rel="preload"
     as="image"
-    href="/images/photography/barbershop-workday-1600.avif"
-    imagesrcset="/images/photography/barbershop-workday-1600.avif 1600w, /images/photography/barbershop-workday-800.avif 800w"
-    imagesizes="(min-width: 1024px) 560px, 92vw"
+    href={HERO_AVIF.w1600}
+    imagesrcset={HERO_SRCSET}
+    imagesizes={HERO_SIZES}
     type="image/avif"
+    fetchpriority="high"
     slot="head"
   />
 
@@ -118,17 +137,17 @@ const PROBLEM_PHOTO = {
         <!-- Visual side: one large editorial photograph -->
         <div class="lg:col-span-6">
           <figure class="media-figure">
-            <div class="media-frame aspect-[3/2]">
+            <div class="media-frame aspect-[3/2]" data-hero-media>
               <picture>
                 <source
                   type="image/avif"
-                  srcset="/images/photography/barbershop-workday-1600.avif 1600w, /images/photography/barbershop-workday-800.avif 800w"
-                  sizes="(min-width: 1024px) 560px, 92vw"
+                  srcset={HERO_SRCSET}
+                  sizes={HERO_SIZES}
                 />
                 <img
-                  src="/images/photography/barbershop-workday-1600.webp"
-                  srcset="/images/photography/barbershop-workday-1600.webp 1600w, /images/photography/barbershop-workday-800.webp 800w"
-                  sizes="(min-width: 1024px) 560px, 92vw"
+                  src={HERO_WEBP.w1600}
+                  srcset={`${HERO_WEBP.w1600} 1600w, ${HERO_WEBP.w800} 800w`}
+                  sizes={HERO_SIZES}
                   width="1600"
                   height="1067"
                   fetchpriority="high"
@@ -169,11 +188,11 @@ const PROBLEM_PHOTO = {
       </div>
 
       <div class="flex flex-col gap-10 lg:col-span-7">
-        <figure class="media-figure">
+        <figure class="media-figure" data-reveal>
           <div class="media-frame aspect-[16/10]">
             <img
-              src="/images/photography/salon-workday-1600.webp"
-              srcset="/images/photography/salon-workday-1600.webp 1600w, /images/photography/salon-workday-800.webp 800w"
+              src={imageUrl("photography/salon-workday-1600.webp")}
+              srcset={SALON_SRCSET}
               sizes="(min-width: 1024px) 660px, 92vw"
               width="1600"
               height="1000"
@@ -230,8 +249,8 @@ const PROBLEM_PHOTO = {
           <figure class="media-figure">
             <div class="media-frame aspect-[16/10]">
               <img
-                src="/images/work/noveno-website-audit.webp"
-                srcset="/images/work/noveno-website-audit.webp 1440w, /images/work/noveno-website-audit-800.webp 720w"
+                src={imageUrl("work/noveno-website-audit.webp")}
+                srcset={`${imageUrl("work/noveno-website-audit.webp")} 1440w, ${imageUrl("work/noveno-website-audit-800.webp")} 720w`}
                 sizes="(min-width: 1024px) 480px, 92vw"
                 width="1440"
                 height="900"
@@ -429,9 +448,10 @@ const PROBLEM_PHOTO = {
   <!-- ============ Final CTA — memorable photographic finish ============ -->
   <CTASection
     media={{
-      src: "/images/photography/workday-close-1600.webp",
+      src: imageUrl("photography/workday-close-1600.webp"),
       srcset:
-        "/images/photography/workday-close-1600.webp 1600w, /images/photography/workday-close-800.webp 800w",
+        `${imageUrl("photography/workday-close-1600.webp")} 1600w, ` +
+        `${imageUrl("photography/workday-close-800.webp")} 800w`,
       alt: "لحظه‌ای از کار واقعی در یک آرایشگاه مردانه در مشهد",
       caption: "کار واقعی، در محیط واقعی — عکس: Mostafa Meraji (CC0)",
       width: 1600,
