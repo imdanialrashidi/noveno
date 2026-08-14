@@ -1,11 +1,36 @@
-# Cloudflare Pages response headers (plan §5.9).
-# Fonts are content-hashed build artifacts → immutable caching.
-/fonts/*
+# Cloudflare Pages response headers (plan §5.9, performance pass).
+#
+# Caching policy — immutable ONLY on genuinely versioned assets:
+# - /_astro/*   → Vite content-hashed filenames (CSS/JS): immutable.
+# - /images/*   → content-hashed via the image manifest
+#                (scripts/build-image-manifest.mjs → src/generated/
+#                image-manifest.ts): every image URL changes when the
+#                bytes change, so immutable is safe even when the
+#                founder replaces homepage photography. Never reference
+#                a public image by a hard-coded /images/... path.
+# - /fonts/*    → replaced only by deliberate rename (documented in
+#                docs/DESIGN.md §5.4); bump the filename when replacing
+#                a font file so immutable stays correct.
+# - HTML, /sitemap.xml, /robots.txt → default revalidation (no rule):
+#                content changes must reach visitors promptly.
+# - /og.png, /favicon.svg → short-lived; social crawlers and browsers
+#                may cache briefly, never stale for long.
+# /fonts/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Optimized work previews are content-addressed by filename (WebP).
+# Content-addressed images (see docs/IMAGERY.md §replacement).
 /images/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Vite-hashed build assets.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/og.png
+  Cache-Control: public, max-age=86400
+
+/favicon.svg
+  Cache-Control: public, max-age=86400
 
 # Baseline security headers + a pragmatic CSP for a static Astro site:
 # - 'unsafe-inline' script-src covers the no-flash theme snippet

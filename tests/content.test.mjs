@@ -34,6 +34,7 @@ function parseFrontmatter(file) {
         obj[k.trim()] = value === "true" ? true : value === "false" ? false : value;
       }
       data[key] = obj;
+      i += 1;
     } else if (rest.startsWith("[")) {
       // inline array
       data[key] = rest
@@ -41,6 +42,7 @@ function parseFrontmatter(file) {
         .split(",")
         .map((s) => s.trim().replace(/^"|"$/g, ""))
         .filter(Boolean);
+      i += 1;
     } else if (rest === "") {
       // block scalar: either a list ("- item") or a map ("key: value")
       const values = [];

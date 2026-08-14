@@ -231,23 +231,25 @@ Every metric **must** carry `source` and `verified: true` — the schema rejects
      ```bash
      python3 scripts/optimize-work-previews.py <home-png> <audit-png>
      ```
-     The script asserts 1440×900 input and writes WebP at native + half size into `public/images/work/`. For a new project, extend the script's `JOBS` list with the new capture (or replicate the two variants manually).
-  3. Reference the files in `previewFor(id)` with `src` + `srcset` (1440w + 720w) + descriptive Persian `alt`, plus optional `detailSrc`/`detailSrcset` for a second screenshot on the detail page.
+     The script asserts 1440×900 input and writes WebP (q80) at native + half size into `public/images/work/`. For a new project, extend the script's calls with the new capture (or run it once per capture). Live-site previews refresh via `bash scripts/refresh-portfolio-previews.sh`.
+  3. Reference the files in `previewFor(id)` through the **image manifest** (`imageUrl()` — never hard-coded `/images/...` paths) with `src` + `srcset` (1440w + 720w) + descriptive Persian `alt`, plus optional `detailSrc`/`detailSrcset` for a second screenshot on the detail page.
 - **Concepts** — no image files. Pick `layout: "form"` or `"course"`; the site renders the designed mock (labeled «نمونه نمایشی — سناریوی مفهومی») from `ConceptPreview.astro`.
 - Photography elsewhere on the site is CC0, captioned, and registered in `docs/IMAGERY.md` — do not hotlink remote images.
 
 Example registration (`src/data/work-previews.ts`):
 
 ```ts
+import { imageUrl } from "../generated/image-manifest";
+
 export function previewFor(id: string): WorkPreview {
   if (id === "noveno-website") {
     return {
       type: "image",
-      src: "/images/work/noveno-website-hero.webp",
-      srcset: "/images/work/noveno-website-hero.webp 1440w, /images/work/noveno-website-hero-800.webp 720w",
+      src: imageUrl("work/noveno-website-hero.webp"),
+      srcset: `${imageUrl("work/noveno-website-hero.webp")} 1440w, ${imageUrl("work/noveno-website-hero-800.webp")} 720w`,
       alt: "صفحه نخست وب‌سایت نوونو",
-      detailSrc: "/images/work/noveno-website-audit.webp",
-      detailSrcset: "/images/work/noveno-website-audit.webp 1440w, /images/work/noveno-website-audit-800.webp 720w",
+      detailSrc: imageUrl("work/noveno-website-audit.webp"),
+      detailSrcset: `${imageUrl("work/noveno-website-audit.webp")} 1440w, ${imageUrl("work/noveno-website-audit-800.webp")} 720w`,
       detailAlt: "فرم بررسی مسیر جذب در وب‌سایت نوونو",
     };
   }
@@ -256,7 +258,14 @@ export function previewFor(id: string): WorkPreview {
 }
 ```
 
-## 5. Verification checklist for a new entry
+## 5. Performance & image delivery (read before touching images)
+
+- **Every public image is content-addressed.** `npm run build` runs `scripts/build-image-manifest.mjs` (prebuild), which materializes sha256-hashed copies of every file in `public/images/` and writes `src/generated/image-manifest.ts`. All markup references images via `imageUrl("logical/path.ext")` from that module; the structural test **fails the build** if any built page references an unhashed `/images/` path or a missing file. Never hard-code `/images/...` URLs.
+- **Caching:** `public/_headers` serves `/images/*`, `/_astro/*`, and `/fonts/*` with `immutable` (correct only because of the versioning above); HTML, `sitemap.xml`, `robots.txt` revalidate normally; `og.png`/`favicon.svg` get 1-day caching.
+- **Founder photography workflow:** `python3 scripts/optimize-photography.py --hero <src> --problem <src> --cta <src>` regenerates the three homepage roles (3:2 / 16:10 / 16:9) as AVIF+WebP variants with guarded sizes, then `npm run build` re-hashes. Alt/caption/provenance updates documented in `docs/IMAGERY.md`.
+- **Lab measurement:** `npm run build && node scripts/lab-server.mjs` serves `dist/` with Brotli/gzip (as Cloudflare does) for Lighthouse/CDP runs; `bash scripts/lab-benchmark.sh <outdir>` runs the 3×median sweep across the five representative routes (mobile + desktop).
+
+## 6. Verification checklist for a new entry
 
 ```bash
 npm run check          # content schema validation — catches wrong types/fields
@@ -275,7 +284,7 @@ Then look at `/work`, `/work/<slug>`, and the homepage proof section in the brow
 - **Feature:** once after a bounded change: project contract + relevant tests + build.
 - **Full:** `bash scripts/verify.sh` — builds the project (fresh `dist/` for structural tests), then runs `scripts/pi-doctor.sh --ci` (harness integrity, security scan, context budgets) and `scripts/project-verify.sh` (Noveno doc/branding/env contract). CI mirrors this in `.github/workflows/quality.yml`.
 
-Structural tests (run inside the gate) also pin the design contract: the flowchart grammar classes are banned from built output, the homepage LCP media wiring (AVIF preload + eager hero) must exist, fonts ≤ 200 KB, interactive JS ≤ 15 KB gzip, every page `fa` + `dir="rtl"`, theme anchors present, no dead links, no env names leaked.
+Structural tests (run inside the gate) also pin the design contract: the flowchart grammar classes are banned from built output, the homepage LCP media wiring (hashed AVIF preload + eager hero) must exist, every `/images/` reference must be content-hashed and exist on disk, fonts ≤ 200 KB, interactive JS ≤ 15 KB gzip, every page `fa` + `dir="rtl"`, theme anchors present, no dead links, no env names leaked.
 
 ## Browser QA
 

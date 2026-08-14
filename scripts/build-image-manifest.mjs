@@ -3,14 +3,15 @@
  * Build the image version manifest (content-addressed image URLs).
  *
  * Walks `public/images/**` and maps every logical image path to a
- * content-hashed URL:  `/images/photography/hero-1600.avif` →
- * `/images/photography/hero-1600.<sha256-8>.avif`.
+ * content-hashed URL, materializing a hashed copy next to the logical
+ * file:  `public/images/photography/hero-1600.avif` →
+ * `public/images/photography/hero-1600.<sha256-8>.avif`.
  *
  * Why: `public/_headers` serves `/images/*` with `immutable` caching.
  * That is only correct when the URL changes whenever the bytes change —
  * otherwise a founder replacing homepage photography (same filename)
- * would leave stale images in visitor caches for a year. The manifest
- * makes replacement safe: regenerate images → rebuild → new hash → new
+ * would leave stale images in visitor caches for a year. Hashed copies
+ * make replacement safe: regenerate images → rebuild → new hash → new
  * URL → `immutable` stays correct, with zero cache-busting guesses.
  *
  * The output module `src/generated/image-manifest.ts` is committed so
@@ -19,17 +20,29 @@
  * image MUST go through `imageUrl()` from that module — never through
  * a hard-coded `/images/...` path.
  *
+ * Stale hashed copies (whose hash no longer matches any logical file)
+ * are pruned so the repo never accumulates dead variants.
+ *
  * Usage: node scripts/build-image-manifest.mjs
  */
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
-import { join, relative } from "node:path";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { join } from "node:path";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 const IMAGES_DIR = join(ROOT, "public", "images");
 const OUT = join(ROOT, "src", "generated", "image-manifest.ts");
 
 const EXTS = new Set([".avif", ".webp", ".png", ".jpg", ".jpeg"]);
+const HASHED_RE = /\.[0-9a-f]{8}\.(avif|webp|png|jpe?g)$/;
 
 function walk(dir) {
   const out = [];
@@ -45,16 +58,33 @@ function shortHash(file) {
   return createHash("sha256").update(readFileSync(file)).digest("hex").slice(0, 8);
 }
 
-const files = walk(IMAGES_DIR).filter((f) => EXTS.has(f.slice(f.lastIndexOf("."))));
-files.sort();
+/* Logical files = image files that are NOT already hashed copies. */
+const allFiles = walk(IMAGES_DIR).filter((f) => EXTS.has(f.slice(f.lastIndexOf("."))));
+const logical = allFiles.filter((f) => !HASHED_RE.test(f));
+logical.sort();
 
 const entries = [];
-for (const file of files) {
-  const logical = relative(IMAGES_DIR, file);
-  const ext = logical.slice(logical.lastIndexOf("."));
-  const base = logical.slice(0, -ext.length);
-  const hashed = `${base}.${shortHash(file)}${ext}`;
-  entries.push([logical, hashed]);
+const liveHashed = new Set();
+for (const file of logical) {
+  const logicalPath = file.slice(IMAGES_DIR.length + 1).replaceAll("\\", "/");
+  const ext = logicalPath.slice(logicalPath.lastIndexOf("."));
+  const base = logicalPath.slice(0, -ext.length);
+  const hashedName = `${base.slice(base.lastIndexOf("/") + 1)}.${shortHash(file)}${ext}`;
+  const hashedRel = `${base.slice(0, base.lastIndexOf("/") + 1)}${hashedName}`;
+  const hashedFile = join(IMAGES_DIR, ...hashedRel.split("/"));
+  if (file !== hashedFile) {
+    copyFileSync(file, hashedFile); // idempotent: same bytes → same name
+  }
+  liveHashed.add(hashedFile);
+  entries.push([logicalPath, hashedRel]);
+}
+
+/* Prune hashed copies that no longer match any logical file. */
+for (const file of allFiles) {
+  if (HASHED_RE.test(file) && !liveHashed.has(file)) {
+    rmSync(file);
+    console.log(`pruned stale variant: ${file.slice(IMAGES_DIR.length + 1)}`);
+  }
 }
 
 const lines = [
@@ -65,7 +95,7 @@ const lines = [
   "// replacements (see docs/IMAGERY.md §replacement).",
   "",
   "export const imageManifest: Readonly<Record<string, string>> = {",
-  ...entries.map(([logical, hashed]) => `  ${JSON.stringify(logical)}: ${JSON.stringify(`/images/${hashed}`)},`),
+  ...entries.map(([logicalPath, hashedRel]) => `  ${JSON.stringify(logicalPath)}: ${JSON.stringify(`/images/${hashedRel}`)},`),
   "};",
   "",
   "/**",
@@ -82,7 +112,4 @@ const lines = [
 
 mkdirSync(join(ROOT, "src", "generated"), { recursive: true });
 writeFileSync(OUT, lines.join("\n"));
-console.log(
-  `image manifest: ${entries.length} files → ${OUT}\n` +
-    entries.map(([l, h]) => `  ${l} → ${h}`).join("\n"),
-);
+console.log(`image manifest: ${entries.length} logical files → ${OUT}`);

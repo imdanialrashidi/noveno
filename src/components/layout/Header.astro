@@ -40,7 +40,7 @@ const isCurrent = (href: string) =>
           href={link.href}
           aria-current={isCurrent(link.href) ? "page" : undefined}
           class:list={[
-            "relative inline-flex min-h-11 items-center rounded-[4px] text-ui font-medium transition-colors duration-150",
+            "nav-link relative inline-flex min-h-11 items-center rounded-[4px] text-ui font-medium transition-colors duration-150",
             isCurrent(link.href)
               ? "font-semibold text-text-action"
               : "text-text-muted hover:text-text",

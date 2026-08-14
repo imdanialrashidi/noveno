@@ -466,6 +466,120 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* Motion layer (performance pass) — transform/opacity only.           */
+  /* ------------------------------------------------------------------ */
+
+  /* 1. Entrance reveal — below-the-fold groups only. JS adds
+     `.reveal-init` to elements outside the initial viewport; the
+     observer swaps in `.reveal-in` when they approach. Content is
+     visible by default (no-JS / no-CLS / no-LCP risk). */
+  [data-reveal].reveal-init {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  [data-reveal] {
+    transition:
+      opacity 450ms var(--ease-standard),
+      transform 450ms var(--ease-standard);
+  }
+  [data-reveal].reveal-in {
+    opacity: 1;
+    transform: none;
+  }
+  /* Stagger groups: the container itself never fades — only its items
+     do, each with a 45ms cascade delay (one place on the homepage). */
+  [data-reveal-stagger].reveal-init [data-reveal-item] {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  [data-reveal-stagger] [data-reveal-item] {
+    transition:
+      opacity 450ms var(--ease-standard),
+      transform 450ms var(--ease-standard);
+    transition-delay: calc(var(--reveal-i, 0) * 45ms);
+  }
+  [data-reveal-stagger].reveal-in [data-reveal-item] {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* 2. Hero moment — one tiny accent line that grows under the kicker
+     (transform-only, ~2px layer). Deliberately NOT the image or the
+     headline: animating those promoted large layers and measurably
+     delayed first paint on throttled mobile (measured; see report).
+     Paint is immediate — the hero content never moves. */
+  [data-hero-accent] {
+    transform: scaleX(0);
+    transform-origin: right;
+    animation: accent-grow 500ms var(--ease-standard) 100ms both;
+  }
+  @keyframes accent-grow {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  /* 3. Mobile menu open/close (menu.ts orchestrates `hidden`). */
+  #mobile-menu {
+    opacity: 0;
+    translate: 0 -6px;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity var(--dur-2) var(--ease-standard),
+      translate var(--dur-2) var(--ease-standard),
+      visibility 0s linear var(--dur-2);
+  }
+  #mobile-menu.menu-open {
+    opacity: 1;
+    translate: 0 0;
+    visibility: visible;
+    pointer-events: auto;
+    transition:
+      opacity var(--dur-2) var(--ease-standard),
+      translate var(--dur-2) var(--ease-standard);
+  }
+
+  /* 4. Micro-interactions — press feedback on buttons (transform only)
+     and a desktop nav underline that grows from the RTL start. */
+  .btn-press {
+    transition:
+      background-color var(--dur-1) var(--ease-standard),
+      border-color var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard),
+      transform var(--dur-1) var(--ease-standard);
+  }
+  .btn-press:active {
+    transform: scale(0.98);
+  }
+  .nav-link {
+    position: relative;
+  }
+  .nav-link:not([aria-current="page"])::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    bottom: -0.375rem;
+    width: 100%;
+    height: 2px;
+    border-radius: 1px;
+    background-color: var(--primary);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform var(--dur-2) var(--ease-standard);
+  }
+  [dir="rtl"] .nav-link:not([aria-current="page"])::after {
+    transform-origin: right;
+  }
+  .nav-link:not([aria-current="page"]):hover::after,
+  .nav-link:not([aria-current="page"]):focus-visible::after {
+    transform: scaleX(1);
+  }
+
+  /* The reduced-motion guard at the bottom of this file zeroes every
+     duration, so all of the above render directly in their final state. */
+
+  /* ------------------------------------------------------------------ */
   /* Audit progress (DESIGN 2026-08-14 — «مرحله ۳ از ۶» + clean bar).   */
   /* Driven by `data-stepper-counter` / `data-stepper-current` /         */
   /* `data-stepper-bar`; the audit script flips text and width.          */

@@ -40,6 +40,10 @@ const REQUIRED_TOKENS = [
   "#06130d", // on-primary ink (dark ink on green)
 ];
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function walk(dir) {
   const out = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -121,12 +125,18 @@ test("the flowchart grammar is gone from built pages and CSS (2026-08-14 founder
   }
 });
 
-test("homepage LCP media is wired: AVIF preload + picture source + eager hero image", () => {
+test("homepage LCP media is wired: hashed AVIF preload + picture source + eager hero image", () => {
   const home = fs.readFileSync(path.join(dist, "index.html"), "utf8");
+  // The image manifest (content-hashed URLs) must be applied: the
+  // preload targets the hashed hero AVIF at HIGH priority.
+  const manifestSrc = fs.readFileSync(path.join(root, "src", "generated", "image-manifest.ts"), "utf8");
+  const heroMatch = manifestSrc.match(/("photography\/barbershop-workday-1600\.avif"): "([^"]+)"/);
+  assert.ok(heroMatch, "manifest must map the hero AVIF");
+  const heroHashed = heroMatch[2];
   assert.match(
     home,
-    /<link[^>]*rel="preload"[^>]*as="image"[^>]*barbershop-workday-1600\.avif/,
-    "homepage must preload the hero photograph (AVIF)",
+    new RegExp(`<link[^>]*rel="preload"[^>]*as="image"[^>]*href="${escapeRegExp(heroHashed)}"[^>]*fetchpriority="high"`),
+    "homepage must preload the hashed hero photograph (AVIF) at high priority",
   );
   assert.match(home, /<picture>/, "homepage hero must use <picture>");
   assert.match(home, /type="image\/avif"/, "hero <picture> must offer AVIF first");
@@ -137,6 +147,36 @@ test("homepage LCP media is wired: AVIF preload + picture source + eager hero im
   );
   const lazyImages = [...home.matchAll(/<img[^>]*loading="lazy"/g)];
   assert.ok(lazyImages.length >= 3, "below-fold images must be lazy");
+});
+
+test("every /images/ reference in built pages is content-hashed and exists on disk", () => {
+  // Caching contract: /images/* is `immutable` in _headers, which is
+  // only safe because every referenced image URL is content-addressed.
+  // A hard-coded unhashed path would break cache correctness on
+  // founder image replacement — this test makes that a build failure.
+  const pages = walk(dist).filter((f) => f.endsWith(".html"));
+  const refs = new Set();
+  for (const file of pages) {
+    const html = fs.readFileSync(file, "utf8");
+    for (const m of html.matchAll(/(?:src|srcset|href|imagesrcset)="([^"]*\/images\/[^"]+)"/g)) {
+      for (const candidate of m[1].split(",")) {
+        const url = candidate.trim().split(/\s+/)[0];
+        if (url.startsWith("/images/")) refs.add(url);
+      }
+    }
+  }
+  assert.ok(refs.size > 0, "expected at least one /images/ reference in built pages");
+  for (const ref of refs) {
+    assert.match(
+      ref,
+      /\/images\/.*\.[0-9a-f]{8}\.(avif|webp|png|jpe?g)$/,
+      `unhashed image reference in built HTML: ${ref}`,
+    );
+    assert.ok(
+      fs.existsSync(path.join(dist, ref.replace(/^\//, ""))),
+      `built HTML references missing image file: ${ref}`,
+    );
+  }
 });
 
 test("interactive JS ≤ 15 KB gzip and no client framework runtime", () => {

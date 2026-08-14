@@ -16,6 +16,8 @@ import { CTA_URL, PRIMARY_CTA_LABEL, CONTACT } from "../../data/site";
 interface Media {
   src: string;
   srcset?: string;
+  /** Optional AVIF srcset — rendered as the first <picture> source. */
+  avifSrcset?: string;
   alt: string;
   caption: string;
   /** Intrinsic dimensions of the source image (w/h). */
@@ -46,7 +48,7 @@ const {
 ---
 
 <section class="border-t border-line bg-surface-soft" aria-labelledby="cta-title">
-  <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+  <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24" data-reveal>
     <div class:list={["grid gap-12", media ? "lg:grid-cols-2 lg:items-center lg:gap-20" : hideRail ? "" : "lg:grid-cols-2 lg:gap-20"]}>
       <div class="flex flex-col items-start gap-6">
         <h2 id="cta-title" class="text-h2 max-w-2xl text-text">{title}</h2>
@@ -76,17 +78,26 @@ const {
       {media ? (
         <figure class="media-figure">
           <div class="media-frame aspect-[16/9]">
-            <img
-              src={media.src}
-              srcset={media.srcset}
-              sizes="(min-width: 1024px) 560px, 92vw"
-              width={media.width}
-              height={media.height}
-              loading="lazy"
-              decoding="async"
-              alt={media.alt}
-              class="transition-transform duration-300 ease-standard group-hover:scale-[1.015]"
-            />
+            <picture>
+              {media.avifSrcset && (
+                <source
+                  type="image/avif"
+                  srcset={media.avifSrcset}
+                  sizes="(min-width: 1024px) 560px, 92vw"
+                />
+              )}
+              <img
+                src={media.src}
+                srcset={media.srcset}
+                sizes="(min-width: 1024px) 560px, 92vw"
+                width={media.width}
+                height={media.height}
+                loading="lazy"
+                decoding="async"
+                alt={media.alt}
+                class="transition-transform duration-300 ease-standard group-hover:scale-[1.015]"
+              />
+            </picture>
           </div>
           <figcaption class="media-caption">{media.caption}</figcaption>
         </figure>

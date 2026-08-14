@@ -8,4 +8,6 @@ All files in this directory: **Wikimedia Commons**, photographer **Mostafa Meraj
 | `salon-workday-*` | https://commons.wikimedia.org/wiki/File:A_beauty_salon_in_Iran,_Mashhad,_Free_Photo_Wikipedia,_Mostafa_Meraji_03.jpg | 4000×2666 |
 | `workday-close-*` | https://commons.wikimedia.org/wiki/File:Barbershop_In_Iran_04.jpg | 2000×1500 |
 
-Processing: center crops, AVIF q44 / WebP q78 via Pillow. See `docs/IMAGERY.md` for the full registry.
+Processing (regenerated 2026-08-14 performance pass): center crops — hero 3:2, problem 16:10, CTA 16:9 — via `scripts/optimize-photography.py` (Pillow), AVIF q44 / WebP q78, method 6, at 1600w + 800w. Hashed delivery copies are build artifacts (see `docs/IMAGERY.md`).
+
+Replacing a photo: run `scripts/optimize-photography.py --<role> <source>` (see `docs/IMAGERY.md` §replacement), then update this table and the alt/caption text in `src/pages/index.astro`.

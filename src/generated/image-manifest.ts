@@ -5,13 +5,17 @@
 // replacements (see docs/IMAGERY.md §replacement).
 
 export const imageManifest: Readonly<Record<string, string>> = {
-  "photography/barbershop-workday-1600.avif": "/images/photography/barbershop-workday-1600.3ec75ae0.avif",
-  "photography/barbershop-workday-1600.webp": "/images/photography/barbershop-workday-1600.d767da29.webp",
+  "photography/barbershop-workday-1600.avif": "/images/photography/barbershop-workday-1600.bbf2e51d.avif",
+  "photography/barbershop-workday-1600.webp": "/images/photography/barbershop-workday-1600.095f950f.webp",
   "photography/barbershop-workday-800.avif": "/images/photography/barbershop-workday-800.9465e4ad.avif",
   "photography/barbershop-workday-800.webp": "/images/photography/barbershop-workday-800.da81fe3e.webp",
+  "photography/salon-workday-1600.avif": "/images/photography/salon-workday-1600.2d8fb005.avif",
   "photography/salon-workday-1600.webp": "/images/photography/salon-workday-1600.26a244d3.webp",
+  "photography/salon-workday-800.avif": "/images/photography/salon-workday-800.3cf5c36e.avif",
   "photography/salon-workday-800.webp": "/images/photography/salon-workday-800.a05e4ae9.webp",
+  "photography/workday-close-1600.avif": "/images/photography/workday-close-1600.c623b209.avif",
   "photography/workday-close-1600.webp": "/images/photography/workday-close-1600.7273676b.webp",
+  "photography/workday-close-800.avif": "/images/photography/workday-close-800.74b7e7d7.avif",
   "photography/workday-close-800.webp": "/images/photography/workday-close-800.4e412a0f.webp",
   "work/danial-rashidi-portfolio-hero-800.webp": "/images/work/danial-rashidi-portfolio-hero-800.72e781d1.webp",
   "work/danial-rashidi-portfolio-hero.webp": "/images/work/danial-rashidi-portfolio-hero.9a6c4a0f.webp",
@@ -25,8 +29,8 @@ export const imageManifest: Readonly<Record<string, string>> = {
   "work/noveno-website-audit.webp": "/images/work/noveno-website-audit.86c989ed.webp",
   "work/noveno-website-hero-800.webp": "/images/work/noveno-website-hero-800.de705035.webp",
   "work/noveno-website-hero.webp": "/images/work/noveno-website-hero.875e9bbd.webp",
-  "work/php-ielts-house-hero-800.webp": "/images/work/php-ielts-house-hero-800.1c21e0a3.webp",
-  "work/php-ielts-house-hero.webp": "/images/work/php-ielts-house-hero.1c21e0a3.webp",
+  "work/php-ielts-house-hero-800.webp": "/images/work/php-ielts-house-hero-800.472ce5ac.webp",
+  "work/php-ielts-house-hero.webp": "/images/work/php-ielts-house-hero.bd5bd7ff.webp",
 };
 
 /**

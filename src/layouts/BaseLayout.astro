@@ -102,7 +102,10 @@ const websiteJsonLd = JSON.stringify({
       })();
     </script>
 
-    <!-- LCP text is the hero headline → preload its face only (§5.3) -->
+    <!-- LCP text is the hero headline → preload its face only (§5.3).
+         Vazirmatn stays CSS-discovered (font-display: swap with the
+         metric-matched fallback): preloading it competed with the LCP
+         image on throttled mobile and regressed LCP (measured). -->
     <link rel="preload" href="/fonts/estedad-arabic-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
 
     <meta name="generator" content={Astro.generator} />
@@ -117,5 +120,10 @@ const websiteJsonLd = JSON.stringify({
   // Acquisition telemetry: declarative data-event clicks + attribution
   // capture (plan §5.8). Non-blocking; never contains lead PII.
   import { initAnalytics } from "../scripts/analytics";
+  // Motion layer: one shared observer drives all entrance reveals;
+  // below-the-fold content only, reduced-motion aware (motion.ts).
+  import { initReveal, initStagger } from "../scripts/motion";
   initAnalytics();
+  initReveal();
+  initStagger();
 </script>
