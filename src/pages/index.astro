@@ -21,6 +21,7 @@
 
 import PageLayout from "../layouts/PageLayout.astro";
 import Button from "../components/ui/Button.astro";
+import Icon from "../components/ui/Icon.astro";
 import SectionHeader from "../components/layout/SectionHeader.astro";
 import CTASection from "../components/layout/CTASection.astro";
 import OfferRow from "../components/business/OfferRow.astro";
@@ -410,6 +411,7 @@ const PROBLEM_PHOTO = {
           lead="اگر سؤال دیگری دارید، مستقیم بپرسید — بدون فرم‌های واسطه."
         />
         <Button href={CONTACT.phoneHref} variant="secondary">
+          <Icon name="phone" class="h-4.5 w-4.5" />
           تماس مستقیم
           <span class="text-caption tnum" dir="ltr">{CONTACT.phone}</span>
         </Button>

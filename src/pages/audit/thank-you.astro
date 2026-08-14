@@ -10,6 +10,7 @@
 
 import PageLayout from "../../layouts/PageLayout.astro";
 import PageHero from "../../components/layout/PageHero.astro";
+import ChannelLink from "../../components/ui/ChannelLink.astro";
 import NextStepsRail from "../../components/business/NextStepsRail.astro";
 import { getCollection } from "astro:content";
 import { CONTACT } from "../../data/site";
@@ -56,17 +57,29 @@ const pointer = realWork[0] ?? null;
           </p>
           <div class="mt-6 flex flex-col gap-3 border-t border-line pt-6">
             <p class="text-ui font-medium text-text">سؤال فوری دارید؟</p>
-            <div class="flex flex-wrap gap-x-5 gap-y-2">
-              <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" data-event="phone_click" data-event-payload='{"section":"thank-you"}'>
-                تماس <span class="tnum" dir="ltr">{CONTACT.phone}</span>
-              </a>
-              <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"thank-you","channel":"whatsapp"}'>
-                واتساپ
-              </a>
-              <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"thank-you","channel":"telegram"}'>
-                تلگرام
-              </a>
-              <a href={CONTACT.emailHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action">{CONTACT.email}</a>
+            <div class="flex flex-wrap gap-x-5 gap-y-1">
+              <ChannelLink
+                icon="phone"
+                label={CONTACT.phone}
+                value="تماس"
+                href={CONTACT.phoneHref}
+                event={{ name: "phone_click", payload: { section: "thank-you" } }}
+              />
+              <ChannelLink
+                icon="whatsapp"
+                label="واتساپ"
+                href={CONTACT.whatsappHref}
+                external
+                event={{ name: "messaging_click", payload: { section: "thank-you", channel: "whatsapp" } }}
+              />
+              <ChannelLink
+                icon="telegram"
+                label="تلگرام"
+                href={CONTACT.telegramHref}
+                external
+                event={{ name: "messaging_click", payload: { section: "thank-you", channel: "telegram" } }}
+              />
+              <ChannelLink icon="email" label={CONTACT.email} href={CONTACT.emailHref} />
             </div>
           </div>
 

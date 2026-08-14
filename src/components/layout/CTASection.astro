@@ -9,6 +9,7 @@
  */
 
 import Button from "../ui/Button.astro";
+import Icon from "../ui/Icon.astro";
 import NextStepsRail from "../business/NextStepsRail.astro";
 import { CTA_URL, PRIMARY_CTA_LABEL, CONTACT } from "../../data/site";
 
@@ -62,6 +63,7 @@ const {
             size="lg"
             data={{ "data-event": "phone_click", "data-event-payload": '{"section":"cta-section"}' }}
           >
+            <Icon name="phone" class="h-4.5 w-4.5" />
             تماس مستقیم
             <span class="text-caption tnum" dir="ltr">{CONTACT.phone}</span>
           </Button>

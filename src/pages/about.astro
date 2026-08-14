@@ -7,6 +7,7 @@
 
 import PageLayout from "../layouts/PageLayout.astro";
 import PageHero from "../components/layout/PageHero.astro";
+import ChannelLink from "../components/ui/ChannelLink.astro";
 import SectionHeader from "../components/layout/SectionHeader.astro";
 import CTASection from "../components/layout/CTASection.astro";
 import Button from "../components/ui/Button.astro";
@@ -105,20 +106,35 @@ const faIndex = (i: number) => toFaDigits(String(i + 1).padStart(2, "0"));
           </div>
           <div class="flex flex-col gap-3 border-t border-line pt-6 lg:border-s lg:border-t-0 lg:ps-10 lg:pt-0">
             <p class="text-meta text-text-faint">تماس مستقیم با بنیان‌گذار</p>
-            <ul class="flex flex-col">
+            <ul class="flex flex-col gap-0.5">
               <li>
-                <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-text-action" data-event="phone_click" data-event-payload='{"section":"about"}'>
-                  <span class="tnum" dir="ltr">{CONTACT.phone}</span>
-                </a>
+                <ChannelLink
+                  icon="phone"
+                  label={CONTACT.phone}
+                  href={CONTACT.phoneHref}
+                  event={{ name: "phone_click", payload: { section: "about" } }}
+                />
               </li>
               <li>
-                <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui text-accent-strong transition-colors duration-150 hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"about","channel":"whatsapp"}'>واتساپ</a>
+                <ChannelLink
+                  icon="whatsapp"
+                  label="واتساپ"
+                  href={CONTACT.whatsappHref}
+                  external
+                  event={{ name: "messaging_click", payload: { section: "about", channel: "whatsapp" } }}
+                />
               </li>
               <li>
-                <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui text-accent-strong transition-colors duration-150 hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"about","channel":"telegram"}'>تلگرام</a>
+                <ChannelLink
+                  icon="telegram"
+                  label="تلگرام"
+                  href={CONTACT.telegramHref}
+                  external
+                  event={{ name: "messaging_click", payload: { section: "about", channel: "telegram" } }}
+                />
               </li>
               <li>
-                <a href={CONTACT.emailHref} class="inline-flex min-h-11 items-center text-ui text-accent-strong transition-colors duration-150 hover:text-text-action">{CONTACT.email}</a>
+                <ChannelLink icon="email" label={CONTACT.email} href={CONTACT.emailHref} />
               </li>
             </ul>
           </div>

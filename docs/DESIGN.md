@@ -196,7 +196,7 @@ Rule: **the primary button carries dark ink on green** (`#06130d` on `#679e86`/`
 | Group | Components |
 |---|---|
 | Layout | Header, MobileMenu, Footer, PageHero, SectionHeader, CTASection (with optional photo media) |
-| UI | Button (primary / secondary / ghost), TextLink, ProofTag (3 text labels), FormField, Select, MultiSelect (channels), FAQItem, Metric (evidence-bound only) |
+| UI | Button (primary / secondary / ghost), TextLink, ProofTag (3 text labels), FormField, Select, MultiSelect (channels), FAQItem, Metric (evidence-bound only), **Icon (monoline channel glyphs: phone, whatsapp, telegram, email, instagram)**, **ChannelLink (inline / row / tile variants — one contact-link contract for every surface)** |
 | Business | WorkCard (editorial work row with large preview), ConceptPreview (designed concept mock), NextStepsRail (numbered 1–4), AuditProgress (StepperLine: «مرحله X از ۶» + progress bar) |
 
 **Button language:** primary = `primary` fill, `on-primary` ink, 4px radius, min-height 48px; secondary = 1px `line-strong` + `text`; ghost = text link with visible focus. States: default / hover / focus-visible / disabled (opacity 45%, not color-only) / pressed.

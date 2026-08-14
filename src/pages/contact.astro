@@ -11,11 +11,24 @@ import PageLayout from "../layouts/PageLayout.astro";
 import PageHero from "../components/layout/PageHero.astro";
 import CTASection from "../components/layout/CTASection.astro";
 import Button from "../components/ui/Button.astro";
+import Icon, { type IconName } from "../components/ui/Icon.astro";
 import NextStepsRail from "../components/business/NextStepsRail.astro";
 import { CONTACT } from "../data/site";
 
-const channels = [
+interface Channel {
+  icon: IconName;
+  title: string;
+  detail: string;
+  href: string;
+  value: string;
+  ltr?: boolean;
+  external?: boolean;
+  event?: { name: string; payload: Record<string, string> };
+}
+
+const channels: Channel[] = [
   {
+    icon: "phone",
     title: "تماس تلفنی",
     detail: "پاسخ‌گویی در ساعات کاری",
     href: CONTACT.phoneHref,
@@ -24,6 +37,7 @@ const channels = [
     event: { name: "phone_click", payload: { section: "contact" } },
   },
   {
+    icon: "whatsapp",
     title: "واتساپ",
     detail: "برای ارسال پیام و فایل",
     href: CONTACT.whatsappHref,
@@ -32,6 +46,7 @@ const channels = [
     event: { name: "messaging_click", payload: { section: "contact", channel: "whatsapp" } },
   },
   {
+    icon: "telegram",
     title: "تلگرام",
     detail: "برای ارسال پیام",
     href: CONTACT.telegramHref,
@@ -40,6 +55,7 @@ const channels = [
     event: { name: "messaging_click", payload: { section: "contact", channel: "telegram" } },
   },
   {
+    icon: "email",
     title: "ایمیل",
     detail: "برای توضیحات و مدارک",
     href: CONTACT.emailHref,
@@ -47,6 +63,7 @@ const channels = [
     ltr: true,
   },
   {
+    icon: "instagram",
     title: "اینستاگرام",
     detail: "دیدن نمونه‌کارها و گفتگو",
     href: CONTACT.instagramHref,
@@ -76,7 +93,7 @@ const channels = [
           <li class="border-t border-line first:border-t-0">
             <a
               href={channel.href}
-              class="group grid grid-cols-1 gap-1 py-6 transition-colors duration-150 hover:bg-surface-soft/40 sm:grid-cols-[220px_1fr_auto] sm:items-center sm:gap-6"
+              class="group grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 rounded-[4px] py-5 transition-colors duration-150 hover:bg-surface-soft/50 sm:grid-cols-[56px_1fr_auto] sm:gap-x-6 sm:px-3 sm:py-4"
               {...(channel.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
               {...(channel.event
                 ? {
@@ -85,12 +102,17 @@ const channels = [
                   }
                 : {})}
             >
-              <span class="flex items-center gap-3 text-h3 text-text">
-                <span class="h-2 w-2 flex-none rounded-[1px] border border-line-strong bg-transparent transition-colors duration-150 group-hover:bg-primary" aria-hidden="true"></span>
-                {channel.title}
+              <span
+                class="flex h-12 w-12 items-center justify-center rounded-[4px] border border-line bg-surface text-text-muted transition-colors duration-150 group-hover:border-primary group-hover:bg-primary-soft group-hover:text-accent-strong sm:h-14 sm:w-14"
+                aria-hidden="true"
+              >
+                <Icon name={channel.icon} class="h-5.5 w-5.5 sm:h-6 sm:w-6" />
               </span>
-              <span class="text-body text-text-muted">{channel.detail}</span>
-              <span class="flex items-center gap-1.5 text-ui font-medium text-accent-strong">
+              <span class="flex min-w-0 flex-col gap-0.5">
+                <span class="text-h3 text-text transition-colors duration-150 group-hover:text-text-action">{channel.title}</span>
+                <span class="text-body text-text-muted">{channel.detail}</span>
+              </span>
+              <span class="col-start-2 flex items-center gap-1.5 text-ui font-medium text-accent-strong sm:col-start-auto sm:justify-self-end">
                 <span class={channel.ltr ? "tnum" : ""} dir={channel.ltr ? "ltr" : undefined}>{channel.value}</span>
                 <svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M19 12H5" />
@@ -115,6 +137,7 @@ const channels = [
           </p>
           <div class="mt-6">
             <Button href={CONTACT.phoneHref} size="lg">
+              <Icon name="phone" class="h-4.5 w-4.5" />
               تماس تلفنی
               <span class="text-caption tnum" dir="ltr">{CONTACT.phone}</span>
             </Button>

@@ -1,0 +1,58 @@
+---
+/**
+ * ChannelLink — the site's contact-channel link, one visual contract
+ * for every surface (footer, mobile menu, contact page, audit rail,
+ * thank-you, banners). Monoline channel icon in a quiet chip beside a
+ * real text label; the chip fills with brand tones on hover. Icons are
+ * decorative (aria-hidden) — the label is the accessible name.
+ *
+ * Variants:
+ *  - inline: icon + text, no chip (audit rail, thank-you, banners);
+ *  - row:    icon chip + label row (footer list);
+ *  - tile:   bordered tap tile (mobile menu grid, contact page rows).
+ */
+
+import Icon, { type IconName } from "./Icon.astro";
+
+interface Props {
+  icon: IconName;
+  label: string;
+  href: string;
+  external?: boolean;
+  /** Optional secondary value (e.g. the phone number). */
+  value?: string;
+  /** Optional analytics wiring. */
+  event?: { name: string; payload: Record<string, string> };
+  variant?: "inline" | "row" | "tile";
+  class?: string;
+}
+
+const { icon, label, href, external = false, value, event, variant = "inline" } = Astro.props;
+const className = Astro.props["class"] ?? "";
+
+const variantClasses: Record<string, string> = {
+  inline:
+    "inline-flex min-h-11 items-center gap-2 text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-text-action",
+  row: "group inline-flex min-h-10 items-center gap-2.5 text-ui transition-colors duration-150",
+  tile: "group flex min-h-13 flex-1 items-center gap-2.5 rounded-[4px] border border-line bg-surface px-3.5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action",
+};
+
+const chipClasses: Record<string, string> = {
+  inline: "h-4.5 w-4.5 flex-none",
+  row: "flex h-7 w-7 flex-none items-center justify-center rounded-[4px] border border-line bg-surface text-text-muted transition-colors duration-150 group-hover:border-primary group-hover:bg-primary-soft group-hover:text-accent-strong",
+  tile: "flex h-8 w-8 flex-none items-center justify-center rounded-[4px] bg-surface-soft text-text-muted transition-colors duration-150 group-hover:bg-primary-soft group-hover:text-accent-strong",
+};
+---
+
+<a
+  href={href}
+  class:list={[variantClasses[variant], className]}
+  {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+  {...(event ? { "data-event": event.name, "data-event-payload": JSON.stringify(event.payload) } : {})}
+>
+  <span class={chipClasses[variant]} aria-hidden="true">
+    <Icon name={icon} class="h-4 w-4" />
+  </span>
+  <span class="tnum" dir={value ? "ltr" : undefined}>{label}</span>
+  {value && <span class="text-meta text-text-faint">({value})</span>}
+</a>

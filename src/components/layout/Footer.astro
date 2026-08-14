@@ -7,6 +7,7 @@
  */
 
 import Logo from "../brand/Logo.astro";
+import ChannelLink from "../ui/ChannelLink.astro";
 import { CONTACT, jalaliYear } from "../../data/site";
 
 const year = jalaliYear();
@@ -49,31 +50,52 @@ const year = jalaliYear();
 
         <div>
           <p class="mb-3 text-caption text-text-faint">تماس مستقیم</p>
-          <ul class="flex flex-col gap-1">
+          <ul class="flex flex-col gap-0.5">
             <li>
-              <a href={CONTACT.phoneHref} class="inline-flex min-h-10 items-center gap-2 text-ui font-medium text-text transition-colors duration-150 hover:text-text-action" data-event="phone_click" data-event-payload='{"section":"footer"}'>
-                <span class="tnum" dir="ltr">{CONTACT.phone}</span>
-              </a>
+              <ChannelLink
+                icon="phone"
+                label={CONTACT.phone}
+                href={CONTACT.phoneHref}
+                variant="row"
+                event={{ name: "phone_click", payload: { section: "footer" } }}
+              />
             </li>
             <li>
-              <a href={CONTACT.whatsappHref} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"footer","channel":"whatsapp"}'>
-                واتساپ
-              </a>
+              <ChannelLink
+                icon="whatsapp"
+                label="واتساپ"
+                href={CONTACT.whatsappHref}
+                external
+                variant="row"
+                event={{ name: "messaging_click", payload: { section: "footer", channel: "whatsapp" } }}
+              />
             </li>
             <li>
-              <a href={CONTACT.telegramHref} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"footer","channel":"telegram"}'>
-                تلگرام
-              </a>
+              <ChannelLink
+                icon="telegram"
+                label="تلگرام"
+                href={CONTACT.telegramHref}
+                external
+                variant="row"
+                event={{ name: "messaging_click", payload: { section: "footer", channel: "telegram" } }}
+              />
             </li>
             <li>
-              <a href={CONTACT.emailHref} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-text-action">
-                {CONTACT.email}
-              </a>
+              <ChannelLink
+                icon="email"
+                label={CONTACT.email}
+                href={CONTACT.emailHref}
+                variant="row"
+              />
             </li>
             <li>
-              <a href={CONTACT.instagramHref} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-text-action" target="_blank" rel="noopener noreferrer">
-                {CONTACT.instagramHandle}
-              </a>
+              <ChannelLink
+                icon="instagram"
+                label={CONTACT.instagramHandle}
+                href={CONTACT.instagramHref}
+                external
+                variant="row"
+              />
             </li>
           </ul>
         </div>

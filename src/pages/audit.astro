@@ -16,6 +16,7 @@
 
 import PageLayout from "../layouts/PageLayout.astro";
 import PageHero from "../components/layout/PageHero.astro";
+import ChannelLink from "../components/ui/ChannelLink.astro";
 import StepperLine from "../components/business/StepperLine.astro";
 import FormField from "../components/ui/FormField.astro";
 import Select from "../components/ui/Select.astro";
@@ -59,17 +60,28 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
 
             <div class="flex flex-col gap-3 border-t border-line pt-6">
               <p class="text-ui font-medium text-text">ترجیح می‌دهید مستقیم صحبت کنید؟</p>
-              <div class="flex flex-wrap gap-x-5 gap-y-2">
-                <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" data-event="phone_click" data-event-payload='{"section":"audit-rail"}'>
-                  تماس
-                  <span class="tnum" dir="ltr">{CONTACT.phone}</span>
-                </a>
-                <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"audit-rail","channel":"whatsapp"}'>
-                  واتساپ
-                </a>
-                <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"audit-rail","channel":"telegram"}'>
-                  تلگرام
-                </a>
+              <div class="flex flex-wrap gap-x-5 gap-y-1">
+                <ChannelLink
+                  icon="phone"
+                  label={CONTACT.phone}
+                  value="تماس"
+                  href={CONTACT.phoneHref}
+                  event={{ name: "phone_click", payload: { section: "audit-rail" } }}
+                />
+                <ChannelLink
+                  icon="whatsapp"
+                  label="واتساپ"
+                  href={CONTACT.whatsappHref}
+                  external
+                  event={{ name: "messaging_click", payload: { section: "audit-rail", channel: "whatsapp" } }}
+                />
+                <ChannelLink
+                  icon="telegram"
+                  label="تلگرام"
+                  href={CONTACT.telegramHref}
+                  external
+                  event={{ name: "messaging_click", payload: { section: "audit-rail", channel: "telegram" } }}
+                />
               </div>
               <p class="text-caption text-text-faint">
                 اگر همکاری مناسب نباشد، همان‌جا گفته می‌شود؛ بدون پیگیری اذیت‌کننده.
@@ -114,16 +126,28 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
                   <div class="flex flex-col gap-3">
                     <p class="text-body font-medium text-danger">ارسال نشد؛ به اینترنت وصل نیستید. پاسخ‌ها ذخیره شده‌اند و با اتصال دوباره می‌توانید ادامه دهید.</p>
                     <p class="text-caption text-text-muted">یا مستقیم در تماس باشید:</p>
-                    <div class="flex flex-wrap gap-x-5 gap-y-2">
-                      <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" data-event="phone_click" data-event-payload='{"section":"audit-banner"}'>
-                        تماس <span class="tnum" dir="ltr">{CONTACT.phone}</span>
-                      </a>
-                      <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"audit-banner","channel":"whatsapp"}'>
-                        واتساپ
-                      </a>
-                      <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"audit-banner","channel":"telegram"}'>
-                        تلگرام
-                      </a>
+                    <div class="flex flex-wrap gap-x-5 gap-y-1">
+                      <ChannelLink
+                        icon="phone"
+                        label={CONTACT.phone}
+                        value="تماس"
+                        href={CONTACT.phoneHref}
+                        event={{ name: "phone_click", payload: { section: "audit-banner" } }}
+                      />
+                      <ChannelLink
+                        icon="whatsapp"
+                        label="واتساپ"
+                        href={CONTACT.whatsappHref}
+                        external
+                        event={{ name: "messaging_click", payload: { section: "audit-banner", channel: "whatsapp" } }}
+                      />
+                      <ChannelLink
+                        icon="telegram"
+                        label="تلگرام"
+                        href={CONTACT.telegramHref}
+                        external
+                        event={{ name: "messaging_click", payload: { section: "audit-banner", channel: "telegram" } }}
+                      />
                     </div>
                     <button type="button" data-retry class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action">
                       تلاش دوباره
@@ -179,12 +203,10 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
                   </svg>
                   <div class="flex flex-col gap-3">
                     <p class="text-body font-medium text-danger">ثبت درخواست در این لحظه در دسترس نیست؛ از راه‌های تماس مستقیم استفاده کنید.</p>
-                    <div class="flex flex-wrap gap-x-5 gap-y-2">
-                      <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action">
-                        تماس <span class="tnum" dir="ltr">{CONTACT.phone}</span>
-                      </a>
-                      <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer">واتساپ</a>
-                      <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer">تلگرام</a>
+                    <div class="flex flex-wrap gap-x-5 gap-y-1">
+                      <ChannelLink icon="phone" label={CONTACT.phone} value="تماس" href={CONTACT.phoneHref} />
+                      <ChannelLink icon="whatsapp" label="واتساپ" href={CONTACT.whatsappHref} external />
+                      <ChannelLink icon="telegram" label="تلگرام" href={CONTACT.telegramHref} external />
                     </div>
                   </div>
                 </div>
@@ -286,13 +308,11 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
                 <p class="text-body text-text-muted">
                   برای ثبت درخواست بررسی، جاوااسکریپت لازم است. می‌توانید مستقیم تماس بگیرید:
                 </p>
-                <div class="mt-2 flex flex-wrap gap-x-5 gap-y-2">
-                  <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action">
-                    تماس <span class="tnum" dir="ltr">{CONTACT.phone}</span>
-                  </a>
-                  <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer">واتساپ</a>
-                  <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer">تلگرام</a>
-                  <a href={CONTACT.emailHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action">{CONTACT.email}</a>
+                <div class="mt-2 flex flex-wrap gap-x-5 gap-y-1">
+                  <ChannelLink icon="phone" label={CONTACT.phone} value="تماس" href={CONTACT.phoneHref} />
+                  <ChannelLink icon="whatsapp" label="واتساپ" href={CONTACT.whatsappHref} external />
+                  <ChannelLink icon="telegram" label="تلگرام" href={CONTACT.telegramHref} external />
+                  <ChannelLink icon="email" label={CONTACT.email} href={CONTACT.emailHref} />
                 </div>
               </div>
             </noscript>

@@ -1,0 +1,65 @@
+---
+/**
+ * Icon — the single monoline icon set (DESIGN §6.3: stroke 1.5px,
+ * square-friendly geometry, currentColor). Channel glyphs are generic
+ * monoline shapes (handset, bubble+handset, paper plane, envelope,
+ * camera-frame), not vendor logos. Decorative by design: every icon
+ * carries aria-hidden and sits beside a real text label.
+ */
+
+export type IconName = "phone" | "whatsapp" | "telegram" | "email" | "instagram";
+
+interface Props {
+  name: IconName;
+  /** Sizing utility; color follows currentColor. */
+  class?: string;
+  /** Stroke width (default 1.5 — the system monoline weight). */
+  stroke?: number;
+}
+
+const { name, stroke = 1.5 } = Astro.props;
+const className = Astro.props["class"] ?? "h-5 w-5";
+
+const GLYPHS: Record<IconName, string> = {
+  /* classic handset — the primary voice channel */
+  phone: `
+    <path d="M20.2 16.8v2.1a1.6 1.6 0 0 1-1.7 1.6 16.6 16.6 0 0 1-7.2-2.5 16.3 16.3 0 0 1-5-5A16.6 16.6 0 0 1 3.8 5.7 1.6 1.6 0 0 1 5.4 4h2.1c.8 0 1.5.6 1.6 1.4.1.8.3 1.6.6 2.3.2.6.1 1.2-.3 1.7l-1.1 1.1a13 13 0 0 0 4.7 4.7l1.1-1.1c.5-.4 1.1-.5 1.7-.3.7.3 1.5.5 2.3.6.8.1 1.4.8 1.4 1.6Z" />
+    <path d="M12 4.8a7.2 7.2 0 0 1 7.2 7.2" />
+    <path d="M12 8.4a3.6 3.6 0 0 1 3.6 3.6" />
+  `,
+  /* speech bubble with a handset — the messaging channel */
+  whatsapp: `
+    <path d="M12 3.5a8.5 8.5 0 0 0-7.3 12.8L3.5 20.5l4.4-1.1A8.5 8.5 0 1 0 12 3.5Z" />
+    <path d="M9.3 8.6c.2-.4.4-.5.7-.5h.5c.2 0 .4 0 .6.4.1.3.5 1.2.6 1.4 0 .2 0 .4-.2.6l-.4.5c.3.5.7 1 1.2 1.4l.5-.4c.2-.2.4-.2.6-.2.2 0 1 .4 1.3.5.3.2.4.3.4.5v.5c0 .3-.1.6-.5.8-.3.2-.8.4-1.2.4-.7-.1-1.5-.4-2.3-1.2-.8-.8-1.2-1.6-1.3-2.3-.1-.4.1-.8.5-1.2Z" />
+  `,
+  /* paper plane — the instant-message channel */
+  telegram: `
+    <path d="M21.4 3.6 3.1 10.6c-.7.3-.6 1.4.2 1.6l4.5 1.4 1.7 4.6c.3.7 1.2.8 1.7.3l2.2-2.3 4.3 3.1c.6.4 1.4.1 1.5-.6l2.5-14.5c.1-.8-.6-1.4-1.3-1.6Z" />
+    <path d="m7.8 13.6 9.7-7.6" />
+  `,
+  /* envelope — the documented channel */
+  email: `
+    <rect x="3.5" y="5.5" width="17" height="13" rx="2" />
+    <path d="m4.5 7.5 7.5 5.5 7.5-5.5" />
+  `,
+  /* camera frame — the visual channel */
+  instagram: `
+    <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" />
+    <circle cx="12" cy="12" r="3.8" />
+    <circle cx="17.3" cy="6.7" r="1" fill="currentColor" stroke="none" />
+  `,
+};
+---
+
+<svg
+  viewBox="0 0 24 24"
+  class={className}
+  fill="none"
+  stroke="currentColor"
+  stroke-width={stroke}
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  focusable="false"
+  set:html={GLYPHS[name]}
+></svg>

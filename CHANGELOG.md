@@ -6,6 +6,7 @@ All notable workflow changes are documented here. This project follows the spiri
 
 ### Added
 
+- **Contact points designed (2026-08-14):** new monoline channel icon set (`Icon`: phone, whatsapp, telegram, email, instagram) and `ChannelLink` (inline / row / tile variants) — footer list rows with hover-fill chips, mobile-menu contact tiles (full-width call row + 2×2 channel grid), contact-page rows with 56px icon tiles, audit rail/banners/thank-you inline links, phone icons inside CTA/FAQ/contact buttons; tokens + `data-event` analytics preserved.
 - **Image-led editorial redesign (2026-08-14, founder-directed):** the flowchart/route visual language (JourneyLine, LeadStatusStrip, SystemArchitectureDiagram, scatter fields, route-band hero, station rails, route motifs) was removed from the public design and replaced by Typography + Photography + Real Product Screens + Editorial Numbers — new hero photo composition, homepage media rhythm (~6 moments), editorial numerals (۰۱–۰۶), designed concept previews (labeled «نمونه نمایشی»), audit progress as «مرحله X از ۶» + progress bar, numbered thank-you next steps, typographic 404, re-captured real work screenshots, CC0 photography with caption provenance, `docs/IMAGERY.md` registry, and an updated `docs/DESIGN.md` contract.
 - Behavioral coverage for autonomous/strict guard modes and launcher trust overrides.
 - Product design contract, distinctive frontend-design skill, visual hard gates, and scored craft rubric.
