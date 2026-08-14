@@ -88,7 +88,7 @@ export interface AuditField {
 
 export interface AuditStep {
   id: string;
-  /** Station name (StepperLine). */
+  /** Step label (audit progress). */
   label: string;
   /** Step heading — the question. */
   question: string;

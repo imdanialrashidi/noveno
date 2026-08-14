@@ -98,6 +98,47 @@ test("accepted theme anchors and semantic tokens present in built CSS", () => {
   assert.match(css, /prefers-color-scheme:dark/, "missing OS-default dark wiring");
 });
 
+test("the flowchart grammar is gone from built pages and CSS (2026-08-14 founder override)", () => {
+  const cssFiles = walk(path.join(dist, "_astro")).filter((f) => f.endsWith(".css"));
+  const css = cssFiles.map((f) => fs.readFileSync(f, "utf8")).join("");
+  const pages = walk(dist)
+    .filter((f) => f.endsWith(".html"))
+    .map((f) => fs.readFileSync(f, "utf8"))
+    .join("");
+  for (const marker of [
+    "route-node",
+    "route-station",
+    "stepper-station",
+    "scatter-field",
+    "jl-fade",
+    "jl-draw",
+    "route-grow",
+    "diagram-well",
+    "section-node",
+  ]) {
+    assert.ok(!css.includes(marker), `built CSS still ships removed grammar class ${marker}`);
+    assert.ok(!pages.includes(marker), `built HTML still ships removed grammar class ${marker}`);
+  }
+});
+
+test("homepage LCP media is wired: AVIF preload + picture source + eager hero image", () => {
+  const home = fs.readFileSync(path.join(dist, "index.html"), "utf8");
+  assert.match(
+    home,
+    /<link[^>]*rel="preload"[^>]*as="image"[^>]*barbershop-workday-1600\.avif/,
+    "homepage must preload the hero photograph (AVIF)",
+  );
+  assert.match(home, /<picture>/, "homepage hero must use <picture>");
+  assert.match(home, /type="image\/avif"/, "hero <picture> must offer AVIF first");
+  assert.match(
+    home,
+    /<img[^>]*fetchpriority="high"/,
+    "hero image must be fetchpriority=high (the LCP element)",
+  );
+  const lazyImages = [...home.matchAll(/<img[^>]*loading="lazy"/g)];
+  assert.ok(lazyImages.length >= 3, "below-fold images must be lazy");
+});
+
 test("interactive JS ≤ 15 KB gzip and no client framework runtime", () => {
   const jsFiles = walk(path.join(dist, "_astro")).filter((f) => f.endsWith(".js"));
   // Astro inlines small page-scoped modules; measure them too.

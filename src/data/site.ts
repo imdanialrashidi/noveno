@@ -56,17 +56,10 @@ export const SITE_NAME_FA = "نوونو";
 export const SITE_NAME_EN = "NOVENO";
 
 /* ------------------------------------------------------------------ */
-/* Journey Line vocabulary (DESIGN §4.1)                               */
+/* Vocabulary (2026-08-14 founder redesign — the route-band grammar    */
+/* was removed from the public design; only the six-stage model and    */
+/* the five-stage process survive as editorial copy/data).             */
 /* ------------------------------------------------------------------ */
-
-/** Hero route — attention becomes a captured, followed-up result (§11.5). */
-export const HERO_JOURNEY = [
-  { label: "توجه" },
-  { label: "اقدام" },
-  { label: "ثبت" },
-  { label: "پیگیری" },
-  { label: "نتیجه" },
-] as const;
 
 /** Six-stage acquisition model (Spec §13.3). */
 export const SYSTEM_STAGES = [
@@ -78,7 +71,8 @@ export const SYSTEM_STAGES = [
   { label: "یادگیری", description: "بازدید، تبدیل، کیفیت لید و گلوگاه‌ها بررسی می‌شوند" },
 ] as const;
 
-/** Five-stage delivery process (Spec §24) — loop-back ↩. */
+/** Five-stage delivery process (Spec §24) — cycle, rendered as a    */
+/** numbered editorial sequence.                                        */
 export const PROCESS_STAGES = [
   { label: "بررسی", description: "کسب‌وکار، مشتری، پیشنهاد، مسیر فعلی جذب، گلوگاه‌ها و محدودیت‌ها" },
   { label: "طراحی", description: "مسیر مشتری، ساختار پیام، اعتماد، CTA، ثبت لید و برنامه اندازه‌گیری" },
@@ -86,9 +80,6 @@ export const PROCESS_STAGES = [
   { label: "اندازه‌گیری", description: "اقدام‌های مهم ثبت و قابل مقایسه می‌شوند" },
   { label: "بهبود", description: "تغییرها بر اساس شواهد اولویت‌بندی می‌شوند" },
 ] as const;
-
-/** Lead status strip (DESIGN §4.1 item 4 — honesty device, real states). */
-export const LEAD_STATUSES = ["جدید", "تماس‌گرفته‌شده", "واجدشرایط", "برنده‌شده/ازدست‌رفته"] as const;
 
 /* ------------------------------------------------------------------ */
 /* Offers — three core offers only (Spec §14–17)                       */
@@ -252,7 +243,7 @@ export const AUDIT_STATIONS = [
 ] as const;
 
 /* ------------------------------------------------------------------ */
-/* Proof-type labels (DESIGN §4.3 — line-style code)                   */
+/* Proof-type labels (DESIGN §10 — plain typographic tags)             */
 /* ------------------------------------------------------------------ */
 
 export const PROOF_LABELS = {

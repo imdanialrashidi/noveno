@@ -8,42 +8,29 @@ interface Props {
 }
 
 /**
- * ProofTag — the only badge in the system (DESIGN §4.3, §10).
- * Line-style code + label, never color alone:
- *  case-study → solid line, filled square;  project → solid, hollow square;
- *  concept → dashed line, hollow square.
+ * ProofTag — the only badge in the system (2026-08-14 redesign).
+ * Plain typographic tag; the line-style code was removed with the
+ * flowchart grammar. Label + surface tone only: «مطالعه موردی» /
+ * «پروژه» / «نمونه نمایشی — سناریوی مفهومی».
  */
-const config: Record<
-  ProofKind,
-  { label: string; line: string; square: string; classes: string }
-> = {
+const config: Record<ProofKind, { label: string; classes: string }> = {
   "case-study": {
     label: "مطالعه موردی",
-    line: "border-t-2 border-solid border-primary",
-    square: "bg-primary",
-    classes: "text-accent-strong",
+    classes: "text-accent-strong border-line",
   },
   project: {
     label: "پروژه",
-    line: "border-t-2 border-solid border-line-strong",
-    square: "bg-transparent border border-line-strong",
-    classes: "text-text-muted",
+    classes: "text-text-muted border-line",
   },
   concept: {
     label: CONCEPT_DISCLAIMER,
-    line: "border-t-2 border-dashed border-line-strong",
-    square: "bg-transparent border border-dashed border-line-strong",
-    classes: "text-text-faint",
+    classes: "text-text-faint border-dashed border-line-strong",
   },
 };
 
 const c = config[Astro.props.kind];
 ---
 
-<span class:list={["inline-flex items-center gap-2 rounded-[4px] border border-line bg-surface px-2.5 py-1 text-caption", c.classes]}>
-  <span class="flex h-3 w-6 items-center" aria-hidden="true">
-    <span class:list={["h-0 w-full", c.line]}></span>
-  </span>
-  <span class:list={["h-2 w-2 flex-none", c.square]} aria-hidden="true"></span>
+<span class:list={["inline-flex items-center rounded-[4px] border bg-surface px-2.5 py-1 text-caption", c.classes]}>
   {c.label}
 </span>

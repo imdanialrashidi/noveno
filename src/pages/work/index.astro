@@ -1,11 +1,9 @@
 ---
 /**
- * Work page (Spec §20, DESIGN §15 screen 5; 2026-08-14 redesign).
- * Curated preview cards: every entry shows its work visually — a real
- * screenshot for the real project, a labeled dashed schematic for
- * concepts. The legend makes the honesty grammar explicit (§4.3):
- * solid = real with evidence, hollow = real without outcome claims,
- * dashed = demo concept.
+ * Work page (Spec §20; 2026-08-14 founder redesign).
+ * Editorial portfolio: the featured entry opens large, the rest run as
+ * alternating rows with substantial previews. Proof categories stay
+ * explicit as plain typographic tags — no line-style codes.
  */
 
 import PageLayout from "../../layouts/PageLayout.astro";
@@ -36,33 +34,30 @@ const jalali = (date: Date) =>
         هر کار با پیش‌نمایش واقعی خودش نشان داده می‌شود؛ و هر عددی که می‌بینید، داده واقعی پشت آن است. اگر عددی نیست، ادعایی هم نیست.
       </p>
 
-      <!-- The honesty grammar, made explicit -->
-      <ul class="mt-10 flex flex-col gap-4 sm:flex-row sm:gap-10">
-        <li class="flex items-center gap-2.5 text-meta text-text-muted">
-          <span class="flex h-3 w-8 items-center" aria-hidden="true"><span class="h-0 w-full border-t-2 border-solid border-primary"></span></span>
-          <span class="h-2 w-2 flex-none bg-primary" aria-hidden="true"></span>
-          مطالعه موردی — واقعی، با شواهد
+      <!-- Proof categories, stated plainly -->
+      <ul class="mt-10 flex flex-col gap-3 text-meta text-text-muted">
+        <li class="flex items-center gap-2">
+          <span class="inline-flex rounded-[4px] border border-line bg-surface px-2 py-0.5 text-caption text-accent-strong">مطالعه موردی</span>
+          واقعی، با شواهد و محدودیت‌های تفسیر
         </li>
-        <li class="flex items-center gap-2.5 text-meta text-text-muted">
-          <span class="flex h-3 w-8 items-center" aria-hidden="true"><span class="h-0 w-full border-t-2 border-solid border-line-strong"></span></span>
-          <span class="h-2 w-2 flex-none border border-line-strong" aria-hidden="true"></span>
-          پروژه — واقعی، بدون ادعای نتیجه
+        <li class="flex items-center gap-2">
+          <span class="inline-flex rounded-[4px] border border-line bg-surface px-2 py-0.5 text-caption text-text-muted">پروژه</span>
+          واقعی، بدون ادعای نتیجه تا زمان داده
         </li>
-        <li class="flex items-center gap-2.5 text-meta text-text-muted">
-          <span class="flex h-3 w-8 items-center" aria-hidden="true"><span class="h-0 w-full border-t-2 border-dashed border-line-strong"></span></span>
-          <span class="h-2 w-2 flex-none border border-dashed border-line-strong" aria-hidden="true"></span>
-          نمونه نمایشی — سناریوی مفهومی
+        <li class="flex items-center gap-2">
+          <span class="inline-flex rounded-[4px] border border-dashed border-line-strong bg-surface px-2 py-0.5 text-caption text-text-faint">نمونه نمایشی</span>
+          سناریوی مفهومی؛ هیچ داده عملکردی ندارد
         </li>
       </ul>
     </div>
   </section>
 
   <section class="border-t border-line" aria-labelledby="work-list-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
+    <div class="mx-auto max-w-[1200px] px-5 py-10 sm:px-8 lg:py-16">
       <h2 id="work-list-title" class="sr-only">فهرست کارها</h2>
       {entries.length > 0 ? (
         <div class="flex flex-col">
-          {entries.map((entry) => (
+          {entries.map((entry, index) => (
             <WorkCard
               kind={entry.data.type}
               title={entry.data.title}
@@ -77,6 +72,8 @@ const jalali = (date: Date) =>
                     : undefined
               }
               preview={previewFor(entry.id)}
+              featured={index === 0}
+              flip={index % 2 === 1}
             />
           ))}
         </div>

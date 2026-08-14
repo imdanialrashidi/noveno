@@ -2,17 +2,16 @@
 import { toFaDigits } from "../../data/site";
 
 /**
- * StepperLine — audit progress (DESIGN §11, Spec §31).
- * Stations ۱–۶ with names, RTL. Desktop: horizontal line with
- * complete = filled square + check, current = primary outline,
- * upcoming = dashed. Mobile: compact «مرحله ۳ از ۶» + thin progress
- * bar (no tiny tap targets).
+ * AuditProgress — audit progress (2026-08-14 founder redesign).
+ * The station/rail diagram was removed by founder decision; progress
+ * is now a clean typographic system: «مرحله ۳ از ۶» + the current step
+ * name + a simple horizontal progress bar. No connectors, no nodes.
  *
  * The component renders the build-time `current` state; the /audit
- * page script (src/scripts/audit.ts) re-drives state by flipping the
- * `data-state` attribute on each station (complete|current|upcoming)
- * and the mobile counter/bar. State styling lives in global.css
- * (`.stepper-*`), keeping one visual contract for both renderers.
+ * page script (src/scripts/audit.ts) re-drives state through the
+ * `data-stepper-counter` / `data-stepper-current` / `data-stepper-bar`
+ * hooks (names kept for script compatibility). The bar fills by
+ * completed steps; the live step name sits beside the counter.
  */
 
 export interface Step {
@@ -31,48 +30,15 @@ const progress = Math.round(((current - 1) / steps.length) * 100);
 ---
 
 <div class="w-full">
-  <!-- Desktop: horizontal route with station names -->
-  <ol class="hidden items-center lg:flex" aria-label="مراحل بررسی مسیر جذب">
-    {steps.map((step, index) => {
-      const number = index + 1;
-      const state = number < current ? "complete" : number === current ? "current" : "upcoming";
-      return (
-        <li
-          class="stepper-station flex flex-1 items-center"
-          data-stepper-station={number}
-          data-state={state}
-        >
-          <span class="flex flex-col items-center gap-1.5">
-            <span class="stepper-node flex h-6 w-6 items-center justify-center rounded-[1px]" aria-hidden="true">
-              <svg viewBox="0 0 24 24" class="stepper-check h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 6 9 17l-5-5" />
-              </svg>
-            </span>
-            <span class="stepper-label text-caption font-medium">{step.label}</span>
-          </span>
-          {index < steps.length - 1 && (
-            <span class="stepper-connector mx-2 h-0 flex-1 border-t-2 border-dashed border-line-strong" aria-hidden="true"></span>
-          )}
-        </li>
-      );
-    })}
-  </ol>
-
-  <!-- Mobile: compact stage counter + thin progress bar.
-       No role=status here: the page owns the single aria-live step
-       announcement (#step-announce) so mobile users are not double-
-       announced (reviewer finding). -->
-  <div class="lg:hidden">
-    <p class="mb-2 flex items-baseline justify-between text-caption">
-      <span class="font-medium text-text-muted">
-        <span data-stepper-counter>
-          {totalLabel} {toFaDigits(current)} از {toFaDigits(steps.length)}
-        </span>
+  <p class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+    <span class="text-ui font-semibold text-text">
+      <span data-stepper-counter>
+        {totalLabel} {toFaDigits(current)} از {toFaDigits(steps.length)}
       </span>
-      <span class="text-text-faint" data-stepper-current>{steps[current - 1]?.label}</span>
-    </p>
-    <span class="block h-0.5 w-full overflow-hidden rounded-[1px] bg-line" aria-hidden="true">
-      <span class="block h-full rounded-[1px] bg-primary transition-[width] duration-250" data-stepper-bar style={`width: ${progress}%`}></span>
     </span>
-  </div>
+    <span class="text-caption text-text-faint" data-stepper-current>{steps[current - 1]?.label}</span>
+  </p>
+  <span class="progress-track mt-2.5" aria-hidden="true">
+    <span class="progress-fill" data-stepper-bar style={`width: ${progress}%`}></span>
+  </span>
 </div>

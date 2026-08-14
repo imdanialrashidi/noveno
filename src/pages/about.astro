@@ -1,9 +1,8 @@
 ---
 /**
- * About page (Spec §40): Why Noveno Exists → What Noveno Believes →
- * Principles → How Noveno Works → Founder → CTA.
- * No invented team, no fabricated biography; founder-led is stated
- * plainly and the founder links to the same contact channels.
+ * About page (Spec §40; 2026-08-14 founder redesign): Why Noveno Exists
+ * → What Noveno Believes → How Noveno Works (editorial sequence) →
+ * Founder → CTA. No invented team, no fabricated biography.
  */
 
 import PageLayout from "../layouts/PageLayout.astro";
@@ -11,8 +10,9 @@ import PageHero from "../components/layout/PageHero.astro";
 import SectionHeader from "../components/layout/SectionHeader.astro";
 import CTASection from "../components/layout/CTASection.astro";
 import Button from "../components/ui/Button.astro";
-import JourneyLine from "../components/business/JourneyLine.astro";
-import { PROCESS_STAGES, CONTACT } from "../data/site";
+import { PROCESS_STAGES, CONTACT, toFaDigits } from "../data/site";
+
+const faIndex = (i: number) => toFaDigits(String(i + 1).padStart(2, "0"));
 ---
 
 <PageLayout
@@ -38,7 +38,7 @@ import { PROCESS_STAGES, CONTACT } from "../data/site";
   <!-- What Noveno believes -->
   <section class="border-t border-line" aria-labelledby="beliefs-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
-      <SectionHeader id="beliefs-title" title="چه چیزی را باور داریم" />
+      <SectionHeader id="beliefs-title" kicker="باورها" title="چه چیزی را باور داریم" />
       <div class="grid gap-x-10 gap-y-8 sm:grid-cols-2">
         {[
           { title: "وضوح بر جلوه", text: "کسب‌وکار به سیستمی که می‌فهمد اعتماد می‌کند، نه به جلوه‌ای که نمی‌فهمد." },
@@ -47,10 +47,7 @@ import { PROCESS_STAGES, CONTACT } from "../data/site";
           { title: "صداقت بر خوش‌قولی", text: "نتیجه‌ای که اندازه‌گیری نشده، گزارش نمی‌شود — حتی اگر گزارشش خوشایندتر باشد." },
         ].map((item) => (
           <div class="border-t border-line pt-4">
-            <h3 class="flex items-center gap-2 text-ui font-semibold text-text">
-              <span class="h-1.5 w-1.5 flex-none rounded-[1px] bg-primary" aria-hidden="true"></span>
-              {item.title}
-            </h3>
+            <h3 class="text-ui font-semibold text-text">{item.title}</h3>
             <p class="mt-2 text-body text-text-muted">{item.text}</p>
           </div>
         ))}
@@ -58,27 +55,30 @@ import { PROCESS_STAGES, CONTACT } from "../data/site";
     </div>
   </section>
 
-  <!-- How Noveno works -->
+  <!-- How Noveno works — editorial sequence -->
   <section class="border-t border-line" aria-labelledby="how-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
       <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
         <div class="lg:col-span-5">
           <SectionHeader
             id="how-title"
+            kicker="روش کار"
             title="چگونه کار می‌کنیم"
             lead="یک چرخه مشخص، نه وعده‌های پراکنده. هر همکاری با بررسی مسیر فعلی شروع می‌شود."
           />
           <Button href="/process" variant="secondary">دیدن فرآیند کامل</Button>
         </div>
-        <div class="lg:col-span-7">
-          <div class="panel px-6 py-10 sm:px-10 lg:px-12 lg:py-12">
-            <JourneyLine
-              stations={PROCESS_STAGES.map((stage) => ({ label: stage.label }))}
-              label="چرخه کار نوونو: بررسی، طراحی، اجرا، اندازه‌گیری، بهبود"
-              loop
-            />
-          </div>
-        </div>
+        <ol class="flex flex-col lg:col-span-7">
+          {PROCESS_STAGES.map((stage, i) => (
+            <li class="grid grid-cols-[auto_1fr] items-baseline gap-x-6 gap-y-2 border-t border-line py-6 sm:gap-x-10">
+              <span class="editorial-num">{faIndex(i)}</span>
+              <div class="flex flex-col gap-1.5">
+                <h3 class="text-ui font-semibold text-text">{stage.label}</h3>
+                <p class="text-body text-text-muted">{stage.description}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
       </div>
     </div>
   </section>
@@ -88,6 +88,7 @@ import { PROCESS_STAGES, CONTACT } from "../data/site";
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-28">
       <SectionHeader
         id="founder-title"
+        kicker="بنیان‌گذار"
         title="چه کسی پشت نوونو است"
         lead="نوونو در حال حاضر توسط یک نفر اداره می‌شود؛ تیم بزرگ‌تر را ادعا نمی‌کنیم."
       />

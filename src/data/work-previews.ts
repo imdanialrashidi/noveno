@@ -1,10 +1,13 @@
 /**
- * Work preview metadata (2026-08-14 redesign).
- * Truthful preview policy (DESIGN §4.3, founder directive):
+ * Work preview metadata (2026-08-14 founder redesign).
+ * Truthful preview policy (DESIGN §9, founder directive):
  *  - real project → real screenshots of the actual delivered product
  *    (captured from this site's own production build, 1440×900 WebP);
- *  - concept → dashed wireframe schematic, labeled «نمونه نمایشی»;
- *  - no stock imagery, no invented interfaces, no fake results.
+ *  - concept → designed page mockup (ConceptPreview), labeled
+ *    «نمونه نمایشی — سناریوی مفهومی»;
+ *  - no stock imagery for work previews, no invented interfaces, no
+ *    fake results. (Site photography is licensed CC0, captioned, and
+ *    clearly contextual — see docs/IMAGERY.md.)
  */
 
 export interface WorkPreview {
@@ -17,7 +20,7 @@ export interface WorkPreview {
   detailSrc?: string;
   detailSrcset?: string;
   detailAlt?: string;
-  /** Concept wireframe layout: "form" | "course". */
+  /** Concept mock layout: "form" | "course". */
   layout?: "form" | "course";
   /** Concept scenario short description (sr-only). */
   scenario?: string;
@@ -34,7 +37,7 @@ export function previewFor(id: string): WorkPreview {
       detailSrc: "/images/work/noveno-website-audit.webp",
       detailSrcset:
         "/images/work/noveno-website-audit.webp 1440w, /images/work/noveno-website-audit-800.webp 720w",
-      detailAlt: "فرم بررسی مسیر جذب در وب‌سایت نوونو — شش ایستگاه کوتاه",
+      detailAlt: "فرم بررسی مسیر جذب در وب‌سایت نوونو — شش مرحله کوتاه",
     };
   }
   const isClinic = id === "clinic-acquisition-concept";

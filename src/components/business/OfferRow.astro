@@ -1,9 +1,8 @@
 ---
 /**
- * OfferRow — one of the three core offers as a hairline-separated route
- * row (DESIGN §8: "offers are three hairline-separated route rows").
- * 2026-08-14: numbered ۰۱–۰۳ with a larger offer name; square node =
- * system station, hover fills the node. No cards, no pills.
+ * OfferRow — one of the three core offers as an editorial row
+ * (2026-08-14 founder redesign): large numeral ۰۱–۰۳, offer name,
+ * summary, points, framing + CTA. No cards, no pills, no graph marks.
  */
 
 import type { Offer } from "../../data/site";
@@ -18,26 +17,18 @@ interface Props {
 const { offer, href, index } = Astro.props;
 ---
 
-<article class="group border-t border-line py-8 lg:py-10">
+<article class="group border-t border-line py-8 lg:py-12">
   <div class="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,4fr)_minmax(0,3fr)] lg:gap-10">
     <div class="flex flex-col gap-3">
-      <div class="flex items-baseline gap-4">
-        <span
-          class="h-2.5 w-2.5 flex-none self-center rounded-[1px] border border-line-strong bg-transparent transition-colors duration-150 group-hover:bg-primary"
-          aria-hidden="true"
-        ></span>
-        <div>
-          <span class="block text-meta text-text-faint tnum">{toFaDigits(String(index + 1).padStart(2, "0"))}</span>
-          <h3 class="mt-1 text-h3 text-text">{offer.name}</h3>
-        </div>
-      </div>
+      <span class="editorial-num" aria-hidden="true">{toFaDigits(String(index + 1).padStart(2, "0"))}</span>
+      <h3 class="text-h3 text-text">{offer.name}</h3>
       <p class="text-body text-text-muted measure-prose">{offer.summary}</p>
     </div>
 
     <ul class="flex flex-col gap-2">
       {offer.points.map((point) => (
         <li class="flex items-start gap-2.5 text-body text-text">
-          <span class="mt-2.5 h-1 w-1 flex-none rounded-[1px] bg-line-strong" aria-hidden="true"></span>
+          <span class="mt-2.5 h-1 w-1 flex-none rounded-full bg-line-strong" aria-hidden="true"></span>
           {point}
         </li>
       ))}

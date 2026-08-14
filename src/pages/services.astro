@@ -3,8 +3,8 @@
  * Services page (Spec §38 architecture): Hero → Problems We Solve →
  * Audit → Lead System → Growth → Possible Components → Typical
  * Engagement → Pricing Philosophy → FAQ → CTA.
- * Offers are route rows (DESIGN §8), never cards; pricing stays
- * scoped-after-audit with no numbers (Spec §39, plan §11).
+ * Offers are editorial numbered rows (DESIGN §8), never cards; pricing
+ * stays scoped-after-audit with no numbers (Spec §39, plan §11).
  */
 
 import PageLayout from "../layouts/PageLayout.astro";
@@ -71,7 +71,7 @@ import {
           <ul class="grid grid-cols-2 gap-px overflow-hidden rounded-[4px] border border-line bg-line sm:grid-cols-3">
             {SYSTEM_COMPONENTS.map((component) => (
               <li class="flex items-center gap-2.5 bg-canvas p-4">
-                <span class="h-1.5 w-1.5 flex-none rounded-[1px] border border-line-strong" aria-hidden="true"></span>
+                <span class="h-1.5 w-1.5 flex-none rounded-full border border-line-strong" aria-hidden="true"></span>
                 <span class="text-ui font-medium text-text">{component}</span>
               </li>
             ))}
@@ -97,11 +97,8 @@ import {
           { title: "اندازه‌گیری و بهبود", text: "شاخص‌های توافق‌شده اندازه‌گیری می‌شوند و بهبودها بر اساس داده اولویت می‌گیرند." },
         ].map((step, index) => (
           <li class="border-t border-line pt-5 pb-6 sm:pe-6 lg:border-s lg:border-t-0 lg:pt-0 lg:ps-6 lg:first:border-s-0 lg:first:ps-0">
-            <span class="mb-3 flex items-center gap-2">
-              <span class="flex h-5 w-5 items-center justify-center rounded-[1px] bg-primary-soft text-caption font-semibold text-accent-strong tnum">{toFaDigits(index + 1)}</span>
-              <span class="h-0 flex-1 border-t border-line" aria-hidden="true"></span>
-            </span>
-            <h3 class="text-ui font-semibold text-text">{step.title}</h3>
+            <span class="text-lg font-extrabold text-text-action tnum">{toFaDigits(String(index + 1).padStart(2, "0"))}</span>
+            <h3 class="mt-2 text-ui font-semibold text-text">{step.title}</h3>
             <p class="mt-2 text-body text-text-muted">{step.text}</p>
           </li>
         ))}
@@ -131,7 +128,7 @@ import {
               "بهبود ماهانه: محدوده و محتوای مشخص، بدون پشتیبانی بی‌پایان",
             ].map((item) => (
               <li class="flex items-start gap-2.5 text-body text-text-muted">
-                <span class="mt-2.5 h-1.5 w-1.5 flex-none rounded-[1px] bg-primary" aria-hidden="true"></span>
+                <span class="mt-2.5 h-1.5 w-1.5 flex-none rounded-full bg-primary" aria-hidden="true"></span>
                 {item}
               </li>
             ))}
@@ -147,28 +144,26 @@ import {
       <SectionHeader id="fit-title" title="Noveno برای همه مناسب نیست." lead="این صراحت به نفع هر دو طرف است؛ همکاری نامناسب برای هیچ‌کس ارزش نمی‌سازد." />
       <div class="grid gap-10 lg:grid-cols-2 lg:gap-16">
         <div>
-          <p class="mb-5 flex items-center gap-2 text-ui font-semibold text-text">
-            <span class="h-2 w-2 rounded-[1px] bg-primary" aria-hidden="true"></span>
-            اگر این‌ها شبیه شماست
-          </p>
+          <p class="mb-5 text-ui font-semibold text-text">اگر این‌ها شبیه شماست</p>
           <ul class="flex flex-col gap-3">
             {GOOD_FIT.map((item) => (
               <li class="flex items-start gap-2.5 text-body text-text-muted">
-                <span class="mt-2.5 h-2 w-2 flex-none rounded-[1px] bg-primary" aria-hidden="true"></span>
+                <svg viewBox="0 0 24 24" class="mt-2 h-4 w-4 flex-none text-success" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
                 {item}
               </li>
             ))}
           </ul>
         </div>
         <div>
-          <p class="mb-5 flex items-center gap-2 text-ui font-semibold text-text">
-            <span class="h-2 w-2 rounded-[1px] border border-dashed border-line-strong" aria-hidden="true"></span>
-            اگر دنبال این‌ها هستید
-          </p>
+          <p class="mb-5 text-ui font-semibold text-text">اگر دنبال این‌ها هستید</p>
           <ul class="flex flex-col gap-3">
             {BAD_FIT.map((item) => (
               <li class="flex items-start gap-2.5 text-body text-text-muted">
-                <span class="mt-2.5 h-2 w-2 flex-none rounded-[1px] border border-dashed border-line-strong" aria-hidden="true"></span>
+                <svg viewBox="0 0 24 24" class="mt-2 h-4 w-4 flex-none text-text-faint" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
                 {item}
               </li>
             ))}

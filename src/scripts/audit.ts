@@ -52,7 +52,6 @@ const TURNSTILE_SCRIPT = "https://challenges.cloudflare.com/turnstile/v0/api.js"
 interface Handles {
   form: HTMLFormElement;
   sections: HTMLElement[];
-  stations: HTMLElement[];
   counter: HTMLElement | null;
   currentLabel: HTMLElement | null;
   bar: HTMLElement | null;
@@ -271,7 +270,6 @@ export function initAudit(config: AuditConfig): void {
     const handles: Handles = {
     form: root,
     sections: [...form.querySelectorAll<HTMLElement>("[data-step-section]")],
-    stations: [...document.querySelectorAll<HTMLElement>("[data-stepper-station]")],
     counter: document.querySelector<HTMLElement>("[data-stepper-counter]"),
     currentLabel: document.querySelector<HTMLElement>("[data-stepper-current]"),
     bar: document.querySelector<HTMLElement>("[data-stepper-bar]"),
@@ -370,14 +368,7 @@ export function initAudit(config: AuditConfig): void {
       section.hidden = index + 1 !== current;
     });
 
-    // StepperLine state (visual contract lives in StepperLine.astro)
-    handles.stations.forEach((station) => {
-      const n = Number(station.getAttribute("data-stepper-station"));
-      station.setAttribute(
-        "data-state",
-        n < current ? "complete" : n === current ? "current" : "upcoming",
-      );
-    });
+    // Progress bar + counter (2026-08-14 redesign — no station rail)
     if (handles.counter) handles.counter.textContent = `مرحله ${toFaDigits(current)} از ${toFaDigits(totalSteps)}`;
     if (handles.currentLabel) handles.currentLabel.textContent = AUDIT_STEPS[current - 1]?.label ?? "";
     if (handles.bar) handles.bar.style.width = `${((current - 1) / totalSteps) * 100}%`;

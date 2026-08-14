@@ -1,23 +1,23 @@
 ---
 /**
- * SectionHeader — square node marker before the H2 + hairline rule
- * (DESIGN §8). The node sits on the rule like a station on the route —
- * the only chrome-level route reference.
+ * SectionHeader — typography-led section opener (2026-08-14 founder
+ * redesign): strong H2 above a hairline rule, optional lead. The
+ * square node marker was removed with the flowchart grammar.
  */
 
 interface Props {
   title: string;
   lead?: string;
   id?: string;
+  /** Small kicker above the title (e.g. «سیستم جذب»). */
+  kicker?: string;
 }
 
-const { title, lead, id } = Astro.props;
+const { title, lead, id, kicker } = Astro.props;
 ---
 
 <div class="mb-10 lg:mb-14">
-  <div class="relative border-b border-line">
-    <span class="section-node absolute -bottom-[3px] start-0" aria-hidden="true"></span>
-    <h2 id={id} class="text-h2 pb-6">{title}</h2>
-  </div>
+  {kicker && <p class="mb-3 text-ui font-medium text-text-faint">{kicker}</p>}
+  <h2 id={id} class="text-h2 border-b border-line pb-6 text-text">{title}</h2>
   {lead && <p class="mt-6 text-lead text-text-muted measure-prose">{lead}</p>}
 </div>

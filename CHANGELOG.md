@@ -6,6 +6,7 @@ All notable workflow changes are documented here. This project follows the spiri
 
 ### Added
 
+- **Image-led editorial redesign (2026-08-14, founder-directed):** the flowchart/route visual language (JourneyLine, LeadStatusStrip, SystemArchitectureDiagram, scatter fields, route-band hero, station rails, route motifs) was removed from the public design and replaced by Typography + Photography + Real Product Screens + Editorial Numbers — new hero photo composition, homepage media rhythm (~6 moments), editorial numerals (۰۱–۰۶), designed concept previews (labeled «نمونه نمایشی»), audit progress as «مرحله X از ۶» + progress bar, numbered thank-you next steps, typographic 404, re-captured real work screenshots, CC0 photography with caption provenance, `docs/IMAGERY.md` registry, and an updated `docs/DESIGN.md` contract.
 - Behavioral coverage for autonomous/strict guard modes and launcher trust overrides.
 - Product design contract, distinctive frontend-design skill, visual hard gates, and scored craft rubric.
 - Idea-to-production prompts: discover, design, spec, ADR, build UI, design review, release plan, and incident response.

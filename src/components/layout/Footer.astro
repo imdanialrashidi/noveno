@@ -1,13 +1,13 @@
 ---
 /**
- * Footer (DESIGN §8) — contact facts always visible (click-to-call,
- * WhatsApp/Telegram/email — redundancy is a requirement, Spec §64.1),
- * mini JourneyLine motif, privacy/terms links.
+ * Footer (2026-08-14 founder redesign) — contact facts always visible
+ * (click-to-call, WhatsApp/Telegram/email — redundancy is a
+ * requirement, Spec §64.1); privacy/terms links. The miniature route
+ * motif was removed with the flowchart grammar.
  */
 
 import Logo from "../brand/Logo.astro";
-import JourneyLine from "../business/JourneyLine.astro";
-import { CONTACT, HERO_JOURNEY, jalaliYear } from "../../data/site";
+import { CONTACT, jalaliYear } from "../../data/site";
 
 const year = jalaliYear();
 ---
@@ -22,10 +22,9 @@ const year = jalaliYear();
         <p class="text-body text-text-muted measure-prose">
           نوونو برای کسب‌وکارهای خدماتی، مسیر مشتری را از دیدن شما تا تماس، ثبت درخواست و پیگیری طراحی و اجرا می‌کند.
         </p>
-        <div class="max-w-md">
-          <p class="mb-3 text-caption text-text-faint">مسیری که می‌سازیم</p>
-          <JourneyLine stations={HERO_JOURNEY} label="مسیر جذب مشتری: توجه، اقدام، ثبت، پیگیری، نتیجه" compact />
-        </div>
+        <p class="text-meta text-text-faint">
+          سیستم جذب مشتری — با شواهد، بدون وعده فروش تضمینی.
+        </p>
       </div>
 
       <div class="grid gap-8 sm:grid-cols-2">

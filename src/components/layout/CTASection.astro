@@ -1,14 +1,26 @@
 ---
 /**
- * CTASection — recurring final CTA (Spec §29, DESIGN §13; 2026-08-14
- * redesign). The closing band: a full-bleed surface-soft strip, big
- * heading + support + dual CTA + microcopy, with the next-steps rail
- * on a raised panel — the conversion has no dead end.
+ * CTASection — recurring final CTA (Spec §29; 2026-08-14 founder
+ * redesign). Closing band: strong heading + support + dual CTA +
+ * microcopy. Default: the next-steps rail on a raised panel. Homepage
+ * variant: a strong cropped photograph gives the page a memorable
+ * finish (media prop) — photography is contextual/editorial, clearly
+ * captioned, never fabricated proof.
  */
 
 import Button from "../ui/Button.astro";
 import NextStepsRail from "../business/NextStepsRail.astro";
 import { CTA_URL, PRIMARY_CTA_LABEL, CONTACT } from "../../data/site";
+
+interface Media {
+  src: string;
+  srcset?: string;
+  alt: string;
+  caption: string;
+  /** Intrinsic dimensions of the source image (w/h). */
+  width: number;
+  height: number;
+}
 
 interface Props {
   title?: string;
@@ -18,6 +30,8 @@ interface Props {
   primaryLabel?: string;
   /** Hide the next-steps rail (used where the rail already appears). */
   hideRail?: boolean;
+  /** Homepage finish: a strong cropped photograph beside the CTA. */
+  media?: Media;
 }
 
 const {
@@ -26,12 +40,13 @@ const {
   primaryHref = CTA_URL,
   primaryLabel = PRIMARY_CTA_LABEL,
   hideRail = false,
+  media,
 } = Astro.props;
 ---
 
 <section class="border-t border-line bg-surface-soft" aria-labelledby="cta-title">
   <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
-    <div class:list={["grid gap-12", hideRail ? "" : "lg:grid-cols-2 lg:gap-20"]}>
+    <div class:list={["grid gap-12", media ? "lg:grid-cols-2 lg:items-center lg:gap-20" : hideRail ? "" : "lg:grid-cols-2 lg:gap-20"]}>
       <div class="flex flex-col items-start gap-6">
         <h2 id="cta-title" class="text-h2 max-w-2xl text-text">{title}</h2>
         <p class="text-lead text-text-muted measure-prose">{support}</p>
@@ -56,14 +71,30 @@ const {
         </p>
       </div>
 
-      {!hideRail && (
-        <div class="panel bg-canvas p-6 sm:p-8 lg:p-10">
-          <p class="mb-5 flex items-center gap-2 text-ui font-semibold text-text">
-            <span class="section-node" aria-hidden="true"></span>
-            پس از درخواست چه اتفاقی می‌افتد؟
-          </p>
-          <NextStepsRail />
-        </div>
+      {media ? (
+        <figure class="media-figure">
+          <div class="media-frame aspect-[16/9]">
+            <img
+              src={media.src}
+              srcset={media.srcset}
+              sizes="(min-width: 1024px) 560px, 92vw"
+              width={media.width}
+              height={media.height}
+              loading="lazy"
+              decoding="async"
+              alt={media.alt}
+              class="transition-transform duration-300 ease-standard group-hover:scale-[1.015]"
+            />
+          </div>
+          <figcaption class="media-caption">{media.caption}</figcaption>
+        </figure>
+      ) : (
+        !hideRail && (
+          <div class="panel bg-canvas p-6 sm:p-8 lg:p-10">
+            <p class="mb-5 text-ui font-semibold text-text">پس از درخواست چه اتفاقی می‌افتد؟</p>
+            <NextStepsRail />
+          </div>
+        )
       )}
     </div>
   </div>

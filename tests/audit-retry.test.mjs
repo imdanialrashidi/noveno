@@ -148,22 +148,15 @@ function buildAuditDom() {
   doc.append(head);
   doc.append(body);
 
-  // Stepper rail (StepperLine + explainer on surface-soft)
+  // Audit progress (AuditProgress/StepperLine — 2026-08-14 redesign:
+  // «مرحله X از ۶» counter + current-step label + progress bar; the
+  // station rail was removed with the flowchart grammar).
   const rail = el("aside", { "aria-label": "راهنمای بررسی" });
-  const railSoft = el("div", { class: "bg-surface-soft" });
-  railSoft.append(
-    ...[1, 2, 3, 4, 5, 6].map((n) =>
-      el("li", { "data-stepper-station": String(n), "data-state": n === 1 ? "current" : "upcoming" },
-        [el("span", { class: "stepper-label" }, [el("span", { "data-stepper-label": String(n) })])]),
-    ),
-  );
-  const mobileBar = el("div", { class: "lg:hidden" });
-  mobileBar.append(
-    el("span", { "data-stepper-counter": "" }),
-    el("span", { "data-stepper-current": "" }),
-    el("span", { "data-stepper-bar": "" }),
-  );
-  rail.append(railSoft, mobileBar);
+  const progress = el("div");
+  for (const attr of ["data-stepper-counter", "data-stepper-current", "data-stepper-bar"]) {
+    progress.append(el("span", { [attr]: "" }));
+  }
+  rail.append(progress);
   body.append(rail);
 
   // Banner with the six block kinds + retry buttons
@@ -437,6 +430,18 @@ test("retry after a recoverable network failure with Turnstile configured: same 
 
   await walkToContactStep(dom);
   assert.equal(turnstile.renders, 1, "widget must render once when the contact step becomes current");
+  // Progress contract (2026-08-14 redesign): the counter shows the live
+  // step, the bar width reflects completed steps.
+  assert.equal(
+    dom.document.querySelector("[data-stepper-counter]").textContent,
+    "مرحله ۶ از ۶",
+    "progress counter must announce the current step (۶ از ۶ at contact)",
+  );
+  assert.equal(
+    dom.document.querySelector("[data-stepper-current]").textContent,
+    "تماس",
+    "progress must show the current step name",
+  );
 
   // First submission → recoverable network failure
   dom.getElementById("audit-next").dispatchEvent("click");
