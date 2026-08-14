@@ -21,7 +21,7 @@ const { wordmark = true, size = "md" } = Astro.props;
 <span class:list={["inline-flex items-center gap-2.5 text-text", size === "lg" ? "gap-3" : ""]}>
   <svg
     viewBox="0 0 438 394"
-    class:list={[size === "lg" ? "h-9 w-auto" : "h-7 w-auto"]}
+    class:list={[size === "lg" ? "h-11 w-auto" : "h-9 w-auto"]}
     aria-hidden="true"
     focusable="false"
   >
@@ -33,7 +33,7 @@ const { wordmark = true, size = "md" } = Astro.props;
   {wordmark && (
     <span
       class="font-display font-extrabold tracking-[0.04em] text-current"
-      style={`font-size:${size === "lg" ? "1.05rem" : "0.9rem"}`}
+      style={`font-size:${size === "lg" ? "1.2rem" : "1rem"}`}
       lang="en"
     >
       {SITE_NAME_EN}
