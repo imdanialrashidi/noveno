@@ -98,6 +98,9 @@
      4.5:1 WCAG 2.2 AA floor; 4.58:1 on surface-soft with this value
      (design-review repair, verified 2026-08-13). */
   --text-faint: #66716b;
+  /* Text on soft surfaces for active links/stations; unlike primary-active,
+     this role is tuned for normal-sized text and preserves AA contrast. */
+  --text-action: #2f7a5e;
   --line: #dfe3e1;
   --line-strong: #7e8a83;
   --primary: #679e86;
@@ -140,6 +143,7 @@
   --text: #f7f8f8;
   --text-muted: #aab5af;
   --text-faint: #7f8a84;
+  --text-action: #8fd4b0;
   --line: #232b28;
   --line-strong: #8d9a93;
   --primary: #619881;
@@ -170,6 +174,7 @@
     --text: #f7f8f8;
     --text-muted: #aab5af;
     --text-faint: #7f8a84;
+    --text-action: #8fd4b0;
     --line: #232b28;
     --line-strong: #8d9a93;
     --primary: #619881;
@@ -204,6 +209,7 @@
   --color-text: var(--text);
   --color-text-muted: var(--text-muted);
   --color-text-faint: var(--text-faint);
+  --color-text-action: var(--text-action);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-primary: var(--primary);
@@ -427,7 +433,7 @@
     color: var(--text-muted);
   }
   .stepper-station[data-state="current"] .stepper-label {
-    color: var(--primary-active);
+    color: var(--text-action);
     font-weight: 600;
   }
   .stepper-connector {

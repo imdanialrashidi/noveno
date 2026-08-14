@@ -66,14 +66,14 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
             <div class="flex flex-col gap-3 border-t border-line pt-6">
               <p class="text-ui font-medium text-text">ترجیح می‌دهید مستقیم صحبت کنید؟</p>
               <div class="flex flex-wrap gap-x-5 gap-y-2">
-                <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active" data-event="phone_click" data-event-payload='{"section":"audit-rail"}'>
+                <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" data-event="phone_click" data-event-payload='{"section":"audit-rail"}'>
                   تماس
                   <span class="tnum" dir="ltr">{CONTACT.phone}</span>
                 </a>
-                <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"audit-rail","channel":"whatsapp"}'>
+                <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"audit-rail","channel":"whatsapp"}'>
                   واتساپ
                 </a>
-                <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"audit-rail","channel":"telegram"}'>
+                <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"audit-rail","channel":"telegram"}'>
                   تلگرام
                 </a>
               </div>
@@ -103,7 +103,7 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
                   </svg>
                   <div class="flex flex-col gap-3">
                     <p class="text-body font-medium text-danger">ارسال نشد؛ اتصال را بررسی کنید و دوباره تلاش کنید.</p>
-                    <button type="button" data-retry class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-primary-active">
+                    <button type="button" data-retry class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action">
                       تلاش دوباره
                     </button>
                   </div>
@@ -121,17 +121,17 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
                     <p class="text-body font-medium text-danger">ارسال نشد؛ به اینترنت وصل نیستید. پاسخ‌ها ذخیره شده‌اند و با اتصال دوباره می‌توانید ادامه دهید.</p>
                     <p class="text-caption text-text-muted">یا مستقیم در تماس باشید:</p>
                     <div class="flex flex-wrap gap-x-5 gap-y-2">
-                      <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active" data-event="phone_click" data-event-payload='{"section":"audit-banner"}'>
+                      <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" data-event="phone_click" data-event-payload='{"section":"audit-banner"}'>
                         تماس <span class="tnum" dir="ltr">{CONTACT.phone}</span>
                       </a>
-                      <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"audit-banner","channel":"whatsapp"}'>
+                      <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"audit-banner","channel":"whatsapp"}'>
                         واتساپ
                       </a>
-                      <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"audit-banner","channel":"telegram"}'>
+                      <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"audit-banner","channel":"telegram"}'>
                         تلگرام
                       </a>
                     </div>
-                    <button type="button" data-retry class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-primary-active">
+                    <button type="button" data-retry class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action">
                       تلاش دوباره
                     </button>
                   </div>
@@ -147,7 +147,7 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
                   </svg>
                   <div class="flex flex-col gap-3">
                     <p class="text-body font-medium text-danger">بررسی امنیتی ناموفق بود؛ دوباره تلاش کنید.</p>
-                    <button type="button" data-retry class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-primary-active">
+                    <button type="button" data-retry class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action">
                       تلاش دوباره
                     </button>
                   </div>
@@ -186,11 +186,11 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
                   <div class="flex flex-col gap-3">
                     <p class="text-body font-medium text-danger">ثبت درخواست در این لحظه در دسترس نیست؛ از راه‌های تماس مستقیم استفاده کنید.</p>
                     <div class="flex flex-wrap gap-x-5 gap-y-2">
-                      <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active">
+                      <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action">
                         تماس <span class="tnum" dir="ltr">{CONTACT.phone}</span>
                       </a>
-                      <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active" target="_blank" rel="noopener noreferrer">واتساپ</a>
-                      <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active" target="_blank" rel="noopener noreferrer">تلگرام</a>
+                      <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer">واتساپ</a>
+                      <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer">تلگرام</a>
                     </div>
                   </div>
                 </div>
@@ -267,7 +267,7 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
                   type="button"
                   id="audit-back"
                   hidden
-                  class="inline-flex min-h-12 items-center justify-center rounded-[4px] border border-line-strong bg-transparent px-6 font-display text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-primary-active"
+                  class="inline-flex min-h-12 items-center justify-center rounded-[4px] border border-line-strong bg-transparent px-6 font-display text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action"
                 >
                   قبلی
                 </button>
@@ -293,12 +293,12 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
                   برای ثبت درخواست بررسی، جاوااسکریپت لازم است. می‌توانید مستقیم تماس بگیرید:
                 </p>
                 <div class="mt-2 flex flex-wrap gap-x-5 gap-y-2">
-                  <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active">
+                  <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action">
                     تماس <span class="tnum" dir="ltr">{CONTACT.phone}</span>
                   </a>
-                  <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active" target="_blank" rel="noopener noreferrer">واتساپ</a>
-                  <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active" target="_blank" rel="noopener noreferrer">تلگرام</a>
-                  <a href={CONTACT.emailHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active">{CONTACT.email}</a>
+                  <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer">واتساپ</a>
+                  <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer">تلگرام</a>
+                  <a href={CONTACT.emailHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action">{CONTACT.email}</a>
                 </div>
               </div>
             </noscript>

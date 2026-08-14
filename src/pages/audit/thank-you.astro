@@ -89,7 +89,7 @@ const labelClass = "text-caption font-medium leading-tight";
               {completed.map((station, index) => (
                 <span class="flex max-w-24 flex-1 flex-col items-center gap-1.5 text-center">
                   <span class:list={[nodeClass, "bg-primary"]}></span>
-                  <span class:list={[labelClass, "font-semibold text-primary-active"]}>{station.label}</span>
+                  <span class:list={[labelClass, "font-semibold text-text-action"]}>{station.label}</span>
                 </span>
               ))}
               {/* «شما اینجا هستید» marker */}
@@ -116,7 +116,7 @@ const labelClass = "text-caption font-medium leading-tight";
               <div class="contents">
                 <span class="flex items-center gap-2">
                   <span class:list={[nodeClass, "bg-primary"]}></span>
-                  <span class:list={[labelClass, "font-semibold text-primary-active"]}>{station.label}</span>
+                  <span class:list={[labelClass, "font-semibold text-text-action"]}>{station.label}</span>
                 </span>
                 {index < completed.length - 1 && <span class="ms-[3px] my-1 h-5 w-0 border-s-2 border-solid border-primary"></span>}
               </div>
@@ -156,23 +156,23 @@ const labelClass = "text-caption font-medium leading-tight";
           <div class="mt-6 flex flex-col gap-3 border-t border-line pt-6">
             <p class="text-ui font-medium text-text">سؤال فوری دارید؟</p>
             <div class="flex flex-wrap gap-x-5 gap-y-2">
-              <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active" data-event="phone_click" data-event-payload='{"section":"thank-you"}'>
+              <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" data-event="phone_click" data-event-payload='{"section":"thank-you"}'>
                 تماس <span class="tnum" dir="ltr">{CONTACT.phone}</span>
               </a>
-              <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"thank-you","channel":"whatsapp"}'>
+              <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"thank-you","channel":"whatsapp"}'>
                 واتساپ
               </a>
-              <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"thank-you","channel":"telegram"}'>
+              <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"thank-you","channel":"telegram"}'>
                 تلگرام
               </a>
-              <a href={CONTACT.emailHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-primary-active">{CONTACT.email}</a>
+              <a href={CONTACT.emailHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong hover:text-text-action">{CONTACT.email}</a>
             </div>
           </div>
 
           {pointer && (
             <div class="mt-6 flex flex-col gap-3 border-t border-line pt-6">
               <p class="text-ui font-medium text-text">نمونه‌ای واقعی از کار نوونو</p>
-              <a href={`/work/${pointer.id}`} class="group inline-flex min-h-11 w-fit items-center gap-2 text-ui font-medium text-accent-strong hover:text-primary-active" data-event="project_opened" data-event-payload={`{"slug":"${pointer.id}"}`}>
+              <a href={`/work/${pointer.id}`} class="group inline-flex min-h-11 w-fit items-center gap-2 text-ui font-medium text-accent-strong hover:text-text-action" data-event="project_opened" data-event-payload={`{"slug":"${pointer.id}"}`}>
                 <span class="h-2 w-2 flex-none rounded-[1px] border border-line-strong transition-colors duration-150 group-hover:bg-primary" aria-hidden="true"></span>
                 {pointer.data.title}
                 <svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

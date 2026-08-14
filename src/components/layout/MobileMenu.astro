@@ -29,7 +29,7 @@ const isCurrent = (href: string) =>
             href={link.href}
             class:list={[
               "flex min-h-12 items-center gap-3 py-2 text-lg font-medium transition-colors duration-150",
-              isCurrent(link.href) ? "text-primary-active" : "text-text hover:text-primary-active",
+              isCurrent(link.href) ? "text-text-action" : "text-text hover:text-text-action",
             ]}
           >
             <span
@@ -57,15 +57,15 @@ const isCurrent = (href: string) =>
     <p class="mt-6 mb-2 text-caption text-text-faint">تماس مستقیم</p>
     <ul class="flex flex-col">
       <li>
-        <a href={CONTACT.phoneHref} class="flex min-h-11 items-center gap-2 text-ui font-medium text-text hover:text-primary-active" data-event="phone_click" data-event-payload='{"section":"mobile-menu"}'>
+        <a href={CONTACT.phoneHref} class="flex min-h-11 items-center gap-2 text-ui font-medium text-text hover:text-text-action" data-event="phone_click" data-event-payload='{"section":"mobile-menu"}'>
           <span class="text-caption tnum" dir="ltr">{CONTACT.phone}</span>
           <span class="text-caption text-text-faint">(تماس)</span>
         </a>
       </li>
       <li class="flex flex-wrap gap-x-6 gap-y-1 py-1">
-        <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui text-text-muted hover:text-primary-active" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"mobile-menu","channel":"whatsapp"}'>واتساپ</a>
-        <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui text-text-muted hover:text-primary-active" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"mobile-menu","channel":"telegram"}'>تلگرام</a>
-        <a href={CONTACT.emailHref} class="inline-flex min-h-11 items-center text-ui text-text-muted hover:text-primary-active">ایمیل</a>
+        <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui text-text-muted hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"mobile-menu","channel":"whatsapp"}'>واتساپ</a>
+        <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui text-text-muted hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"mobile-menu","channel":"telegram"}'>تلگرام</a>
+        <a href={CONTACT.emailHref} class="inline-flex min-h-11 items-center text-ui text-text-muted hover:text-text-action">ایمیل</a>
       </li>
     </ul>
   </nav>

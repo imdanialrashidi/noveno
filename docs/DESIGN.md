@@ -152,6 +152,7 @@ Semantic roles, values, and **verified WCAG 2.2 contrast** (computed 2026-08-11;
 | `text` | `#070808` | primary text (anchor) | 19.2:1 |
 | `text-muted` | `#4c5751` | secondary text | 7.2:1 |
 | `text-faint` | `#66716b` | tertiary/labels ≥ 4.5:1 only | 4.9:1 vs canvas; **4.6:1 vs `surface-soft`** (StepperLine rail labels, diagram captions) |
+| `text-action` | `#2f7a5e` | active station/link text on soft surfaces | 4.9:1 vs canvas; **4.7:1 vs `surface-soft`** (normal-sized text; distinct from button `primary-active`) |
 | `line` | `#dfe3e1` | decorative hairlines/dividers | decorative (not required to identify controls) |
 | `line-strong` | `#7e8a83` | **form-control borders**, diagram strokes on light | 3.4:1 (non-text ✓) |
 | `primary` | `#679e86` | action fills, active path, buttons (anchor) | button text `#06130d` on it: **6.2:1** |
@@ -177,6 +178,7 @@ Rule: **the primary button carries dark ink on green** (`#06130d` on `#679e86`),
 | `text` | `#f7f8f8` | primary text (anchor) | 19.1:1 |
 | `text-muted` | `#aab5af` | secondary text | 9.6:1 |
 | `text-faint` | `#7f8a84` | tertiary/labels | 5.7:1 |
+| `text-action` | `#8fd4b0` | active station/link text | 11.8:1 |
 | `line` | `#232b28` | decorative hairlines | decorative |
 | `line-strong` | `#8d9a93` | form-control borders, diagram strokes | 6.5:1 (non-text ✓) |
 | `primary` | `#619881` | action fills, active path (anchor) | button text `#06130d` on it: **5.7:1** |

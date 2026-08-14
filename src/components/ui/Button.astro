@@ -26,8 +26,8 @@ const className = Astro.props["class"] ?? "";
 const variantClasses: Record<string, string> = {
   primary: "bg-primary text-on-primary hover:bg-primary-hover active:bg-primary-active",
   secondary:
-    "border border-line-strong text-text hover:border-primary hover:text-primary-active bg-transparent",
-  ghost: "text-accent-strong hover:text-primary-active underline-offset-4",
+    "border border-line-strong text-text hover:border-primary hover:text-text-action bg-transparent",
+  ghost: "text-accent-strong hover:text-text-action underline-offset-4",
 };
 
 const sizeClasses: Record<string, string> = {

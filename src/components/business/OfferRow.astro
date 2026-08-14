@@ -41,7 +41,7 @@ const { offer, href } = Astro.props;
       <p class="text-caption text-text-faint">{offer.framing}</p>
       <a
         href={href}
-        class="inline-flex min-h-11 items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-primary-active"
+        class="inline-flex min-h-11 items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-text-action"
         data-event="service_opened"
         data-event-payload={JSON.stringify({ service: offer.id })}
       >

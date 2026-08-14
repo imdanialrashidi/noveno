@@ -40,7 +40,7 @@ const year = jalaliYear();
               { href: "/contact", label: "تماس" },
             ].map((link) => (
               <li>
-                <a href={link.href} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-primary-active">
+                <a href={link.href} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-text-action">
                   {link.label}
                 </a>
               </li>
@@ -52,27 +52,27 @@ const year = jalaliYear();
           <p class="mb-3 text-caption text-text-faint">تماس مستقیم</p>
           <ul class="flex flex-col gap-1">
             <li>
-              <a href={CONTACT.phoneHref} class="inline-flex min-h-10 items-center gap-2 text-ui font-medium text-text transition-colors duration-150 hover:text-primary-active" data-event="phone_click" data-event-payload='{"section":"footer"}'>
+              <a href={CONTACT.phoneHref} class="inline-flex min-h-10 items-center gap-2 text-ui font-medium text-text transition-colors duration-150 hover:text-text-action" data-event="phone_click" data-event-payload='{"section":"footer"}'>
                 <span class="tnum" dir="ltr">{CONTACT.phone}</span>
               </a>
             </li>
             <li>
-              <a href={CONTACT.whatsappHref} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-primary-active" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"footer","channel":"whatsapp"}'>
+              <a href={CONTACT.whatsappHref} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"footer","channel":"whatsapp"}'>
                 واتساپ
               </a>
             </li>
             <li>
-              <a href={CONTACT.telegramHref} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-primary-active" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"footer","channel":"telegram"}'>
+              <a href={CONTACT.telegramHref} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"footer","channel":"telegram"}'>
                 تلگرام
               </a>
             </li>
             <li>
-              <a href={CONTACT.emailHref} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-primary-active">
+              <a href={CONTACT.emailHref} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-text-action">
                 {CONTACT.email}
               </a>
             </li>
             <li>
-              <a href={CONTACT.instagramHref} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-primary-active" target="_blank" rel="noopener noreferrer">
+              <a href={CONTACT.instagramHref} class="inline-flex min-h-10 items-center text-ui text-text-muted transition-colors duration-150 hover:text-text-action" target="_blank" rel="noopener noreferrer">
                 {CONTACT.instagramHandle}
               </a>
             </li>
@@ -85,10 +85,10 @@ const year = jalaliYear();
       <p class="text-caption text-text-faint">© {year} نوونو</p>
       <ul class="flex gap-6">
         <li>
-          <a href="/privacy" class="text-caption text-text-muted transition-colors duration-150 hover:text-primary-active">حریم خصوصی</a>
+          <a href="/privacy" class="text-caption text-text-muted transition-colors duration-150 hover:text-text-action">حریم خصوصی</a>
         </li>
         <li>
-          <a href="/terms" class="text-caption text-text-muted transition-colors duration-150 hover:text-primary-active">شرایط استفاده</a>
+          <a href="/terms" class="text-caption text-text-muted transition-colors duration-150 hover:text-text-action">شرایط استفاده</a>
         </li>
       </ul>
     </div>
