@@ -50,44 +50,37 @@ const jalali = (date: Date) => {
   path="/"
 >
   <!-- ============ Hero (screen 1) ============ -->
-  <section class="home-hero" aria-labelledby="hero-title">
-    <div class="home-hero-inner mx-auto grid max-w-[1200px] gap-10 px-5 sm:px-8 lg:grid-cols-12 lg:gap-14">
-      <div class="home-hero-copy lg:col-span-7">
-        <div>
-          <p class="hero-kicker flex items-center gap-2 text-caption font-medium">
-            <span class="section-node" aria-hidden="true"></span>
-            سیستم جذب مشتری برای کسب‌وکارهای خدماتی
-          </p>
-          <p class="hero-index mt-8">مسیر ۰۱ / ۰۵ · از توجه تا نتیجه</p>
-          <h1 id="hero-title" class="mt-6">{HERO_HEADLINE}</h1>
-          <p class="hero-support mt-7">
-            نوونو برای کسب‌وکارهای خدماتی، مسیر مشتری را از دیدن شما تا تماس، ثبت درخواست و پیگیری طراحی و اجرا می‌کند.
-          </p>
-          <div class="hero-actions flex flex-wrap items-center gap-4">
-            <Button
-              href={CTA_URL}
-              size="lg"
-              data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"hero"}' }}
-            >{PRIMARY_CTA_LABEL}</Button>
-            <Button
-              href="/work"
-              variant="secondary"
-              size="lg"
-              class="hero-secondary"
-              data={{ "data-event": "secondary_cta_click", "data-event-payload": '{"section":"hero"}' }}
-            >{SECONDARY_CTA_LABEL}</Button>
-          </div>
+  <section aria-labelledby="hero-title">
+    <div class="mx-auto grid max-w-[1200px] items-center gap-12 px-5 py-14 sm:px-8 lg:grid-cols-12 lg:gap-10 lg:py-20">
+      <div class="flex flex-col items-start gap-6 lg:col-span-7">
+        <p class="flex items-center gap-2 text-caption font-medium text-text-faint">
+          <span class="h-1.5 w-1.5 rounded-[1px] bg-primary" aria-hidden="true"></span>
+          سیستم جذب مشتری برای کسب‌وکارهای خدماتی
+        </p>
+        <h1 id="hero-title" class="text-display text-text">{HERO_HEADLINE}</h1>
+        <p class="text-lead text-text-muted measure-prose">
+          نوونو برای کسب‌وکارهای خدماتی، مسیر مشتری را از دیدن شما تا تماس، ثبت درخواست و پیگیری طراحی و اجرا می‌کند.
+        </p>
+        <div class="flex flex-wrap items-center gap-4">
+          <Button
+            href={CTA_URL}
+            size="lg"
+            data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"hero"}' }}
+          >{PRIMARY_CTA_LABEL}</Button>
+          <Button
+            href="/work"
+            variant="secondary"
+            size="lg"
+            data={{ "data-event": "secondary_cta_click", "data-event-payload": '{"section":"hero"}' }}
+          >{SECONDARY_CTA_LABEL}</Button>
         </div>
-        <div class="flex items-end justify-between gap-6 border-t border-[color:var(--ink-line)] pt-5">
-          <p class="hero-note max-w-sm text-caption">
-            بدون وعده فروش تضمینی؛ ابتدا مسیر فعلی کسب‌وکار بررسی می‌شود.
-          </p>
-          <span class="hidden text-caption text-[color:var(--ink-muted)] sm:block">NOVENO / ۱۴۰۵</span>
-        </div>
+        <p class="text-caption text-text-faint">
+          بدون وعده فروش تضمینی؛ ابتدا مسیر فعلی کسب‌وکار بررسی می‌شود.
+        </p>
       </div>
 
-      <div class="hero-visual lg:col-span-5">
-        <div class="diagram-well">
+      <div class="lg:col-span-5">
+        <div class="diagram-well rounded-[4px] p-6 sm:p-8">
           <ChannelMap
             id="hero-map"
             channels={["اینستاگرام", "گوگل", "معرفی", "تبلیغ"]}
@@ -97,13 +90,12 @@ const jalali = (date: Date) => {
             animate
           />
         </div>
-        <p class="hero-visual-label">نقشه‌ی تبدیل پراکندگی به مسیر</p>
       </div>
     </div>
   </section>
 
   <!-- ============ Problem Recognition (screen 2) ============ -->
-  <section class="home-section home-section--wash border-t border-line" aria-labelledby="problem-title">
+  <section class="border-t border-line" aria-labelledby="problem-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
       <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
         <div class="lg:col-span-5">
@@ -134,7 +126,7 @@ const jalali = (date: Date) => {
   </section>
 
   <!-- ============ System Model (screen 3) ============ -->
-  <section class="home-section home-section--ink border-t border-line" aria-labelledby="system-title">
+  <section class="border-t border-line" aria-labelledby="system-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
       <SectionHeader
         id="system-title"
@@ -149,7 +141,7 @@ const jalali = (date: Date) => {
         />
       </div>
 
-      <dl class="home-system-grid mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+      <dl class="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
         {SYSTEM_STAGES.map((stage) => (
           <div class="border-t border-line pt-4">
             <dt class="flex items-center gap-2 text-ui font-semibold text-text">
@@ -182,7 +174,7 @@ const jalali = (date: Date) => {
   </section>
 
   <!-- ============ Core Offers (screen 4) ============ -->
-  <section class="home-section border-t border-line" aria-labelledby="offers-title">
+  <section class="border-t border-line" aria-labelledby="offers-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
       <SectionHeader
         id="offers-title"
@@ -198,19 +190,13 @@ const jalali = (date: Date) => {
   </section>
 
   <!-- ============ Proof (screen 5) ============ -->
-  <section class="home-section home-section--wash border-t border-line" aria-labelledby="proof-title">
+  <section class="border-t border-line" aria-labelledby="proof-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
-      <div class="home-proof-intro">
-        <SectionHeader
-          id="proof-title"
-          title="کارهایی که می‌سازیم"
-          lead="هر آنچه اینجا نشان داده می‌شود یا واقعاً ساخته شده است یا صریحاً «نمونه نمایشی» نام دارد. هیچ عددی بدون داده واقعی منتشر نمی‌شود."
-        />
-        <aside class="proof-aside mb-10">
-          <strong>۰۳</strong>
-          <span class="mt-2 block text-caption text-text-muted">نوع مدرک، بخشی از خود داستان است.</span>
-        </aside>
-      </div>
+      <SectionHeader
+        id="proof-title"
+        title="کارهایی که می‌سازیم"
+        lead="هر آنچه اینجا نشان داده می‌شود یا واقعاً ساخته شده است یا صریحاً «نمونه نمایشی» نام دارد. هیچ عددی بدون داده واقعی منتشر نمی‌شود."
+      />
       <div class="flex flex-col">
         {proofEntries.map((entry) => (
           <ProofRow
@@ -239,7 +225,7 @@ const jalali = (date: Date) => {
   </section>
 
   <!-- ============ System Components ============ -->
-  <section class="home-section border-t border-line" aria-labelledby="components-title">
+  <section class="border-t border-line" aria-labelledby="components-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
       <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
         <div class="lg:col-span-5">
@@ -264,9 +250,8 @@ const jalali = (date: Date) => {
   </section>
 
   <!-- ============ Ideal Fit (Spec §23) ============ -->
-  <section class="home-section home-section--statement border-t border-line" aria-labelledby="fit-title">
+  <section class="border-t border-line" aria-labelledby="fit-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
-      <span class="statement-mark" aria-hidden="true"></span>
       <SectionHeader id="fit-title" title="Noveno برای همه مناسب نیست." />
       <div class="grid gap-10 lg:grid-cols-2 lg:gap-16">
         <div>
@@ -302,7 +287,7 @@ const jalali = (date: Date) => {
   </section>
 
   <!-- ============ Process (screen 4) ============ -->
-  <section class="home-section home-section--wash border-t border-line" aria-labelledby="process-title">
+  <section class="border-t border-line" aria-labelledby="process-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
       <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
         <div class="lg:col-span-5">
@@ -327,7 +312,7 @@ const jalali = (date: Date) => {
   </section>
 
   <!-- ============ Measurement ============ -->
-  <section class="home-section border-t border-line" aria-labelledby="measure-title">
+  <section class="border-t border-line" aria-labelledby="measure-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
       <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
         <div class="lg:col-span-5">
@@ -352,7 +337,7 @@ const jalali = (date: Date) => {
   </section>
 
   <!-- ============ Why Noveno ============ -->
-  <section class="home-section home-section--ink border-t border-line" aria-labelledby="why-title">
+  <section class="border-t border-line" aria-labelledby="why-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
       <SectionHeader id="why-title" title="چرا نوونو" lead="اصل‌هایی که جای ادعای بزرگ می‌نشینند." />
       <div class="grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -377,7 +362,7 @@ const jalali = (date: Date) => {
   </section>
 
   <!-- ============ FAQ ============ -->
-  <section class="home-section home-section--wash border-t border-line" aria-labelledby="faq-title">
+  <section class="border-t border-line" aria-labelledby="faq-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
       <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
         <div class="lg:col-span-5">
