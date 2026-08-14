@@ -15,6 +15,7 @@
  */
 
 import PageLayout from "../layouts/PageLayout.astro";
+import PageHero from "../components/layout/PageHero.astro";
 import StepperLine from "../components/business/StepperLine.astro";
 import FormField from "../components/ui/FormField.astro";
 import Select from "../components/ui/Select.astro";
@@ -29,22 +30,15 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
 ---
 
 <PageLayout
-  title="بررسی مسیر جذب"
+  title="بررسی مسیر جذب | نوونو"
   description="چند سؤال کوتاه درباره کسب‌وکارتان تا مسیر فعلی جذب مشتری بررسی شود؛ بدون وعده فروش تضمینی. ثبت درخواست چند دقیقه وقت می‌گیرد."
   path="/audit"
 >
-  <section aria-labelledby="audit-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
-      <div class="relative border-b border-line">
-        <span class="section-node absolute -bottom-[3px] start-0" aria-hidden="true"></span>
-        <h1 id="audit-title" class="text-h2 max-w-3xl pb-6">بررسی مسیر جذب</h1>
-      </div>
-      <p class="mt-6 max-w-2xl text-lead text-text-muted">
-        شش ایستگاه کوتاه؛ هر چه دقیق‌تر پاسخ دهید، گفت‌وگوی اول کوتاه‌تر می‌شود.
-        بدون وعده فروش تضمینی؛ ابتدا مسیر فعلی کسب‌وکار بررسی می‌شود.
-      </p>
-    </div>
-  </section>
+  <PageHero
+    id="audit-title"
+    title="بررسی مسیر جذب"
+    lead="شش ایستگاه کوتاه؛ هر چه دقیق‌تر پاسخ دهید، گفت‌وگوی اول کوتاه‌تر می‌شود. بدون وعده فروش تضمینی؛ ابتدا مسیر فعلی کسب‌وکار بررسی می‌شود."
+  />
 
   <section class="border-t border-line" aria-labelledby="audit-journey-title">
     <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">

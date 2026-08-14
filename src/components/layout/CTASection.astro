@@ -1,9 +1,9 @@
 ---
 /**
- * CTASection — recurring final CTA (Spec §29, DESIGN §13).
- * The primary conversion is the same fixed language everywhere:
- * «درخواست بررسی مسیر جذب» → CTA_URL; secondary = direct contact.
- * Includes NextStepsRail so the action has no dead end.
+ * CTASection — recurring final CTA (Spec §29, DESIGN §13; 2026-08-14
+ * redesign). The closing band: a full-bleed surface-soft strip, big
+ * heading + support + dual CTA + microcopy, with the next-steps rail
+ * on a raised panel — the conversion has no dead end.
  */
 
 import Button from "../ui/Button.astro";
@@ -29,15 +29,11 @@ const {
 } = Astro.props;
 ---
 
-<section class="border-t border-line" aria-labelledby="cta-title">
+<section class="border-t border-line bg-surface-soft" aria-labelledby="cta-title">
   <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
-    <div class="relative border-b border-line">
-      <span class="section-node absolute -bottom-[3px] start-0" aria-hidden="true"></span>
-      <h2 id="cta-title" class="text-h2 max-w-3xl pb-6">{title}</h2>
-    </div>
-
-    <div class:list={["mt-8 grid gap-10", hideRail ? "" : "lg:grid-cols-2 lg:gap-16"]}>
+    <div class:list={["grid gap-12", hideRail ? "" : "lg:grid-cols-2 lg:gap-20"]}>
       <div class="flex flex-col items-start gap-6">
+        <h2 id="cta-title" class="text-h2 max-w-2xl text-text">{title}</h2>
         <p class="text-lead text-text-muted measure-prose">{support}</p>
         <div class="flex flex-wrap items-center gap-4">
           <Button
@@ -55,14 +51,17 @@ const {
             <span class="text-caption tnum" dir="ltr">{CONTACT.phone}</span>
           </Button>
         </div>
-        <p class="text-caption text-text-faint">
+        <p class="text-meta text-text-faint">
           بدون وعده فروش تضمینی؛ ابتدا مسیر فعلی کسب‌وکار بررسی می‌شود.
         </p>
       </div>
 
       {!hideRail && (
-        <div>
-          <p class="mb-4 text-ui font-medium text-text-muted">پس از درخواست چه اتفاقی می‌افتد؟</p>
+        <div class="panel bg-canvas p-6 sm:p-8 lg:p-10">
+          <p class="mb-5 flex items-center gap-2 text-ui font-semibold text-text">
+            <span class="section-node" aria-hidden="true"></span>
+            پس از درخواست چه اتفاقی می‌افتد؟
+          </p>
           <NextStepsRail />
         </div>
       )}

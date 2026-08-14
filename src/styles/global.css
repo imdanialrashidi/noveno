@@ -301,24 +301,33 @@
   .text-display {
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: clamp(2.125rem, 1.2rem + 4.2vw, 4rem); /* 34 → 64px */
-    line-height: 1.25;
+    font-size: clamp(2.5rem, 1.35rem + 4.6vw, 4.25rem); /* 40 → 68px */
+    line-height: 1.22;
+    text-wrap: balance;
+  }
+
+  /* Page-level H1 (all pages except the homepage hero) — 30 → 48px */
+  .text-h1-page {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.875rem, 1.35rem + 2.2vw, 3rem);
+    line-height: 1.3;
     text-wrap: balance;
   }
 
   .text-h2 {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: clamp(1.625rem, 1.2rem + 2vw, 2.75rem); /* 26 → 44px */
-    line-height: 1.3;
+    font-size: clamp(1.5rem, 1.15rem + 1.8vw, 2.5rem); /* 24 → 40px */
+    line-height: 1.35;
     text-wrap: balance;
   }
 
   .text-h3 {
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem); /* 20 → 24px */
-    line-height: 1.5;
+    font-size: clamp(1.125rem, 1.05rem + 0.4vw, 1.375rem); /* 18 → 22px */
+    line-height: 1.6;
   }
 
   .text-lead {
@@ -326,6 +335,22 @@
     font-weight: 400;
     font-size: clamp(1.125rem, 1.08rem + 0.3vw, 1.25rem); /* 18 → 20px */
     line-height: 1.9;
+  }
+
+  /* Route-band station labels — the signature scale (16 → 20px). */
+  .text-station {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1rem, 0.95rem + 0.3vw, 1.25rem);
+    line-height: 1.6;
+  }
+
+  /* Work-card / panel meta labels (12–13px). */
+  .text-meta {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    line-height: 1.6;
   }
 
   .text-body {
@@ -370,14 +395,108 @@
     flex: none;
   }
 
-  /* Diagram well: 24px dot-grid only inside diagram wells (§4.2) */
-  .diagram-well {
+  /* ------------------------------------------------------------------ */
+  /* Route band — the signature large-scale route grammar (2026-08-14    */
+  /* founder-directed redesign). A full-width monoline with numbered     */
+  /* square stations; labels are HTML text at 16–20px (never SVG text).  */
+  /* Square = system station; circle = attention; solid = real, dashed  */
+  /* = demo/future (§4.2–4.3 honesty code preserved).                    */
+  /* ------------------------------------------------------------------ */
+
+  .route-station {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.625rem;
+    text-align: center;
+  }
+
+  .route-node {
+    display: inline-flex;
+    width: 1.375rem; /* 22px */
+    height: 1.375rem;
+    border-radius: 2px;
+    border: 2px solid var(--line-strong);
+    background-color: var(--canvas);
+    flex: none;
+  }
+  .route-node--filled {
+    background-color: var(--primary);
+    border-color: var(--primary);
+  }
+  .route-node--dashed {
+    border-style: dashed;
+  }
+
+  .route-label {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(0.9375rem, 0.9rem + 0.3vw, 1.125rem); /* 15 → 18px */
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .route-label--muted {
+    color: var(--text-muted);
+  }
+
+  .route-num {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.75rem;
+    line-height: 1;
+    color: var(--text-faint);
+  }
+
+  /* Scatter motif — attention that has not become a record yet.         */
+  /* Deterministic dot field (CSS), used inside the before-state panel.  */
+  .scatter-field {
+    position: relative;
+    overflow: hidden;
+    background-image:
+      radial-gradient(color-mix(in srgb, var(--accent) 55%, transparent) 5px, transparent 5.5px),
+      radial-gradient(color-mix(in srgb, var(--line-strong) 45%, transparent) 3px, transparent 3.5px),
+      radial-gradient(color-mix(in srgb, var(--accent) 35%, transparent) 2px, transparent 2.5px);
+    background-size: 190px 150px, 130px 170px, 90px 110px;
+    background-position: 12px 24px, 70px 10px, 30px 90px;
+  }
+
+  /* Editorial panel — hairline + surface; replaces soft diagram wells   */
+  /* for prose-adjacent content.                                          */
+  .panel {
+    border: 1px solid var(--line);
+    background-color: var(--surface);
+    border-radius: 4px;
+  }
+
+  /* Work preview framing — consistent 16:10 stage for all proof types. */
+  .preview-stage {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 4px;
     background-color: var(--surface-soft);
-    background-image: radial-gradient(
-      color-mix(in srgb, var(--line-strong) 22%, transparent) 1px,
-      transparent 1px
-    );
-    background-size: 24px 24px;
+  }
+  .preview-stage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+  .preview-tag {
+    position: absolute;
+    top: 0.75rem;
+    inset-inline-start: 0.75rem;
+    z-index: 1;
+    background-color: var(--canvas);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.25rem 0.625rem;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--text-muted);
   }
 
   /* Hairline rule used for section rhythm (DESIGN §8) */
@@ -569,6 +688,22 @@
   to {
     opacity: 1;
   }
+}
+
+/* Hero route line grows from the CTA (right) toward the left end —
+   the one orchestrated moment (§12.1), pure CSS, RTL-native. */
+@keyframes route-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.route-grow {
+  transform-origin: right center;
+  animation: route-grow 700ms var(--ease-standard) forwards;
 }
 
 .jl-draw {

@@ -1,0 +1,166 @@
+---
+/**
+ * WorkCard — work-list entry with a substantial visual preview
+ * (2026-08-14 founder-directed redesign: proof must be SEEN, not only
+ * read). Preview honesty grammar (DESIGN §4.3):
+ *  - real project → real screenshot of the actual delivered product;
+ *  - concept → dashed wireframe schematic, visibly labeled
+ *    «نمونه نمایشی» — never implies a real client result.
+ * Whole card is one crawlable link; title inside the link makes the
+ * anchor text descriptive. No stock imagery, no invented results.
+ */
+
+import ProofTag, { type ProofKind } from "../ui/ProofTag.astro";
+
+export interface WorkPreview {
+  type: "image" | "concept";
+  /** Image preview (real project screenshots only). */
+  src?: string;
+  srcset?: string;
+  alt?: string;
+  /** Concept wireframe scenario id: "form" | "course". */
+  layout?: "form" | "course";
+  /** Concept scenario short description (sr-only). */
+  scenario?: string;
+}
+
+interface Props {
+  kind: ProofKind;
+  title: string;
+  summary: string;
+  meta: string;
+  href: string;
+  /** Honest outcome line (project/concept semantics). */
+  outcome?: string;
+  preview: WorkPreview;
+}
+
+const { kind, title, summary, meta, href, outcome, preview } = Astro.props;
+
+const openEvent =
+  kind === "case-study" ? "case_study_opened" : kind === "project" ? "project_opened" : null;
+const slug = href.split("/").filter(Boolean).pop() ?? "";
+---
+
+<a
+  href={href}
+  class="group grid gap-6 border-t border-line py-8 transition-colors duration-150 hover:bg-surface-soft/40 focus-visible:bg-surface-soft/40 lg:grid-cols-[minmax(0,5fr)_minmax(0,4fr)] lg:gap-10 lg:py-10"
+  {...(openEvent
+    ? {
+        "data-event": openEvent,
+        "data-event-payload": JSON.stringify({ slug }),
+      }
+    : {})}
+>
+  <!-- preview -->
+  <div class="preview-stage order-2 lg:order-1">
+    {preview.type === "image" && preview.src && (
+      <img
+        src={preview.src}
+        srcset={preview.srcset}
+        sizes="(min-width: 1024px) 560px, 92vw"
+        width="1440"
+        height="900"
+        loading="lazy"
+        decoding="async"
+        alt={preview.alt ?? title}
+        class="transition-transform duration-300 ease-standard group-hover:scale-[1.015]"
+      />
+    )}
+    {preview.type === "concept" && (
+      <>
+        <p class="sr-only">
+          {preview.scenario ?? "نمایش شماتیک سناریوی مفهومی — بدون اجرا و بدون داده عملکردی"}
+        </p>
+        <svg
+          viewBox="0 0 800 500"
+          class="h-full w-full"
+          aria-hidden="true"
+          focusable="false"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <!-- dashed wireframe: sketch grammar, never a real product -->
+          <g
+            fill="none"
+            stroke="var(--line-strong)"
+            stroke-width="2"
+            stroke-dasharray="7 7"
+            stroke-linecap="round"
+          >
+            <!-- browser chrome -->
+            <rect x="14" y="14" width="772" height="472" rx="4" />
+            <rect x="14" y="14" width="772" height="44" rx="4" />
+            <rect x="44" y="30" width="26" height="12" />
+            <rect x="86" y="32" width="60" height="8" />
+            <rect x="160" y="32" width="44" height="8" />
+            <rect x="218" y="32" width="44" height="8" />
+            <circle cx="760" cy="36" r="7" />
+
+            {preview.layout === "course" ? (
+              <>
+                <!-- course page: hero + two columns -->
+                <rect x="44" y="96" width="712" height="150" rx="3" />
+                <rect x="76" y="130" width="280" height="14" />
+                <rect x="76" y="160" width="200" height="10" />
+                <rect x="76" y="184" width="160" height="10" />
+                <rect x="76" y="214" width="120" height="26" />
+                <rect x="540" y="130" width="120" height="84" rx="3" />
+                <rect x="44" y="292" width="380" height="140" rx="3" />
+                <rect x="76" y="318" width="240" height="10" />
+                <rect x="76" y="342" width="300" height="10" />
+                <rect x="76" y="366" width="260" height="10" />
+                <rect x="440" y="292" width="316" height="140" rx="3" />
+                <rect x="472" y="318" width="150" height="10" />
+                <rect x="472" y="342" width="180" height="10" />
+                <rect x="472" y="386" width="140" height="28" />
+              </>
+            ) : (
+              <>
+                <!-- lead-capture page: message + form -->
+                <rect x="44" y="96" width="380" height="150" rx="3" />
+                <rect x="76" y="130" width="280" height="14" />
+                <rect x="76" y="160" width="200" height="10" />
+                <rect x="76" y="184" width="160" height="10" />
+                <rect x="76" y="214" width="120" height="26" />
+                <rect x="440" y="96" width="316" height="290" rx="3" />
+                <rect x="472" y="126" width="120" height="10" />
+                <rect x="472" y="156" width="252" height="34" />
+                <rect x="472" y="204" width="252" height="34" />
+                <rect x="472" y="252" width="252" height="34" />
+                <rect x="472" y="308" width="160" height="40" />
+              </>
+            )}
+          </g>
+          <!-- one primary square: the single registration point -->
+          <rect x="712" y="416" width="22" height="22" rx="2" fill="var(--primary)" />
+        </svg>
+        <span class="preview-tag">نمونه نمایشی — سناریوی مفهومی</span>
+      </>
+    )}
+  </div>
+
+  <!-- text -->
+  <div class="order-1 flex flex-col items-start gap-2 lg:order-2 lg:pt-1">
+    <div class="flex flex-wrap items-center gap-3">
+      <ProofTag kind={kind} />
+      <span class="text-meta text-text-faint">{meta}</span>
+    </div>
+    <h3 class="mt-1 text-h3 text-text transition-colors duration-150 group-hover:text-text-action">
+      {title}
+    </h3>
+    <p class="text-body text-text-muted">{summary}</p>
+    {outcome && (
+      <span class="mt-1 flex items-center gap-2 text-meta text-text-faint">
+        <span class="h-1.5 w-1.5 flex-none rounded-[1px] border border-dashed border-line-strong" aria-hidden="true"></span>
+        {outcome}
+      </span>
+    )}
+    <span class="mt-3 inline-flex min-h-11 items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 group-hover:text-text-action">
+      مشاهده کار
+      <svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 12H5" />
+        <path d="m12 19-7-7 7-7" />
+      </svg>
+    </span>
+  </div>
+</a>

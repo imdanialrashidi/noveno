@@ -13,7 +13,9 @@ const { title, description, path, robots } = Astro.props;
 const site = Astro.site ?? new URL("https://noveno.ir/");
 const canonical = new URL(path.replace(/\/index\.html$/, "/"), site).toString();
 const ogImage = new URL("/og.png", site).toString();
-const htmlTitle = title.endsWith("نوونو") ? title : `${title} — نوونو`;
+// Brand once: a title that already contains «نوونو» is used as-is;
+// otherwise the brand is appended once at the end (never duplicated).
+const htmlTitle = title.includes("نوونو") ? title : `${title} — نوونو`;
 
 // Build-time public values (names only in .env.example; no secrets).
 // The Web Analytics token is public by design and only injects the
@@ -29,6 +31,7 @@ const organizationJsonLd = JSON.stringify({
   alternateName: "NOVENO",
   url: site.toString(),
   logo: new URL("/favicon.svg", site).toString(),
+  email: "imdanialrashidi@gmail.com",
   sameAs: ["https://instagram.com/noveno.ir"],
   contactPoint: {
     "@type": "ContactPoint",
@@ -58,7 +61,7 @@ const websiteJsonLd = JSON.stringify({
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-    <!-- Open Graph metadata foundation (Slice 1; completion in Slice 2) -->
+    <!-- Open Graph + Twitter metadata -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="نوونو" />
     <meta property="og:locale" content="fa_IR" />
@@ -68,7 +71,11 @@ const websiteJsonLd = JSON.stringify({
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="نوونو — سیستم جذب مشتری برای کسب‌وکارهای خدماتی" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={htmlTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
 
     <!-- Structured data: Organization + WebSite identity (Spec §43) -->
     <script type="application/ld+json" set:html={organizationJsonLd}></script>

@@ -12,6 +12,7 @@
  */
 
 import PageLayout from "../../layouts/PageLayout.astro";
+import PageHero from "../../components/layout/PageHero.astro";
 import NextStepsRail from "../../components/business/NextStepsRail.astro";
 import { getCollection } from "astro:content";
 import { AUDIT_STATIONS, CONTACT } from "../../data/site";
@@ -29,7 +30,7 @@ const realWork = (await getCollection("work"))
   .sort((a, b) => (a.data.featured === b.data.featured ? 0 : a.data.featured ? -1 : 1));
 const pointer = realWork[0] ?? null;
 
-const nodeClass = "flex-none rounded-[1px] h-2 w-2";
+const nodeClass = "flex-none rounded-[1px] h-3.5 w-3.5";
 const labelClass = "text-caption font-medium leading-tight";
 ---
 
@@ -39,37 +40,30 @@ const labelClass = "text-caption font-medium leading-tight";
   path="/audit/thank-you"
   robots="noindex"
 >
-  <section aria-labelledby="thanks-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
-      <div class="relative border-b border-line">
-        <span class="section-node absolute -bottom-[3px] start-0" aria-hidden="true"></span>
-        <h1 id="thanks-title" class="text-h2 max-w-3xl pb-6">درخواست شما ثبت شد.</h1>
-      </div>
-      <p class="mt-6 max-w-2xl text-lead text-text-muted">
-        اطلاعات به‌صورت امن ثبت شد و مسیر شما در اینجا ادامه پیدا می‌کند. اگر همکاری
-        مناسب باشد، نوونو برای یک گفت‌وگوی کوتاه با شما تماس می‌گیرد.
+  <PageHero
+    id="thanks-title"
+    title="درخواست شما ثبت شد."
+    lead="اطلاعات به‌صورت امن ثبت شد و مسیر شما در اینجا ادامه پیدا می‌کند. اگر همکاری مناسب باشد، نوونو برای یک گفت‌وگوی کوتاه با شما تماس می‌گیرد."
+  >
+    <!-- Direct visitors (no submission in this session) get an honest note.
+         The head script sets data-audit-done before first paint, so the
+         guard is hidden by CSS with zero layout shift on the submit path. -->
+    <div id="thankyou-guard" class="mt-6 flex flex-col items-start gap-3 rounded-[4px] border border-line bg-surface-soft p-4">
+      <p class="text-body text-text-muted">
+        اگر در این نشست درخواستی ثبت نکرده‌اید، می‌توانید بررسی را از ابتدا شروع کنید.
       </p>
-
-      <!-- Direct visitors (no submission in this session) get an honest note.
-           The head script sets data-audit-done before first paint, so the
-           guard is hidden by CSS with zero layout shift on the submit path. -->
-      <div id="thankyou-guard" class="mt-6 flex flex-col items-start gap-3 rounded-[4px] border border-line bg-surface-soft p-4">
-        <p class="text-body text-text-muted">
-          اگر در این نشست درخواستی ثبت نکرده‌اید، می‌توانید بررسی را از ابتدا شروع کنید.
-        </p>
-        <a href="/audit" class="inline-flex min-h-11 items-center rounded-[4px] bg-primary px-5 text-ui font-medium text-on-primary transition-colors duration-150 hover:bg-primary-hover">
-          شروع بررسی مسیر جذب
-        </a>
-      </div>
+      <a href="/audit" class="inline-flex min-h-11 items-center rounded-[4px] bg-primary px-5 text-ui font-medium text-on-primary transition-colors duration-150 hover:bg-primary-hover">
+        شروع بررسی مسیر جذب
+      </a>
     </div>
-  </section>
+  </PageHero>
 
   <!-- The extended JourneyLine: completed stations + future dashed route -->
   <section class="border-t border-line" aria-labelledby="route-title">
     <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
       <h2 id="route-title" class="sr-only">مسیر شما: ایستگاه‌های تکمیل‌شده و مراحل بعد</h2>
 
-      <div class="rounded-[4px] border border-line bg-surface-soft p-6 sm:p-8">
+      <div class="panel p-6 sm:p-8">
         <ol class="sr-only">
           {completed.map((s) => (
             <li>تکمیل‌شده: {s.label}</li>

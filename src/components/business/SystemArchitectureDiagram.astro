@@ -1,15 +1,15 @@
 ---
 /**
  * SystemArchitectureDiagram — how channels, pages, forms, tracking and
- * follow-up connect (DESIGN §15 screen 3, Spec §21.6 case-study template).
- * Inline SVG, static markup: attention dots (circles) → gate (square) →
- * route (squares on a monoline) + dashed learning loop-back (dashed =
- * recommended/future state, §4.3). Two static renderings: horizontal
- * desktop composition and a vertical mobile composition. Informative
- * diagram → aria-hidden + adjacent text equivalent.
+ * follow-up connect (DESIGN §15 screen 3, Spec §21.6 case-study
+ * template; 2026-08-14 redesign). Replaced the small dot-grid SVG with
+ * the large route grammar: a channel entry row (attention dots →
+ * single gate square) + the JourneyLine route + the dashed learning
+ * loop-back note. Informative → sr-only description; visual is
+ * aria-hidden; all labels are HTML text at route scale.
  */
 
-import { SYSTEM_COMPONENTS } from "../../data/site";
+import JourneyLine, { type JourneyStation } from "./JourneyLine.astro";
 
 interface Props {
   id: string;
@@ -27,162 +27,37 @@ const {
   description = "کانال‌های ورودی از یک صفحه یا فرم عبور می‌کنند، لید ثبت می‌شود، پیگیری می‌شود و گزارش به بهبود مسیر برمی‌گردد.",
 } = Astro.props;
 
-const LOOP_LABEL = "یادگیری ← بهبود";
+const routeStations: readonly JourneyStation[] = stations.map((s) => ({ label: s }));
 ---
 
-<figure class="diagram-well rounded-[4px] p-5 sm:p-8">
+<figure class="panel px-6 py-8 sm:px-10 lg:px-12 lg:py-10">
   <figcaption class="sr-only">{description}</figcaption>
 
-  <!-- Desktop composition -->
-  <svg
-    viewBox="0 0 640 300"
-    class="hidden h-auto w-full max-w-[640px] lg:block"
-    aria-hidden="true"
-    focusable="false"
-  >
-
-    <!-- scatter dots (attention) -->
-    {channels.map((channel, i) => {
-      const x = 596 - (i % 2) * 34;
-      const y = 40 + i * 46;
-      return (
-        <g >
-          <circle cx={x} cy={y} r="5" fill="var(--accent)" />
-          <text x={x - 14} y={y + 4} text-anchor="end" font-size="12" font-family="var(--font-display)" font-weight="500" fill="var(--text-muted)">
-            {channel}
-          </text>
-        </g>
-      );
-    })}
-
-    <!-- converging curves -->
-    {channels.map((channel, i) => {
-      const y = 40 + i * 46;
-      return (
-        <path
-         
-          d={`M ${584 - (i % 2) * 34} ${y} C 500 ${y}, 470 168, 452 168`}
-          fill="none"
-          stroke="var(--line-strong)"
-          stroke-width="1.5"
-        />
-      );
-    })}
-
-    <!-- gate -->
-    <rect x={438} y={160} width="16" height="16" rx="1" fill="var(--primary)" />
-    <text x={426} y={196} text-anchor="middle" font-size="12" font-family="var(--font-display)" font-weight="600" fill="var(--text)">
+  <!-- entry row: attention dots → single gate -->
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line pb-5" aria-hidden="true">
+    <span class="text-meta text-text-faint">ورودی:</span>
+    {channels.map((channel) => (
+      <span class="flex items-center gap-1.5 text-ui text-text-muted">
+        <span class="h-2 w-2 rounded-full bg-accent-strong"></span>
+        {channel}
+      </span>
+    ))}
+    <svg viewBox="0 0 24 24" class="h-4 w-4 text-line-strong" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12h14" />
+      <path d="m12 5 7 7-7 7" />
+    </svg>
+    <span class="flex items-center gap-1.5 text-ui font-semibold text-text">
+      <span class="h-2.5 w-2.5 flex-none rounded-[1px] bg-primary"></span>
       {gate}
-    </text>
+    </span>
+  </div>
 
-    <!-- route: right→left -->
-    <path d="M 438 168 L 100 168" fill="none" stroke="var(--line-strong)" stroke-width="2" />
-    {stations.map((station, i) => {
-      const x = 330 - i * 115;
-      const isLast = i === stations.length - 1;
-      return (
-        <g >
-          <rect
-            x={x - 6}
-            y={162}
-            width="12"
-            height="12"
-            rx="1"
-            fill={isLast ? "var(--primary)" : "transparent"}
-            stroke={isLast ? "none" : "var(--line-strong)"}
-            stroke-width="1.5"
-          />
-          <text x={x} y={196} text-anchor="middle" font-size="12" font-family="var(--font-display)" font-weight="500" fill={isLast ? "var(--text)" : "var(--text-muted)"}>
-            {station}
-          </text>
-        </g>
-      );
-    })}
+  <div class="mt-8">
+    <JourneyLine stations={routeStations} label={description} />
+  </div>
 
-    <!-- dashed learning loop-back -->
-    <path
-      d="M 100 168 C 40 168, 40 60, 452 60 C 480 60, 470 140, 446 158"
-      fill="none"
-      stroke="var(--accent-strong)"
-      stroke-width="1.5"
-      stroke-dasharray="4 4"
-    />
-    <text x={230} y={52} text-anchor="middle" font-size="12" font-family="var(--font-display)" font-weight="500" fill="var(--accent-strong)">
-      {LOOP_LABEL}
-    </text>
-  </svg>
-
-  <!-- Mobile composition (vertical spine) -->
-  <svg
-    viewBox="0 0 340 440"
-    class="h-auto w-full max-w-[340px] lg:hidden"
-    aria-hidden="true"
-    focusable="false"
-  >
-
-    <!-- channels row -->
-    {channels.map((channel, i) => {
-      const col = i % 2;
-      const row = Math.floor(i / 2);
-      const x = 40 + col * 180;
-      const y = 30 + row * 34;
-      return (
-        <g >
-          <circle cx={x} cy={y} r="5" fill="var(--accent)" />
-          <text x={x + 12} y={y + 4} font-size="14" font-family="var(--font-display)" font-weight="500" fill="var(--text-muted)">
-            {channel}
-          </text>
-        </g>
-      );
-    })}
-
-    <!-- convergence into gate -->
-    <path d="M 100 84 C 100 110, 120 118, 150 124" fill="none" stroke="var(--line-strong)" stroke-width="1.5" />
-    <path d="M 240 62 C 220 96, 190 112, 156 122" fill="none" stroke="var(--line-strong)" stroke-width="1.5" />
-
-    <rect x={148} y={124} width="16" height="16" rx="1" fill="var(--primary)" />
-    <text x={156} y={160} text-anchor="middle" font-size="14" font-family="var(--font-display)" font-weight="600" fill="var(--text)">
-      {gate}
-    </text>
-
-    <!-- vertical route -->
-    <path d="M 156 140 L 156 330" fill="none" stroke="var(--line-strong)" stroke-width="2" />
-    {stations.map((station, i) => {
-      const y = 190 + i * 70;
-      const isLast = i === stations.length - 1;
-      return (
-        <g >
-          <rect
-            x={150}
-            y={y}
-            width="12"
-            height="12"
-            rx="1"
-            fill={isLast ? "var(--primary)" : "transparent"}
-            stroke={isLast ? "none" : "var(--line-strong)"}
-            stroke-width="1.5"
-          />
-          <text x={172} y={y + 10} font-size="14" font-family="var(--font-display)" font-weight="500" fill={isLast ? "var(--text)" : "var(--text-muted)"}>
-            {station}
-          </text>
-        </g>
-      );
-    })}
-
-    <!-- dashed learning loop -->
-    <path
-      d="M 156 330 C 120 330, 60 300, 60 200 C 60 130, 110 116, 146 124"
-      fill="none"
-      stroke="var(--accent-strong)"
-      stroke-width="1.5"
-      stroke-dasharray="4 4"
-    />
-    <text x={48} y={230} text-anchor="middle" font-size="14" font-family="var(--font-display)" font-weight="500" fill="var(--accent-strong)" transform="rotate(-90 48 230)">
-      {LOOP_LABEL}
-    </text>
-  </svg>
-
-  <p class="mt-4 text-caption text-text-faint">
-    نمایش ساختاری از اجزای سیستم؛ اجزای دقیق بر اساس مشکل کسب‌وکار در Scope تعیین می‌شوند ({SYSTEM_COMPONENTS.length} جزء ممکن).
+  <p class="mt-8 flex items-center gap-2 text-meta text-text-faint" aria-hidden="true">
+    <span class="h-1.5 w-1.5 flex-none rounded-[1px] border border-dashed border-line-strong"></span>
+    یادگیری ← بهبود: گزارش‌ها به اصلاح مسیر برمی‌گردند.
   </p>
 </figure>

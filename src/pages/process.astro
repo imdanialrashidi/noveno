@@ -6,6 +6,7 @@
  */
 
 import PageLayout from "../layouts/PageLayout.astro";
+import PageHero from "../components/layout/PageHero.astro";
 import SectionHeader from "../components/layout/SectionHeader.astro";
 import CTASection from "../components/layout/CTASection.astro";
 import JourneyLine from "../components/business/JourneyLine.astro";
@@ -14,32 +15,27 @@ import Button from "../components/ui/Button.astro";
 ---
 
 <PageLayout
-  title="فرآیند — یک چرخه، نه تحویل و خداحافظی"
+  title="فرآیند کار نوونو — یک چرخه، نه تحویل و خداحافظی"
   description="فرآیند نوونو در پنج مرحله: بررسی، طراحی، اجرا، اندازه‌گیری و بهبود — به صورت چرخه‌ای که بر اساس داده واقعی بهتر می‌شود."
   path="/process"
 >
-  <section aria-labelledby="process-hero-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
-      <div class="relative border-b border-line">
-        <span class="section-node absolute -bottom-[3px] start-0" aria-hidden="true"></span>
-        <h1 id="process-hero-title" class="text-h2 max-w-3xl pb-6">
-          بررسی ← طراحی ← اجرا ← اندازه‌گیری ← بهبود؛ و دوباره از اول
-        </h1>
-      </div>
-      <p class="mt-6 max-w-2xl text-lead text-text-muted">
-        این چرخه همان چیزی است که برای کسب‌وکار شما طراحی می‌شود. هر دور بر اساس داده‌ای که دور قبل جمع شده، مسیر را دقیق‌تر می‌کند.
-      </p>
-      <div class="mt-8 flex flex-wrap gap-4">
-        <Button href={CTA_URL} size="lg">{PRIMARY_CTA_LABEL}</Button>
-      </div>
+  <PageHero
+    id="process-hero-title"
+    eyebrow="فرآیند نوونو"
+    title="بررسی ← طراحی ← اجرا ← اندازه‌گیری ← بهبود؛ و دوباره از اول"
+    lead="این چرخه همان چیزی است که برای کسب‌وکار شما طراحی می‌شود. هر دور بر اساس داده‌ای که دور قبل جمع شده، مسیر را دقیق‌تر می‌کند."
+  >
+    <div class="mt-8 flex flex-wrap gap-4">
+      <Button href={CTA_URL} size="lg">{PRIMARY_CTA_LABEL}</Button>
+      <Button href="/work" variant="secondary" size="lg">دیدن پروژه‌ها</Button>
     </div>
-  </section>
+  </PageHero>
 
   <!-- The loop -->
   <section class="border-t border-line" aria-labelledby="loop-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
       <SectionHeader id="loop-title" title="چرخه پنج مرحله‌ای" />
-      <div class="diagram-well rounded-[4px] p-6 sm:p-12">
+      <div class="panel px-6 py-10 sm:px-10 lg:px-14 lg:py-14">
         <JourneyLine
           stations={PROCESS_STAGES.map((stage) => ({ label: stage.label }))}
           label="چرخه فرآیند: بررسی، طراحی، اجرا، اندازه‌گیری، بهبود — و بازگشت به بررسی"

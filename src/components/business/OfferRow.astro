@@ -2,28 +2,34 @@
 /**
  * OfferRow — one of the three core offers as a hairline-separated route
  * row (DESIGN §8: "offers are three hairline-separated route rows").
- * Square node = system station; hover fills the node. No cards, no pills.
+ * 2026-08-14: numbered ۰۱–۰۳ with a larger offer name; square node =
+ * system station, hover fills the node. No cards, no pills.
  */
 
 import type { Offer } from "../../data/site";
+import { toFaDigits } from "../../data/site";
 
 interface Props {
   offer: Offer;
   href: string;
+  index: number;
 }
 
-const { offer, href } = Astro.props;
+const { offer, href, index } = Astro.props;
 ---
 
 <article class="group border-t border-line py-8 lg:py-10">
   <div class="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,4fr)_minmax(0,3fr)] lg:gap-10">
     <div class="flex flex-col gap-3">
-      <div class="flex items-center gap-3">
+      <div class="flex items-baseline gap-4">
         <span
-          class="h-2 w-2 flex-none rounded-[1px] border border-line-strong bg-transparent transition-colors duration-150 group-hover:bg-primary"
+          class="h-2.5 w-2.5 flex-none self-center rounded-[1px] border border-line-strong bg-transparent transition-colors duration-150 group-hover:bg-primary"
           aria-hidden="true"
         ></span>
-        <h3 class="text-h3 text-text">{offer.name}</h3>
+        <div>
+          <span class="block text-meta text-text-faint tnum">{toFaDigits(String(index + 1).padStart(2, "0"))}</span>
+          <h3 class="mt-1 text-h3 text-text">{offer.name}</h3>
+        </div>
       </div>
       <p class="text-body text-text-muted measure-prose">{offer.summary}</p>
     </div>
@@ -38,14 +44,14 @@ const { offer, href } = Astro.props;
     </ul>
 
     <div class="flex flex-col items-start gap-4 lg:pt-1">
-      <p class="text-caption text-text-faint">{offer.framing}</p>
+      <p class="text-meta text-text-faint">{offer.framing}</p>
       <a
         href={href}
         class="inline-flex min-h-11 items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-text-action"
         data-event="service_opened"
         data-event-payload={JSON.stringify({ service: offer.id })}
       >
-        مشاهده جزئیات
+        {offer.id === "audit" ? "شروع با بررسی مسیر جذب" : "جزئیات همکاری"}
         <svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M19 12H5" />
           <path d="m12 19-7-7 7-7" />

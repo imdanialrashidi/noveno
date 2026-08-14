@@ -1,10 +1,13 @@
 ---
 /**
- * Header (DESIGN §8–9).
+ * Header (DESIGN §8–9, 2026-08-14 founder-directed redesign).
  * Desktop: hairline bottom border, non-sticky; nav Estedad 500 14px;
- * primary CTA. Mobile: compact sticky header with the CTA always
- * visible and a ≤44px menu trigger; the panel is MobileMenu.
- * Active nav link carries aria-current + a square node marker.
+ * theme toggle + primary CTA.
+ * Mobile: compact sticky header with THREE elements only — logo
+ * (never squeezed: shrink-0 + nowrap wordmark), theme toggle (44px),
+ * menu trigger (44px). The audit CTA moves into the opened menu where
+ * it has room; it is NOT forced into the compact bar (that squeeze is
+ * the rejected baseline). Active nav link carries aria-current.
  */
 
 import Logo from "../brand/Logo.astro";
@@ -25,7 +28,7 @@ const isCurrent = (href: string) =>
   <div class="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-3 px-5 max-[359px]:px-4 sm:px-8 lg:h-20 lg:gap-8">
     <a
       href="/"
-      class="inline-flex min-h-11 items-center gap-2.5 rounded-[4px] text-text"
+      class="inline-flex min-h-11 shrink-0 items-center gap-2.5 whitespace-nowrap rounded-[4px] text-text"
       aria-label="نوونو — صفحه اصلی"
     >
       <Logo />
@@ -51,29 +54,35 @@ const isCurrent = (href: string) =>
       ))}
     </nav>
 
-    <div class="flex items-center gap-2 lg:gap-3">
-      <ThemeToggle id="theme-toggle-desktop" class="hidden lg:inline-flex" />
-      <Button
-        href={CTA_URL}
-        class="px-3.5 text-sm max-[359px]:px-3 max-[359px]:text-[13px] lg:px-6"
-        ariaLabel="درخواست بررسی مسیر جذب"
-        data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"header"}' }}
-      >
-        <span class="hidden sm:inline">درخواست بررسی مسیر جذب</span>
-        <span class="sm:hidden">درخواست بررسی</span>
-      </Button>
-      <button
-        type="button"
-        class="inline-flex h-11 w-11 items-center justify-center rounded-[4px] text-text-muted transition-colors duration-150 hover:bg-surface-soft hover:text-text lg:hidden"
-        aria-expanded="false"
-        aria-controls="mobile-menu"
-        data-menu-trigger
-        aria-label="باز کردن منو"
-      >
-        <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
+    <div class="flex shrink-0 items-center gap-2 lg:gap-3">
+      <div class="hidden lg:block">
+        <ThemeToggle id="theme-toggle-desktop" />
+      </div>
+      <div class="hidden lg:block">
+        <Button
+          href={CTA_URL}
+          class="px-6"
+          ariaLabel="درخواست بررسی مسیر جذب"
+          data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"header"}' }}
+        >درخواست بررسی مسیر جذب</Button>
+      </div>
+      <div class="lg:hidden">
+        <ThemeToggle id="theme-toggle-mobile" />
+      </div>
+      <div class="lg:hidden">
+        <button
+          type="button"
+          class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[4px] text-text-muted transition-colors duration-150 hover:bg-surface-soft hover:text-text"
+          aria-expanded="false"
+          aria-controls="mobile-menu"
+          data-menu-trigger
+          aria-label="باز کردن منو"
+        >
+          <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
     </div>
   </div>
 </header>
@@ -87,8 +96,8 @@ const isCurrent = (href: string) =>
   const toggleDesktop = document.querySelector<HTMLButtonElement>("#theme-toggle-desktop");
   if (toggleDesktop) initThemeToggle(toggleDesktop);
 
-  const toggleMenu = document.querySelector<HTMLButtonElement>("#theme-toggle-menu");
-  if (toggleMenu) initThemeToggle(toggleMenu);
+  const toggleMobile = document.querySelector<HTMLButtonElement>("#theme-toggle-mobile");
+  if (toggleMobile) initThemeToggle(toggleMobile);
 
   const trigger = document.querySelector<HTMLButtonElement>("[data-menu-trigger]");
   const panel = document.querySelector<HTMLElement>("#mobile-menu");

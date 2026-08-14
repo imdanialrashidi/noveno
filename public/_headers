@@ -3,6 +3,10 @@
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
 
+# Optimized work previews are content-addressed by filename (WebP).
+/images/*
+  Cache-Control: public, max-age=31536000, immutable
+
 # Baseline security headers + a pragmatic CSP for a static Astro site:
 # - 'unsafe-inline' script-src covers the no-flash theme snippet
 #   (accepted plan note: no inline-script ban on the theme snippet);

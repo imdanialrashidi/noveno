@@ -1,17 +1,15 @@
 ---
 /**
- * JourneyLine — مسیر (DESIGN §4.1 pattern 1).
- * A right-to-left monoline route with stations; the route line passes
- * through the station nodes (monoline, §4.2). Two static renderings:
- * horizontal on desktop (nodes evenly distributed, line behind them,
- * labels below), vertical spine on mobile (labels beside nodes,
- * segments between). Line-style code: solid = real/current, dashed =
- * demo/recommended/future (§4.3). Square = system station (§4.2).
- * Geometry: 2px line, 6–8px square nodes (radius 1px), 4px gaps,
- * 12–13px Estedad labels adjacent to nodes — never inside them.
+ * JourneyLine — مسیر (DESIGN §4.1 pattern 1, 2026-08-14 redesign).
+ * The signature route grammar at scale: a full-width monoline with
+ * large square stations (22px nodes, 2px line, 15–18px HTML labels).
+ * Desktop: horizontal route with the line passing through the nodes;
+ * mobile: vertical spine with labels beside nodes. Square = system
+ * station; solid = real/current, dashed = demo/future (§4.2–4.3).
  *
  * Accessible name via a visually-hidden ordered list; the visual route
- * is aria-hidden and mirrors that list.
+ * is aria-hidden and mirrors that list. No SVG text anywhere — labels
+ * are real HTML text at readable sizes on every viewport.
  */
 
 export interface JourneyStation {
@@ -29,7 +27,7 @@ interface Props {
   loop?: boolean;
   /** Descriptive accessible name for the route. */
   label: string;
-  /** Compact variant — horizontal at all sizes (footer mini route). */
+  /** Compact variant — small inline motif (footer mini route only). */
   compact?: boolean;
 }
 
@@ -41,20 +39,14 @@ const lineClass =
     : "border-solid border-line-strong";
 
 const nodeClass = (active: boolean | undefined) =>
-  [
-    "flex-none rounded-[1px] h-1.5 w-1.5",
-    active
-      ? "bg-primary"
-      : variant === "dashed"
-        ? "border border-dashed border-line-strong"
-        : "border border-line-strong",
-  ].join(" ");
+  active
+    ? "route-node route-node--filled"
+    : variant === "dashed"
+      ? "route-node route-node--dashed"
+      : "route-node";
 
 const labelClass = (active: boolean | undefined) =>
-  [
-    "font-display font-medium leading-tight text-caption",
-    active ? "font-semibold text-text-action" : "text-text-muted",
-  ].join(" ");
+  active ? "route-label text-text-action" : "route-label";
 ---
 
 <div class={compact ? "" : "w-full"}>
@@ -68,13 +60,20 @@ const labelClass = (active: boolean | undefined) =>
   {compact ? (
     <div class="flex flex-wrap items-center gap-y-1.5" aria-hidden="true">
       {stations.map((station, index) => (
-        <div class="contents" >
+        <div class="contents">
           <div class="flex items-center gap-1.5">
-            <span class={nodeClass(station.active)}></span>
-            <span class={labelClass(station.active)}>{station.label}</span>
+            <span
+              class:list={[
+                "h-2.5 w-2.5 flex-none rounded-[1px]",
+                station.active ? "bg-primary" : variant === "dashed" ? "border border-dashed border-line-strong" : "border border-line-strong",
+              ]}
+            ></span>
+            <span class:list={["font-display font-medium leading-tight text-meta", station.active ? "text-text-action" : "text-text-muted"]}>
+              {station.label}
+            </span>
           </div>
           {index < stations.length - 1 && (
-            <span class:list={["mx-2 h-0 w-5 border-t-2", lineClass]}></span>
+            <span class:list={["mx-2 h-0 w-6 border-t-2", lineClass]}></span>
           )}
         </div>
       ))}
@@ -89,25 +88,25 @@ const labelClass = (active: boolean | undefined) =>
     </div>
   ) : (
     <>
-      {/* Desktop — horizontal route, line behind the nodes */}
+      {/* Desktop — horizontal route, 22px nodes, line behind them */}
       <div class="hidden lg:block" aria-hidden="true">
-        <div class="relative pt-2">
+        <div class="relative">
           <span
             class:list={[
-              "absolute inset-x-1 top-[10px] h-0 border-t-2",
+              "absolute inset-x-0 top-[11px] h-0 border-t-2",
               lineClass,
             ]}
           ></span>
-          <div class="relative flex justify-between gap-3">
+          <div class="relative flex items-start justify-between gap-4">
             {stations.map((station) => (
-              <div class="flex max-w-44 flex-1 flex-col items-center gap-1.5 text-center">
+              <div class="route-station">
                 <span class={nodeClass(station.active)}></span>
                 <span class={labelClass(station.active)}>{station.label}</span>
               </div>
             ))}
             {loop && (
               <span class="mt-1 flex-none text-line-strong" aria-hidden="true">
-                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M3 12a9 9 0 1 0 3-6.7" />
                   <path d="M3 4v5h5" />
                 </svg>
@@ -121,18 +120,18 @@ const labelClass = (active: boolean | undefined) =>
       <div class="lg:hidden" aria-hidden="true">
         <div class="flex flex-col items-start">
           {stations.map((station, index) => (
-            <div class="contents" >
-              <div class="flex items-center gap-2">
+            <div class="contents">
+              <div class="flex items-center gap-3">
                 <span class={nodeClass(station.active)}></span>
                 <span class={labelClass(station.active)}>{station.label}</span>
               </div>
               {index < stations.length - 1 && (
-                <span class:list={["ms-[3px] my-1 h-6 w-0 border-s-2", lineClass]}></span>
+                <span class:list={["ms-[10px] my-1.5 h-7 w-0 border-s-2", lineClass]}></span>
               )}
             </div>
           ))}
           {loop && (
-            <span class="ms-[3px] mt-1 text-line-strong" aria-hidden="true">
+            <span class="ms-[10px] mt-1.5 text-line-strong" aria-hidden="true">
               <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 12a9 9 0 1 0 3-6.7" />
                 <path d="M3 4v5h5" />

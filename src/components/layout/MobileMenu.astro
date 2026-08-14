@@ -1,15 +1,17 @@
 ---
 /**
- * MobileMenu (DESIGN §9.2 — no mega-menu).
- * Panel toggled by the header trigger; nav links are full-width ≥44px
- * targets; theme toggle + contact redundancy row are included. Focus
- * moves into the panel on open, Escape closes, focus returns to the
- * trigger (src/scripts/menu.ts).
+ * MobileMenu (DESIGN §9.2, 2026-08-14 redesign) — panel toggled by the
+ * header trigger. Composition is hierarchy-first:
+ *   1. full-width primary CTA (the audit request — the single conversion),
+ *   2. nav links (large ≥48px targets, square node markers),
+ *   3. direct contact row (redundancy per Spec §64.1).
+ * Theme toggle lives in the always-visible header row, so it is not
+ * duplicated here. Focus moves into the panel on open, Escape closes,
+ * focus returns to the trigger (src/scripts/menu.ts).
  */
 
 import Button from "../ui/Button.astro";
-import ThemeToggle from "./ThemeToggle.astro";
-import { NAV_LINKS, CTA_URL, CONTACT } from "../../data/site";
+import { NAV_LINKS, CTA_URL, PRIMARY_CTA_LABEL, CONTACT } from "../../data/site";
 
 const pathname = Astro.url.pathname;
 const isCurrent = (href: string) =>
@@ -21,20 +23,28 @@ const isCurrent = (href: string) =>
   hidden
   class="border-b border-line bg-canvas lg:hidden"
 >
-  <nav class="mx-auto max-w-[1200px] px-5 py-4 sm:px-8" aria-label="منوی موبایل">
-    <ul class="flex flex-col">
+  <nav class="mx-auto max-w-[1200px] px-5 py-5 sm:px-8" aria-label="منوی موبایل">
+    <Button
+      href={CTA_URL}
+      class="w-full"
+      size="lg"
+      data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"mobile-menu"}' }}
+    >{PRIMARY_CTA_LABEL}</Button>
+
+    <ul class="mt-6 flex flex-col">
       {NAV_LINKS.map((link) => (
-        <li class="border-b border-line last:border-b-0">
+        <li class="border-t border-line">
           <a
             href={link.href}
+            aria-current={isCurrent(link.href) ? "page" : undefined}
             class:list={[
-              "flex min-h-12 items-center gap-3 py-2 text-lg font-medium transition-colors duration-150",
+              "flex min-h-13 items-center gap-3 py-3 text-lg font-medium transition-colors duration-150",
               isCurrent(link.href) ? "text-text-action" : "text-text hover:text-text-action",
             ]}
           >
             <span
               class:list={[
-                "h-1.5 w-1.5 flex-none rounded-[1px]",
+                "h-2 w-2 flex-none rounded-[1px]",
                 isCurrent(link.href) ? "bg-primary" : "border border-line-strong",
               ]}
               aria-hidden="true"
@@ -45,27 +55,19 @@ const isCurrent = (href: string) =>
       ))}
     </ul>
 
-    <div class="mt-4 flex items-center justify-between gap-4">
-      <Button
-        href={CTA_URL}
-        class="flex-1"
-        data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"mobile-menu"}' }}
-      >درخواست بررسی</Button>
-      <ThemeToggle id="theme-toggle-menu" />
-    </div>
-
-    <p class="mt-6 mb-2 text-caption text-text-faint">تماس مستقیم</p>
-    <ul class="flex flex-col">
+    <p class="mt-6 mb-2 text-meta text-text-faint">تماس مستقیم</p>
+    <ul class="flex flex-col border-t border-line">
       <li>
-        <a href={CONTACT.phoneHref} class="flex min-h-11 items-center gap-2 text-ui font-medium text-text hover:text-text-action" data-event="phone_click" data-event-payload='{"section":"mobile-menu"}'>
-          <span class="text-caption tnum" dir="ltr">{CONTACT.phone}</span>
-          <span class="text-caption text-text-faint">(تماس)</span>
+        <a href={CONTACT.phoneHref} class="flex min-h-12 items-center gap-2 text-ui font-medium text-text hover:text-text-action" data-event="phone_click" data-event-payload='{"section":"mobile-menu"}'>
+          <span class="tnum" dir="ltr">{CONTACT.phone}</span>
+          <span class="text-meta text-text-faint">(تماس)</span>
         </a>
       </li>
-      <li class="flex flex-wrap gap-x-6 gap-y-1 py-1">
+      <li class="flex flex-wrap gap-x-6 gap-y-1 pb-1">
         <a href={CONTACT.whatsappHref} class="inline-flex min-h-11 items-center text-ui text-text-muted hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"mobile-menu","channel":"whatsapp"}'>واتساپ</a>
         <a href={CONTACT.telegramHref} class="inline-flex min-h-11 items-center text-ui text-text-muted hover:text-text-action" target="_blank" rel="noopener noreferrer" data-event="messaging_click" data-event-payload='{"section":"mobile-menu","channel":"telegram"}'>تلگرام</a>
         <a href={CONTACT.emailHref} class="inline-flex min-h-11 items-center text-ui text-text-muted hover:text-text-action">ایمیل</a>
+        <a href={CONTACT.instagramHref} class="inline-flex min-h-11 items-center text-ui text-text-muted hover:text-text-action" target="_blank" rel="noopener noreferrer">{CONTACT.instagramHandle}</a>
       </li>
     </ul>
   </nav>

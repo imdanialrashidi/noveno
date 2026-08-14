@@ -8,6 +8,7 @@
  */
 
 import PageLayout from "../layouts/PageLayout.astro";
+import PageHero from "../components/layout/PageHero.astro";
 import CTASection from "../components/layout/CTASection.astro";
 import Button from "../components/ui/Button.astro";
 import NextStepsRail from "../components/business/NextStepsRail.astro";
@@ -60,20 +61,15 @@ const channels = [
   description="راه‌های تماس با نوونو: تلفن ۰۹۳۵۳۵۹۸۶۲۰، واتساپ، تلگرام، ایمیل و اینستاگرام. یا درخواست بررسی مسیر جذب را ثبت کنید."
   path="/contact"
 >
-  <section aria-labelledby="contact-hero-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
-      <div class="relative border-b border-line">
-        <span class="section-node absolute -bottom-[3px] start-0" aria-hidden="true"></span>
-        <h1 id="contact-hero-title" class="text-h2 max-w-3xl pb-6">تماس مستقیم؛ هر کانالی که برای شما راحت‌تر است</h1>
-      </div>
-      <p class="mt-6 max-w-2xl text-lead text-text-muted">
-        چند کانال مستقل در دسترس است تا مسیر تماس هیچ‌وقت به یک نقطه وابسته نباشد. اگر سؤال کوتاهی دارید، مستقیم بپرسید.
-      </p>
-    </div>
-  </section>
+  <PageHero
+    id="contact-hero-title"
+    eyebrow="تماس با نوونو"
+    title="تماس مستقیم؛ هر کانالی که برای شما راحت‌تر است"
+    lead="چند کانال مستقل در دسترس است تا مسیر تماس هیچ‌وقت به یک نقطه وابسته نباشد. اگر سؤال کوتاهی دارید، مستقیم بپرسید."
+  />
 
   <!-- Channels -->
-  <section class="border-t border-line" aria-labelledby="channels-title">
+  <section class="border-t border-line" aria-label="راه‌های تماس">
     <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
       <ul class="flex flex-col">
         {channels.map((channel) => (

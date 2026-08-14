@@ -333,3 +333,43 @@ Evidence per `browser-qa` + the visual-quality rubric: screenshots with state pr
 | 2026-06 (bootstrap) | Persian-first RTL, system color-scheme default, persisted override, no theme flash | Accepted bootstrap prompt | Implementation validates |
 | 2026-08-11 (Slice 2 build, accepted within contract) | **(1) Form component set:** `FormField`/`Select`/`MultiSelect` built for the audit journey; the inventory's `Textarea` deferred until a field needs free text (no audit field does — no dead code). **(2) StepperLine state is client-driven:** the component renders build-time `current`; the audit script flips `data-state` (complete/current/upcoming) on stations and the mobile counter/bar — one visual contract, one markup source. **(3) Step/validation copy** follows §11 exactly («ارسال نشد؛ اتصال را بررسی کنید و دوباره تلاش کنید» + تلاش دوباره; offline variant emphasizes contact fallback; «بررسی امنیتی ناموفق بود» for Turnstile; «یک مورد را کامل کنید» step message). **(4) Turnstile renders inside the contact station** (fresh token at submit), re-renders on theme change, resets on retry. **(5) Thank-you route:** the six completed audit stations + dashed future stations «بررسی ← تماس ← گفتگو ← پیشنهاد» + «شما اینجا هستید» marker; the direct-visitor note hides before first paint via a head-script attribute (zero CLS on the submit path). **(6) Step-1 economics:** optional range select (۵–۲۰ میلیون تومان style ranges); skipping is allowed (privacy: no forced financial disclosure). | Browser evidence at 1440/390/320 both themes; CLS measured ≤ 0.03; trust-boundary tests | Revisit when a new surface needs the route language → design review |
 | 2026-06 (bootstrap) | Brand assets reused from `branding_assests/` (geometry) | Accepted bootstrap prompt | Asset pipeline at build |
+| 2026-08-14 | **Founder-directed visual redesign** (§18): route-band-at-scale execution replaces the small well-bound SVGs; hero = scatter → real CTA as station → large route; mobile header = logo + theme + menu only (CTA moves into the menu); work previews = real screenshots (real project) + labeled dashed wireframes (concepts); homepage recomposed to 10 sections; PageHero on all subpages; `ChannelMap`/`BeforeAfterJourney`/`ProofRow`/dot-grid `diagram-well` removed | Founder rejection of the Slice 1–2 execution with measured baseline evidence (§18.1); browser geometry audits at 320–1440 both themes | Any new surface needing the route language → design review |
+
+## 18. Founder-directed visual redesign (2026-08-14) — supersedes listed items
+
+The founder reviewed the rendered site and **rejected the Slice 1–2 visual execution**: hero diagram too small and technical, journey-line diagrams too thin/fragmented across the site, mobile header squeezed at 320px, work section lacking visual proof. This section records the accepted redesign (commit pending); where it conflicts with earlier sections, **this section wins**. Business truth, honesty grammar, tokens, themes, accessibility targets, performance budgets, and architecture are preserved.
+
+### 18.1 Rejected evidence (measured 2026-08-14, baseline build)
+
+- Hero visual anchor: 386×276px SVG in a dot-grid well beside the headline — reads as "text next to a tiny technical diagram".
+- Diagram labels 12–13px, nodes 5–8px (SVG text at 420–500px render width).
+- Mobile header at 320px: logo mark squeezed to 24px, CTA 94px with 13px text, menu/theme buttons 35px (below the 44px target).
+- Homepage: 12 sections, all `border-t + py-16/24`, repeated `heading → paragraph → diagram → columns` anatomy.
+- Proof section: text-only rows, no visual previews.
+
+### 18.2 Accepted execution — the Route Band (نوار مسیر) at scale
+
+The «مسیر» thesis is kept; the execution changes from many small well-bound SVGs to **one large full-width route grammar**:
+
+- **Signature:** the hero Route Band — scattered attention dots (اینستاگرام، گوگل، معرفی، تبلیغ) converge into the **real audit CTA link as the first station** (اقدام), then a 2px monoline continues through 22px square stations ثبت ← پیگیری ← نتیجه with 15–18px HTML labels. The visitor is literally placed on the route the site sells.
+- **Scale rules:** nodes ≥22px, line 2px, station labels 15–18px HTML text (never SVG text), labels adjacent below nodes. Mobile recomposes to a vertical spine (labels beside nodes, connectors between).
+- **Where the grammar appears (homepage):** hero band, system-model band (6 stages), process loop band — plus the footer mini motif, proof tags, thank-you route, and concept wireframes. The old `ChannelMap` (hero/system) and `BeforeAfterJourney` components are **deleted**; the system section keeps the channel→single-gate idea as a text row, and the problem section uses one scatter panel (chaos drawn) with the solution as the following route band.
+- `SystemArchitectureDiagram` (work detail) was rebuilt on the same grammar (entry row → gate → JourneyLine → dashed learning loop-back note). `JourneyLine` renders the route band in all non-compact usages.
+- The old dot-grid `diagram-well` class is removed; panels are hairline `surface` panels; full-bleed `surface-soft` bands are used for the hero route strip and the final CTA.
+
+### 18.3 Typography (supersedes §5.2 sizes)
+
+- Hero display: `clamp(2.5rem, 1.35rem + 4.6vw, 4.25rem)` (40→68px), weight 800. Page H1 (all non-home routes): new `text-h1-page` `clamp(1.875rem, 1.35rem + 2.2vw, 3rem)` (30→48px). H2 `clamp(1.5rem … 2.5rem)` (24→40px). H3 18→22px. Route labels 15–18px; meta labels 13px.
+
+### 18.4 Mobile header (supersedes §8/§9.2 anatomy)
+
+- Compact bar contains **three elements only**: logo (shrink-0, nowrap wordmark), 44px theme toggle, 44px menu trigger. The audit CTA is **not** forced into the bar; it becomes a full-width primary button at the top of the opened menu (≥48px), with nav links ≥48px and the contact row below. Verified no horizontal overflow at 320/360/390/430.
+
+### 18.5 Work previews (adds to §9 imagery priority)
+
+- Real project (`noveno-website`): real screenshots of the actual delivered site (homepage hero + audit form), captured from the production build, delivered as 1440×900 + 720×450 WebP (29–31KB), lazy, `width`/`height`, descriptive alt; 16:10 `.preview-stage` framing everywhere.
+- Concepts: dashed wireframe schematic (inline SVG, sketch grammar) with the fixed overlay tag «نمونه نمایشی — سناریوی مفهومی»; never implies a real client result. No stock imagery.
+
+### 18.6 Homepage recomposition (supersedes §8 section list)
+
+10 sections: hero (with route band) → problem (numbered list + scatter panel) → system model (route band + 6-stage grid + channel gate row) → offers (3 numbered rows) → proof (preview cards) → process (loop band) → fit (2 panels) → why Noveno (numbered rows + link to /about) → FAQ → final CTA (full-bleed band with next-steps panel). System-components and measurement sections moved off the homepage (they remain on /services and the process page).

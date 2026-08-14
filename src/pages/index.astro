@@ -1,22 +1,24 @@
 ---
 /**
- * Homepage (DESIGN §15 screens 1–5, Spec §10 sequence).
- * Hero → Problem Recognition → System Model → Core Offers → Proof →
- * System Components → Ideal Fit → Process → Measurement → Why Noveno →
- * FAQ → Final CTA.
+ * Homepage (DESIGN §15 screens 1–5, Spec §10 sequence; 2026-08-14
+ * founder-directed redesign). One conversion page:
+ * Hero → Problem → System Model → Offers → Proof → Process → Fit →
+ * Why Noveno → FAQ → Final CTA.
+ * The signature is the full-width Route Band: the audit CTA is the
+ * first station of a drawn path (اقدام ← ثبت ← پیگیری ← نتیجه) — the
+ * site literally places the visitor on the route it sells.
  */
 
 import PageLayout from "../layouts/PageLayout.astro";
 import Button from "../components/ui/Button.astro";
 import SectionHeader from "../components/layout/SectionHeader.astro";
 import CTASection from "../components/layout/CTASection.astro";
-import ChannelMap from "../components/business/ChannelMap.astro";
-import BeforeAfterJourney from "../components/business/BeforeAfterJourney.astro";
 import JourneyLine from "../components/business/JourneyLine.astro";
 import OfferRow from "../components/business/OfferRow.astro";
-import ProofRow from "../components/business/ProofRow.astro";
+import WorkCard from "../components/business/WorkCard.astro";
 import FAQItem from "../components/ui/FAQItem.astro";
 import { getCollection } from "astro:content";
+import { previewFor } from "../data/work-previews";
 import {
   HERO_HEADLINE,
   PRIMARY_CTA_LABEL,
@@ -26,11 +28,10 @@ import {
   OFFERS,
   SYSTEM_STAGES,
   PROCESS_STAGES,
-  SYSTEM_COMPONENTS,
   GOOD_FIT,
   BAD_FIT,
-  MEASURED_ACTIONS,
   FAQ_ITEMS,
+  toFaDigits,
 } from "../data/site";
 
 const proofEntries = (await getCollection("work"))
@@ -42,26 +43,34 @@ const homeFaq = FAQ_ITEMS.slice(0, 6);
 const jalali = (date: Date) => {
   return new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "long" }).format(date);
 };
+
+/* Hero scatter — attention dots (deterministic positions). */
+const SCATTER = [
+  { label: "اینستاگرام", x: 268, y: 34 },
+  { label: "گوگل", x: 92, y: 26 },
+  { label: "معرفی", x: 186, y: 92 },
+  { label: "تبلیغ", x: 34, y: 128 },
+] as const;
 ---
 
 <PageLayout
-  title="سیستم جذب مشتری برای کسب‌وکارهای خدماتی"
+  title="سیستم جذب مشتری برای کسب‌وکارهای خدماتی | نوونو"
   description="نوونو مسیر مشتری را از دیدن شما تا تماس، ثبت درخواست و پیگیری طراحی و اجرا می‌کند؛ بدون وعده فروش تضمینی. درخواست بررسی مسیر جذب را ثبت کنید."
   path="/"
 >
-  <!-- ============ Hero (screen 1) ============ -->
+  <!-- ============ Hero (screen 1) — the signature ============ -->
   <section aria-labelledby="hero-title">
-    <div class="mx-auto grid max-w-[1200px] items-center gap-12 px-5 py-14 sm:px-8 lg:grid-cols-12 lg:gap-10 lg:py-20">
-      <div class="flex flex-col items-start gap-6 lg:col-span-7">
-        <p class="flex items-center gap-2 text-caption font-medium text-text-faint">
-          <span class="h-1.5 w-1.5 rounded-[1px] bg-primary" aria-hidden="true"></span>
+    <div class="mx-auto max-w-[1200px] px-5 pt-14 sm:px-8 lg:pt-24">
+      <div class="max-w-3xl">
+        <p class="flex items-center gap-2 text-ui font-medium text-text-faint">
+          <span class="section-node" aria-hidden="true"></span>
           سیستم جذب مشتری برای کسب‌وکارهای خدماتی
         </p>
-        <h1 id="hero-title" class="text-display text-text">{HERO_HEADLINE}</h1>
-        <p class="text-lead text-text-muted measure-prose">
+        <h1 id="hero-title" class="mt-4 text-display text-text">{HERO_HEADLINE}</h1>
+        <p class="mt-6 text-lead text-text-muted measure-prose">
           نوونو برای کسب‌وکارهای خدماتی، مسیر مشتری را از دیدن شما تا تماس، ثبت درخواست و پیگیری طراحی و اجرا می‌کند.
         </p>
-        <div class="flex flex-wrap items-center gap-4">
+        <div class="mt-8 flex flex-wrap items-center gap-4">
           <Button
             href={CTA_URL}
             size="lg"
@@ -74,21 +83,122 @@ const jalali = (date: Date) => {
             data={{ "data-event": "secondary_cta_click", "data-event-payload": '{"section":"hero"}' }}
           >{SECONDARY_CTA_LABEL}</Button>
         </div>
-        <p class="text-caption text-text-faint">
+        <p class="mt-4 text-meta text-text-faint">
           بدون وعده فروش تضمینی؛ ابتدا مسیر فعلی کسب‌وکار بررسی می‌شود.
         </p>
       </div>
+    </div>
 
-      <div class="lg:col-span-5">
-        <div class="diagram-well rounded-[4px] p-6 sm:p-8">
-          <ChannelMap
-            id="hero-map"
-            channels={["اینستاگرام", "گوگل", "معرفی", "تبلیغ"]}
-            gate="صفحه / سایت"
-            stations={["اقدام", "ثبت", "پیگیری", "نتیجه"]}
-            description="کانال‌های پراکنده توجه (اینستاگرام، گوگل، معرفی، تبلیغ) از یک صفحه عبور می‌کنند و به یک مسیر قابل‌پیگیری می‌رسند: اقدام، ثبت، پیگیری و نتیجه."
-            animate
-          />
+    <!-- Route Band — the hero's visual anchor: scattered attention
+         converges into the CTA (اقدام), then the path continues
+         through ثبت ← پیگیری ← نتیجه. -->
+    <div class="mt-12 border-y border-line bg-surface-soft lg:mt-16">
+      <div class="mx-auto max-w-[1200px] px-5 py-10 sm:px-8 lg:py-12">
+        <!-- Desktop: scatter (right) → route (left) -->
+        <div class="hidden items-center gap-8 lg:flex lg:gap-12">
+          <!-- scatter: attention that has not become a record -->
+          <div class="w-72 shrink-0">
+            <svg viewBox="0 0 300 170" class="h-auto w-full" aria-hidden="true" focusable="false">
+              <g stroke="var(--line-strong)" stroke-width="1.5" fill="none">
+                <path class="jl-fade" style="animation-delay: 0.15s" d="M 258 40 C 220 44, 186 52, 158 66" />
+                <path class="jl-fade" style="animation-delay: 0.25s" d="M 96 34 C 120 44, 142 54, 160 64" />
+                <path class="jl-fade" style="animation-delay: 0.2s" d="M 186 100 C 178 90, 170 80, 162 70" />
+                <path class="jl-fade" style="animation-delay: 0.3s" d="M 40 134 C 80 120, 120 96, 158 72" />
+              </g>
+              {SCATTER.map((dot, i) => (
+                <g class="jl-fade" style={{ animationDelay: `${0.15 + i * 0.08}s` }}>
+                  <circle cx={dot.x} cy={dot.y} r="7" fill="var(--accent-strong)" />
+                  <text
+                    x={dot.x - 16}
+                    y={dot.y + 5}
+                    text-anchor="end"
+                    font-size="14"
+                    font-family="var(--font-display)"
+                    font-weight="500"
+                    fill="var(--text-muted)"
+                  >{dot.label}</text>
+                </g>
+              ))}
+            </svg>
+            <p class="mt-1 ps-1 text-meta text-text-faint">توجه در چند کانال پراکنده</p>
+          </div>
+
+          <!-- the route: CTA as first station, then the path -->
+          <div class="min-w-0 flex-1">
+            <p class="sr-only">
+              کانال‌های پراکنده توجه (اینستاگرام، گوگل، معرفی، تبلیغ) از اقدام شما — ثبت درخواست بررسی مسیر — وارد یک مسیر می‌شوند: ثبت، پیگیری، نتیجه.
+            </p>
+            <div class="relative">
+              <span class="route-grow absolute inset-x-0 top-[27px] h-0 border-t-2 border-line-strong" aria-hidden="true"></span>
+              <div class="relative flex items-start justify-between gap-4">
+                <!-- station 0: the CTA itself -->
+                <div class="flex flex-col items-center gap-2.5">
+                  <a
+                    href={CTA_URL}
+                    class="inline-flex min-h-14 items-center justify-center gap-2 rounded-[4px] bg-primary px-6 font-display text-ui font-semibold text-on-primary transition-colors duration-150 hover:bg-primary-hover active:bg-primary-active sm:px-8"
+                    data-event="primary_cta_click"
+                    data-event-payload='{"section":"hero-band"}'
+                  >{PRIMARY_CTA_LABEL}</a>
+                  <span class="text-meta text-text-faint" aria-hidden="true">اقدام شما</span>
+                </div>
+                {["ثبت", "پیگیری", "نتیجه"].map((station, i) => (
+                  <div class="flex flex-col items-center gap-2.5" aria-hidden="true">
+                    <span
+                      class:list={[
+                        "route-node mt-[17px]",
+                        i === 2 ? "route-node--filled" : "",
+                      ]}
+                    ></span>
+                    <span class:list={["route-label", i === 2 ? "" : "route-label--muted"]}>{station}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile: scatter chips → CTA → vertical spine -->
+        <div class="lg:hidden">
+          <p class="sr-only">
+            کانال‌های پراکنده توجه (اینستاگرام، گوگل، معرفی، تبلیغ) از اقدام شما — ثبت درخواست بررسی مسیر — وارد یک مسیر می‌شوند: ثبت، پیگیری، نتیجه.
+          </p>
+          <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+            {SCATTER.map((dot) => (
+              <span class="flex items-center gap-1.5 text-ui text-text-muted">
+                <span class="h-2 w-2 rounded-full bg-accent-strong" aria-hidden="true"></span>
+                {dot.label}
+              </span>
+            ))}
+          </div>
+          <p class="mt-2 text-meta text-text-faint">توجه در چند کانال پراکنده — از اقدام شما وارد یک مسیر می‌شود.</p>
+
+          <div class="mt-6 flex flex-col items-start">
+            <a
+              href={CTA_URL}
+              class="inline-flex min-h-14 items-center justify-center gap-2 rounded-[4px] bg-primary px-7 font-display text-ui font-semibold text-on-primary transition-colors duration-150 hover:bg-primary-hover active:bg-primary-active"
+              data-event="primary_cta_click"
+              data-event-payload='{"section":"hero-band"}'
+            >{PRIMARY_CTA_LABEL}</a>
+            <span class="ms-[10px] my-2 h-6 w-0 border-s-2 border-line-strong" aria-hidden="true"></span>
+            <div class="flex flex-col items-start">
+              {["ثبت", "پیگیری", "نتیجه"].map((station, i) => (
+                <div class="contents">
+                  <div class="flex items-center gap-3" aria-hidden="true">
+                    <span
+                      class:list={[
+                        "route-node",
+                        i === 2 ? "route-node--filled" : "",
+                      ]}
+                    ></span>
+                    <span class:list={["route-label", i === 2 ? "" : "route-label--muted"]}>{station}</span>
+                  </div>
+                  {i < 2 && (
+                    <span class="ms-[10px] my-2 h-6 w-0 border-s-2 border-line-strong" aria-hidden="true"></span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -96,30 +206,81 @@ const jalali = (date: Date) => {
 
   <!-- ============ Problem Recognition (screen 2) ============ -->
   <section class="border-t border-line" aria-labelledby="problem-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
-      <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
-        <div class="lg:col-span-5">
-          <SectionHeader
-            id="problem-title"
-            title="مشکل همیشه کمبود بازدید نیست؛ گاهی مسیر بعد از بازدید خراب است."
-            lead="بازدید دارید، اما درخواست گم می‌شود: پیام در دایرکت می‌ماند، تماس ثبت نمی‌شود، پیگیری منظم نیست و هیچ‌کس نمی‌داند کدام کانال نتیجه داده است."
-          />
-          <ul class="flex flex-col gap-3">
-            {[
-              "درخواست‌ها در چند مسیر پراکنده می‌آیند (دایرکت، تماس، پیام، معرفی)",
-              "ثبت منظمی وجود ندارد؛ منبع ورودی معلوم نیست",
-              "پیگیری به حافظه وابسته است و نامنظم می‌شود",
-              "نتیجه نهایی برای هیچ‌کس مشخص نیست",
-            ].map((item) => (
-              <li class="flex items-start gap-2.5 text-body text-text-muted">
-                <span class="mt-2.5 h-1.5 w-1.5 flex-none rounded-[1px] border border-line-strong" aria-hidden="true"></span>
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div class="lg:col-span-7">
-          <BeforeAfterJourney />
+    <div class="mx-auto grid max-w-[1200px] gap-10 px-5 py-16 sm:px-8 lg:grid-cols-12 lg:gap-16 lg:py-28">
+      <div class="flex flex-col items-start gap-8 lg:col-span-5">
+        <SectionHeader
+          id="problem-title"
+          title="مشکل همیشه کمبود بازدید نیست؛ گاهی مسیر بعد از بازدید خراب است."
+          lead="بازدید دارید، اما درخواست گم می‌شود: پیام در دایرکت می‌ماند، تماس ثبت نمی‌شود، پیگیری منظم نیست و هیچ‌کس نمی‌داند کدام کانال نتیجه داده است."
+        />
+        <ol class="flex flex-col">
+          {[
+            "درخواست‌ها در چند مسیر پراکنده می‌آیند (دایرکت، تماس، پیام، معرفی)",
+            "ثبت منظمی وجود ندارد؛ منبع ورودی معلوم نیست",
+            "پیگیری به حافظه وابسته است و نامنظم می‌شود",
+            "نتیجه نهایی برای هیچ‌کس مشخص نیست",
+          ].map((item, i) => (
+            <li class="flex items-baseline gap-4 border-t border-line py-4">
+              <span class="text-meta text-text-faint tnum">{toFaDigits(String(i + 1).padStart(2, "0"))}</span>
+              <span class="text-body font-medium text-text">{item}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <!-- before-state: scatter with no path (the problem, drawn) -->
+      <div class="lg:col-span-7">
+        <div class="panel overflow-hidden">
+          <div class="flex items-center justify-between gap-4 border-b border-line px-6 py-4">
+            <p class="flex items-center gap-2 text-ui font-semibold text-text">
+              <span class="h-2 w-2 rounded-[1px] bg-accent-strong" aria-hidden="true"></span>
+              امروز — چند کانال، بدون مسیر
+            </p>
+            <span class="text-meta text-text-faint">درخواست‌ها گم می‌شوند</span>
+          </div>
+          <div class="scatter-field relative h-72 sm:h-80 lg:h-96">
+            <p class="sr-only">
+              کانال‌های پراکنده (اینستاگرام، گوگل، معرفی، تبلیغ، تماس مستقیم، مشتری قبلی) بدون مسیر؛ درخواست بی‌پاسخ و پیگیری نامنظم در انتهای آن‌ها.
+            </p>
+            <svg viewBox="0 0 640 380" class="absolute inset-0 h-full w-full" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid meet">
+              {[
+                ["اینستاگرام", 500, 96, "accent"],
+                ["گوگل", 214, 66, "accent"],
+                ["معرفی", 356, 168, "accent"],
+                ["تبلیغ", 96, 148, "accent"],
+                ["تماس مستقیم", 552, 232, "accent"],
+                ["مشتری قبلی", 262, 284, "accent"],
+              ].map(([label, x, y, kind]) => (
+                <g>
+                  <circle cx={Number(x)} cy={Number(y)} r="8" fill={kind === "accent" ? "var(--accent-strong)" : "var(--line-strong)"} />
+                  <text
+                    x={Number(x) + 16}
+                    y={Number(y) + 5}
+                    font-size="15"
+                    font-family="var(--font-display)"
+                    font-weight="500"
+                    fill="var(--text-muted)"
+                  >{label as string}</text>
+                </g>
+              ))}
+              {[
+                ["درخواست بی‌پاسخ", 76, 236],
+                ["پیگیری نامنظم", 396, 330],
+              ].map(([label, x, y]) => (
+                <g>
+                  <circle cx={Number(x)} cy={Number(y)} r="8" fill="none" stroke="var(--line-strong)" stroke-width="2" stroke-dasharray="4 4" />
+                  <text
+                    x={Number(x) + 16}
+                    y={Number(y) + 5}
+                    font-size="15"
+                    font-family="var(--font-display)"
+                    font-weight="500"
+                    fill="var(--text-faint)"
+                  >{label as string}</text>
+                </g>
+              ))}
+            </svg>
+          </div>
         </div>
       </div>
     </div>
@@ -127,71 +288,67 @@ const jalali = (date: Date) => {
 
   <!-- ============ System Model (screen 3) ============ -->
   <section class="border-t border-line" aria-labelledby="system-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-28">
       <SectionHeader
         id="system-title"
         title="سیستم جذب: از پراکندگی به یک مسیر"
         lead="شش مرحله‌ای که هر کانال ورودی از آن عبور می‌کند تا توجه به یک درخواست ثبت‌شده و قابل‌پیگیری تبدیل شود."
       />
 
-      <div class="diagram-well rounded-[4px] p-6 sm:p-10">
+      <div class="panel px-6 py-10 sm:px-10 lg:px-14 lg:py-14">
         <JourneyLine
           stations={SYSTEM_STAGES.map((stage) => ({ label: stage.label }))}
           label="شش مرحله سیستم جذب: جذب، متقاعدسازی، اقدام، ثبت، پیگیری، یادگیری"
         />
       </div>
 
-      <dl class="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-        {SYSTEM_STAGES.map((stage) => (
-          <div class="border-t border-line pt-4">
-            <dt class="flex items-center gap-2 text-ui font-semibold text-text">
-              <span class="h-1.5 w-1.5 flex-none rounded-[1px] bg-primary" aria-hidden="true"></span>
-              {stage.label}
-            </dt>
-            <dd class="mt-2 text-body text-text-muted">{stage.description}</dd>
-          </div>
+      <ol class="mt-12 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-6">
+        {SYSTEM_STAGES.map((stage, i) => (
+          <li class="border-t-2 border-line pt-5">
+            <span class="text-meta text-text-faint tnum">مرحله {toFaDigits(i + 1)}</span>
+            <h3 class="mt-2 text-ui font-semibold text-text">{stage.label}</h3>
+            <p class="mt-2 text-body text-text-muted">{stage.description}</p>
+          </li>
         ))}
-      </dl>
+      </ol>
 
-      <div class="mt-14 grid items-center gap-10 lg:grid-cols-12">
-        <div class="lg:col-span-5">
-          <h3 class="text-h3 text-text">همه کانال‌ها از یک نقطه ثبت عبور می‌کنند</h3>
-          <p class="mt-4 text-body text-text-muted measure-prose">
-            اینستاگرام، گوگل، معرفی یا تبلیغ — فرقی ندارد از کجا آمده‌اید. مسیر طوری طراحی می‌شود که هر توجهی به یک نقطه واحد برسد: صفحه‌ای که درخواست را ثبت می‌کند و منبع ورودی را نگه می‌دارد.
-          </p>
-        </div>
-        <div class="lg:col-span-7">
-          <ChannelMap
-            id="system-map"
-            channels={["اینستاگرام", "گوگل", "معرفی"]}
-            gate="فرم / تماس / واتساپ"
-            stations={["لید ثبت‌شده", "پیگیری", "نتیجه"]}
-            description="کانال‌های ورودی از یک درگاه واحد (فرم، تماس یا واتساپ) به مسیر ثبت، پیگیری و نتیجه می‌رسند."
-          />
-        </div>
+      <div class="mt-12 flex flex-wrap items-center gap-x-3 gap-y-3 border-t border-line pt-6">
+        <span class="text-meta text-text-faint">همه کانال‌ها —</span>
+        {["اینستاگرام", "گوگل", "معرفی", "تبلیغ"].map((channel) => (
+          <span class="flex items-center gap-1.5 text-ui text-text-muted">
+            <span class="h-2 w-2 rounded-full bg-accent-strong" aria-hidden="true"></span>
+            {channel}
+          </span>
+        ))}
+        <svg viewBox="0 0 24 24" class="h-4 w-4 text-line-strong" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14" />
+          <path d="m12 5 7 7-7 7" />
+        </svg>
+        <span class="text-ui font-semibold text-text">یک نقطه ثبت واحد</span>
+        <span class="hidden text-meta text-text-faint sm:inline">— و پس از آن، پیگیری و اندازه‌گیری.</span>
       </div>
     </div>
   </section>
 
   <!-- ============ Core Offers (screen 4) ============ -->
   <section class="border-t border-line" aria-labelledby="offers-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-28">
       <SectionHeader
         id="offers-title"
         title="سه شکل همکاری"
         lead="نه فهرست بلندبالای خدمات؛ سه مسیر مشخص که بسته به وضعیت کسب‌وکار انتخاب می‌شوند."
       />
-      <div>
-        {OFFERS.map((offer) => (
-          <OfferRow offer={offer} href={offer.id === "audit" ? CTA_URL : "/services#offers"} />
+      <div class="border-b border-line">
+        {OFFERS.map((offer, index) => (
+          <OfferRow offer={offer} index={index} href={offer.id === "audit" ? CTA_URL : "/services#offers"} />
         ))}
       </div>
     </div>
   </section>
 
-  <!-- ============ Proof (screen 5) ============ -->
+  <!-- ============ Proof (screen 5) — work with real previews ============ -->
   <section class="border-t border-line" aria-labelledby="proof-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-28">
       <SectionHeader
         id="proof-title"
         title="کارهایی که می‌سازیم"
@@ -199,7 +356,7 @@ const jalali = (date: Date) => {
       />
       <div class="flex flex-col">
         {proofEntries.map((entry) => (
-          <ProofRow
+          <WorkCard
             kind={entry.data.type}
             title={entry.data.title}
             summary={entry.data.summary}
@@ -212,6 +369,7 @@ const jalali = (date: Date) => {
                   ? "نمونه نمایشی — بدون داده عملکردی"
                   : undefined
             }
+            preview={previewFor(entry.id)}
           />
         ))}
         <div class="flex items-center justify-between gap-4 border-t border-line pt-6">
@@ -224,26 +382,27 @@ const jalali = (date: Date) => {
     </div>
   </section>
 
-  <!-- ============ System Components ============ -->
-  <section class="border-t border-line" aria-labelledby="components-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
-      <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
-        <div class="lg:col-span-5">
-          <SectionHeader
-            id="components-title"
-            title="اجزایی که یک سیستم می‌سازند"
-            lead="این‌ها محصول‌های جدا نیستند؛ بلوک‌های ساختمانی‌اند. Noveno فقط اجزایی را انتخاب می‌کند که مشکل واقعی کسب‌وکار به آن‌ها نیاز دارد."
+  <!-- ============ Process (screen 4) — the cycle ============ -->
+  <section class="border-t border-line" aria-labelledby="process-title">
+    <div class="mx-auto grid max-w-[1200px] items-start gap-10 px-5 py-16 sm:px-8 lg:grid-cols-12 lg:gap-16 lg:py-28">
+      <div class="flex flex-col items-start gap-6 lg:col-span-5">
+        <SectionHeader
+          id="process-title"
+          title="یک چرخه، نه تحویل و خداحافظی"
+          lead="بررسی ← طراحی ← اجرا ← اندازه‌گیری ← بهبود؛ و دوباره از اول. هر دور، بر اساس داده واقعی، مسیر را بهتر می‌کند."
+        />
+        <Button href="/process" variant="secondary">فرآیند کامل</Button>
+      </div>
+      <div class="lg:col-span-7">
+        <div class="panel px-6 py-10 sm:px-10 lg:px-12 lg:py-12">
+          <JourneyLine
+            stations={PROCESS_STAGES.map((stage) => ({ label: stage.label }))}
+            label="فرآیند پنج مرحله‌ای: بررسی، طراحی، اجرا، اندازه‌گیری، بهبود — به صورت چرخه"
+            loop
           />
-        </div>
-        <div class="lg:col-span-7">
-          <ul class="grid grid-cols-2 gap-px overflow-hidden rounded-[4px] border border-line bg-line sm:grid-cols-3">
-            {SYSTEM_COMPONENTS.map((component) => (
-              <li class="flex items-center gap-2.5 bg-canvas p-4">
-                <span class="h-1.5 w-1.5 flex-none rounded-[1px] border border-line-strong" aria-hidden="true"></span>
-                <span class="text-ui font-medium text-text">{component}</span>
-              </li>
-            ))}
-          </ul>
+          <p class="mt-8 text-meta text-text-faint">
+            چرخه‌ای که بعد از هر دور، بر اساس داده‌ای که همان دور جمع شده، دقیق‌تر می‌شود.
+          </p>
         </div>
       </div>
     </div>
@@ -251,83 +410,33 @@ const jalali = (date: Date) => {
 
   <!-- ============ Ideal Fit (Spec §23) ============ -->
   <section class="border-t border-line" aria-labelledby="fit-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
-      <SectionHeader id="fit-title" title="Noveno برای همه مناسب نیست." />
-      <div class="grid gap-10 lg:grid-cols-2 lg:gap-16">
-        <div>
-          <p class="mb-5 flex items-center gap-2 text-ui font-semibold text-text">
-            <span class="h-2 w-2 rounded-[1px] bg-primary" aria-hidden="true"></span>
+    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-28">
+      <SectionHeader id="fit-title" title="Noveno برای همه مناسب نیست." lead="این صراحت به نفع هر دو طرف است؛ همکاری نامناسب برای هیچ‌کس ارزش نمی‌سازد." />
+      <div class="grid gap-6 lg:grid-cols-2 lg:gap-10">
+        <div class="panel p-6 sm:p-8">
+          <p class="mb-6 flex items-center gap-2.5 text-ui font-semibold text-text">
+            <span class="h-2.5 w-2.5 rounded-[1px] bg-primary" aria-hidden="true"></span>
             اگر این‌ها شبیه شماست
           </p>
-          <ul class="flex flex-col gap-3">
+          <ul class="flex flex-col gap-4">
             {GOOD_FIT.map((item) => (
-              <li class="flex items-start gap-2.5 text-body text-text-muted">
-                <span class="mt-2.5 h-2 w-2 flex-none rounded-[1px] bg-primary" aria-hidden="true"></span>
+              <li class="flex items-start gap-3 text-body text-text-muted">
+                <span class="mt-2 h-2 w-2 flex-none rounded-[1px] bg-primary" aria-hidden="true"></span>
                 {item}
               </li>
             ))}
           </ul>
         </div>
-        <div>
-          <p class="mb-5 flex items-center gap-2 text-ui font-semibold text-text">
-            <span class="h-2 w-2 rounded-[1px] border border-dashed border-line-strong" aria-hidden="true"></span>
+        <div class="panel p-6 sm:p-8">
+          <p class="mb-6 flex items-center gap-2.5 text-ui font-semibold text-text">
+            <span class="h-2.5 w-2.5 rounded-[1px] border border-dashed border-line-strong" aria-hidden="true"></span>
             اگر دنبال این‌ها هستید
           </p>
-          <ul class="flex flex-col gap-3">
+          <ul class="flex flex-col gap-4">
             {BAD_FIT.map((item) => (
-              <li class="flex items-start gap-2.5 text-body text-text-muted">
-                <span class="mt-2.5 h-2 w-2 flex-none rounded-[1px] border border-dashed border-line-strong" aria-hidden="true"></span>
+              <li class="flex items-start gap-3 text-body text-text-muted">
+                <span class="mt-2 h-2 w-2 flex-none rounded-[1px] border border-dashed border-line-strong" aria-hidden="true"></span>
                 {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ Process (screen 4) ============ -->
-  <section class="border-t border-line" aria-labelledby="process-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
-      <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
-        <div class="lg:col-span-5">
-          <SectionHeader
-            id="process-title"
-            title="یک چرخه، نه تحویل و خداحافظی"
-            lead="بررسی ← طراحی ← اجرا ← اندازه‌گیری ← بهبود؛ و دوباره از اول. هر دور، بر اساس داده واقعی، مسیر را بهتر می‌کند."
-          />
-          <Button href="/process" variant="secondary">فرآیند کامل</Button>
-        </div>
-        <div class="lg:col-span-7">
-          <div class="diagram-well rounded-[4px] p-6 sm:p-10">
-            <JourneyLine
-              stations={PROCESS_STAGES.map((stage) => ({ label: stage.label }))}
-              label="فرآیند پنج مرحله‌ای: بررسی، طراحی، اجرا، اندازه‌گیری، بهبود — به صورت چرخه"
-              loop
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ Measurement ============ -->
-  <section class="border-t border-line" aria-labelledby="measure-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
-      <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
-        <div class="lg:col-span-5">
-          <SectionHeader
-            id="measure-title"
-            title="اگر اندازه نگیریم، نمی‌دانیم چه چیزی بهتر شده است."
-            lead="شاخص‌های هر پروژه بر اساس مدل کسب‌وکار و مسیر مشتری تعیین می‌شوند؛ معیارهای نمایشی معیار نیستند."
-          />
-        </div>
-        <div class="lg:col-span-7">
-          <ul class="grid grid-cols-2 gap-px overflow-hidden rounded-[4px] border border-line bg-line sm:grid-cols-3">
-            {MEASURED_ACTIONS.map((action) => (
-              <li class="flex items-center gap-2.5 bg-canvas p-4">
-                <span class="h-1.5 w-1.5 flex-none rounded-[1px] bg-primary" aria-hidden="true"></span>
-                <span class="text-ui font-medium text-text">{action}</span>
               </li>
             ))}
           </ul>
@@ -338,9 +447,9 @@ const jalali = (date: Date) => {
 
   <!-- ============ Why Noveno ============ -->
   <section class="border-t border-line" aria-labelledby="why-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-28">
       <SectionHeader id="why-title" title="چرا نوونو" lead="اصل‌هایی که جای ادعای بزرگ می‌نشینند." />
-      <div class="grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+      <ol class="grid gap-x-14 sm:grid-cols-2">
         {[
           { title: "کسب‌وکار اول", text: "فناوری در خدمت مسئله کسب‌وکار است، نه برعکس." },
           { title: "سیستم ساده", text: "پیچیدگی غیرضروری هزینه دارد؛ فقط آنچه لازم است ساخته می‌شود." },
@@ -348,40 +457,42 @@ const jalali = (date: Date) => {
           { title: "اندازه‌گیری‌محور", text: "اقدام‌های مهم مشتری تا جایی که عملی باشد قابل ثبت و مقایسه می‌شوند." },
           { title: "AI کمک می‌کند، انسان تصمیم می‌گیرد", text: "از AI برای تحلیل و سرعت استفاده می‌کنیم؛ خروجی‌های مهم قبل از استفاده بررسی می‌شوند." },
           { title: "بدون تضمین دروغین", text: "فروش تضمین نمی‌شود؛ نتیجه تا جایی که داده اجازه دهد اندازه‌گیری و گزارش می‌شود." },
-        ].map((item) => (
-          <div class="border-t border-line pt-4">
-            <h3 class="flex items-center gap-2 text-ui font-semibold text-text">
+        ].map((item, i) => (
+          <li class="border-t border-line py-6">
+            <span class="text-meta text-text-faint tnum">{toFaDigits(String(i + 1).padStart(2, "0"))}</span>
+            <h3 class="mt-2 flex items-center gap-2 text-ui font-semibold text-text">
               <span class="h-1.5 w-1.5 flex-none rounded-[1px] bg-primary" aria-hidden="true"></span>
               {item.title}
             </h3>
             <p class="mt-2 text-body text-text-muted">{item.text}</p>
-          </div>
+          </li>
         ))}
-      </div>
+      </ol>
+      <p class="mt-10 border-t border-line pt-6 text-body text-text-muted">
+        <a href="/about" class="text-link">بخوانید چرا نوونو وجود دارد و چگونه کار می‌کند</a> — و این وب‌سایت چطور با همین اصول ساخته شده است.
+      </p>
     </div>
   </section>
 
   <!-- ============ FAQ ============ -->
   <section class="border-t border-line" aria-labelledby="faq-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
-      <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
-        <div class="lg:col-span-5">
-          <SectionHeader
-            id="faq-title"
-            title="سؤال‌هایی که معمولاً پیش می‌آید"
-            lead="اگر سؤال دیگری دارید، مستقیم بپرسید — بدون فرم‌های واسطه."
-          />
-          <Button href={CONTACT.phoneHref} variant="secondary">
-            تماس مستقیم
-            <span class="text-caption tnum" dir="ltr">{CONTACT.phone}</span>
-          </Button>
-        </div>
-        <div class="lg:col-span-7">
-          <div class="border-t border-line">
-            {homeFaq.map((item) => (
-              <FAQItem question={item.q} answer={item.a} />
-            ))}
-          </div>
+    <div class="mx-auto grid max-w-[1200px] gap-10 px-5 py-16 sm:px-8 lg:grid-cols-12 lg:gap-16 lg:py-28">
+      <div class="flex flex-col items-start gap-6 lg:col-span-5">
+        <SectionHeader
+          id="faq-title"
+          title="سؤال‌هایی که معمولاً پیش می‌آید"
+          lead="اگر سؤال دیگری دارید، مستقیم بپرسید — بدون فرم‌های واسطه."
+        />
+        <Button href={CONTACT.phoneHref} variant="secondary">
+          تماس مستقیم
+          <span class="text-caption tnum" dir="ltr">{CONTACT.phone}</span>
+        </Button>
+      </div>
+      <div class="lg:col-span-7">
+        <div class="border-t border-line">
+          {homeFaq.map((item) => (
+            <FAQItem question={item.q} answer={item.a} />
+          ))}
         </div>
       </div>
     </div>

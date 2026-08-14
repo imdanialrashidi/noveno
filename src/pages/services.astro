@@ -9,6 +9,7 @@
 
 import PageLayout from "../layouts/PageLayout.astro";
 import Button from "../components/ui/Button.astro";
+import PageHero from "../components/layout/PageHero.astro";
 import SectionHeader from "../components/layout/SectionHeader.astro";
 import CTASection from "../components/layout/CTASection.astro";
 import OfferRow from "../components/business/OfferRow.astro";
@@ -26,36 +27,30 @@ import {
 ---
 
 <PageLayout
-  title="خدمات — سیستم جذب مشتری"
+  title="خدمات نوونو — بررسی مسیر جذب و سیستم جذب مشتری"
   description="سه شکل همکاری نوونو: بررسی مسیر جذب، طراحی و اجرای سیستم جذب، بهبود و همراهی ماهانه. پروژه‌ها پس از بررسی مسیر، Scope می‌شوند."
   path="/services"
 >
   <!-- Hero -->
-  <section aria-labelledby="services-hero-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
-      <div class="relative border-b border-line">
-        <span class="section-node absolute -bottom-[3px] start-0" aria-hidden="true"></span>
-        <h1 id="services-hero-title" class="text-h2 max-w-3xl pb-6">
-          نه فهرست خدمات؛ سه مسیر مشخص بر اساس مشکل واقعی شما
-        </h1>
-      </div>
-      <p class="mt-6 max-w-2xl text-lead text-text-muted">
-        هر همکاری با یک بررسی شروع می‌شود: مسیر فعلی جذب شما کجاست، کجا درخواست گم می‌شود، و کدام اجزا واقعاً لازم‌اند.
-      </p>
-      <div class="mt-8 flex flex-wrap gap-4">
-        <Button href={CTA_URL} size="lg">{PRIMARY_CTA_LABEL}</Button>
-        <Button href="/work" variant="secondary" size="lg">دیدن پروژه‌ها</Button>
-      </div>
+  <PageHero
+    id="services-hero-title"
+    eyebrow="خدمات نوونو"
+    title="نه فهرست خدمات؛ سه مسیر مشخص بر اساس مشکل واقعی شما"
+    lead="هر همکاری با یک بررسی شروع می‌شود: مسیر فعلی جذب شما کجاست، کجا درخواست گم می‌شود، و کدام اجزا واقعاً لازم‌اند."
+  >
+    <div class="mt-8 flex flex-wrap gap-4">
+      <Button href={CTA_URL} size="lg">{PRIMARY_CTA_LABEL}</Button>
+      <Button href="/work" variant="secondary" size="lg">دیدن پروژه‌ها</Button>
     </div>
-  </section>
+  </PageHero>
 
   <!-- Three offers as route rows -->
   <section class="border-t border-line" id="offers" aria-labelledby="offers-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
       <SectionHeader id="offers-title" title="سه شکل همکاری" />
       <div class="border-b border-line">
-        {OFFERS.map((offer) => (
-          <OfferRow offer={offer} href={CTA_URL} />
+        {OFFERS.map((offer, index) => (
+          <OfferRow offer={offer} index={index} href={offer.id === "audit" ? CTA_URL : "/services#offers"} />
         ))}
       </div>
     </div>

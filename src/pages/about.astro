@@ -7,6 +7,7 @@
  */
 
 import PageLayout from "../layouts/PageLayout.astro";
+import PageHero from "../components/layout/PageHero.astro";
 import SectionHeader from "../components/layout/SectionHeader.astro";
 import CTASection from "../components/layout/CTASection.astro";
 import Button from "../components/ui/Button.astro";
@@ -19,20 +20,20 @@ import { PROCESS_STAGES, CONTACT } from "../data/site";
   description="چرا نوونو وجود دارد، چه باوری دارد و چگونه کار می‌کند: سیستمی برای جذب مشتری که خودش هم با همین اصول ساخته شده است."
   path="/about"
 >
-  <section aria-labelledby="about-hero-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
-      <div class="relative border-b border-line">
-        <span class="section-node absolute -bottom-[3px] start-0" aria-hidden="true"></span>
-        <h1 id="about-hero-title" class="text-h2 max-w-3xl pb-6">نوونو چرا وجود دارد</h1>
-      </div>
-      <p class="mt-6 max-w-2xl text-lead text-text-muted">
-        خیلی از کسب‌وکارهای خدماتی مشکل «نداشتن مشتری» ندارند؛ مشکل «ندیدن مسیر» دارند. درخواست می‌آید، اما در پیام‌ها گم می‌شود؛ کانال نتیجه می‌دهد، اما کسی نمی‌داند کدام کانال.
-      </p>
-      <p class="mt-4 max-w-2xl text-body text-text-muted">
-        نوونو برای همین به وجود آمد: تبدیل توجه پراکنده به یک مسیر قابل‌پیگیری — از دیدن شما تا تماس، ثبت درخواست، پیگیری و نتیجه. این وب‌سایت هم با همین اصول ساخته شده است.
-      </p>
+  <PageHero
+    id="about-hero-title"
+    eyebrow="درباره نوونو"
+    title="نوونو چرا وجود دارد"
+    lead="خیلی از کسب‌وکارهای خدماتی مشکل «نداشتن مشتری» ندارند؛ مشکل «ندیدن مسیر» دارند. درخواست می‌آید، اما در پیام‌ها گم می‌شود؛ کانال نتیجه می‌دهد، اما کسی نمی‌داند کدام کانال."
+  >
+    <p class="mt-4 max-w-2xl text-body text-text-muted">
+      نوونو برای همین به وجود آمد: تبدیل توجه پراکنده به یک مسیر قابل‌پیگیری — از دیدن شما تا تماس، ثبت درخواست، پیگیری و نتیجه. این وب‌سایت هم با همین اصول ساخته شده است.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-4">
+      <Button href="/audit" size="lg">درخواست بررسی مسیر جذب</Button>
+      <Button href="/process" variant="secondary" size="lg">دیدن فرآیند</Button>
     </div>
-  </section>
+  </PageHero>
 
   <!-- What Noveno believes -->
   <section class="border-t border-line" aria-labelledby="beliefs-title">
@@ -70,7 +71,7 @@ import { PROCESS_STAGES, CONTACT } from "../data/site";
           <Button href="/process" variant="secondary">دیدن فرآیند کامل</Button>
         </div>
         <div class="lg:col-span-7">
-          <div class="diagram-well rounded-[4px] p-6 sm:p-10">
+          <div class="panel px-6 py-10 sm:px-10 lg:px-12 lg:py-12">
             <JourneyLine
               stations={PROCESS_STAGES.map((stage) => ({ label: stage.label }))}
               label="چرخه کار نوونو: بررسی، طراحی، اجرا، اندازه‌گیری، بهبود"
@@ -84,17 +85,15 @@ import { PROCESS_STAGES, CONTACT } from "../data/site";
 
   <!-- Founder -->
   <section class="border-t border-line" aria-labelledby="founder-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
-      <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
-        <div class="lg:col-span-5">
-          <SectionHeader
-            id="founder-title"
-            title="چه کسی پشت نوونو است"
-            lead="نوونو در حال حاضر توسط یک نفر اداره می‌شود؛ تیم بزرگ‌تر را ادعا نمی‌کنیم."
-          />
-        </div>
-        <div class="lg:col-span-7">
-          <div class="flex flex-col gap-6 border-t border-line pt-6">
+    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-28">
+      <SectionHeader
+        id="founder-title"
+        title="چه کسی پشت نوونو است"
+        lead="نوونو در حال حاضر توسط یک نفر اداره می‌شود؛ تیم بزرگ‌تر را ادعا نمی‌کنیم."
+      />
+      <div class="panel p-6 sm:p-10 lg:p-12">
+        <div class="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,4fr)] lg:gap-16">
+          <div class="flex flex-col gap-5">
             <p class="text-h3 text-text">دانیال رشیدی</p>
             <p class="text-body text-text-muted measure-prose">
               بنیان‌گذار نوونو. پیش‌زمینه کار بر روی وب، محصول و سیستم‌های کوچک برای کسب‌وکارها؛ با این باور که مشکل بیشتر کسب‌وکارهای خدماتی، نبودِ مسیر است، نه نبودِ ابزار.
@@ -102,7 +101,10 @@ import { PROCESS_STAGES, CONTACT } from "../data/site";
             <p class="text-body text-text-muted measure-prose">
               همین وب‌سایت، اجرای عملی همان چیزی است که برای مشتریان طراحی می‌شود: مسیر مشخص، ثبت درخواست، اندازه‌گیری و پیگیری.
             </p>
-            <ul class="flex flex-wrap gap-x-8 gap-y-2 border-t border-line pt-6">
+          </div>
+          <div class="flex flex-col gap-3 border-t border-line pt-6 lg:border-s lg:border-t-0 lg:ps-10 lg:pt-0">
+            <p class="text-meta text-text-faint">تماس مستقیم با بنیان‌گذار</p>
+            <ul class="flex flex-col">
               <li>
                 <a href={CONTACT.phoneHref} class="inline-flex min-h-11 items-center text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-text-action" data-event="phone_click" data-event-payload='{"section":"about"}'>
                   <span class="tnum" dir="ltr">{CONTACT.phone}</span>

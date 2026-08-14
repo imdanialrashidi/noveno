@@ -1,0 +1,34 @@
+---
+/**
+ * PageHero — unified premium page header for all non-home routes
+ * (2026-08-14 redesign): eyebrow node + H1 (30–48px) + lead + optional
+ * CTA slot. One consistent opening for every public page.
+ */
+
+interface Props {
+  id: string;
+  title: string;
+  lead?: string;
+  /** Optional eyebrow line above the H1. */
+  eyebrow?: string;
+  /** Optional last-updated line (legal pages). */
+  meta?: string;
+}
+
+const { id, title, lead, eyebrow, meta } = Astro.props;
+---
+
+<section aria-labelledby={id}>
+  <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
+    {eyebrow && (
+      <p class="flex items-center gap-2 text-ui font-medium text-text-faint">
+        <span class="section-node" aria-hidden="true"></span>
+        {eyebrow}
+      </p>
+    )}
+    <h1 id={id} class:list={["max-w-3xl text-h1-page text-text", eyebrow ? "mt-4" : ""]}>{title}</h1>
+    {lead && <p class="mt-6 max-w-2xl text-lead text-text-muted">{lead}</p>}
+    {meta && <p class="mt-6 text-meta text-text-faint">{meta}</p>}
+    <slot />
+  </div>
+</section>
