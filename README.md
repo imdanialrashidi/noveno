@@ -295,4 +295,4 @@ Lazy Playwright MCP (`/mcp status`); accessibility snapshots and DOM/console/net
 
 ## Contact / facts
 
-Brand: Noveno / نوونو · WhatsApp/Telegram/Phone: 09353598620 · Email: imdanialrashidi@gmail.com · Instagram: @noveno.ir
+Brand: Noveno / نوونو · WhatsApp/Telegram/Phone: 09353598620 · Email: imdanialrashidi@gmail.com · Instagram: @noveno_ir

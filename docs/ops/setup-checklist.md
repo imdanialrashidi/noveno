@@ -34,7 +34,10 @@ this repository** — this checklist prepares the accounts so a single
    founder inbox).
 2. Copy the **Access Key** → `PUBLIC_WEB3FORMS_ACCESS_KEY` (public by design;
    Web3Forms posts happen client-side after the function confirms
-   persistence).
+   persistence). Current founder key:
+   `57f6da33-cef2-4b2b-a3de-f4b279030c53` — set it as a build-time variable
+   in the Pages project settings (§4.3) and in the local `.env` (`cp
+   .env.example .env`) so local builds also notify.
 3. Notification is convenience only. **Supabase is the source of truth** —
    email failure never loses a lead and never blocks the visitor.
 
