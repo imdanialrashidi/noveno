@@ -329,6 +329,31 @@ test("JS-parseable but non-ISO first_seen_at is rejected (MINOR-1: Postgres time
   }
 });
 
+test("future-dated first_seen_at is rejected (client clocks may not lie forward)", () => {
+  const result = validateAuditPayload(
+    validPayload({ attribution: { ...validPayload().attribution, first_seen_at: "2099-01-01T00:00:00.000Z" } }),
+  );
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.equal(result.fields["attribution.first_seen_at"], "invalid_date");
+});
+
+test("just-now first_seen_at is accepted and kept", () => {
+  const justNow = new Date().toISOString();
+  const result = validateAuditPayload(
+    validPayload({ attribution: { ...validPayload().attribution, first_seen_at: justNow } }),
+  );
+  assert.equal(result.ok, true);
+  if (result.ok) assert.equal(result.value.attribution.first_seen_at, justNow);
+});
+
+test("ancient first_seen_at is dropped, not stored", () => {
+  const result = validateAuditPayload(
+    validPayload({ attribution: { ...validPayload().attribution, first_seen_at: "2020-01-01T00:00:00.000Z" } }),
+  );
+  assert.equal(result.ok, true);
+  if (result.ok) assert.equal(result.value.attribution.first_seen_at, undefined);
+});
+
 test("duplicate acquisition channels are deduped", () => {
   const result = validateAuditPayload(validPayload({ acquisition_channels: ["instagram", "instagram", "google"] }));
   assert.equal(result.ok, true);
