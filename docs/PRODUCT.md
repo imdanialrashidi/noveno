@@ -17,7 +17,7 @@ Durable source of truth for what the product must do. Sources: `docs/Noveno_Webs
 - Supported platforms and environments: modern mobile-first browsers, Persian (fa) RTL, light+dark themes; performance must hold on slower mobile connections (Spec §50).
 
 ## Must-have user flows
-1. **Audit conversion (primary):** understand → qualify → start audit (`/audit`) → submit form → `/audit/thank-you` with next steps → lead persisted (Supabase) + email notification. Attribution (landing page, referrer, UTM) preserved with the lead (Spec §31–33).
+1. **Audit conversion (primary):** understand → qualify → start audit (`/audit`) → submit form → `/api/audit` validates → browser delivers the lead to **Web3Forms email** → `/audit/thank-you` with next steps (thank-you only after confirmed email acceptance). Attribution (landing page, referrer, UTM) rides in the lead email (Spec §31–33).
 2. **Direct contact fallback:** phone, WhatsApp, Telegram, email always reachable; contact redundancy is a resilience requirement, not an afterthought (Spec §64.1). Contact facts: 09353598620 (WhatsApp/Telegram/phone), imdanialrashidi@gmail.com, Instagram @noveno_ir.
 3. **Proof journey:** `/work` with case studies/projects/concepts; every claim traceable, every demo labeled (Spec §18–19).
 4. **Qualification:** explicit good-fit / bad-fit section reduces bad leads (Spec §23).
@@ -43,7 +43,7 @@ Pre-launch acceptance per Spec §74 (condensed):
 ## Security, privacy, and compliance constraints
 - Data classification: lead data (name, phone, business info, attribution) is business-critical and personal; never exposed publicly or in logs.
 - Critical access rules: server-side validation at the form boundary; no client-trusted state; secrets only in Cloudflare Pages Function environment (never in the repository); rate limiting/abuse mitigation on submission.
-- External/payment providers: Supabase (lead persistence), email notification (transport chosen at implementation), Cloudflare Web Analytics/Zaraz. No payment processing.
+- External/payment providers: Web3Forms (lead email delivery — the sole lead destination; no database), Cloudflare Turnstile/Web Analytics/Analytics Engine. No payment processing.
 - Retention/deletion requirements: privacy page must explain collected data, purpose, and correction/deletion path (Spec §63); legal text must be reviewed for Iranian legal requirements before launch.
 
 ## Performance and UX budgets

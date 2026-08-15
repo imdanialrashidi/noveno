@@ -1,35 +1,35 @@
 /**
  * Audit function trust-boundary tests (plan §7 steps 1+3, QUALITY
- * invariant 4). Defect-sensitive: these tests fail on pre-fix behavior
- * (Persian-digit normalization, enum whitelist bypass, missing
- * Turnstile, false success on persistence failure, duplicate rows).
+ * invariant 4, email-only architecture 2026-10). Defect-sensitive:
+ * these tests fail on pre-fix behavior (Persian-digit normalization,
+ * enum whitelist bypass, missing Turnstile, false success on upstream
+ * failure, persistence-era response semantics).
+ *
+ * The function VALIDATES a submission; it does not persist and does not
+ * send email. Success is a validation-success response
+ * ({ ok: true, status: "validated" }) — it must NOT imply the lead was
+ * stored or the email delivered (delivery is Web3Forms-only, client-side).
  *
  * Evidence tiers used here:
  *  1. Pure-module unit tests (normalize/validate/rate-limit).
  *  2. Request-level tests with injected dependencies proving the
- *     invariant ordering (validate → rate-limit → Turnstile → persist;
- *     200 ⇔ persisted; 502 never 200).
- *  3. HTTP-level persistence tests: the REAL @supabase/supabase-js
- *     client talking to an in-process mock PostgREST server — proving
- *     the exact HTTP call shape (on_conflict, ignore-duplicates,
- *     maybeSingle re-select) without a live Supabase project.
- *  4. Real Turnstile siteverify against challenges.cloudflare.com with
+ *     invariant ordering (validate → rate-limit → Turnstile; 200 ⇔
+ *     validated; upstream failures are never 200).
+ *  3. Real Turnstile siteverify against challenges.cloudflare.com with
  *     the official test keys (always-pass/always-fail/duplicate) —
  *     skipped when this environment has no route to Cloudflare.
  *
- * Live Supabase / live Web3Forms delivery remain UNPROVEN without
- * founder-provisioned credentials (documented, never assumed).
+ * Live Web3Forms email delivery remains UNPROVEN without founder-
+ * provisioned credentials (documented, never assumed); the client-side
+ * delivery semantics are covered by tests/audit-retry.test.mjs.
  */
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import http from "node:http";
-import { once } from "node:events";
 
 import {
   handleAuditRequest,
   onRequest as auditOnRequest,
-  toLeadRow,
 } from "../functions/api/audit.ts";
 import {
   honeypotTriggered,
@@ -43,7 +43,6 @@ import {
 } from "../functions/lib/normalize.ts";
 import { createRateLimiter } from "../functions/lib/rate-limit.ts";
 import { idempotencyKeyForToken, verifyTurnstile } from "../functions/lib/turnstile.ts";
-import { createSupabasePersister } from "../functions/lib/persist.ts";
 import { handleEventRequest, onRequest as eventsOnRequest, validateEvent } from "../functions/api/events.ts";
 import {
   ACQUISITION_CHANNELS,
@@ -96,7 +95,7 @@ function post(body, headers = {}) {
 }
 
 function makeDeps(overrides = {}) {
-  const calls = { persist: [], verify: 0, rate: [] };
+  const calls = { verify: 0, rate: [] };
   const deps = {
     rateLimiter: (key) => {
       calls.rate.push(key);
@@ -106,108 +105,9 @@ function makeDeps(overrides = {}) {
       calls.verify += 1;
       return { status: "pass" };
     },
-    persistLead: async (row) => {
-      calls.persist.push(row);
-      return { status: "inserted", id: "lead-1" };
-    },
-    now: () => "2026-08-11T12:00:00.000Z",
     ...overrides,
   };
   return { deps, calls };
-}
-
-/** Minimal in-process PostgREST emulation for /rest/v1/leads.
- * Records the wire contract (on_conflict param + Prefer header) so the
- * supabase-js call shape is asserted, not just the semantics. */
-async function startMockSupabase(failInserts = false) {
-  const rows = new Map();
-  const wire = { onConflict: null, prefer: null };
-  const server = http.createServer((req, res) => {
-    const url = new URL(req.url ?? "/", "http://localhost");
-    if (url.pathname !== "/rest/v1/leads") {
-      res.writeHead(404, { "content-type": "application/json" });
-      res.end(JSON.stringify({ message: "not found" }));
-      return;
-    }
-    if (req.method === "POST") {
-      // wire contract: idempotency rides on_conflict + ignore-duplicates
-      wire.onConflict = url.searchParams.get("on_conflict");
-      wire.prefer = req.headers.prefer ?? null;
-    }
-    const chunks = [];
-    req.on("data", (c) => chunks.push(c));
-    req.on("end", () => {
-      const respond = (status, payload) => {
-        res.writeHead(status, { "content-type": "application/json" });
-        res.end(typeof payload === "string" ? payload : JSON.stringify(payload));
-      };
-      if (req.method === "POST") {
-        if (failInserts) {
-          respond(500, { message: "boom" });
-          return;
-        }
-        let body;
-        try {
-          body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
-        } catch {
-          respond(400, { message: "invalid body" });
-          return;
-        }
-        const row = Array.isArray(body) ? body[0] : body;
-        if (!row || typeof row.submission_id !== "string") {
-          respond(400, { message: "invalid row" });
-          return;
-        }
-        if (rows.has(row.submission_id)) {
-          // resolution=ignore-duplicates: no insert, empty representation
-          respond(201, []);
-          return;
-        }
-        const stored = { ...row, id: `mock-${rows.size + 1}` };
-        rows.set(row.submission_id, stored);
-        respond(201, [stored]);
-        return;
-      }
-      if (req.method === "GET") {
-        const param = url.searchParams.get("submission_id") ?? "";
-        const value = param.startsWith("eq.") ? param.slice(3) : null;
-        const matches = [...rows.values()].filter(
-          (r) => value === null || r.submission_id === value,
-        );
-        const wantsSingle = (req.headers.accept ?? "").includes(
-          "application/vnd.pgrst.object+json",
-        );
-        if (wantsSingle) {
-          if (matches.length === 1) {
-            respond(200, matches[0]);
-          } else {
-            respond(406, {
-              code: "PGRST116",
-              details: `The result contains ${matches.length} rows`,
-              hint: null,
-              message: "JSON object requested, multiple (or no) rows returned",
-            });
-          }
-          return;
-        }
-        respond(200, matches);
-        return;
-      }
-      respond(405, { message: "method not allowed" });
-    });
-  });
-  server.listen(0, "127.0.0.1");
-  await once(server, "listening");
-  const port = server.address().port;
-  return {
-    url: `http://127.0.0.1:${port}`,
-    rows,
-    wire,
-    async close() {
-      server.close();
-      await once(server, "close");
-    },
-  };
 }
 
 /* ------------------------------------------------------------------ */
@@ -320,7 +220,7 @@ test("unparseable first_seen_at is rejected", () => {
 });
 
 test("JS-parseable but non-ISO first_seen_at is rejected (MINOR-1: Postgres timestamptz)", () => {
-  // Date.parse accepts "2026" and "2026-08-11"; Postgres timestamptz does not
+  // Date.parse accepts "2026" and "2026-08-11"; the strict ISO contract does not
   for (const value of ["2026", "2026-08-11", "Aug 11, 2026", "2026-08-11T10:00:00"]) {
     const result = validateAuditPayload(
       validPayload({ attribution: { ...validPayload().attribution, first_seen_at: value } }),
@@ -482,7 +382,7 @@ test("siteverify idempotency_key is the token's hash, distinct per token (never 
   assert.notEqual(seen[0].idempotency_key, seen[0].response);
 });
 
-test("retry with a fresh token under the same submission_id reaches persistence after a failed first attempt", async () => {
+test("retry with a fresh token under the same submission_id reaches validation after a failed first attempt", async () => {
   const submissionId = crypto.randomUUID();
   const firstAttempt = validPayload({ submission_id: submissionId, cf_turnstile_token: "token-attempt-1" });
   const retryAttempt = validPayload({ submission_id: submissionId, cf_turnstile_token: "token-attempt-2" });
@@ -499,9 +399,9 @@ test("retry with a fresh token under the same submission_id reaches persistence 
   const first = await handleAuditRequest(post(firstAttempt), deps);
   assert.equal(first.status, 403); // expired first token is rejected
   const second = await handleAuditRequest(post(retryAttempt), deps);
-  assert.equal(second.status, 200); // fresh token gets a fresh verification and persists
+  assert.equal(second.status, 200); // fresh token gets a fresh verification and validates
   assert.deepEqual(seenTokens, ["token-attempt-1", "token-attempt-2"]);
-  assert.equal(calls.persist.length, 1);
+  assert.equal(seenTokens.length, 2);
 });
 
 test("onRequest wires the siteverify idempotency key to the token hash (never the submission_id)", async () => {
@@ -516,16 +416,11 @@ test("onRequest wires the siteverify idempotency key to the token hash (never th
       seenBodies.push(JSON.parse(String(init?.body ?? "{}")));
       return new Response(JSON.stringify({ success: true }), { status: 200 });
     }
-    // Supabase upsert path — not under test; fail it so the boundary 502s.
     return new Response(JSON.stringify({ error: "mock" }), { status: 500 });
   };
   try {
     const submission = validPayload({ cf_turnstile_token: "wiring-token-1" });
-    const env = {
-      TURNSTILE_SECRET_KEY: "test-secret",
-      SUPABASE_URL: "https://mock.example",
-      SUPABASE_SERVICE_ROLE_KEY: "test-key",
-    };
+    const env = { TURNSTILE_SECRET_KEY: "test-secret" };
     const res = await auditOnRequest({
       request: post(submission, { "cf-connecting-ip": "wiring-test-ip" }),
       env,
@@ -537,10 +432,7 @@ test("onRequest wires the siteverify idempotency key to the token hash (never th
       "idempotency_key must be the token's SHA-256",
     );
     assert.notEqual(seenBodies[0].idempotency_key, submission.submission_id);
-    assert.ok(
-      res.status === 502 || res.status === 200,
-      `unexpected boundary status ${res.status}`,
-    );
+    assert.equal(res.status, 200, "validated submission must return 200");
   } finally {
     globalThis.fetch = realFetch;
   }
@@ -608,41 +500,41 @@ test("GET /api/audit is rejected 405", async () => {
   const { deps, calls } = makeDeps();
   const res = await handleAuditRequest(new Request("https://noveno.ir/api/audit"), deps);
   assert.equal(res.status, 405);
-  assert.equal(calls.persist.length, 0);
+  assert.equal(calls.verify, 0);
 });
 
 test("oversized body is rejected 413", async () => {
   const { deps, calls } = makeDeps();
   const res = await handleAuditRequest(post(validPayload({ name: "ن".repeat(40_000) })), deps);
   assert.equal(res.status, 413);
-  assert.equal(calls.persist.length, 0);
+  assert.equal(calls.verify, 0);
 });
 
 test("malformed JSON is rejected 400", async () => {
   const { deps, calls } = makeDeps();
   const res = await handleAuditRequest(post("{not json"), deps);
   assert.equal(res.status, 400);
-  assert.equal(calls.persist.length, 0);
+  assert.equal(calls.verify, 0);
 });
 
-test("validation failure returns 400 with field keys and never persists", async () => {
+test("validation failure returns 400 with field keys and never verifies", async () => {
   const { deps, calls } = makeDeps();
   const res = await handleAuditRequest(post(validPayload({ industry: "bogus" })), deps);
   assert.equal(res.status, 400);
   const body = await res.json();
   assert.equal(body.error.code, "validation");
   assert.equal(body.error.fields.industry, "invalid_enum");
-  assert.equal(calls.persist.length, 0);
+  assert.equal(calls.verify, 0);
 });
 
-test("honeypot hit returns 400 and never persists", async () => {
+test("honeypot hit returns 400 and never verifies", async () => {
   const { deps, calls } = makeDeps();
   const res = await handleAuditRequest(post(validPayload({ company_website: "spam" })), deps);
   assert.equal(res.status, 400);
-  assert.equal(calls.persist.length, 0);
+  assert.equal(calls.verify, 0);
 });
 
-test("rate-limited request returns 429 and skips turnstile + persist", async () => {
+test("rate-limited request returns 429 and skips turnstile", async () => {
   const { deps, calls } = makeDeps({
     rateLimiter: () => false,
     verifyTurnstile: async () => {
@@ -653,7 +545,6 @@ test("rate-limited request returns 429 and skips turnstile + persist", async () 
   const res = await handleAuditRequest(post(validPayload()), deps);
   assert.equal(res.status, 429);
   assert.equal(calls.verify, 0);
-  assert.equal(calls.persist.length, 0);
 });
 
 test("rate gate runs before parsing — malformed floods are throttled (MINOR-2)", async () => {
@@ -677,180 +568,60 @@ test("rate gate runs before parsing — malformed floods are throttled (MINOR-2)
   assert.equal(calls.verify, 0);
 });
 
-test("turnstile rejection returns 403 and never persists", async () => {
+test("turnstile rejection returns 403 and is never a success", async () => {
   const { deps, calls } = makeDeps({
-    verifyTurnstile: async () => ({ status: "fail", errorCodes: ["invalid-input-response"] }),
+    verifyTurnstile: async () => {
+      calls.verify += 1;
+      return { status: "fail", errorCodes: ["invalid-input-response"] };
+    },
   });
   const res = await handleAuditRequest(post(validPayload()), deps);
   assert.equal(res.status, 403);
   const body = await res.json();
   assert.equal(body.error.code, "turnstile_failed");
-  assert.equal(calls.persist.length, 0);
+  assert.equal(calls.verify, 1);
 });
 
-test("turnstile upstream failure returns 500 and never persists", async () => {
+test("turnstile upstream failure returns 500 and is never a success", async () => {
   const { deps, calls } = makeDeps({
-    verifyTurnstile: async () => ({ status: "upstream_error" }),
+    verifyTurnstile: async () => {
+      calls.verify += 1;
+      return { status: "upstream_error" };
+    },
   });
   const res = await handleAuditRequest(post(validPayload()), deps);
   assert.equal(res.status, 500);
-  assert.equal(calls.persist.length, 0);
+  assert.equal(calls.verify, 1);
 });
 
-test("valid submission persists then returns 200 with normalized row", async () => {
+test("valid submission returns 200 with the validation-success response", async () => {
   const { deps, calls } = makeDeps();
   const res = await handleAuditRequest(post(validPayload()), deps);
   assert.equal(res.status, 200);
   const body = await res.json();
   assert.equal(body.ok, true);
-  assert.equal(body.id, "lead-1");
-  assert.equal(calls.verify, 1);
-  assert.equal(calls.persist.length, 1);
-  const row = calls.persist[0];
-  assert.equal(row.phone, "09353598620"); // Persian digits normalized
-  assert.equal(row.source, "website");
-  assert.equal(row.utm_source, "instagram");
-  assert.equal(row.submitted_at, undefined); // column default, not client-controlled
-});
-
-test("replay 200 carries the persist status (replay vs inserted)", async () => {
-  const replay = makeDeps({
-    persistLead: async () => ({ status: "replay", id: "lead-9" }),
-  });
-  const replayRes = await handleAuditRequest(post(validPayload()), replay.deps);
-  assert.equal(replayRes.status, 200);
-  const replayBody = await replayRes.json();
-  assert.equal(replayBody.ok, true);
-  assert.equal(replayBody.id, "lead-9");
-  assert.equal(replayBody.status, "replay", "a duplicate submission_id must be reported as replay");
-
-  const inserted = makeDeps(); // stub persister returns { status: "inserted", id: "lead-1" }
-  const insertedRes = await handleAuditRequest(post(validPayload()), inserted.deps);
-  assert.equal(insertedRes.status, 200);
-  const insertedBody = await insertedRes.json();
-  assert.equal(insertedBody.ok, true);
-  assert.equal(insertedBody.id, "lead-1");
-  assert.equal(insertedBody.status, "inserted", "a fresh insert must be reported as inserted");
-});
-
-test("persistence failure returns 502 — success is never faked", async () => {
-  const { deps, calls } = makeDeps({
-    persistLead: async (row) => {
-      calls.persist.push(row);
-      throw new Error("supabase down");
-    },
-  });
-  const res = await handleAuditRequest(post(validPayload()), deps);
-  assert.equal(res.status, 502);
-  const body = await res.json();
-  assert.equal(body.ok, false);
-  assert.equal(body.error.code, "persistence_failed");
-  assert.equal(calls.persist.length, 1);
-});
-
-test("toLeadRow maps attribution with nulls for absent values", () => {
-  const row = toLeadRow(
-    {
-      submission_id: crypto.randomUUID(),
-      name: "سارا",
-      phone: "09353598620",
-      preferred_contact: "phone",
-      industry: "education",
-      acquisition_channels: ["website"],
-      primary_problem: "no_website",
-      requested_service: "build_system",
-      cf_turnstile_token: "x",
-      attribution: { landing_page: "/audit" },
-    },
-    "2026-08-11T12:00:00.000Z",
+  assert.equal(body.status, "validated", "200 must mean validated — never persisted/inserted/replay");
+  // No persistence-era semantics may leak into the response.
+  assert.equal("id" in body, false, "no database id in a validate-only response");
+  assert.ok(
+    !["inserted", "replay", "persistence_failed"].some((term) => JSON.stringify(body).includes(term)),
+    "response must not carry persistence result semantics",
   );
-  assert.equal(row.email, null);
-  assert.equal(row.customer_value_range, null);
-  assert.equal(row.referrer, null);
-  assert.equal(row.first_seen_at, null);
-  assert.equal(row.source, "website");
+  assert.equal(calls.verify, 1, "turnstile must be verified exactly once");
 });
 
-/* ------------------------------------------------------------------ */
-/* HTTP-level persistence through the real supabase-js client          */
-/* ------------------------------------------------------------------ */
-
-test("supabase-js insert path: fresh submission is inserted", async () => {
-  const mock = await startMockSupabase();
-  try {
-    const persister = createSupabasePersister(mock.url, "service-role-key");
-    const row = toLeadRow(validPayload(), "2026-08-11T12:00:00.000Z");
-    const result = await persister.persistLead(row);
-    assert.equal(result.status, "inserted");
-    assert.ok(result.id.startsWith("mock-"));
-    assert.equal(mock.rows.size, 1);
-    // wire contract: idempotency must ride the PostgREST on_conflict +
-    // ignore-duplicates preference (reviewer finding — assert the shape)
-    assert.equal(mock.wire.onConflict, "submission_id");
-    assert.match(mock.wire.prefer ?? "", /resolution=ignore-duplicates/);
-  } finally {
-    await mock.close();
-  }
-});
-
-test("supabase-js insert path: replaying the same submission_id yields one row", async () => {
-  const mock = await startMockSupabase();
-  try {
-    const persister = createSupabasePersister(mock.url, "service-role-key");
-    const payload = validPayload();
-    const first = await persister.persistLead(toLeadRow(payload, "2026-08-11T12:00:00.000Z"));
-    assert.equal(first.status, "inserted");
-    const replay = await persister.persistLead(toLeadRow(payload, "2026-08-11T12:01:00.000Z"));
-    assert.equal(replay.status, "replay");
-    assert.equal(replay.id, first.id);
-    assert.equal(mock.rows.size, 1, "duplicate delivery must not create a second row");
-  } finally {
-    await mock.close();
-  }
-});
-
-test("supabase-js insert path: parallel duplicate deliveries collapse to one row", async () => {
-  const mock = await startMockSupabase();
-  try {
-    const persister = createSupabasePersister(mock.url, "service-role-key");
-    const payload = validPayload();
-    const [a, b] = await Promise.all([
-      persister.persistLead(toLeadRow(payload, "2026-08-11T12:00:00.000Z")),
-      persister.persistLead(toLeadRow(payload, "2026-08-11T12:00:00.000Z")),
-    ]);
-    assert.equal(mock.rows.size, 1, "unique constraint must collapse the race");
-    assert.equal(a.id, b.id);
-    assert.ok(["inserted", "replay"].includes(a.status));
-  } finally {
-    await mock.close();
-  }
-});
-
-test("supabase-js insert path: persistence error throws (→ 502 at the boundary)", async () => {
-  const mock = await startMockSupabase(true);
-  try {
-    const persister = createSupabasePersister(mock.url, "service-role-key");
-    await assert.rejects(() => persister.persistLead(toLeadRow(validPayload(), "2026-08-11T12:00:00.000Z")));
-  } finally {
-    await mock.close();
-  }
-});
-
-test("supabase-js insert path: full request maps Supabase failure to 502", async () => {
-  const mock = await startMockSupabase(true);
-  try {
-    const persister = createSupabasePersister(mock.url, "service-role-key");
-    const res = await handleAuditRequest(post(validPayload()), {
-      rateLimiter: () => true,
-      verifyTurnstile: async () => ({ status: "pass" }),
-      persistLead: (row) => persister.persistLead(row),
-    });
-    assert.equal(res.status, 502);
-    const body = await res.json();
-    assert.equal(body.error.code, "persistence_failed");
-  } finally {
-    await mock.close();
-  }
+test("duplicate submission_id still validates — no replay/dedupe machinery (email-only trade-off)", async () => {
+  // Without durable storage, exact-once dedupe is impossible by design; the
+  // server validates each attempt and the client keeps submission_id stable
+  // so duplicates are recognizable in the email. This test pins that the
+  // boundary no longer returns replay/persistence semantics for a repeated id.
+  const submissionId = crypto.randomUUID();
+  const { deps } = makeDeps();
+  const first = await handleAuditRequest(post(validPayload({ submission_id: submissionId })), deps);
+  const second = await handleAuditRequest(post(validPayload({ submission_id: submissionId })), deps);
+  assert.equal(first.status, 200);
+  assert.equal(second.status, 200);
+  assert.equal((await second.json()).status, "validated");
 });
 
 test("client option ids are exactly the server enum whitelists (no drift)", () => {

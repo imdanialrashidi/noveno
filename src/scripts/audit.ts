@@ -3,19 +3,25 @@
  *
  * - Draft: persisted to sessionStorage (`noveno:audit:draft`) on every
  *   change; restored on load (reload-safe journey); cleared only after a
- *   confirmed 200 from /api/audit.
+ *   confirmed Web3Forms delivery success.
  * - submission_id: `crypto.randomUUID()` minted at journey start, stable
- *   across retries; a genuinely new journey gets a new id.
+ *   across retries; a genuinely new journey gets a new id. The id rides in
+ *   the Web3Forms email so duplicate messages can be recognized.
  * - Attribution: read from the session-scoped capture (`noveno:attribution`,
  *   first page of the session) at journey start, falling back to a local
  *   capture — independent of analytics delivery.
  * - Turnstile: explicit render (theme follows the site theme), token
  *   required before submit, reset on retry after a consumed/expired token.
- * - Submit: single in-flight guard; 200 → fire audit_submitted → best-effort
- *   Web3Forms notification (bounded, one retry) → /audit/thank-you.
- *   Both side effects are skipped when the 200 reports `status: "replay"`
- *   (duplicate submission_id — the lead was already delivered).
- *   Recoverable failures → banner + retry with values preserved.
+ * - Submit: single in-flight guard; POST /api/audit is the server trust
+ *   boundary (validation + anti-abuse) but does NOT complete the journey —
+ *   a 200 `validated` only means the server accepted the payload. The
+ *   journey completes only when the browser's Web3Forms delivery confirms
+ *   success ({ success: true }): then and only then → audit_submitted →
+ *   draft cleared → done marker → /audit/thank-you.
+ * - Delivery failure (network/timeout/non-2xx/success:false/429): stay on
+ *   /audit, keep the draft + submission_id, show a truthful recoverable
+ *   banner (with direct-contact fallback), allow retry with a fresh
+ *   Turnstile token. Never present a false success.
  * - Client validation is UX-only; the function is authoritative.
  */
 
@@ -252,7 +258,7 @@ class TurnstileBridge {
 /* ------------------------------------------------------------------ */
 
 const FIELD_ERROR_COPY: Record<string, Record<string, string>> = {
-  name: { required: "نام و نام خانوادگی را وارد کنید", too_short: "نام کوتاه است" },
+  name: { required: "نام و نام خانوادگی را وارد کنید", too_short: "نام کوتاه است", too_long: "نام خیلی طولانی است" },
   phone: { required: "شماره تماس را وارد کنید", invalid: "شماره تماس را کامل وارد کنید" },
   email: { invalid: "ایمیل معتبر وارد کنید", too_long: "ایمیل خیلی طولانی است" },
   website: { too_long: "نشانی خیلی طولانی است" },
@@ -608,7 +614,10 @@ export function initAudit(config: AuditConfig): void {
 
   async function submit(): Promise<void> {
     if (submitting) return;
-    if (!config.turnstileSiteKey) {
+    // Delivery is Web3Forms-only: without BOTH keys the journey cannot
+    // complete honestly, so surface the «not available» fallback with
+    // direct-contact options instead of a false success.
+    if (!config.turnstileSiteKey || !config.web3formsKey) {
       showBanner("unconfigured");
       return;
     }
@@ -636,30 +645,56 @@ export function initAudit(config: AuditConfig): void {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(10_000),
         });
       } catch {
-        // Network failure — recoverable; values are preserved in the draft.
+        // Network failure / timeout — recoverable; values are preserved in
+        // the draft, and the button is never left stuck submitting.
         showBanner(navigator.onLine === false ? "offline" : "network");
         setSubmitting(false);
         return;
       }
 
       if (response.ok) {
-        let replay = false;
+        // The server contract guarantees 200 ⇔ validated. Verify it when
+        // the body is readable so a future contract drift cannot silently
+        // complete the journey on a non-validated 2xx.
+        let validated = true;
         try {
           const body = (await response.json()) as { status?: string };
-          replay = body.status === "replay";
+          validated = body.status === "validated";
         } catch {
-          /* body unreadable — treat as fresh insert (default) */
+          /* unreadable body — the server contract still holds */
         }
-        await onSuccess(payload, replay);
+        if (!validated) {
+          bridge?.invalidate();
+          showBanner(navigator.onLine === false ? "offline" : "network");
+          setSubmitting(false);
+          return;
+        }
+        // Server validated the submission. This is NOT the end of the
+        // journey: success now means Web3Forms accepted the lead. Keep the
+        // form/draft intact until that delivery is confirmed.
+        const delivered = await deliverLead(payload);
+        if (!delivered.ok) {
+          // The token sent to /api/audit may already be consumed server-side
+          // regardless of the response, so drop it — the next submit/retry
+          // must mint a fresh challenge (fresh-token behavior preserved).
+          bridge?.invalidate();
+          showBanner(delivered.rateLimited ? "rate" : "delivery");
+          setSubmitting(false);
+          return;
+        }
+        await onSuccess(payload);
         return;
       }
 
       let code = "";
+      let fields: Record<string, string> = {};
       try {
-        const body = (await response.json()) as { error?: { code?: string } };
+        const body = (await response.json()) as { error?: { code?: string; fields?: Record<string, string> } };
         code = body.error?.code ?? "";
+        fields = body.error?.fields ?? {};
       } catch {
         /* non-JSON error body — treat as server error */
       }
@@ -670,7 +705,18 @@ export function initAudit(config: AuditConfig): void {
       } else if (response.status === 429) {
         showBanner("rate");
       } else if (response.status === 400 || code === "validation") {
-        // Server-side validation rejection — truthful copy, not "connection".
+        // Server-side validation rejection — surface the rejected fields
+        // (defense in depth: client validation normally prevents this) so
+        // the visitor can correct them instead of looping on a generic
+        // banner. Unknown message keys degrade to the generic banner.
+        let firstInvalid: HTMLElement | null = null;
+        for (const [fieldId, key] of Object.entries(fields)) {
+          const input = document.getElementById(fieldId) as HTMLElement | null;
+          if (!input) continue;
+          showFieldError(fieldId, key);
+          if (!firstInvalid) firstInvalid = input;
+        }
+        if (firstInvalid) firstInvalid.focus();
         showBanner("validation");
       } else {
         // Server/network failure: a Turnstile token sent to the function
@@ -689,18 +735,13 @@ export function initAudit(config: AuditConfig): void {
     }
   }
 
-  /* ----- success: persistence confirmed by the function ----- */
+    /* ----- success: Web3Forms confirmed delivery ----- */
 
-  async function onSuccess(payload: Record<string, unknown>, replay = false): Promise<void> {
-    // A replay 200 means this submission_id already exists (e.g. the server
-    // persisted but the response was lost) — the lead is already delivered,
-    // so only a fresh insert may notify / fire the conversion event. The
-    // thank-you navigation stays unconditional: the user's journey is
-    // identical on replay.
-    if (!replay) {
-      track("audit_submitted");
-      void notifyWeb3Forms(payload); // only a fresh insert may notify/event
-    }
+  async function onSuccess(payload: Record<string, unknown>): Promise<void> {
+    // Confirmed Web3Forms acceptance is the ONLY completion gate: the
+    // conversion event, the draft clear, the done marker, and the thank-you
+    // navigation all happen here — never earlier.
+    track("audit_submitted");
     clearDraft();
     try {
       sessionStorage.setItem(DONE_KEY, String(payload.submission_id ?? ""));
@@ -710,15 +751,59 @@ export function initAudit(config: AuditConfig): void {
     window.location.assign("/audit/thank-you");
   }
 
-  /* ----- Web3Forms notification (best-effort, bounded, after 200) ----- */
+  /* ----- Web3Forms delivery (the sole lead-delivery destination) ----- */
 
-  async function notifyWeb3Forms(payload: Record<string, unknown>): Promise<void> {
-    if (!config.web3formsKey) return;
+  interface DeliveryOutcome {
+    ok: boolean;
+    rateLimited?: boolean;
+  }
+
+  /**
+   * Inspect the Web3Forms response instead of trusting HTTP completion:
+   * success requires a 2xx response whose JSON body is `{ success: true }`
+   * (current official API contract — docs.web3forms.com API reference).
+   * Bounded: one initial attempt + one automatic retry; never infinite.
+   */
+  async function deliverLead(payload: Record<string, unknown>): Promise<DeliveryOutcome> {
+    const body = buildWeb3FormsBody(payload);
+    let lastStatus = 0;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const result = await fetch(config.web3formsUrl, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(10_000),
+        });
+        lastStatus = result.status;
+        let accepted = false;
+        try {
+          const parsed = (await result.json()) as { success?: boolean };
+          accepted = result.ok && parsed?.success === true;
+        } catch {
+          accepted = false; // unreadable body — never a confirmed success
+        }
+        if (accepted) return { ok: true };
+        // non-2xx / { success: false } / unreadable -> one automatic retry
+      } catch {
+        // network failure / timeout -> one automatic retry
+      }
+    }
+    return { ok: false, rateLimited: lastStatus === 429 };
+  }
+
+  /**
+   * Sanitized Web3Forms payload — the full useful audit data with readable
+   * Persian labels. Never includes the Turnstile token, secrets, or
+   * unnecessary browser/internal state.
+   */
+  function buildWeb3FormsBody(payload: Record<string, unknown>): Record<string, string> {
     const label = (ids: unknown, group: keyof typeof AUDIT_OPTIONS): string =>
       Array.isArray(ids)
         ? ids.map((id) => labelOf(group, String(id))).join("، ")
         : labelOf(group, String(ids ?? ""));
-    const body: Record<string, string> = {
+    const attribution = payload.attribution as Record<string, string> | undefined;
+    return {
       access_key: config.web3formsKey,
       subject: `درخواست بررسی مسیر جذب — ${safeText(String(payload.business_name ?? payload.name ?? ""))}`,
       submission_id: String(payload.submission_id ?? ""),
@@ -733,32 +818,16 @@ export function initAudit(config: AuditConfig): void {
       requested_service: labelOf("needs", String(payload.requested_service ?? "")),
       customer_value_range: labelOf("valueRanges", String(payload.customer_value_range ?? "")),
       preferred_contact: labelOf("preferredContact", String(payload.preferred_contact ?? "")),
-      landing_page: safeText(String((payload.attribution as Record<string, string> | undefined)?.landing_page ?? "")),
-      referrer: safeText(String((payload.attribution as Record<string, string> | undefined)?.referrer ?? "")),
-      utm_source: safeText(String((payload.attribution as Record<string, string> | undefined)?.utm_source ?? "")),
-      utm_medium: safeText(String((payload.attribution as Record<string, string> | undefined)?.utm_medium ?? "")),
-      utm_campaign: safeText(String((payload.attribution as Record<string, string> | undefined)?.utm_campaign ?? "")),
+      landing_page: safeText(String(attribution?.landing_page ?? "")),
+      referrer: safeText(String(attribution?.referrer ?? "")),
+      utm_source: safeText(String(attribution?.utm_source ?? "")),
+      utm_medium: safeText(String(attribution?.utm_medium ?? "")),
+      utm_campaign: safeText(String(attribution?.utm_campaign ?? "")),
       botcheck: "",
     };
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      try {
-        const result = await fetch(config.web3formsUrl, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify(body),
-          keepalive: true,
-          signal: AbortSignal.timeout(2500),
-        });
-        if (result.ok) return; // delivered — done
-        // non-2xx: fall through to the one automatic retry
-      } catch {
-        // timeout/abort/network: one automatic retry, then move on —
-        // the lead is already safe (Supabase is the source of truth)
-      }
-    }
   }
 
-  /* ----- event binding ----- */
+/* ----- event binding ----- */
 
   form.addEventListener("input", () => {
     ensureDraft();

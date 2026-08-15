@@ -24,18 +24,18 @@ Environment variables are **names only** in `.env.example` — copy it to `.env`
 |---|---|
 | `PUBLIC_APP_URL` | Canonical site URL for metadata/SEO |
 | `PUBLIC_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key (client-side) |
-| `PUBLIC_WEB3FORMS_ACCESS_KEY` | Web3Forms access key (email notification) |
+| `PUBLIC_WEB3FORMS_ACCESS_KEY` | Web3Forms access key (lead email delivery — the sole lead destination) |
 | `PUBLIC_WEB3FORMS_URL` | Optional Web3Forms endpoint override (local testing) |
 | `PUBLIC_CF_ANALYTICS_TOKEN` | Cloudflare Web Analytics beacon token |
-| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TURNSTILE_SECRET_KEY` | **Server-side secrets** — Cloudflare Pages secrets only |
+| `TURNSTILE_SECRET_KEY` | **Server-side secret** — Cloudflare Pages secret only |
 
-> The audit form needs `PUBLIC_TURNSTILE_SITE_KEY` + `PUBLIC_WEB3FORMS_ACCESS_KEY` to submit; without them the form still validates locally and shows the honest «not available» fallback with direct-contact options. The turnstile/supabase keys are only used by `functions/` (see `docs/ops/setup-checklist.md`).
+> The audit form needs `PUBLIC_TURNSTILE_SITE_KEY` + `PUBLIC_WEB3FORMS_ACCESS_KEY` to submit; without them the form still validates locally and shows the honest «not available» fallback with direct-contact options. The Turnstile secret is used only by `functions/` (see `docs/ops/setup-checklist.md`). There is **no database**: audit leads are delivered as email via Web3Forms and nothing is durably stored by this site.
 
 ---
 
 ## Repository state
 
-The repository is the **Noveno production website project**: Slice 1 (flagship site — Astro app, all public routes), **Slice 2 (acquisition flow + production integration — `/audit`, `/audit/thank-you`, the Pages Function trust boundary, Supabase + Turnstile + Web3Forms wiring, analytics, SEO/production artifacts)**, the **2026-08-14 founder-directed visual redesign** (image-led editorial system, contact-channel icon set), the **2026-09 product-led pass** (photography retired → product UI/typography/geometry; `/blog` Markdown publishing system with per-page social cards, build-time sitemap, motion system, About philosophy page, audit experience refinement), and the **2026-10 brand pass** (hero becomes original signal-field brand artwork; Insights renamed to وبلاگ with `/insights` → `/blog` 301s) are committed and verified; launch awaits founder provisioning (`docs/ops/setup-checklist.md`) and a preview-deploy smoke.
+The repository is the **Noveno production website project**: Slice 1 (flagship site — Astro app, all public routes), **Slice 2 (acquisition flow + production integration — `/audit`, `/audit/thank-you`, the Pages Function trust boundary, Turnstile validation + Web3Forms email delivery, analytics, SEO/production artifacts)**, the **2026-08-14 founder-directed visual redesign** (image-led editorial system, contact-channel icon set), the **2026-09 product-led pass** (photography retired → product UI/typography/geometry; `/blog` Markdown publishing system with per-page social cards, build-time sitemap, motion system, About philosophy page, audit experience refinement), the **2026-10 brand pass** (hero becomes original signal-field brand artwork; Insights renamed to وبلاگ with `/insights` → `/blog` 301s) and the **2026-10 email-only architecture** (Supabase removed entirely; the audit function validates only and Web3Forms email delivery is the sole lead destination and the true success gate) are committed and verified; launch awaits founder provisioning (`docs/ops/setup-checklist.md`) and a preview-deploy smoke.
 
 ## Source of truth
 
@@ -56,8 +56,8 @@ The repository is the **Noveno production website project**: Slice 1 (flagship s
 
 - **Astro 7 + TypeScript**, statically rendered, deployed to **Cloudflare Pages** (free-tier-compatible). No SSR.
 - **No client UI framework** (no React/Vue/Svelte); interactivity via Astro components and small framework-free TypeScript modules (`src/scripts/`).
-- **No backend/auth/CMS/CRM/client portal.** One narrowly scoped Cloudflare Pages Function (`functions/api/audit.ts`) handles the business-critical **audit-form submission boundary**: server-side validation, abuse protection, persistence to **Supabase**, and **email notification** (Web3Forms).
-- Analytics: **Cloudflare Web Analytics** + a Cloudflare-native events path (`functions/api/events.ts` + `src/scripts/analytics.ts`, Analytics Engine binding `NOVENO_EVENTS`); UTM/referrer/landing-page attribution persisted with the lead.
+- **No backend/auth/CMS/CRM/client portal.** One narrowly scoped Cloudflare Pages Function (`functions/api/audit.ts`) handles the business-critical **audit-form validation boundary**: server-side validation, abuse protection (honeypot, rate limiting, Turnstile). Lead delivery is **email-only** — the validated browser posts the sanitized lead to **Web3Forms** and the journey completes only when Web3Forms confirms acceptance. **No database** — nothing is durably stored by the site.
+- Analytics: **Cloudflare Web Analytics** + a Cloudflare-native events path (`functions/api/events.ts` + `src/scripts/analytics.ts`, Analytics Engine binding `NOVENO_EVENTS`); UTM/referrer/landing-page attribution rides in the Web3Forms lead email, not a database.
 - **Persian-first, RTL-first**; light + dark themes (system default, persisted override, no theme flash); Estedad + Vazirmatn self-hosted fonts; token system in `src/styles/global.css`.
 - **Fonts:** the shipped woff2 files under `public/fonts/` are the source of truth (declared via hand-written `@font-face` in `src/styles/global.css`, DESIGN §5.4). The `@fontsource-variable/*` devDependencies exist only as the licensed extraction source for replacing those files — a font change is a deliberate file replacement (rename to bump the immutable cache), not a dependency bump.
 
@@ -291,7 +291,7 @@ Structural tests (run inside the gate) also pin the design contract: the flowcha
 
 ## Browser QA
 
-Lazy Playwright MCP (`/mcp status`); accessibility snapshots and DOM/console/network evidence first, screenshots under `.artifacts/playwright/` as reproducible artifacts. Deterministic browser tests stay separate from interactive MCP exploration. Slice-2 trust-boundary states can be exercised locally with `node scripts/slice2-test-server.mjs [--mode ok|supabase-down|web3forms-down|turnstile-fail] [--port 8788]`.
+Lazy Playwright MCP (`/mcp status`); accessibility snapshots and DOM/console/network evidence first, screenshots under `.artifacts/playwright/` as reproducible artifacts. Deterministic browser tests stay separate from interactive MCP exploration. Slice-2 trust-boundary states can be exercised locally with `node scripts/slice2-test-server.mjs [--mode ok|web3forms-down|turnstile-fail] [--port 8788]`.
 
 ## Contact / facts
 

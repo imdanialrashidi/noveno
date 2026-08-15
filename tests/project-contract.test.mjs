@@ -110,11 +110,11 @@ test("red: a contract doc losing an identity marker is rejected", () => {
   buildFixture();
 });
 
-test("red: .env.example carrying a secret-like value is rejected", () => {
-  writeFixtureFile(".env.example", "SUPABASE_SERVICE_KEY=real-looking-value\n");
+test("red: .env.example carrying a real-looking value is rejected", () => {
+  writeFixtureFile(".env.example", "PUBLIC_APP_URL=https://noveno.example.com\n");
   const errors = checkProjectContract(fixtureRoot);
   assert.ok(
-    errors.some((error) => error.includes(".env.example:1") && error.includes("SUPABASE_SERVICE_KEY")),
+    errors.some((error) => error.includes(".env.example:1") && error.includes("PUBLIC_APP_URL")),
     `expected env-value failure, got: ${JSON.stringify(errors)}`,
   );
   buildFixture();

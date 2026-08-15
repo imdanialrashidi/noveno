@@ -282,6 +282,7 @@ export function validateFieldClient(fieldId: string, value: string): string {
     case "name":
       if (trimmed === "") return "required";
       if (trimmed.length < 2) return "too_short";
+      if (trimmed.length > 80) return "too_long"; // mirrors server LIMITS.name
       return "";
     case "phone": {
       // Client cap (≤15 digits) is deliberately stricter than the server
@@ -293,6 +294,7 @@ export function validateFieldClient(fieldId: string, value: string): string {
     }
     case "email":
       if (trimmed === "") return "";
+      if (trimmed.length > 120) return "too_long"; // mirrors server LIMITS.email
       if (!EMAIL_PATTERN.test(trimmed)) return "invalid";
       return "";
     case "website":

@@ -3,21 +3,21 @@
 Durable constraints and accepted decisions only. Where the Master Spec (Spec §59) and the accepted bootstrap overrides differ, the bootstrap overrides win; conflicts are noted below.
 
 ## Current system
-- **Runtime/platform:** **Astro 7 + TypeScript, statically rendered**, deployed to **Cloudflare Pages**. No SSR. One Pages Function pair: `/api/audit` (submission boundary) and `/api/events` (Analytics Engine ingestion).
-- **Main modules:** (shipped) Astro pages per the launch IA (Spec §8.1), Astro components, framework-free TypeScript modules for interactive behavior (`src/scripts/`), one narrowly scoped Cloudflare Pages Function for the audit-form submission boundary.
-- **Data stores:** **Supabase** — shipped lead-persistence destination for audit submissions (bootstrap override; supersedes the Spec §59 "Sheet/CRM for MVP" suggestion); `leads` table via migration `supabase/migrations/20260811120000_leads.sql` (RLS on, zero policies). No other database.
-- **External services:** Web3Forms client-side email notification on audit submission (shipped; free tier requires client-side posting — `docs/ops/setup-checklist.md`); Cloudflare Web Analytics (baseline traffic/performance) + Analytics Engine via `/api/events` (custom acquisition events); **Zaraz deferred** — tag manager, not a store (see pattern table); WhatsApp/Telegram (09353598620), email (imdanialrashidi@gmail.com) as contact channels — no third-party integration code required.
-- **Deployment topology:** static assets on Cloudflare Pages CDN; the audit function as a Pages Function attached to the same project; Pages secrets for credentials. Free-tier-compatible.
+- **Runtime/platform:** **Astro 7 + TypeScript, statically rendered**, deployed to **Cloudflare Pages**. No SSR. One Pages Function pair: `/api/audit` (validation boundary) and `/api/events` (Analytics Engine ingestion).
+- **Main modules:** (shipped) Astro pages per the launch IA (Spec §8.1), Astro components, framework-free TypeScript modules for interactive behavior (`src/scripts/`), one narrowly scoped Cloudflare Pages Function for the audit-form validation boundary.
+- **Data stores:** **none.** Audit leads are delivered as **email via Web3Forms** (client-side) and are not durably stored anywhere by this site (2026-10 founder decision: no lead database for v1).
+- **External services:** Web3Forms client-side lead email delivery on audit submission (shipped; free tier requires client-side posting — `docs/ops/setup-checklist.md`); Cloudflare Turnstile (anti-abuse, siteverify in the function); Cloudflare Web Analytics (baseline traffic/performance) + Analytics Engine via `/api/events` (custom acquisition events); **Zaraz deferred** — tag manager, not a store (see pattern table); WhatsApp/Telegram (09353598620), email (imdanialrashidi@gmail.com) as contact channels — no third-party integration code required.
+- **Deployment topology:** static assets on Cloudflare Pages CDN; the audit function as a Pages Function attached to the same project; Pages secrets for the Turnstile secret key. Free-tier-compatible.
 
 ## Trust boundaries and critical data flows
-1. **Public static site (untrusted visitors)** → audit form (client validation for UX only) → **Pages Function (the only server boundary)**: server-side validation, abuse protection (rate limiting/honeypot), attribution packaging (landing page, referrer, UTM) → **Supabase lead insert** → **email notification** → thank-you page. Credentials for Supabase/email live only in Pages Function environment variables; the client never sees them.
+1. **Public static site (untrusted visitors)** → audit form (client validation for UX only) → **Pages Function (the only server boundary)**: server-side validation, abuse protection (rate limiting/honeypot/Turnstile siteverify), attribution packaging (landing page, referrer, UTM) → **200 `validated`** → the browser posts the sanitized lead to **Web3Forms** → Web3Forms confirms `{ success: true }` → thank-you. The only server-side secret is the Turnstile secret key; the client never sees it.
 2. Everything else on the site is static and contains no secrets and no dynamic data.
 
 ## Non-negotiable invariants
 - **Static by default:** no SSR; no conventional backend, authentication system, CMS, custom CRM, or client portal.
 - **No client UI framework:** no React/Vue/Svelte; interactivity via Astro components + small framework-free TypeScript modules (bootstrap override vs Spec §59's "React only where it adds real value").
 - **Persian-first, RTL-first** rendering; light+dark themes with system default, persisted explicit override, and no incorrect-theme flash on first paint.
-- **Form boundary is the only server code**; it must validate server-side, cannot silently fail, and must persist every accepted submission to Supabase plus trigger email notification.
+- **Form boundary is the only server code**; it must validate server-side and cannot silently fail. Success semantics are truthful: the visitor reaches thank-you only after Web3Forms confirms the email was accepted — server validation alone never presents success.
 - **No secrets in the repository** (`.env*` gitignored except `.env.example` which documents variable names only, never values).
 - **No fabricated proof**: demo/concept content must be explicitly labeled; metrics only with evidence (Spec §19).
 - **No speculative infrastructure** for theoretical future scale; dependencies only with a concrete current benefit.
@@ -28,9 +28,9 @@ Durable constraints and accepted decisions only. Where the Master Spec (Spec §5
 | Framework | Astro + TypeScript | Content-heavy marketing site; static generation; minimal JS; selective interactivity (Spec §59) | A real requirement demands SSR/ISR |
 | Styling | Tailwind CSS | Accepted bootstrap override; system is RTL/Persian-first | Repository evidence proves it wrong |
 | Interactivity | Astro islands with framework-free TS modules | No client framework accepted; audit form is the main interactive surface | — |
-| Lead persistence | Supabase | Accepted bootstrap override; managed Postgres, free tier, no ops burden | Volume or compliance demands change |
-| Audit submission | One Cloudflare Pages Function (`/api/audit`-style route) | Keeps credentials private, server-side validation, abuse protection, persistence + email trigger (accepted override) | Backend demand grows beyond one form |
-| Analytics | Cloudflare Web Analytics (baseline) + Analytics Engine via a Pages Function events endpoint (custom acquisition events) | Cloudflare-native, free-tier compatible, privacy-aware; attribution (UTM/referrer/landing) persisted with the lead. Zaraz deferred — it is a tag manager, not a store; revisit only when the founder wants a third-party destination | Product requires non-Cloudflare tooling |
+| Lead delivery | Web3Forms (email-only, client-side) | 2026-10 founder decision: v1 needs no durable lead store; Web3Forms free tier requires client-side posting; email is the destination | A real lead pipeline/dashboard is demanded |
+| Audit submission | One Cloudflare Pages Function (`/api/audit`-style route) | Keeps validation server-side, abuse protection (honeypot/rate limit/Turnstile siteverify); does not persist or send email (accepted override) | Backend demand grows beyond one form |
+| Analytics | Cloudflare Web Analytics (baseline) + Analytics Engine via a Pages Function events endpoint (custom acquisition events) | Cloudflare-native, free-tier compatible, privacy-aware; attribution (UTM/referrer/landing) rides in the lead email. Zaraz deferred — it is a tag manager, not a store; revisit only when the founder wants a third-party destination | Product requires non-Cloudflare tooling |
 | Content | Astro Content Collections (Markdown) for case studies when content exists | No CMS until editing needs justify it (Spec §59) | Editing needs arise |
 | Theme | CSS custom properties per light/dark palette; system default + persisted override; inline early script to avoid flash | Accepted bootstrap prompt requirement | /design defines the full token set |
 
@@ -38,8 +38,7 @@ Durable constraints and accepted decisions only. Where the Master Spec (Spec §5
 - SSR/ISR application rendering; client frameworks; GraphQL; microservices; Redis/message queues/WebSockets; Kubernetes; complex client state; heavy animation libraries; headless CMS; multi-tenant SaaS; custom dashboards; user accounts/auth (Spec §60).
 
 ## Operational baseline
-- Configuration/secrets: `.env.example` documents required variable names only — build-time publics (`APP_ENV`, `PUBLIC_APP_URL`, `PUBLIC_TURNSTILE_SITE_KEY`, `PUBLIC_WEB3FORMS_ACCESS_KEY`, `PUBLIC_CF_ANALYTICS_TOKEN`) and server-side secrets (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TURNSTILE_SECRET_KEY`) added at implementation; values live only in Cloudflare Pages secrets — never committed.
-- Migrations: Supabase schema for the lead model (Spec §35 fields) created at implementation (`supabase/migrations/20260811120000_leads.sql`); treated as a data-integrity change (needs risk review).
-- Backup and tested restore: lead records are business-critical (Spec §62); backup/recovery reasoning recorded at implementation (`docs/ops/setup-checklist.md`; founder executes the backup before first production submission).
-- Logging/monitoring: Cloudflare Web Analytics for traffic/performance; Pages Function logging for submission failures (no lead content in logs); no secrets in logs.
-- Rollback: Cloudflare Pages redeploy of a previous commit; schema rollback reasoning for Supabase at implementation time.
+- Configuration/secrets: `.env.example` documents required variable names only — build-time publics (`APP_ENV`, `PUBLIC_APP_URL`, `PUBLIC_TURNSTILE_SITE_KEY`, `PUBLIC_WEB3FORMS_ACCESS_KEY`, `PUBLIC_CF_ANALYTICS_TOKEN`) and the server-side secret (`TURNSTILE_SECRET_KEY`) added at implementation; values live only in Cloudflare Pages secrets — never committed.
+- Data: no database, no migrations, no backups to run. Lead emails live in the founder's Web3Forms inbox; retention is governed by Web3Forms/email policy (see `/privacy`).
+- Logging/monitoring: Cloudflare Web Analytics for traffic/performance; Pages Function logging for validation failures (no lead content in logs); no secrets in logs.
+- Rollback: Cloudflare Pages redeploy of a previous commit.

@@ -31,6 +31,12 @@ to the reviewer — the reviewer maintains this index.
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale).
 
+> **2026-10 note:** plans 001–003 (Turnstile idempotency, replay dedupe,
+> attribution timestamps) were executed against the pre-2026-10 persistence
+> architecture. The email-only architecture change (Supabase removed;
+> Web3Forms delivery is the completion gate) **supersedes the replay/dedupe
+> semantics of plan 002** — retained here as historical record only. See
+> `docs/ops/runbook.md` for the current duplicate-recognition trade-off.
 ## Dependency notes
 
 - **001 → 002 → 003** share `functions/api/audit.ts` + its tests: execute

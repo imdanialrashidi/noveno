@@ -5,18 +5,24 @@
  * Mimics the Cloudflare Pages shape for browser QA of the audit flow:
  * serves the built site from dist/ and runs the REAL Pages Functions
  * (functions/api/audit.ts + events.ts) with controllable external
- * dependencies — mock Supabase (in-process PostgREST), mock Web3Forms,
- * and a recording Analytics Engine binding — so every trust-boundary
- * state can be exercised in a real browser without credentials.
+ * dependencies — mock Web3Forms and a recording Analytics Engine
+ * binding — so every trust-boundary state can be exercised in a real
+ * browser without credentials.
  *
- * Modes (--mode):
+ * The audit function is validate-only (email-only architecture): the
+ * visitor journey completes only when the browser's Web3Forms delivery
+ * confirms success. Modes (--mode):
  *   ok              everything succeeds (Turnstile always-pass secret)
- *   supabase-down   mock Supabase insert fails → 502
- *   web3forms-down  mock notification endpoint fails → thank-you anyway
+ *   web3forms-down  mock delivery endpoint fails → truthful delivery
+ *                   banner, no thank-you, values preserved
  *   turnstile-fail  Turnstile secret = always-fail → 403
  *
+ * Build the site with the mock delivery URL before QA:
+ *   PUBLIC_WEB3FORMS_URL=http://127.0.0.1:8788/api/web3forms-mock \
+ *   PUBLIC_WEB3FORMS_ACCESS_KEY=local-test \
+ *   PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA npm run build
+ *
  * Test-inspection endpoints (never part of the functions/ boundary):
- *   GET /api/__test/leads          stored lead rows
  *   GET /api/__test/events         recorded analytics data points
  *   GET /api/__test/notifications  web3forms-mock request count
  *
@@ -51,10 +57,8 @@ const { onRequest: eventsOnRequest } = await import(
 /* State                                                               */
 /* ------------------------------------------------------------------ */
 
-const leads = new Map(); // submission_id → row
 const eventPoints = [];
 const notifications = [];
-let failInserts = mode === "supabase-down";
 
 const CONTENT_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -84,48 +88,6 @@ function readBody(req) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Mock PostgREST (minimal /rest/v1/leads semantics)                   */
-/* ------------------------------------------------------------------ */
-
-async function mockPostgrest(req, res, body) {
-  if (req.method === "POST") {
-    if (failInserts) return json(res, 500, { message: "boom" });
-    let payload;
-    try {
-      payload = JSON.parse(body);
-    } catch {
-      return json(res, 400, { message: "invalid body" });
-    }
-    const row = Array.isArray(payload) ? payload[0] : payload;
-    if (!row || typeof row.submission_id !== "string") {
-      return json(res, 400, { message: "invalid row" });
-    }
-    if (leads.has(row.submission_id)) return json(res, 201, []);
-    const stored = { ...row, id: `mock-${leads.size + 1}` };
-    leads.set(row.submission_id, stored);
-    return json(res, 201, [stored]);
-  }
-  if (req.method === "GET") {
-    const url = new URL(req.url, "http://localhost");
-    const param = url.searchParams.get("submission_id") ?? "";
-    const value = param.startsWith("eq.") ? param.slice(3) : null;
-    const matches = [...leads.values()].filter((r) => value === null || r.submission_id === value);
-    const wantsSingle = (req.headers.accept ?? "").includes("application/vnd.pgrst.object+json");
-    if (wantsSingle) {
-      if (matches.length === 1) return json(res, 200, matches[0]);
-      return json(res, 406, {
-        code: "PGRST116",
-        details: `The result contains ${matches.length} rows`,
-        hint: null,
-        message: "JSON object requested, multiple (or no) rows returned",
-      });
-    }
-    return json(res, 200, matches);
-  }
-  return json(res, 405, { message: "method not allowed" });
-}
-
-/* ------------------------------------------------------------------ */
 /* HTTP server                                                         */
 /* ------------------------------------------------------------------ */
 
@@ -135,9 +97,6 @@ const server = http.createServer(async (req, res) => {
 
   try {
     /* --- test inspection endpoints --- */
-    if (pathname === "/api/__test/leads" && req.method === "GET") {
-      return json(res, 200, [...leads.values()]);
-    }
     if (pathname === "/api/__test/events" && req.method === "GET") {
       return json(res, 200, eventPoints);
     }
@@ -145,20 +104,15 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, notifications);
     }
     if (pathname === "/api/__test/mode" && req.method === "GET") {
-      return json(res, 200, { mode, failInserts });
+      return json(res, 200, { mode });
     }
 
-    /* --- mock Web3Forms (client notification endpoint) --- */
+    /* --- mock Web3Forms (client delivery endpoint) --- */
     if (pathname === "/api/web3forms-mock" && req.method === "POST") {
       const body = await readBody(req);
       notifications.push(JSON.parse(body || "{}"));
       if (mode === "web3forms-down") return json(res, 500, { success: false });
       return json(res, 200, { success: true });
-    }
-
-    /* --- mock Supabase (PostgREST) --- */
-    if (pathname === "/rest/v1/leads") {
-      return mockPostgrest(req, res, await readBody(req));
     }
 
     /* --- real Pages Functions --- */
@@ -175,8 +129,6 @@ const server = http.createServer(async (req, res) => {
       const response = await auditOnRequest({
         request,
         env: {
-          SUPABASE_URL: `http://127.0.0.1:${port}`,
-          SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key",
           TURNSTILE_SECRET_KEY: mode === "turnstile-fail" ? TURNSTILE.alwaysFail : TURNSTILE.alwaysPass,
         },
       });

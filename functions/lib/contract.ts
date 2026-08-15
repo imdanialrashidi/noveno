@@ -5,7 +5,8 @@
  * The client form (src/data/audit.ts) mirrors these values; a structural
  * test asserts the client options are an exact subset of these enums so
  * the two cannot silently drift. The server is the source of truth:
- * anything outside these whitelists is rejected before persistence.
+ * anything outside these whitelists is rejected before validation
+ * completes (the function never persists — email-only delivery).
  */
 
 /* ------------------------------------------------------------------ */
@@ -196,14 +197,11 @@ export type ErrorCode =
   | "validation"
   | "turnstile_failed"
   | "rate_limited"
-  | "persistence_failed"
   | "method_not_allowed"
   | "body_too_large"
   | "server_error";
 
 export interface AuditEnv {
-  SUPABASE_URL: string;
-  SUPABASE_SERVICE_ROLE_KEY: string;
   TURNSTILE_SECRET_KEY: string;
   NOVENO_EVENTS?: unknown;
 }

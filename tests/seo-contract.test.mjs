@@ -165,8 +165,6 @@ test("built audit page leaks no secret env names or placeholder keys", () => {
   const html = fs.readFileSync(path.join(dist, "audit", "index.html"), "utf8");
   for (const marker of [
     "TURNSTILE_SECRET_KEY",
-    "SUPABASE_SERVICE_ROLE_KEY",
-    "SUPABASE_URL",
     "1x00000000000000000000AA", // official test sitekey must never ship
   ]) {
     assert.ok(!html.includes(marker), `audit page leaks ${marker}`);

@@ -17,12 +17,12 @@ Product-level path from idea to production. Task-level, multi-session execution 
 | Master Spec v1.0 is the product source of truth | confirmed | `docs/Noveno_Website_Master_Spec.md` (84 sections) | Keep current |
 | Business DNA v1.1 is the identity source | confirmed | `docs/Noveno Business DNA.md` | Keep current |
 | Brand anchors: light/dark palettes, contact facts, assets under `branding_assests/` | confirmed | Accepted bootstrap prompt; asset files present | /design token development |
-| Astro + TS + static Cloudflare Pages, no client framework, Supabase + email via one Pages Function, Cloudflare analytics | confirmed (accepted) | Bootstrap prompt overrides | First build validates practicality |
+| Astro + TS + static Cloudflare Pages, no client framework, email-only lead delivery via Web3Forms + validation function, Cloudflare analytics | confirmed (accepted) | Bootstrap prompt overrides (2026-10: Supabase removed — email-only) | First build validates practicality |
 | SMB owners complete a multi-step audit form | assumed | None yet | Launch → measure audit completion rate |
 | Web Analytics (baseline) + Analytics Engine via `/api/events` satisfy acquisition measurement; Zaraz deferred | confirmed (shipped) | `functions/api/events.ts`, `src/scripts/analytics.ts`, event tests | Measure field events after launch |
 | Self-hosted licensed Persian font is feasible on Cloudflare free tier | confirmed | DESIGN §5.4 (≈165 KB measured) + npm packages verified | Slice 1 font pipeline proof |
 | Two-slice launch plan maps the accepted scope | confirmed | `docs/exec-plans/active/noveno-launch.md` (A1) | Execute Slices 1–2 |
-| Web3Forms free tier requires client-side submission | confirmed | docs.web3forms.com API reference (server-side = paid plan + IP whitelist) | Done — client-side notification shipped, gated behind function success |
+| Web3Forms free tier requires client-side submission | confirmed | docs.web3forms.com API reference (server-side = paid plan + IP whitelist) | Done — client-side delivery shipped; Web3Forms acceptance is the only completion gate |
 | Web Analytics lacks custom events; Analytics Engine is the Cloudflare-native store | confirmed | Web Analytics FAQ + Pages Functions binding docs | Slice 2 `/api/events` |
 | Audit free-vs-paid policy | deferred | — | Business decision (Spec §15) |
 | Prices on site | deferred | — | Business decision (Spec §39) |
@@ -40,17 +40,17 @@ Product-level path from idea to production. Task-level, multi-session execution 
 - Decision owner: `/design` run, evaluated against `docs/QUALITY.md` + `frontend-design` gates.
 
 ### 2. Walking skeleton  ✔ DONE (code shipped and verified; staging browser proof deferred to launch)
-- Scope: one deployable end-to-end path: static site shell on Cloudflare Pages + audit function → Supabase → email, with analytics tags.
+- Scope: one deployable end-to-end path: static site shell on Cloudflare Pages + audit validation function + Web3Forms email delivery, with analytics tags.
 - Exit evidence: canonical install/start/test path works (`npm install`/`npm run dev`/`npm run build`/`npm run test`), `scripts/verify.sh` green, function exercised in a real browser with a test lead (staging — pending founder provisioning, `docs/ops/setup-checklist.md`), rollback = redeploy previous commit.
 - Verification: `.pi/verification.json` has an `app` route covering `src/**` and a `functions` route covering `functions/**`.
 
 ### 3. Vertical MVP  ✔ DONE (shipped; live-provider evidence pending launch)
 - Scope: Phase 1 launch scope (Spec §73) — homepage, services, work, process, about, audit, thank-you, contact, privacy, terms; analytics events (Spec §36); lead persistence + notification; acceptance criteria from `docs/PRODUCT.md` (Spec §74).
-- Exit evidence: must-have journeys function with real submission data (browser matrix exercised against the local function; live Supabase/Web3Forms delivery pending founder provisioning), negative paths (validation errors, abuse, offline), attribution preserved, accepted visual quality.
+- Exit evidence: must-have journeys function with real submission data (browser matrix exercised against the local function; live Web3Forms email delivery pending founder provisioning), negative paths (validation errors, abuse, offline), attribution preserved, accepted visual quality.
 - Non-goals: industry pages, testimonials without real data, dashboards; the blog (`/blog`) stays a small Markdown-first surface with in-house topics only (docs/BLOG.md).
 
 ### 4. Internal alpha
-- Scope: founder-led use; real audit submissions flow to Supabase + email; controlled failure testing (function outage, Supabase outage → visible error, no silent loss).
+- Scope: founder-led use; real audit submissions flow as Web3Forms email; controlled failure testing (function outage, delivery outage → visible truthful error, no false success).
 - Exit evidence: no release-blocking correctness/security/accessibility issues; recovery path (lead data backup/restore reasoning) exercised.
 - Feedback sample / owner: founder.
 
@@ -79,7 +79,7 @@ Product-level path from idea to production. Task-level, multi-session execution 
 | Risk / dependency | Control or experiment | Owner | Decision date / trigger |
 |---|---|---|---|
 | Audit-form conversion unproven | Measure starts/completion from launch; keep form short | founder | 30 days after launch |
-| Email/Supabase deliverability in Iran | Choose replaceable providers; contact redundancy on site (Spec §64.1) | founder | implementation |
+| Email deliverability in Iran | Choose replaceable providers; contact redundancy on site (Spec §64.1) | founder | implementation |
 | Persian font licensing/performance | /design selection of licensed self-hosted font; performance proof | /design | design stage |
 | Cloudflare Pages function limits on free tier | One narrow function; static by default | /design+build | build stage |
 | Fabricated-proof drift in content | Proof policy (Spec §19) enforced in QUALITY + copy review | review agents | every content change |
@@ -88,12 +88,12 @@ Product-level path from idea to production. Task-level, multi-session execution 
 
 - Goal: **launch gate, not a new slice** — Slices 1–2 and the 2026-08-14 / 2026-09 / 2026-10 design passes are committed and verified. Launch awaits founder provisioning per `docs/ops/setup-checklist.md` and one preview-deploy smoke, then stage gate 4 (internal alpha).
 - Acceptance proof: setup checklist completed; preview-deploy smoke green; `scripts/verify.sh` green on the shipped tree.
-- Recovery / rollback: redeploy previous commit; Supabase schema additive-only at launch.
+- Recovery / rollback: redeploy previous commit.
 
 ## Deferred decisions
 
 - Full visual system, tokens beyond the accepted anchors, typography, motion, media direction → `/design`.
 - Astro project scaffolding details, package manager (npm/pnpm), Tailwind config → `/plan` (first build).
-- Supabase schema/table names, email transport provider, function route shape → `/plan` (with risk review).
+- Email transport provider (Web3Forms — pinned), function route shape → `/plan` (with risk review).
 - Prices, audit pricing policy, headline copy, hero visual → business decisions (see `docs/PRODUCT.md` open decisions).
 - A larger editorial operation, industry pages, productized platform (Spec §72 Phases 3–5) → only after real evidence; the blog stays focused (`docs/BLOG.md` content policy).

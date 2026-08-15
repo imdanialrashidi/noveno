@@ -81,11 +81,10 @@
     },
     {
       "id": "functions",
-      "include": ["functions/**", "supabase/**", "tests/audit-function.test.mjs", "tests/supabase-contract.test.mjs"],
+      "include": ["functions/**", "tests/audit-function.test.mjs"],
       "commands": [
         ["npm", "run", "check"],
         ["node", "--test", "tests/audit-function.test.mjs"],
-        ["node", "--test", "tests/supabase-contract.test.mjs"],
         ["npm", "run", "build"]
       ]
     }

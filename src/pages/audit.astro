@@ -120,6 +120,45 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
                 </div>
               </div>
 
+              <div data-banner="delivery" hidden>
+                <div class="flex items-start gap-3 rounded-[4px] border border-danger/40 bg-surface p-4">
+                  <svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 flex-none text-danger" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 8v5" />
+                    <path d="M12 16.5v.01" />
+                  </svg>
+                  <div class="flex flex-col gap-3">
+                    <p class="text-body font-medium text-danger">دریافت درخواست ناموفق بود؛ پاسخ‌های شما ذخیره شده‌اند. دوباره تلاش کنید یا مستقیم در تماس باشید.</p>
+                    <div class="flex flex-wrap gap-x-5 gap-y-1">
+                      <ChannelLink
+                        icon="phone"
+                        label={CONTACT.phone}
+                        value="تماس"
+                        href={CONTACT.phoneHref}
+                        event={{ name: "phone_click", payload: { section: "audit-banner" } }}
+                      />
+                      <ChannelLink
+                        icon="whatsapp"
+                        label="واتساپ"
+                        href={CONTACT.whatsappHref}
+                        external
+                        event={{ name: "messaging_click", payload: { section: "audit-banner", channel: "whatsapp" } }}
+                      />
+                      <ChannelLink
+                        icon="telegram"
+                        label="تلگرام"
+                        href={CONTACT.telegramHref}
+                        external
+                        event={{ name: "messaging_click", payload: { section: "audit-banner", channel: "telegram" } }}
+                      />
+                    </div>
+                    <button type="button" data-retry class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action">
+                      تلاش دوباره
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <div data-banner="offline" hidden>
                 <div class="flex items-start gap-3 rounded-[4px] border border-danger/40 bg-surface p-4">
                   <svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 flex-none text-danger" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
