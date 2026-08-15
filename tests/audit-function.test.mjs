@@ -41,7 +41,7 @@ import {
   normalizeText,
 } from "../functions/lib/normalize.ts";
 import { createRateLimiter } from "../functions/lib/rate-limit.ts";
-import { verifyTurnstile } from "../functions/lib/turnstile.ts";
+import { idempotencyKeyForToken, verifyTurnstile } from "../functions/lib/turnstile.ts";
 import { createSupabasePersister } from "../functions/lib/persist.ts";
 import { validateEvent } from "../functions/api/events.ts";
 import { onRequest as eventsOnRequest } from "../functions/api/events.ts";
@@ -422,6 +422,60 @@ test("turnstile non-2xx response is an upstream error", async () => {
     fetchImpl: async () => new Response("nope", { status: 502 }),
   });
   assert.deepEqual(outcome, { status: "upstream_error" });
+});
+
+test("idempotencyKeyForToken is deterministic, token-distinct, and a 64-char hex string", async () => {
+  const a1 = await idempotencyKeyForToken("tok-A");
+  const a2 = await idempotencyKeyForToken("tok-A");
+  const b = await idempotencyKeyForToken("tok-B");
+  assert.equal(a1, a2);
+  assert.notEqual(a1, b);
+  assert.match(a1, /^[0-9a-f]{64}$/);
+  assert.match(b, /^[0-9a-f]{64}$/);
+});
+
+test("siteverify idempotency_key is the token's hash, distinct per token (never the submission_id)", async () => {
+  const seen = [];
+  const fetchImpl = async (_url, init) => {
+    seen.push(JSON.parse(init.body));
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
+  };
+  for (const token of ["tok-1", "tok-2"]) {
+    await verifyTurnstile({
+      secret: "s",
+      token,
+      remoteIp: null,
+      idempotencyKey: await idempotencyKeyForToken(token),
+      fetchImpl,
+    });
+  }
+  assert.equal(seen.length, 2);
+  assert.equal(seen[0].idempotency_key, await idempotencyKeyForToken("tok-1"));
+  assert.equal(seen[1].idempotency_key, await idempotencyKeyForToken("tok-2"));
+  assert.notEqual(seen[0].idempotency_key, seen[1].idempotency_key);
+  assert.notEqual(seen[0].idempotency_key, seen[0].response);
+});
+
+test("retry with a fresh token under the same submission_id reaches persistence after a failed first attempt", async () => {
+  const submissionId = crypto.randomUUID();
+  const firstAttempt = validPayload({ submission_id: submissionId, cf_turnstile_token: "token-attempt-1" });
+  const retryAttempt = validPayload({ submission_id: submissionId, cf_turnstile_token: "token-attempt-2" });
+  const seenTokens = [];
+  const { deps, calls } = makeDeps({
+    verifyTurnstile: async (submission) => {
+      seenTokens.push(submission.cf_turnstile_token);
+      if (submission.cf_turnstile_token === "token-attempt-1") {
+        return { status: "fail", errorCodes: ["timeout-or-duplicate"] };
+      }
+      return { status: "pass" };
+    },
+  });
+  const first = await handleAuditRequest(post(firstAttempt), deps);
+  assert.equal(first.status, 403); // expired first token is rejected
+  const second = await handleAuditRequest(post(retryAttempt), deps);
+  assert.equal(second.status, 200); // fresh token gets a fresh verification and persists
+  assert.deepEqual(seenTokens, ["token-attempt-1", "token-attempt-2"]);
+  assert.equal(calls.persist.length, 1);
 });
 
 /* ------------------------------------------------------------------ */
