@@ -52,7 +52,6 @@ export const NAV_LINKS = [
   { href: "/about", label: "درباره" },
 ] as const;
 
-export const SITE_NAME_FA = "نوونو";
 export const SITE_NAME_EN = "NOVENO";
 
 /* ------------------------------------------------------------------ */
@@ -214,22 +213,6 @@ export const FAQ_ITEMS = [
 ] as const;
 
 /* ------------------------------------------------------------------ */
-/* Measurement (Spec §25)                                              */
-/* ------------------------------------------------------------------ */
-
-export const MEASURED_ACTIONS = [
-  "بازدید صفحه",
-  "کلیک روی CTA",
-  "شروع فرم",
-  "ثبت درخواست",
-  "تماس",
-  "کلیک روی واتساپ / پیام‌رسان",
-  "لید واجدشرایط",
-  "منبع ورودی",
-  "وضعیت پیگیری",
-] as const;
-
-/* ------------------------------------------------------------------ */
 /* Audit stations (Slice 2 — data contract lives here now)             */
 /* ------------------------------------------------------------------ */
 
@@ -253,7 +236,6 @@ export const PROOF_LABELS = {
 } as const;
 
 export const CONCEPT_DISCLAIMER = "نمونه نمایشی — سناریوی مفهومی";
-export const CONCEPT_UI_LABEL = "نمونه رابط سیستم";
 
 /* ------------------------------------------------------------------ */
 /* Numerals — Persian digits are the brand default (۰–۹)               */
@@ -266,9 +248,13 @@ export function toFaDigits(value: number | string): string {
   return String(value).replace(/[0-9]/g, (d) => FA_DIGITS[Number(d)]);
 }
 
-/** Persian (jalali) year at build time: 1405 for 2026-03-21 onward. */
+/**
+ * Persian (jalali) year at build time — Intl-computed so the Nowruz
+ * cutover (21 March) is handled by the CLDR data, not a hand-rolled
+ * month approximation (the old `getMonth() + 1 >= 3` was wrong for
+ * March 1-20). `-u-nu-latn` keeps Latin digits; callers wrap with
+ * toFaDigits when Persian digits are wanted.
+ */
 export function jalaliYear(date = new Date()): string {
-  const year =
-    date.getMonth() + 1 >= 3 ? date.getFullYear() - 621 : date.getFullYear() - 622;
-  return toFaDigits(year);
+  return new Intl.DateTimeFormat("fa-IR-u-nu-latn", { year: "numeric" }).format(date);
 }
