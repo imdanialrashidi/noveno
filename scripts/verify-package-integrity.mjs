@@ -57,6 +57,25 @@ for (const source of entries.keys()) {
   if (!configured.includes(source)) throw new Error(`stale integrity record is not configured: ${source}`);
 }
 
+// Lockfile must resolve from the official registry only — a mirror
+// (e.g. registry.npmmirror.com) breaks npm audit and makes CI installs
+// depend on a third party's availability.
+const lock = JSON.parse(fs.readFileSync(path.join(repositoryRoot, "package-lock.json"), "utf8"));
+const badResolved = new Set();
+for (const pkg of Object.values(lock.packages ?? {})) {
+  const resolved = pkg?.resolved;
+  if (typeof resolved === "string" && !resolved.startsWith("https://registry.npmjs.org/")) {
+    badResolved.add(resolved);
+  }
+}
+if (badResolved.size > 0) {
+  throw new Error(
+    `lockfile has ${badResolved.size} resolved URL(s) outside the official registry:\n` +
+      [...badResolved].map((url) => `  ${url}`).join("\n"),
+  );
+}
+process.stdout.write("PASS lockfile resolved hosts point at registry.npmjs.org\n");
+
 if (online) {
   for (const [source, entry] of entries) {
     const npmSpec = source.slice("npm:".length);
