@@ -17,9 +17,9 @@ if [[ -f package.json ]] && node -e "const p=require('./package.json'); process.
   fi
 fi
 
-# Note: the npm run ci fallback below is a template fallback only; the build
-# above is the gate's explicit artifact relationship and must not be removed
-# as "redundant" while structural tests run inside pi-doctor's test suite.
+# The build above is the gate's explicit artifact relationship and must not be
+# removed as "redundant" while structural tests run inside pi-doctor's test
+# suite.
 
 bash scripts/pi-doctor.sh --ci
 
@@ -40,12 +40,11 @@ run_node_script() {
 }
 
 if [[ -f package.json ]]; then
-  if node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts.ci ? 0 : 1)" >/dev/null 2>&1; then
-    ran=1
-    if [[ -f pnpm-lock.yaml ]]; then pnpm run ci
-    elif [[ -f yarn.lock ]]; then yarn ci
-    else npm run ci
-    fi
+  # The workflow suite already ran inside pi-doctor --ci; the build already
+  # happened above. Only the typecheck remains — re-running the ci script
+  # (check + build + test) here would triple the gate's work.
+  if node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts.check ? 0 : 1)" >/dev/null 2>&1; then
+    run_node_script "check"
   else
     run_node_script "format:check"
     run_node_script "typecheck"

@@ -41,3 +41,16 @@ test("canonical gate builds the project before running the workflow test suite",
     "verify.sh must build before pi-doctor: pi-doctor --ci runs the workflow test suite, and structural tests need dist/",
   );
 });
+
+test("verify.sh must not re-run the full ci script after pi-doctor", () => {
+  const verify = fs.readFileSync(path.join(root, "scripts", "verify.sh"), "utf8");
+  assert.ok(
+    !/npm run ci/.test(verify),
+    "verify.sh must not re-run `npm run ci` (check+build+test) — pi-doctor already ran the suite and the build happened above",
+  );
+  const lines = verify.split("\n");
+  const doctorLine = lines.findIndex((l) => l.includes("pi-doctor.sh"));
+  const checkLine = lines.findIndex((l) => l.includes("run_node_script \"check\"") || l.includes("npm run check"));
+  assert.notEqual(checkLine, -1, "verify.sh must run npm run check");
+  assert.ok(doctorLine < checkLine, "the check must come after the doctor suite");
+});
