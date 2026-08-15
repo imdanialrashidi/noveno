@@ -6,9 +6,9 @@ Product-level path from idea to production. Task-level, multi-session execution 
 
 - Product outcome: a Persian-first, RTL, mobile-first marketing site that converts qualified SMB visitors into **audit requests** (primary conversion) and demonstrates Noveno's own philosophy: clear, measured, simple, transparent.
 - Measurable success: qualified audit requests generated; audit completion rate and CTA click rate improving; every submission persisted + notified (Spec §6).
-- Explicit non-goals: no client portal/auth/CMS/SSR/backend beyond the audit-form function; no blog or industry pages at launch; no fabricated proof; no infrastructure for hypothetical scale.
+- Explicit non-goals: no client portal/auth/CMS/SSR/backend beyond the audit-form function; `/blog` is a small Markdown-first editorial surface (shipped, per `docs/BLOG.md` content policy); no industry pages at launch; no fabricated proof; no infrastructure for hypothetical scale.
 - Deadline / capital / compliance constraints: none accepted; Cloudflare free-tier-compatible where practical; Iranian network realities are product requirements, not afterthoughts.
-- Current stage: **Stage 2 entry — bootstrap and `/design` complete; the launch build plan is accepted in `docs/exec-plans/active/noveno-launch.md`** (two slices: flagship site → acquisition flow & production integration). No application code exists yet.
+- Current stage: **Slices 1–2 shipped and verified** (flagship site; acquisition flow & production integration), plus the 2026-08-14 founder-directed redesign and the 2026-09 product-led and 2026-10 brand passes — all committed and verified per README "Repository state". Launch awaits founder provisioning (`docs/ops/setup-checklist.md`) and a preview-deploy smoke.
 
 ## Evidence ledger
 
@@ -19,10 +19,10 @@ Product-level path from idea to production. Task-level, multi-session execution 
 | Brand anchors: light/dark palettes, contact facts, assets under `branding_assests/` | confirmed | Accepted bootstrap prompt; asset files present | /design token development |
 | Astro + TS + static Cloudflare Pages, no client framework, Supabase + email via one Pages Function, Cloudflare analytics | confirmed (accepted) | Bootstrap prompt overrides | First build validates practicality |
 | SMB owners complete a multi-step audit form | assumed | None yet | Launch → measure audit completion rate |
-| Web Analytics + Zaraz satisfy acquisition measurement | assumed | None yet | Configure at build; verify events in staging |
+| Web Analytics (baseline) + Analytics Engine via `/api/events` satisfy acquisition measurement; Zaraz deferred | confirmed (shipped) | `functions/api/events.ts`, `src/scripts/analytics.ts`, event tests | Measure field events after launch |
 | Self-hosted licensed Persian font is feasible on Cloudflare free tier | confirmed | DESIGN §5.4 (≈165 KB measured) + npm packages verified | Slice 1 font pipeline proof |
 | Two-slice launch plan maps the accepted scope | confirmed | `docs/exec-plans/active/noveno-launch.md` (A1) | Execute Slices 1–2 |
-| Web3Forms free tier requires client-side submission | confirmed | docs.web3forms.com API reference (server-side = paid plan + IP whitelist) | Slice 2 notification wiring |
+| Web3Forms free tier requires client-side submission | confirmed | docs.web3forms.com API reference (server-side = paid plan + IP whitelist) | Done — client-side notification shipped, gated behind function success |
 | Web Analytics lacks custom events; Analytics Engine is the Cloudflare-native store | confirmed | Web Analytics FAQ + Pages Functions binding docs | Slice 2 `/api/events` |
 | Audit free-vs-paid policy | deferred | — | Business decision (Spec §15) |
 | Prices on site | deferred | — | Business decision (Spec §39) |
@@ -39,14 +39,14 @@ Product-level path from idea to production. Task-level, multi-session execution 
 - Exit evidence: accepted `docs/DESIGN.md`; critical states and desktop/mobile proof plan defined.
 - Decision owner: `/design` run, evaluated against `docs/QUALITY.md` + `frontend-design` gates.
 
-### 2. Walking skeleton
+### 2. Walking skeleton  ✔ DONE (code shipped and verified; staging browser proof deferred to launch)
 - Scope: one deployable end-to-end path: static site shell on Cloudflare Pages + audit function → Supabase → email, with analytics tags.
-- Exit evidence: canonical install/start/test path works (`npm install`/`npm run dev`/`npm run build`/`npm run test` once the app lands), `scripts/verify.sh` green, function exercised in a real browser with a test lead (staging), rollback = redeploy previous commit.
-- Verification: verification routes in `.pi/verification.json` extended with `src/**` evidence once the app exists.
+- Exit evidence: canonical install/start/test path works (`npm install`/`npm run dev`/`npm run build`/`npm run test`), `scripts/verify.sh` green, function exercised in a real browser with a test lead (staging — pending founder provisioning, `docs/ops/setup-checklist.md`), rollback = redeploy previous commit.
+- Verification: `.pi/verification.json` has an `app` route covering `src/**` and a `functions` route covering `functions/**`.
 
-### 3. Vertical MVP
+### 3. Vertical MVP  ✔ DONE (shipped; live-provider evidence pending launch)
 - Scope: Phase 1 launch scope (Spec §73) — homepage, services, work, process, about, audit, thank-you, contact, privacy, terms; analytics events (Spec §36); lead persistence + notification; acceptance criteria from `docs/PRODUCT.md` (Spec §74).
-- Exit evidence: must-have journeys function with real submission data, negative paths (validation errors, abuse, offline), attribution preserved, accepted visual quality.
+- Exit evidence: must-have journeys function with real submission data (browser matrix exercised against the local function; live Supabase/Web3Forms delivery pending founder provisioning), negative paths (validation errors, abuse, offline), attribution preserved, accepted visual quality.
 - Non-goals: industry pages, testimonials without real data, dashboards; the blog (`/blog`) stays a small Markdown-first surface with in-house topics only (docs/BLOG.md).
 
 ### 4. Internal alpha
@@ -84,11 +84,11 @@ Product-level path from idea to production. Task-level, multi-session execution 
 | Cloudflare Pages function limits on free tier | One narrow function; static by default | /design+build | build stage |
 | Fabricated-proof drift in content | Proof policy (Spec §19) enforced in QUALITY + copy review | review agents | every content change |
 
-## Next bounded slice
+## Next step (launch gate)
 
-- Goal: **Slice 1 — Flagship Website Experience** per `docs/exec-plans/active/noveno-launch.md` (Astro scaffold, design system, theme/typography/fonts, Journey Line patterns, content layer, all Slice 1 pages), then Slice 2 — Acquisition Flow & Production Integration.
-- Acceptance proof: the plan's criteria A1–A7; DESIGN §15 screen matrix (slices 1–7, 10–12 then 8–9); `frontend-design` flagship gates; `scripts/verify.sh` green.
-- Recovery / rollback: build work is reversible on a task branch; Git revert of the slice diff if the direction is rejected.
+- Goal: **launch gate, not a new slice** — Slices 1–2 and the 2026-08-14 / 2026-09 / 2026-10 design passes are committed and verified. Launch awaits founder provisioning per `docs/ops/setup-checklist.md` and one preview-deploy smoke, then stage gate 4 (internal alpha).
+- Acceptance proof: setup checklist completed; preview-deploy smoke green; `scripts/verify.sh` green on the shipped tree.
+- Recovery / rollback: redeploy previous commit; Supabase schema additive-only at launch.
 
 ## Deferred decisions
 

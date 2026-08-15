@@ -3,6 +3,8 @@
 Status: active — **Slice 1 complete (2026-08-11)**; **Slice 2 complete (2026-08-11)**; **visual redesign complete (2026-08-14, founder-directed)**; launch awaiting founder provisioning + deploy.
 Updated: 2026-08-14
 
+> **Status (2026-08, reconciled):** both slices are committed and verified — the app exists (`src/`, `functions/`, `supabase/migrations/`, `tests/`); `.pi/verification.json` has an `app` route. Launch awaits founder provisioning (`docs/ops/setup-checklist.md`). The steps below document the accepted plan; see README "Repository state" for the shipped reality.
+
 > **Founder override (2026-08-14, second review): the flowchart/route visual language is removed from the public design.** The Journey Line / route-band / station-rail grammar (JourneyLine, BeforeAfterJourney, ChannelMap, LeadStatusStrip, SystemArchitectureDiagram, ProofRow, scatter fields, StepperLine station rail, footer mini route, 404 route motif, dashed wireframe concept previews, line-style ProofTag codes, section node markers) is **rejected as a visual concept** and must not be reintroduced. The accepted replacement is the image-led editorial system — Typography + Photography + Real Product Screens + Editorial Numbers — recorded in `docs/DESIGN.md` §3 (thesis), §4 (signature), §9 (media), §15 (screen matrix), §16 (decision log). The word «مسیر» survives only as product copy (fixed CTA «درخواست بررسی مسیر جذب»), never as a drawn route. All acceptance criteria and in-scope items below that name the old grammar are superseded by the 2026-08-14 thesis; audit progress is «مرحله X از ۶» + progress bar, thank-you is a numbered next-steps sequence, work previews are large real screenshots (projects) and labeled designed mocks (concepts).
 Source of truth: `AGENTS.md` (order of precedence), `docs/DESIGN.md` (visual contract), `docs/PRODUCT.md` (product contract), `docs/ARCHITECTURE.md` (invariants), `docs/QUALITY.md` (quality contract), Master Spec v1.0 (full reference), `docs/PLAN.md` (roadmap).
 Use: `/resume docs/exec-plans/active/noveno-launch.md` for any fresh context that continues this work.
@@ -53,9 +55,9 @@ Use: `/resume docs/exec-plans/active/noveno-launch.md` for any fresh context tha
 ## 3. Confirmed facts, constraints, assumptions, unknowns
 
 ### Confirmed repository state
-- Bootstrap + `/design` complete; **no application code exists**. Docs are the accepted contracts; `branding_assests/` holds the logo SVGs (legacy purple fill, embedded Tahoma «NOVENO» in `Logo_Website_SVG.svg`).
-- Verification system: `.pi/verification.json` routes, `scripts/verify-affected.mjs`, `scripts/verify.sh` (pi-doctor + project-contract), `node --test tests/*.test.mjs`, CI `.github/workflows/quality.yml` (Node 22.23.2). README promises `src/**` evidence routes once the app lands.
-- Env contract today: `.env.example` contains only `APP_ENV=development`. Node ≥ 22.19 pinned.
+- Bootstrap + `/design` were complete at plan time; the app did not yet exist then — both slices shipped since (status note above). Docs are the accepted contracts; `branding_assests/` holds the logo SVGs (legacy purple fill, embedded Tahoma «NOVENO» in `Logo_Website_SVG.svg`).
+- Verification system: `.pi/verification.json` routes, `scripts/verify-affected.mjs`, `scripts/verify.sh` (pi-doctor + project-contract), `node --test tests/*.test.mjs`, CI `.github/workflows/quality.yml` (Node 22.23.2). The `src/**` evidence routes promised then are delivered — `.pi/verification.json` has an `app` route (status note above).
+- Env contract at plan time: `.env.example` documented only `APP_ENV=development`; it now documents all required names (build-time publics + server-side secrets — values never committed). Node ≥ 22.19 pinned.
 - DESIGN.md records measured font sizes (≈165 KB total, 2026-08-11) and verified AA token contrast; anchors `#679e86`/`#619881` are mechanically asserted by `check-project-contract.mjs`.
 
 ### External facts verified against current official sources (2026-08-11)
@@ -279,7 +281,7 @@ Invariants: 200 ⇔ Supabase row exists (fresh or replay). Notification failure 
 
 ## 12. Handoff-ready current state and first action
 
-**Current state.** Bootstrap + design complete; no application code; this plan is the single durable artifact for launch. External facts verified against current official sources (list in §3). `.env.example` has `APP_ENV=development` only; verification routes have no `src/**` route yet; CI runs `scripts/verify.sh` + package integrity.
+**Current state.** See the status note above — both slices are committed and verified; the app exists (`src/`, `functions/`, `supabase/migrations/`, `tests/`) and `.pi/verification.json` has an `app` route. Launch awaits founder provisioning (`docs/ops/setup-checklist.md`) and a preview-deploy smoke. CI runs `scripts/verify.sh` + package integrity.
 
 **Smallest first implementation action (Slice 1, step 1):** scaffold the Astro + TypeScript + Tailwind v4 app at the repo root (`npm create astro` with strict TS), wire `astro.config.mjs` + `tsconfig`, add `@astrojs/check`, confirm `npm run build`/`npm run dev`/`npm run check` work on the repo's Node ≥ 22.19 baseline, then extend `.pi/verification.json` with `src/**` and `functions/**` routes and the CI app job. Stop when `astro build` + `astro check` + `scripts/verify.sh` are all green.
 
