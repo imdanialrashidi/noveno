@@ -246,6 +246,15 @@ export const AUDIT_STEPS: readonly AuditStep[] = [
   },
 ] as const;
 
+/**
+ * Audit progress stations — DERIVED from AUDIT_STEPS so the desktop
+ * progress rail can never drift from the form (previously duplicated
+ * in src/data/site.ts).
+ */
+export const AUDIT_STATIONS: readonly { id: string; label: string }[] = AUDIT_STEPS.map(
+  ({ id, label }) => ({ id, label }),
+);
+
 /* ------------------------------------------------------------------ */
 /* UX validation rules (client-side only — server is authoritative)    */
 /* ------------------------------------------------------------------ */
