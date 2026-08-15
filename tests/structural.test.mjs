@@ -300,6 +300,12 @@ test("the app route is wired into verification routing", () => {
   assert.ok(appRoute.commands.some((c) => c.includes("tests/structural.test.mjs")), "app route must run structural tests");
 });
 
+test("security headers include HSTS and upgrade-insecure-requests", () => {
+  const headers = fs.readFileSync(path.join(root, "public", "_headers"), "utf8");
+  assert.match(headers, /Strict-Transport-Security: max-age=31536000; includeSubDomains/);
+  assert.match(headers, /upgrade-insecure-requests/);
+});
+
 // Convenience: run the canonical build from the test (used by verify.sh flow).
 export function buildSite() {
   execFileSync("npm", ["run", "build"], { cwd: root, stdio: "inherit" });

@@ -38,6 +38,8 @@
   Cache-Control: public, max-age=86400
 
 # Baseline security headers + a pragmatic CSP for a static Astro site:
+# - HSTS pins HTTPS (1-year max-age, includeSubDomains) and the CSP forces
+#   plaintext requests up to HTTPS, closing the SSL-strip window on the lead form;
 # - 'unsafe-inline' script-src covers the no-flash theme snippet
 #   (accepted plan note: no inline-script ban on the theme snippet);
 # - Turnstile (challenges.cloudflare.com) loads only on /audit;
@@ -48,4 +50,5 @@
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://static.cloudflareinsights.com; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com https://api.web3forms.com https://cloudflareinsights.com https://static.cloudflareinsights.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://static.cloudflareinsights.com; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com https://api.web3forms.com https://cloudflareinsights.com https://static.cloudflareinsights.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests

@@ -21,6 +21,7 @@ docs/private/**
 .pi/sessions/
 .pi/cache/
 .pi/auth.json
+.pi/models.env
 .pi/models.json
 .pi/trust.json
 .pi/mcp.json
