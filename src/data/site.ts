@@ -1,6 +1,6 @@
 /**
  * Typed site-wide constants — nav, contact facts, offers, FAQ, process,
- * system components, qualification, audit stations, proof labels.
+ * system components, qualification, proof labels.
  * Contract: docs/DESIGN.md §13 (voice), docs/Noveno_Website_Master_Spec.md
  * (§8–24, §28, §31), docs/exec-plans/active/noveno-launch.md §5.3.
  */

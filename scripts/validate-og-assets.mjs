@@ -32,7 +32,7 @@
  * Usage: node scripts/validate-og-assets.mjs
  */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { isAbsolute, join, relative } from "node:path";
+import { isAbsolute, join, relative, resolve } from "node:path";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 const PUBLIC = join(ROOT, "public");
@@ -84,7 +84,12 @@ function requiredCards() {
   for (const slug of contentSlugs("work", { skipDrafts: false })) {
     cards.push({ rel: `og/work/${slug}.png`, why: `work entry \`${slug}\`` });
   }
-  const blogBase = join(ROOT, "src", "content", "blog");
+  // OG_ASSETS_BLOG_DIR lets tests point the gate at a throwaway fixture
+  // directory so temp entries never race other suites that read
+  // src/content/blog (node --test runs test files concurrently).
+  const blogBase = process.env.OG_ASSETS_BLOG_DIR
+    ? resolve(process.env.OG_ASSETS_BLOG_DIR)
+    : join(ROOT, "src", "content", "blog");
   for (const name of readdirSync(blogBase).filter((f) => f.endsWith(".md"))) {
     const slug = name.slice(0, -3);
     const data = parseFrontmatter(join(blogBase, name));

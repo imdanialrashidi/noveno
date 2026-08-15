@@ -7,9 +7,9 @@
  * network blip is safe. The client retry path mints a fresh token per
  * attempt with the same `submission_id`, which now yields a fresh
  * idempotency key — a failed first attempt can never lock the retry out.
- * Official test keys (always-pass / always-fail / duplicate) work against
- * the real endpoint and are used in test environments only — never
- * committed.
+ * Official test keys (always-pass / always-fail / duplicate) are
+ * Cloudflare-published public secrets used against the real endpoint in
+ * tests only — they are safe to commit; a production secret never is.
  */
 
 export type TurnstileOutcome =
