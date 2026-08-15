@@ -10,17 +10,30 @@
  * and the pinned `.node-version` must satisfy the package engine.
  */
 
-import { test } from "node:test";
+import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
 const validator = path.join(root, "scripts", "validate-og-assets.mjs");
 
-function runValidator() {
-  return spawnSync("node", [validator], { cwd: root, encoding: "utf8" });
+/**
+ * Fixture blog directory (never the committed src/content/blog): the
+ * temp-entry tests run concurrently with other suites that glob that
+ * directory (blog.test.mjs), so entries must live outside the tree.
+ */
+const fixtureBlogDir = fs.mkdtempSync(path.join(os.tmpdir(), "og-assets-blog-"));
+after(() => fs.rmSync(fixtureBlogDir, { recursive: true, force: true }));
+
+function runValidator(env = {}) {
+  return spawnSync("node", [validator], {
+    cwd: root,
+    encoding: "utf8",
+    env: { ...process.env, ...env },
+  });
 }
 
 /** Replace a card with arbitrary bytes; always restores the original. */
@@ -47,9 +60,9 @@ function withCardHidden(rel, fn) {
   }
 }
 
-/** Write a temporary blog entry; always removes it. */
+/** Write a temporary blog entry in the fixture dir; always removes it. */
 function withTempEntry(name, body, fn) {
-  const abs = path.join(root, "src", "content", "blog", name);
+  const abs = path.join(fixtureBlogDir, name);
   fs.writeFileSync(abs, body);
   try {
     fn();
@@ -131,12 +144,13 @@ test("repo-relative ogImage override is gated like a committed card", () => {
   // path that must exist and be 1200×630. The validator must require it
   // even though the frontmatter value has no leading slash.
   const rel = "og/blog/tmp-relative.png";
+  const run = () => runValidator({ OG_ASSETS_BLOG_DIR: fixtureBlogDir });
   withTempEntry(
     "tmp-relative.md",
     `---\ntitle: Tmp relative\ndate: 2026-01-01\nogImage: og/blog/tmp-relative.png\n---\n\nBody.\n`,
     () => {
       // RED: relative override without its card must fail the gate.
-      const missing = runValidator();
+      const missing = run();
       assert.notEqual(missing.status, 0, "relative override must require its card");
       assert.match(
         missing.stderr,
@@ -145,12 +159,12 @@ test("repo-relative ogImage override is gated like a committed card", () => {
 
       // GREEN: with a real 1200×630 card in place, the gate passes.
       withTempCard(rel, validCardBytes(), () => {
-        assert.equal(runValidator().status, 0, "gate must pass once the override card exists");
+        assert.equal(run().status, 0, "gate must pass once the override card exists");
 
         // RED again: hiding the card must fail even though the override is
         // repo-relative (pre-fix, this override silently bypassed the gate).
         withCardHidden(rel, () => {
-          const hidden = runValidator();
+          const hidden = run();
           assert.notEqual(hidden.status, 0, "hiding the override card must fail the gate");
           assert.match(
             hidden.stderr,
@@ -163,11 +177,12 @@ test("repo-relative ogImage override is gated like a committed card", () => {
 });
 
 test("external https ogImage override needs no committed card", () => {
+  const run = () => runValidator({ OG_ASSETS_BLOG_DIR: fixtureBlogDir });
   withTempEntry(
     "tmp-external.md",
     `---\ntitle: Tmp external\ndate: 2026-01-01\nogImage: https://example.com/card.png\n---\n\nBody.\n`,
     () => {
-      const result = runValidator();
+      const result = run();
       assert.equal(result.status, 0, `external override must not require a card:\n${result.stderr}`);
       assert.match(result.stdout, /social cards validated/);
     },

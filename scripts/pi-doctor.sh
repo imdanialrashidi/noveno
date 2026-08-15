@@ -296,7 +296,7 @@ else
 fi
 
 if ! grep -Eq 'describe_image|PI_VISION_|/vision|pi-vision-tool|@getpipher/vision|@bytetrue/pi-vision|pi-image-subagent' \
-  p .pi/models.env .pi/settings.json README.md docs/TOOLING_SETUP.md docs/HARNESS.md .pi/skills/browser-qa/SKILL.md; then
+  p .pi/models.env.example .pi/settings.json README.md docs/TOOLING_SETUP.md docs/HARNESS.md .pi/skills/browser-qa/SKILL.md; then
   pass "delegated image-analysis tooling is absent from active workflow configuration and guidance"
 else
   fail "delegated image-analysis tooling is still referenced by the active workflow"

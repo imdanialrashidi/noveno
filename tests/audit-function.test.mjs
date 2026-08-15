@@ -28,6 +28,7 @@ import { once } from "node:events";
 
 import {
   handleAuditRequest,
+  onRequest as auditOnRequest,
   toLeadRow,
 } from "../functions/api/audit.ts";
 import {
@@ -501,6 +502,48 @@ test("retry with a fresh token under the same submission_id reaches persistence 
   assert.equal(second.status, 200); // fresh token gets a fresh verification and persists
   assert.deepEqual(seenTokens, ["token-attempt-1", "token-attempt-2"]);
   assert.equal(calls.persist.length, 1);
+});
+
+test("onRequest wires the siteverify idempotency key to the token hash (never the submission_id)", async () => {
+  // Pins the plan-001 boundary wiring: a regression reverting onRequest to
+  // `idempotencyKey: submission.submission_id` must fail this test (the
+  // helper-level tests above would stay green — they never see the wiring).
+  const seenBodies = [];
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    const u = String(url);
+    if (u.includes("siteverify")) {
+      seenBodies.push(JSON.parse(String(init?.body ?? "{}")));
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
+    }
+    // Supabase upsert path — not under test; fail it so the boundary 502s.
+    return new Response(JSON.stringify({ error: "mock" }), { status: 500 });
+  };
+  try {
+    const submission = validPayload({ cf_turnstile_token: "wiring-token-1" });
+    const env = {
+      TURNSTILE_SECRET_KEY: "test-secret",
+      SUPABASE_URL: "https://mock.example",
+      SUPABASE_SERVICE_ROLE_KEY: "test-key",
+    };
+    const res = await auditOnRequest({
+      request: post(submission, { "cf-connecting-ip": "wiring-test-ip" }),
+      env,
+    });
+    assert.equal(seenBodies.length, 1, "siteverify must be called exactly once");
+    assert.equal(
+      seenBodies[0].idempotency_key,
+      await idempotencyKeyForToken("wiring-token-1"),
+      "idempotency_key must be the token's SHA-256",
+    );
+    assert.notEqual(seenBodies[0].idempotency_key, submission.submission_id);
+    assert.ok(
+      res.status === 502 || res.status === 200,
+      `unexpected boundary status ${res.status}`,
+    );
+  } finally {
+    globalThis.fetch = realFetch;
+  }
 });
 
 /* ------------------------------------------------------------------ */
