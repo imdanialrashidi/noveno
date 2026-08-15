@@ -3,10 +3,10 @@
 Durable constraints and accepted decisions only. Where the Master Spec (Spec §59) and the accepted bootstrap overrides differ, the bootstrap overrides win; conflicts are noted below.
 
 ## Current system
-- **Runtime/platform:** none implemented yet (bootstrap state). Accepted direction: **Astro + TypeScript, statically rendered**, deployed to **Cloudflare Pages**. No SSR.
-- **Main modules:** (planned) Astro pages per the launch IA (Spec §8.1), Astro components, framework-free TypeScript modules for interactive behavior, one narrowly scoped Cloudflare Pages Function for the audit-form submission boundary.
-- **Data stores:** **Supabase** — accepted lead-persistence destination for audit submissions (bootstrap override; supersedes the Spec §59 "Sheet/CRM for MVP" suggestion). No other database.
-- **External services:** email notification on audit submission (transport chosen at implementation); Cloudflare Web Analytics (baseline traffic/performance) and Cloudflare Zaraz (custom acquisition events); WhatsApp/Telegram (09353598620), email (imdanialrashidi@gmail.com) as contact channels — no third-party integration code required.
+- **Runtime/platform:** **Astro 7 + TypeScript, statically rendered**, deployed to **Cloudflare Pages**. No SSR. One Pages Function pair: `/api/audit` (submission boundary) and `/api/events` (Analytics Engine ingestion).
+- **Main modules:** (shipped) Astro pages per the launch IA (Spec §8.1), Astro components, framework-free TypeScript modules for interactive behavior (`src/scripts/`), one narrowly scoped Cloudflare Pages Function for the audit-form submission boundary.
+- **Data stores:** **Supabase** — shipped lead-persistence destination for audit submissions (bootstrap override; supersedes the Spec §59 "Sheet/CRM for MVP" suggestion); `leads` table via migration `supabase/migrations/20260811120000_leads.sql` (RLS on, zero policies). No other database.
+- **External services:** Web3Forms client-side email notification on audit submission (shipped; free tier requires client-side posting — `docs/ops/setup-checklist.md`); Cloudflare Web Analytics (baseline traffic/performance) + Analytics Engine via `/api/events` (custom acquisition events); **Zaraz deferred** — tag manager, not a store (see pattern table); WhatsApp/Telegram (09353598620), email (imdanialrashidi@gmail.com) as contact channels — no third-party integration code required.
 - **Deployment topology:** static assets on Cloudflare Pages CDN; the audit function as a Pages Function attached to the same project; Pages secrets for credentials. Free-tier-compatible.
 
 ## Trust boundaries and critical data flows
@@ -38,8 +38,8 @@ Durable constraints and accepted decisions only. Where the Master Spec (Spec §5
 - SSR/ISR application rendering; client frameworks; GraphQL; microservices; Redis/message queues/WebSockets; Kubernetes; complex client state; heavy animation libraries; headless CMS; multi-tenant SaaS; custom dashboards; user accounts/auth (Spec §60).
 
 ## Operational baseline
-- Configuration/secrets: `.env.example` documents required variable names only (`APP_ENV=development` currently). The audit function will need named variables (Supabase URL/service key, email transport) added to `.env.example` **and** Cloudflare Pages secrets at implementation time — never committed values.
-- Migrations: Supabase schema for the lead model (Spec §35 fields) created at implementation; treated as a data-integrity change (needs risk review).
-- Backup and tested restore: lead records are business-critical (Spec §62); backup/recovery reasoning required at implementation time.
+- Configuration/secrets: `.env.example` documents required variable names only — build-time publics (`APP_ENV`, `PUBLIC_APP_URL`, `PUBLIC_TURNSTILE_SITE_KEY`, `PUBLIC_WEB3FORMS_ACCESS_KEY`, `PUBLIC_CF_ANALYTICS_TOKEN`) and server-side secrets (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TURNSTILE_SECRET_KEY`) added at implementation; values live only in Cloudflare Pages secrets — never committed.
+- Migrations: Supabase schema for the lead model (Spec §35 fields) created at implementation (`supabase/migrations/20260811120000_leads.sql`); treated as a data-integrity change (needs risk review).
+- Backup and tested restore: lead records are business-critical (Spec §62); backup/recovery reasoning recorded at implementation (`docs/ops/setup-checklist.md`; founder executes the backup before first production submission).
 - Logging/monitoring: Cloudflare Web Analytics for traffic/performance; Pages Function logging for submission failures (no lead content in logs); no secrets in logs.
 - Rollback: Cloudflare Pages redeploy of a previous commit; schema rollback reasoning for Supabase at implementation time.
