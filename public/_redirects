@@ -6,7 +6,8 @@
 # slugs are preserved 1:1. There is exactly one canonical article URL.
 #
 # 301 (permanent) — search engines transfer ranking to the new location;
-# no duplicate indexable routes remain.
+# no duplicate indexable routes remain. Exact rule first (bare /insights),
+# then the splat for article slugs.
 
-/insights/*    /blog/:splat    301
 /insights      /blog           301
+/insights/*    /blog/:splat    301

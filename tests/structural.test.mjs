@@ -125,6 +125,15 @@ test("the flowchart grammar is gone from built pages and CSS (2026-08-14 founder
   }
 });
 
+test("reduced-motion guard zeroes animation delays too (no from-state flash)", () => {
+  const cssFiles = walk(path.join(dist, "_astro")).filter((f) => f.endsWith(".css"));
+  const css = cssFiles.map((f) => fs.readFileSync(f, "utf8")).join("");
+  const guard = css.match(/@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{([^}]*)\}/s);
+  assert.ok(guard, "built CSS must carry the reduced-motion guard");
+  assert.match(guard[1], /animation-duration:[^;]+!important/, "guard must zero animation durations");
+  assert.match(guard[1], /animation-delay:[^;]+!important/, "guard must zero animation delays (else fill-mode:both holds `from` keyframes)");
+});
+
 test("homepage hero is the brand artwork: inline SVG, zero raster hero media", () => {
   const home = fs.readFileSync(path.join(dist, "index.html"), "utf8");
   // The hero artwork is an inline SVG signal field (data-hero-art) — no

@@ -53,6 +53,8 @@ const MOTIF_PATH =
     <pattern id="hp-grid" width="60" height="60" patternUnits="userSpaceOnUse">
       <path d="M60 0H0V60" fill="none" stroke="var(--line)" stroke-width="1" />
     </pattern>
+    <!-- Mask luminance is deliberately literal #fff/#000: a semantic token
+         would dim the mask in dark mode and change the grid's fade. -->
     <linearGradient id="hp-fade" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#fff" stop-opacity="1" />
       <stop offset="0.52" stop-color="#fff" stop-opacity="0.85" />
@@ -82,8 +84,8 @@ const MOTIF_PATH =
       />
       <!-- internal 40px pitch — the order the signals join -->
       <g stroke="var(--line)" stroke-opacity="0.6" stroke-width="1">
-        <path stroke="currentColor" d="M80 310V590M120 310V590M160 310V590M200 310V590M240 310V590M280 310V590" />
-        <path stroke="currentColor" d="M40 350H320M40 390H320M40 430H320M40 470H320M40 510H320M40 550H320" />
+        <path d="M80 310V590M120 310V590M160 310V590M200 310V590M240 310V590M280 310V590" />
+        <path d="M40 350H320M40 390H320M40 430H320M40 470H320M40 510H320M40 550H320" />
       </g>
     </g>
 
@@ -188,9 +190,9 @@ const MOTIF_PATH =
       <circle fill="currentColor" cx="495" cy="300" r="4" opacity="0.75" />
     </g>
     <g class="hero-art-mark text-text" style="transform: rotate(15deg)" opacity="0.5">
-      <rect fill="currentColor" x="578" y="262" width="6" height="6" />
-      <rect fill="currentColor" x="586" y="256" width="6" height="6" />
-      <rect fill="currentColor" x="593" y="264" width="6" height="6" />
+      <rect fill="currentColor" x="572" y="262" width="6" height="6" />
+      <rect fill="currentColor" x="580" y="256" width="6" height="6" />
+      <rect fill="currentColor" x="587" y="264" width="6" height="6" />
     </g>
   </g>
 

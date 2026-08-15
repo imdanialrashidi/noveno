@@ -957,6 +957,10 @@
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    /* Delays must zero too: with animation-fill-mode: both a delayed
+       animation would otherwise hold its `from` keyframe (e.g. the hero
+       artwork's scattered pre-settle state) until the delay passes. */
+    animation-delay: 0s !important;
     transition-duration: 0.01ms !important;
   }
 }
