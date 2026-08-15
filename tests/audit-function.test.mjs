@@ -48,12 +48,13 @@ import { onRequest as eventsOnRequest } from "../functions/api/events.ts";
 import {
   ACQUISITION_CHANNELS,
   CUSTOMER_VALUE_RANGES,
+  EVENT_STEP_VALUES,
   INDUSTRIES,
   PREFERRED_CONTACTS,
   PRIMARY_PROBLEMS,
   REQUESTED_SERVICES,
 } from "../functions/lib/contract.ts";
-import { AUDIT_OPTIONS } from "../src/data/audit.ts";
+import { AUDIT_OPTIONS, AUDIT_STEPS } from "../src/data/audit.ts";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -821,6 +822,15 @@ test("client option ids are exactly the server enum whitelists (no drift)", () =
       `client options ${clientIds.join(",")} drifted from server whitelist ${serverIds.join(",")}`,
     );
   }
+  // Events step values: the client fires the 1-based positional step
+  // index (String(draft.step)), not the AUDIT_STEPS ids — the events
+  // whitelist must cover exactly 1..AUDIT_STEPS.length or real events
+  // get rejected at the endpoint (plan 010).
+  assert.deepEqual(
+    EVENT_STEP_VALUES,
+    AUDIT_STEPS.map((_, i) => String(i + 1)),
+    "EVENT_STEP_VALUES drifted from the audit form's step count",
+  );
 });
 
 /* ------------------------------------------------------------------ */
@@ -883,6 +893,87 @@ test("events endpoint: invalid payload returns 400 without writing", async () =>
   });
   assert.equal(res.status, 400);
   assert.equal(written.length, 0);
+});
+
+test("events endpoint: enum payload values are whitelisted (step/service/channel)", async () => {
+  // Distinct cf-connecting-ip: the module-scope limiter (60/min/IP) is
+  // shared across tests, and the flood test below asserts throttling
+  // kicks in within a window — new requests must not eat that bucket.
+  const written = [];
+  const env = { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } };
+  const postTo = (payload) =>
+    eventsOnRequest({
+      request: post(
+        { name: "audit_submitted", payload },
+        { "cf-connecting-ip": "test-enum-values" },
+      ),
+      env,
+    });
+  assert.equal((await postTo({ step: "not_a_step" })).status, 400);
+  assert.equal((await postTo({ step: "3" })).status, 204);
+  assert.equal((await postTo({ step: 3 })).status, 400); // numbers rejected
+  assert.equal((await postTo({ service: "system" })).status, 204);
+  assert.equal((await postTo({ service: "audit_analysis" })).status, 204);
+  assert.equal((await postTo({ channel: "whatsapp" })).status, 204);
+  assert.equal(written.length, 4);
+});
+
+test("events endpoint: pattern payload values are enforced (page/slug/section)", async () => {
+  const written = [];
+  const env = { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } };
+  const postTo = (payload) =>
+    eventsOnRequest({
+      request: post(
+        { name: "audit_submitted", payload },
+        { "cf-connecting-ip": "test-pattern-values" },
+      ),
+      env,
+    });
+  assert.equal((await postTo({ page: "not-a-path" })).status, 400);
+  assert.equal((await postTo({ page: "/" })).status, 204); // homepage fires real events
+  assert.equal((await postTo({ page: "/audit" })).status, 204);
+  assert.equal((await postTo({ slug: "Bad Slug!" })).status, 400);
+  assert.equal((await postTo({ section: "hero" })).status, 204);
+  assert.equal((await postTo({ section: "bad section!" })).status, 400);
+  assert.equal(written.length, 3);
+});
+
+test("events endpoint: cross-site Origin is rejected, same-site passes (beacon guard)", async () => {
+  const written = [];
+  const env = { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } };
+  // The post() helper builds a Request without a Host header (undici does
+  // not synthesize one), so the legit case must pass host explicitly or
+  // the guard's originHost !== host comparison would 400 it.
+  const postTo = (headers = {}) =>
+    eventsOnRequest({
+      request: post(
+        { name: "audit_started", payload: { page: "/audit" } },
+        { "cf-connecting-ip": "test-cross-site", ...headers },
+      ),
+      env,
+    });
+  assert.equal((await postTo({ origin: "https://evil.example", host: "noveno.ir" })).status, 400);
+  assert.equal((await postTo({ origin: "https://noveno.ir", host: "noveno.ir" })).status, 204);
+  assert.equal((await postTo()).status, 204); // no Origin → same as today
+  assert.equal((await postTo({ origin: "null", host: "noveno.ir" })).status, 400); // opaque origin
+  assert.equal(written.length, 2);
+});
+
+test("events endpoint: text/plain bodies (sendBeacon) still accepted", async () => {
+  // sendBeacon sends string bodies as text/plain (Blob types are
+  // preserved); rejecting on content-type would break real beacons.
+  // JSON.parse remains the actual gate — documented, not enforced.
+  const written = [];
+  const env = { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } };
+  const res = await eventsOnRequest({
+    request: post(
+      JSON.stringify({ name: "audit_started", payload: { page: "/audit" } }),
+      { "cf-connecting-ip": "test-content-type", "content-type": "text/plain" },
+    ),
+    env,
+  });
+  assert.equal(res.status, 204);
+  assert.equal(written.length, 1);
 });
 
 test("events endpoint: floods are rate-limited before any write (MAJOR-2)", async () => {

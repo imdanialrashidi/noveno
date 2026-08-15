@@ -89,6 +89,36 @@ export const EVENT_PAYLOAD_KEYS = [
   "channel",
 ] as const;
 
+/**
+ * Analytics `step` values — the client sends the 1-based positional
+ * step index of the audit journey as a string ("1"…"6"; 6 steps in
+ * AUDIT_STEPS), NOT the step ids. Bounded by the form's step count;
+ * if the form gains/loses steps, update the array with it.
+ */
+export const EVENT_STEP_VALUES = ["1", "2", "3", "4", "5", "6"] as const;
+
+/**
+ * Analytics `service` values — union of the homepage OFFER ids
+ * (audit/system/growth from src/data/site.ts OFFERS) and the audit
+ * form's REQUESTED_SERVICES, both sent by the client today.
+ */
+export const EVENT_SERVICE_VALUES = [
+  ...REQUESTED_SERVICES,
+  "audit",
+  "system",
+  "growth",
+] as const;
+
+/** Payload value patterns for the events endpoint (non-enum keys). */
+export const EVENT_VALUE_PATTERNS = {
+  /** page = location.pathname — a leading-slash path; "/" (homepage) is valid. */
+  page: /^\/[^\s]{0,99}$/,
+  /** slug = content slugs (work/blog entries). */
+  slug: /^[a-z0-9-]{1,80}$/,
+  /** section / cta_id — word chars (incl. Persian) + hyphen, ≤ 40. */
+  wordish: /^[\p{L}\p{N}_-]{1,40}$/u,
+} as const;
+
 /* ------------------------------------------------------------------ */
 /* Limits                                                              */
 /* ------------------------------------------------------------------ */
