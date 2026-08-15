@@ -16,10 +16,14 @@
  * `tests/seo-contract.test.mjs` verifies the sitemap exactly matches
  * the built pages in both directions, so drift fails the gate.
  *
+ * Frontmatter is parsed with real YAML (matches the zod schema
+ * semantics — quoted values and colons parse correctly).
+ *
  * Usage: node scripts/generate-sitemap.mjs
  */
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import YAML from "yaml";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 const SITE = process.env.PUBLIC_APP_URL ?? "https://noveno.ir";
@@ -42,19 +46,12 @@ const STATIC_ROUTES = [
 /** Fixed lastmod for static pages (the product-led pass date). */
 const STATIC_LASTMOD = "2026-10-01";
 
-function parseFrontmatter(file) {
+export function parseFrontmatter(file) {
   const raw = readFileSync(file, "utf8");
   const match = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
   if (!match) return {};
-  const data = {};
-  for (const line of match[1].split(/\r?\n/)) {
-    const kv = /^([a-z_]+):\s*(.*)$/.exec(line.trim());
-    if (!kv) continue;
-    const key = kv[1];
-    const value = kv[2].trim().replace(/^"|"$/g, "");
-    data[key] = value === "true" ? true : value === "false" ? false : value;
-  }
-  return data;
+  const data = YAML.parse(match[1]);
+  return data && typeof data === "object" ? data : {};
 }
 
 function contentEntries(dir) {
