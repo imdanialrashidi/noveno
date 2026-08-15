@@ -308,6 +308,8 @@ function installGlobals({ turnstile, fetchImpl, onLine = true }) {
   const session = new Map();
   const nav = [];
   const auditCalls = [];
+  const externalCalls = [];
+  const beacons = [];
 
   globalThis.location = { search: "", pathname: "/audit", assign: (url) => nav.push(url) };
   globalThis.sessionStorage = {
@@ -315,9 +317,16 @@ function installGlobals({ turnstile, fetchImpl, onLine = true }) {
     setItem: (k, v) => session.set(k, String(v)),
     removeItem: (k) => session.delete(k),
   };
-  // node 22 defines a global navigator; replace it defensively.
+  // node 22 defines a global navigator; replace it defensively. The beacon
+  // shim records analytics deliveries so tests can count tracked events.
   Object.defineProperty(globalThis, "navigator", {
-    value: { onLine, sendBeacon: () => true },
+    value: {
+      onLine,
+      sendBeacon: (url, body) => {
+        beacons.push({ url, body });
+        return true;
+      },
+    },
     configurable: true,
     writable: true,
   });
@@ -329,6 +338,9 @@ function installGlobals({ turnstile, fetchImpl, onLine = true }) {
       auditCalls.push(JSON.parse(String(opts.body)));
       return fetchImpl.shift()();
     }
+    // Non-audit requests are observed, not stubbed: the Web3Forms
+    // notification must be provable (POST count + lead body).
+    externalCalls.push({ url: parsed, method: opts.method ?? "GET", body: String(opts.body ?? "") });
     return { ok: true, status: 200, json: async () => ({}) };
   };
   globalThis.window = globalThis;
@@ -337,11 +349,12 @@ function installGlobals({ turnstile, fetchImpl, onLine = true }) {
   window.clearTimeout = clearTimeout;
   window.setTimeout = setTimeout;
 
-  return { auditCalls, nav, session };
+  return { auditCalls, externalCalls, beacons, nav, session };
 }
 
+/** Success mock for the fresh-insert journey: 200 reports status "inserted". */
 function okResponse() {
-  return { ok: true, status: 200, json: async () => ({}) };
+  return { ok: true, status: 200, json: async () => ({ ok: true, id: "lead-1", status: "inserted" }) };
 }
 
 /** The audit script's Turnstile loader appends <script> to document.head;
@@ -364,6 +377,11 @@ function captureScripts() {
 
 async function tick() {
   await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+/** Real-time wait — needed for the 800ms analytics flush timer. */
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function setField(dom, id, value) {
@@ -660,4 +678,280 @@ test("2026-09 pass: in-card mobile progress stays in sync and the last-step revi
   await tick();
   assert.equal(summary.hidden, true, "summary hides when leaving the contact step");
   assert.equal(mobileCounter.textContent, "مرحله ۵ از ۶", "mobile counter follows Back");
+});
+
+/* ------------------------------------------------------------------ */
+/* Replay-200 dedupe (plan 002): the retry-success 200 may report       */
+/* status "replay" — the lead row already exists, so the client must    */
+/* NOT send the duplicate PII email or fire audit_submitted again.      */
+/* ------------------------------------------------------------------ */
+
+test("fresh insert 200: exactly one Web3Forms POST with the lead body and one audit_submitted beacon", async () => {
+  // The analytics track() queue and its 800ms flush timer are module-level
+  // and shared across tests — drain any timer left by earlier tests BEFORE
+  // this test installs its own shims, so a stale beacon can never land in
+  // this test's recording.
+  await sleep(900);
+
+  const turnstile = makeTurnstileMock();
+  const env = installGlobals({
+    turnstile,
+    fetchImpl: [() => ({ ok: true, status: 200, json: async () => ({ ok: true, id: "lead-1", status: "inserted" }) })],
+  });
+  const dom = buildAuditDom();
+  globalThis.document = dom.document;
+  initAudit({
+    turnstileSiteKey: "test-site-key",
+    web3formsKey: "wf-test-key",
+    web3formsUrl: "https://api.web3forms.com/submit",
+  });
+
+  await walkToContactStep(dom);
+  dom.getElementById("audit-next").dispatchEvent("click");
+  await tick();
+  turnstile.emitToken("token-1");
+  await tick();
+  // Give the fire-and-forget Web3Forms POST and the 800ms analytics flush
+  // time to land before asserting.
+  await sleep(900);
+
+  assert.equal(env.auditCalls.length, 1, "exactly one /api/audit request");
+  const submissionId = env.auditCalls[0].submission_id;
+
+  const posts = env.externalCalls.filter((c) => c.url === "https://api.web3forms.com/submit");
+  assert.equal(posts.length, 1, "a fresh insert must notify Web3Forms exactly once");
+  const notify = JSON.parse(posts[0].body);
+  assert.equal(notify.access_key, "wf-test-key");
+  assert.equal(notify.submission_id, submissionId);
+  assert.equal(notify.name, "علی رضایی");
+  assert.equal(notify.phone, "09353598620");
+  assert.equal(notify.email, "ali@example.com");
+  assert.equal(notify.business_name, "کافه نو");
+
+  const submitted = [];
+  for (const beacon of env.beacons) {
+    const event = JSON.parse(await beacon.body.text());
+    if (event.name === "audit_submitted") submitted.push(event);
+  }
+  assert.equal(submitted.length, 1, "a fresh insert must fire audit_submitted exactly once");
+  assert.equal(submitted[0].payload.page, "/audit");
+});
+
+test("replay 200: zero Web3Forms POSTs and zero audit_submitted beacons, still navigates to thank-you", async () => {
+  await sleep(900); // drain the shared analytics flush timer from earlier tests
+
+  const turnstile = makeTurnstileMock();
+  const env = installGlobals({
+    turnstile,
+    fetchImpl: [() => ({ ok: true, status: 200, json: async () => ({ ok: true, id: "lead-1", status: "replay" }) })],
+  });
+  const dom = buildAuditDom();
+  globalThis.document = dom.document;
+  initAudit({
+    turnstileSiteKey: "test-site-key",
+    web3formsKey: "wf-test-key",
+    web3formsUrl: "https://api.web3forms.com/submit",
+  });
+
+  await walkToContactStep(dom);
+  dom.getElementById("audit-next").dispatchEvent("click");
+  await tick();
+  turnstile.emitToken("token-1");
+  await tick();
+  await sleep(900);
+
+  assert.equal(env.auditCalls.length, 1, "exactly one /api/audit request");
+  const posts = env.externalCalls.filter((c) => c.url === "https://api.web3forms.com/submit");
+  assert.equal(posts.length, 0, "a replay must not send the lead PII to Web3Forms (duplicate email)");
+
+  const submitted = [];
+  for (const beacon of env.beacons) {
+    const event = JSON.parse(await beacon.body.text());
+    if (event.name === "audit_submitted") submitted.push(event);
+  }
+  assert.equal(submitted.length, 0, "a replay must not fire audit_submitted (double-counted conversion)");
+
+  assert.deepEqual(env.nav, ["/audit/thank-you"], "thank-you must still open on replay");
+  assert.equal(env.session.has("noveno:audit:draft"), false, "draft cleared after confirmed persistence");
+  assert.equal(env.session.get("noveno:audit:done"), env.auditCalls[0].submission_id, "done marker still recorded on replay");
+});
+
+/* ------------------------------------------------------------------ */
+/* Plan 011: Web3Forms best-effort failure, offline banner, draft      */
+/* restore — the three journeys the retry suite never touched.         */
+/* ------------------------------------------------------------------ */
+
+test("Web3Forms notification is best-effort: a rejected POST never blocks thank-you, and lead fields are sanitized", async () => {
+  await sleep(900); // drain the shared analytics flush timer
+
+  const turnstile = makeTurnstileMock();
+  const env = installGlobals({ turnstile, fetchImpl: [okResponse] });
+  const dom = buildAuditDom();
+  globalThis.document = dom.document;
+  captureScripts();
+  initAudit({
+    turnstileSiteKey: "test-site-key",
+    web3formsKey: "wf-test-key",
+    web3formsUrl: "https://api.web3forms.com/test",
+  });
+
+  await walkToContactStep(dom);
+  // Free-text field carrying markup — the notification email renders as
+  // HTML, so safeText must strip tags before the POST (security MINOR-3).
+  dom.getElementById("business_name").value = "کافه <b>نو</b>";
+  dom.getElementById("business_name").dispatchEvent("change");
+  dom.getElementById("audit-form").dispatchEvent("input", { target: dom.getElementById("business_name") });
+
+  // Web3Forms unreachable: every notify attempt rejects (first try + the
+  // single automatic retry) while /api/audit still goes through the shim.
+  const web3Attempts = [];
+  const baseFetch = globalThis.fetch;
+  globalThis.fetch = async (url, opts = {}) => {
+    const parsed = typeof url === "string" ? url : url.url;
+    if (parsed === "https://api.web3forms.com/test") {
+      web3Attempts.push({ url: parsed, body: String(opts.body ?? "") });
+      throw new TypeError("Failed to fetch");
+    }
+    return baseFetch(url, opts);
+  };
+
+  dom.getElementById("audit-next").dispatchEvent("click");
+  await tick();
+  turnstile.emitToken("token-1");
+  await tick();
+  await sleep(900); // let the bounded fire-and-forget notify attempts run
+
+  assert.equal(env.auditCalls.length, 1, "exactly one /api/audit request");
+  assert.equal(web3Attempts.length, 2, "a rejected notify makes exactly one automatic retry, then gives up");
+  assert.deepEqual(env.nav, ["/audit/thank-you"], "thank-you navigation must never be blocked by the web3forms failure");
+  assert.equal(env.session.has("noveno:audit:draft"), false, "draft cleared on confirmed success regardless of the notification");
+
+  for (const attempt of web3Attempts) {
+    const body = JSON.parse(attempt.body);
+    assert.equal(body.access_key, "wf-test-key");
+    assert.equal(body.submission_id, env.auditCalls[0].submission_id);
+    assert.equal(body.name, "علی رضایی");
+    assert.equal(body.business_name, "کافه bنو/b", "markup must be stripped from free-text fields before the notification");
+  }
+});
+
+test("offline: a network failure with navigator.onLine=false shows the offline banner; the online event clears it", async () => {
+  await sleep(900); // drain the shared analytics flush timer
+
+  const turnstile = makeTurnstileMock();
+  const env = installGlobals({
+    turnstile,
+    fetchImpl: [() => {
+      throw new TypeError("Failed to fetch");
+    }],
+    onLine: false,
+  });
+  const dom = buildAuditDom();
+  globalThis.document = dom.document;
+  captureScripts();
+  // The module registers its offline/online listeners on window; capture
+  // them so the test can drive the recovery event.
+  const windowListeners = {};
+  window.addEventListener = (type, fn) => {
+    (windowListeners[type] ??= []).push(fn);
+  };
+
+  initAudit({ turnstileSiteKey: "test-site-key", web3formsKey: "", web3formsUrl: "" });
+
+  await walkToContactStep(dom);
+  dom.getElementById("audit-next").dispatchEvent("click");
+  await tick();
+  turnstile.emitToken("token-1");
+  await tick();
+
+  const banner = dom.getElementById("audit-banner");
+  const offlineBlock = [...banner.children].find((c) => c.getAttribute("data-banner") === "offline");
+  assert.equal(env.auditCalls.length, 1, "the submission attempt is recorded even though fetch threw");
+  assert.equal(banner.hidden, false, "error banner must be visible after the failure");
+  assert.equal(offlineBlock.hidden, false, "the offline block must be shown when navigator.onLine=false");
+  assert.equal(dom.getElementById("audit-next").disabled, false, "submit must not stay stuck busy");
+
+  // Connection returns → the offline banner clears.
+  navigator.onLine = true;
+  for (const fn of windowListeners.online ?? []) fn();
+  assert.equal(banner.hidden, true, "the online event must clear the offline banner");
+  assert.equal(offlineBlock.hidden, true);
+});
+
+test("draft restore: a saved draft renders at its step with values applied and keeps its submission_id", async () => {
+  const turnstile = makeTurnstileMock();
+  const env = installGlobals({ turnstile, fetchImpl: [] });
+  const dom = buildAuditDom();
+  globalThis.document = dom.document;
+  captureScripts();
+
+  // Pre-seed the draft exactly as writeDraft would (Draft shape in
+  // src/scripts/audit.ts) — a reload mid-journey must resume, not restart.
+  const submissionId = "draft-11111111-2222-3333-4444-555555555555";
+  env.session.set(
+    "noveno:audit:draft",
+    JSON.stringify({
+      submission_id: submissionId,
+      step: 3,
+      values: {
+        business_name: "کافه نو",
+        industry: "restaurant_cafe",
+        website: "https://example.com",
+        acquisition_channels: ["instagram", "referral"],
+        primary_problem: "scattered_lost",
+      },
+      attribution: null,
+    }),
+  );
+
+  const heading = dom.getElementById("step-problem-title");
+  let headingFocuses = 0;
+  heading.focus = () => { headingFocuses += 1; };
+
+  initAudit({ turnstileSiteKey: "test-site-key", web3formsKey: "", web3formsUrl: "" });
+
+  assert.equal(
+    dom.document.querySelector("[data-stepper-counter]").textContent,
+    "مرحله ۳ از ۶",
+    "the counter must render at the saved step",
+  );
+  assert.equal(
+    dom.document.querySelector("[data-stepper-current]").textContent,
+    "مشکل اصلی",
+    "the current-step label must render at the saved step",
+  );
+  assert.equal(
+    dom.document.querySelector('[data-step-section="problem"]').hidden,
+    false,
+    "the saved step section must be visible",
+  );
+  assert.equal(
+    dom.document.querySelector('[data-step-section="business"]').hidden,
+    true,
+    "earlier sections stay hidden",
+  );
+  assert.equal(dom.getElementById("business_name").value, "کافه نو", "text field restored");
+  assert.equal(dom.getElementById("industry").value, "restaurant_cafe", "select restored");
+  assert.equal(
+    dom.document
+      .querySelector('[data-chip][data-group="acquisition_channels"][data-chip="instagram"]')
+      .getAttribute("aria-checked"),
+    "true",
+    "multiselect chip restored",
+  );
+  assert.equal(dom.getElementById("audit-summary").hidden, true, "review summary hidden before the contact step");
+  assert.equal(headingFocuses, 0, "boot must not focus the heading on restore");
+  assert.equal(dom.getElementById("audit-next").disabled, false, "the journey resumes, next is enabled");
+
+  // Advancing from a restored draft keeps the same submission_id and writes the next step.
+  dom.getElementById("audit-next").dispatchEvent("click");
+  await tick();
+  const persisted = JSON.parse(env.session.get("noveno:audit:draft"));
+  assert.equal(persisted.step, 4, "advancing from the restore writes the next step");
+  assert.equal(persisted.submission_id, submissionId, "submission_id must survive the restore");
+  assert.equal(
+    dom.document.querySelector("[data-stepper-counter]").textContent,
+    "مرحله ۴ از ۶",
+    "the counter follows the resumed journey",
+  );
 });

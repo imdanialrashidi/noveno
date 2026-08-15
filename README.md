@@ -59,6 +59,7 @@ The repository is the **Noveno production website project**: Slice 1 (flagship s
 - **No backend/auth/CMS/CRM/client portal.** One narrowly scoped Cloudflare Pages Function (`functions/api/audit.ts`) handles the business-critical **audit-form submission boundary**: server-side validation, abuse protection, persistence to **Supabase**, and **email notification** (Web3Forms).
 - Analytics: **Cloudflare Web Analytics** + a Cloudflare-native events path (`functions/api/events.ts` + `src/scripts/analytics.ts`, Analytics Engine binding `NOVENO_EVENTS`); UTM/referrer/landing-page attribution persisted with the lead.
 - **Persian-first, RTL-first**; light + dark themes (system default, persisted override, no theme flash); Estedad + Vazirmatn self-hosted fonts; token system in `src/styles/global.css`.
+- **Fonts:** the shipped woff2 files under `public/fonts/` are the source of truth (declared via hand-written `@font-face` in `src/styles/global.css`, DESIGN §5.4). The `@fontsource-variable/*` devDependencies exist only as the licensed extraction source for replacing those files — a font change is a deliberate file replacement (rename to bump the immutable cache), not a dependency bump.
 
 **Directory map**
 

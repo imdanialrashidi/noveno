@@ -16,7 +16,7 @@
 import { LIMITS, type AuditEnv } from "../lib/contract.ts";
 import { honeypotTriggered, validateAuditPayload } from "../lib/validate.ts";
 import { createRateLimiter, type RateLimiter } from "../lib/rate-limit.ts";
-import { verifyTurnstile, type TurnstileOutcome } from "../lib/turnstile.ts";
+import { idempotencyKeyForToken, verifyTurnstile, type TurnstileOutcome } from "../lib/turnstile.ts";
 import { createSupabasePersister, type LeadRow } from "../lib/persist.ts";
 import type { AuditSubmission } from "../lib/contract.ts";
 import { errorResponse, jsonResponse } from "../lib/respond.ts";
@@ -115,7 +115,10 @@ export async function handleAuditRequest(request: Request, deps: AuditDeps): Pro
   try {
     const persisted = await deps.persistLead(toLeadRow(submission, submittedAt));
     // 200 ⇔ Supabase accepted the row (fresh insert or idempotent replay).
-    return jsonResponse({ ok: true, id: persisted.id }, 200);
+    // `status` distinguishes the two: a replay means the lead already exists,
+    // so the client must not re-notify (no duplicate PII email / conversion
+    // event for one lead row).
+    return jsonResponse({ ok: true, id: persisted.id, status: persisted.status }, 200);
   } catch {
     // Supabase failure — never a success (invariant A4-i/ii).
     return errorResponse("persistence_failed", 502);
@@ -129,12 +132,12 @@ export const onRequest = (context: { request: Request; env: AuditEnv }): Promise
   return handleAuditRequest(request, {
     rateLimiter: limiter,
     persistLead: (row) => createSupabasePersister(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY).persistLead(row),
-    verifyTurnstile: (submission, ip) =>
+    verifyTurnstile: async (submission, ip) =>
       verifyTurnstile({
         secret: env.TURNSTILE_SECRET_KEY,
         token: submission.cf_turnstile_token,
         remoteIp: ip,
-        idempotencyKey: submission.submission_id,
+        idempotencyKey: await idempotencyKeyForToken(submission.cf_turnstile_token),
       }),
   });
 };

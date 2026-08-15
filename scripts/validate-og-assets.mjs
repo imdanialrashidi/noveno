@@ -46,7 +46,9 @@ function parseFrontmatter(file) {
   if (!match) return {};
   const data = {};
   for (const line of match[1].split(/\r?\n/)) {
-    const kv = /^([a-z_]+):\s*(.*)$/.exec(line.trim());
+    // [a-zA-Z_] so camelCase schema keys like `ogImage` are read too (the
+    // sitemap generator only needs lowercase keys and keeps [a-z_]).
+    const kv = /^([a-zA-Z_]+):\s*(.*)$/.exec(line.trim());
     if (!kv) continue;
     const key = kv[1];
     const value = kv[2].trim().replace(/^"|"$/g, "");
@@ -88,11 +90,19 @@ function requiredCards() {
     const data = parseFrontmatter(join(blogBase, name));
     if (data.draft) continue; // drafts never get a social card
     // Match blog/[slug].astro exactly: `data.ogImage ?? /og/blog/{slug}.png`.
-    // A leading-slash override is a committed repo card — validate it in
-    // place of the default. An external/relative ogImage is referenced by
-    // the page as-is and is not a committed asset — no card requirement.
-    if (typeof data.ogImage === "string" && data.ogImage.startsWith("/")) {
-      cards.push({ rel: data.ogImage.slice(1), why: `published article \`${slug}\`` });
+    //   "/og/blog/x.png"          → committed repo card → validate it
+    //   "og/blog/x.png" (relative) → resolves against the site origin to the
+    //     same public path → validate it as a committed repo card
+    //   "https://cdn.example/.."  → external asset, not committed here → skip
+    if (typeof data.ogImage === "string" && data.ogImage !== "") {
+      if (/^https?:\/\//i.test(data.ogImage)) {
+        // external URL — nothing to validate in this repo
+      } else {
+        cards.push({
+          rel: data.ogImage.replace(/^\/+/, ""),
+          why: `published article \`${slug}\` ogImage override`,
+        });
+      }
     } else if (!data.ogImage) {
       cards.push({ rel: `og/blog/${slug}.png`, why: `published article \`${slug}\`` });
     }

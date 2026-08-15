@@ -50,7 +50,7 @@ required=(
   .pi/settings.json
   .pi/package-integrity.json
   .pi/verification.json
-  .pi/models.env
+  .pi/models.env.example
   .pi/APPEND_SYSTEM.md
   .pi/extensions/safety-guard.js
   .pi/prompts/bootstrap.md
@@ -343,10 +343,12 @@ else
   fail "frontend design quality contract is incomplete"
 fi
 
-if grep -Eq '^export PI_MAIN_MODEL="opencode-go/deepseek-v4-flash"$' .pi/models.env && \
+if [[ -f .pi/models.env ]] && grep -Eq '^export PI_MAIN_MODEL="opencode-go/deepseek-v4-flash"$' .pi/models.env && \
    grep -Eq '^export PI_MAIN_THINKING="max"$' .pi/models.env && \
    ! grep -Eq '^export PI_VISION_' .pi/models.env; then
   pass "DeepSeek primary profile is pinned without a delegated image model"
+elif [[ ! -f .pi/models.env ]]; then
+  pass "model profile: .pi/models.env absent locally (example committed); skip"
 else
   fail "expected DeepSeek primary-only model profile is missing"
 fi
@@ -360,7 +362,7 @@ if find . -maxdepth 6 -type f \
   ! -path './.pi/npm/*' \
   -print0 |
   xargs -0 grep -En \
-    'sk-[A-Za-z0-9_-]{16,}|(API_KEY|ACCESS_TOKEN|SECRET|PASSWORD)[[:space:]]*=[[:space:]]*[^"<${][^[:space:]]+' \
+    "sk-[A-Za-z0-9_-]{16,}|(API_KEY|ACCESS_TOKEN|SECRET|PASSWORD)[[:space:]]*=[[:space:]]*(\"|')[^<\${][^[:space:]]{14,}|(API_KEY|ACCESS_TOKEN|SECRET|PASSWORD)[[:space:]]*=[[:space:]]*[^\"<\${][^[:space:]]+" \
     >"$secret_scan_file" 2>/dev/null; then
   cat "$secret_scan_file" >&2
   fail "possible secret found"

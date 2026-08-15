@@ -110,7 +110,7 @@ Missing language servers are not silently installed.
 `pi-doc-search` queries Context7 directly and keeps a persistent local cache. It works without a key at lower rate limits. For higher limits, set the key in your shell or user environment, never in the repository:
 
 ```bash
-export CONTEXT7_API_KEY="ctx7sk-..."
+export CONTEXT7_API_KEY="<your-context7-key>"
 ```
 
 Use `doc_search_resolve_library_id`, `doc_search_get_library_docs`, and `doc_search_get_cached_doc_raw` only when local source, installed types, and repository patterns do not answer a version-sensitive framework question.

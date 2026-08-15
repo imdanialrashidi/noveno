@@ -41,19 +41,19 @@ import {
   normalizeText,
 } from "../functions/lib/normalize.ts";
 import { createRateLimiter } from "../functions/lib/rate-limit.ts";
-import { verifyTurnstile } from "../functions/lib/turnstile.ts";
+import { idempotencyKeyForToken, verifyTurnstile } from "../functions/lib/turnstile.ts";
 import { createSupabasePersister } from "../functions/lib/persist.ts";
-import { validateEvent } from "../functions/api/events.ts";
-import { onRequest as eventsOnRequest } from "../functions/api/events.ts";
+import { handleEventRequest, onRequest as eventsOnRequest, validateEvent } from "../functions/api/events.ts";
 import {
   ACQUISITION_CHANNELS,
   CUSTOMER_VALUE_RANGES,
+  EVENT_STEP_VALUES,
   INDUSTRIES,
   PREFERRED_CONTACTS,
   PRIMARY_PROBLEMS,
   REQUESTED_SERVICES,
 } from "../functions/lib/contract.ts";
-import { AUDIT_OPTIONS } from "../src/data/audit.ts";
+import { AUDIT_OPTIONS, AUDIT_STEPS } from "../src/data/audit.ts";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -329,6 +329,31 @@ test("JS-parseable but non-ISO first_seen_at is rejected (MINOR-1: Postgres time
   }
 });
 
+test("future-dated first_seen_at is rejected (client clocks may not lie forward)", () => {
+  const result = validateAuditPayload(
+    validPayload({ attribution: { ...validPayload().attribution, first_seen_at: "2099-01-01T00:00:00.000Z" } }),
+  );
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.equal(result.fields["attribution.first_seen_at"], "invalid_date");
+});
+
+test("just-now first_seen_at is accepted and kept", () => {
+  const justNow = new Date().toISOString();
+  const result = validateAuditPayload(
+    validPayload({ attribution: { ...validPayload().attribution, first_seen_at: justNow } }),
+  );
+  assert.equal(result.ok, true);
+  if (result.ok) assert.equal(result.value.attribution.first_seen_at, justNow);
+});
+
+test("ancient first_seen_at is dropped, not stored", () => {
+  const result = validateAuditPayload(
+    validPayload({ attribution: { ...validPayload().attribution, first_seen_at: "2020-01-01T00:00:00.000Z" } }),
+  );
+  assert.equal(result.ok, true);
+  if (result.ok) assert.equal(result.value.attribution.first_seen_at, undefined);
+});
+
 test("duplicate acquisition channels are deduped", () => {
   const result = validateAuditPayload(validPayload({ acquisition_channels: ["instagram", "instagram", "google"] }));
   assert.equal(result.ok, true);
@@ -424,9 +449,68 @@ test("turnstile non-2xx response is an upstream error", async () => {
   assert.deepEqual(outcome, { status: "upstream_error" });
 });
 
+test("idempotencyKeyForToken is deterministic, token-distinct, and a 64-char hex string", async () => {
+  const a1 = await idempotencyKeyForToken("tok-A");
+  const a2 = await idempotencyKeyForToken("tok-A");
+  const b = await idempotencyKeyForToken("tok-B");
+  assert.equal(a1, a2);
+  assert.notEqual(a1, b);
+  assert.match(a1, /^[0-9a-f]{64}$/);
+  assert.match(b, /^[0-9a-f]{64}$/);
+});
+
+test("siteverify idempotency_key is the token's hash, distinct per token (never the submission_id)", async () => {
+  const seen = [];
+  const fetchImpl = async (_url, init) => {
+    seen.push(JSON.parse(init.body));
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
+  };
+  for (const token of ["tok-1", "tok-2"]) {
+    await verifyTurnstile({
+      secret: "s",
+      token,
+      remoteIp: null,
+      idempotencyKey: await idempotencyKeyForToken(token),
+      fetchImpl,
+    });
+  }
+  assert.equal(seen.length, 2);
+  assert.equal(seen[0].idempotency_key, await idempotencyKeyForToken("tok-1"));
+  assert.equal(seen[1].idempotency_key, await idempotencyKeyForToken("tok-2"));
+  assert.notEqual(seen[0].idempotency_key, seen[1].idempotency_key);
+  assert.notEqual(seen[0].idempotency_key, seen[0].response);
+});
+
+test("retry with a fresh token under the same submission_id reaches persistence after a failed first attempt", async () => {
+  const submissionId = crypto.randomUUID();
+  const firstAttempt = validPayload({ submission_id: submissionId, cf_turnstile_token: "token-attempt-1" });
+  const retryAttempt = validPayload({ submission_id: submissionId, cf_turnstile_token: "token-attempt-2" });
+  const seenTokens = [];
+  const { deps, calls } = makeDeps({
+    verifyTurnstile: async (submission) => {
+      seenTokens.push(submission.cf_turnstile_token);
+      if (submission.cf_turnstile_token === "token-attempt-1") {
+        return { status: "fail", errorCodes: ["timeout-or-duplicate"] };
+      }
+      return { status: "pass" };
+    },
+  });
+  const first = await handleAuditRequest(post(firstAttempt), deps);
+  assert.equal(first.status, 403); // expired first token is rejected
+  const second = await handleAuditRequest(post(retryAttempt), deps);
+  assert.equal(second.status, 200); // fresh token gets a fresh verification and persists
+  assert.deepEqual(seenTokens, ["token-attempt-1", "token-attempt-2"]);
+  assert.equal(calls.persist.length, 1);
+});
+
 /* ------------------------------------------------------------------ */
 /* Real Turnstile siteverify with official test keys (network-gated)   */
 /* ------------------------------------------------------------------ */
+
+// Network-gated: these hit the real Cloudflare endpoint. Run with
+// RUN_NETWORK_TESTS=1 to exercise them; otherwise they skip so the
+// suite's result is identical in sandboxed and networked environments.
+const NETWORK_TESTS_ENABLED = process.env.RUN_NETWORK_TESTS === "1";
 
 const REAL_SITEVERIFY = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const SECRETS = {
@@ -446,31 +530,31 @@ async function realSiteverify(secret, token) {
 }
 
 test("real Turnstile endpoint: official always-pass secret verifies", async (t) => {
-  try {
-    const data = await realSiteverify(SECRETS.alwaysPass, "any-token");
-    assert.equal(data.success, true);
-  } catch (err) {
-    t.skip(`no route to challenges.cloudflare.com in this environment: ${err.message}`);
+  if (!NETWORK_TESTS_ENABLED) {
+    t.skip("network-gated: set RUN_NETWORK_TESTS=1 to run");
+    return;
   }
+  const data = await realSiteverify(SECRETS.alwaysPass, "any-token");
+  assert.equal(data.success, true);
 });
 
 test("real Turnstile endpoint: official always-fail secret is rejected", async (t) => {
-  try {
-    const data = await realSiteverify(SECRETS.alwaysFail, "any-token");
-    assert.equal(data.success, false);
-  } catch (err) {
-    t.skip(`no route to challenges.cloudflare.com in this environment: ${err.message}`);
+  if (!NETWORK_TESTS_ENABLED) {
+    t.skip("network-gated: set RUN_NETWORK_TESTS=1 to run");
+    return;
   }
+  const data = await realSiteverify(SECRETS.alwaysFail, "any-token");
+  assert.equal(data.success, false);
 });
 
 test("real Turnstile endpoint: official duplicate secret reports timeout-or-duplicate", async (t) => {
-  try {
-    const data = await realSiteverify(SECRETS.duplicate, "any-token");
-    assert.equal(data.success, false);
-    assert.ok((data["error-codes"] ?? []).includes("timeout-or-duplicate"));
-  } catch (err) {
-    t.skip(`no route to challenges.cloudflare.com in this environment: ${err.message}`);
+  if (!NETWORK_TESTS_ENABLED) {
+    t.skip("network-gated: set RUN_NETWORK_TESTS=1 to run");
+    return;
   }
+  const data = await realSiteverify(SECRETS.duplicate, "any-token");
+  assert.equal(data.success, false);
+  assert.ok((data["error-codes"] ?? []).includes("timeout-or-duplicate"));
 });
 
 /* ------------------------------------------------------------------ */
@@ -584,6 +668,26 @@ test("valid submission persists then returns 200 with normalized row", async () 
   assert.equal(row.source, "website");
   assert.equal(row.utm_source, "instagram");
   assert.equal(row.submitted_at, undefined); // column default, not client-controlled
+});
+
+test("replay 200 carries the persist status (replay vs inserted)", async () => {
+  const replay = makeDeps({
+    persistLead: async () => ({ status: "replay", id: "lead-9" }),
+  });
+  const replayRes = await handleAuditRequest(post(validPayload()), replay.deps);
+  assert.equal(replayRes.status, 200);
+  const replayBody = await replayRes.json();
+  assert.equal(replayBody.ok, true);
+  assert.equal(replayBody.id, "lead-9");
+  assert.equal(replayBody.status, "replay", "a duplicate submission_id must be reported as replay");
+
+  const inserted = makeDeps(); // stub persister returns { status: "inserted", id: "lead-1" }
+  const insertedRes = await handleAuditRequest(post(validPayload()), inserted.deps);
+  assert.equal(insertedRes.status, 200);
+  const insertedBody = await insertedRes.json();
+  assert.equal(insertedBody.ok, true);
+  assert.equal(insertedBody.id, "lead-1");
+  assert.equal(insertedBody.status, "inserted", "a fresh insert must be reported as inserted");
 });
 
 test("persistence failure returns 502 — success is never faked", async () => {
@@ -722,6 +826,15 @@ test("client option ids are exactly the server enum whitelists (no drift)", () =
       `client options ${clientIds.join(",")} drifted from server whitelist ${serverIds.join(",")}`,
     );
   }
+  // Events step values: the client fires the 1-based positional step
+  // index (String(draft.step)), not the AUDIT_STEPS ids — the events
+  // whitelist must cover exactly 1..AUDIT_STEPS.length or real events
+  // get rejected at the endpoint (plan 010).
+  assert.deepEqual(
+    EVENT_STEP_VALUES,
+    AUDIT_STEPS.map((_, i) => String(i + 1)),
+    "EVENT_STEP_VALUES drifted from the audit form's step count",
+  );
 });
 
 /* ------------------------------------------------------------------ */
@@ -786,25 +899,104 @@ test("events endpoint: invalid payload returns 400 without writing", async () =>
   assert.equal(written.length, 0);
 });
 
-test("events endpoint: floods are rate-limited before any write (MAJOR-2)", async () => {
-  // The module-scope limiter (60/min/IP) is shared across tests in this
-  // process, so earlier tests consume some slots; the assertions are
-  // relative: throttling must kick in within the window and writes must
-  // stop exactly at the gate.
+test("events endpoint: enum payload values are whitelisted (step/service/channel)", async () => {
+  // Distinct cf-connecting-ip: the module-scope limiter (60/min/IP) is
+  // shared across tests, and the flood test below asserts throttling
+  // kicks in within a window — new requests must not eat that bucket.
   const written = [];
   const env = { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } };
-  const request = () =>
+  const postTo = (payload) =>
     eventsOnRequest({
-      request: post({ name: "audit_started", payload: { page: "/audit" } }),
+      request: post(
+        { name: "audit_submitted", payload },
+        { "cf-connecting-ip": "test-enum-values" },
+      ),
       env,
+    });
+  assert.equal((await postTo({ step: "not_a_step" })).status, 400);
+  assert.equal((await postTo({ step: "3" })).status, 204);
+  assert.equal((await postTo({ step: 3 })).status, 400); // numbers rejected
+  assert.equal((await postTo({ service: "system" })).status, 204);
+  assert.equal((await postTo({ service: "audit_analysis" })).status, 204);
+  assert.equal((await postTo({ channel: "whatsapp" })).status, 204);
+  assert.equal(written.length, 4);
+});
+
+test("events endpoint: pattern payload values are enforced (page/slug/section)", async () => {
+  const written = [];
+  const env = { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } };
+  const postTo = (payload) =>
+    eventsOnRequest({
+      request: post(
+        { name: "audit_submitted", payload },
+        { "cf-connecting-ip": "test-pattern-values" },
+      ),
+      env,
+    });
+  assert.equal((await postTo({ page: "not-a-path" })).status, 400);
+  assert.equal((await postTo({ page: "/" })).status, 204); // homepage fires real events
+  assert.equal((await postTo({ page: "/audit" })).status, 204);
+  assert.equal((await postTo({ slug: "Bad Slug!" })).status, 400);
+  assert.equal((await postTo({ section: "hero" })).status, 204);
+  assert.equal((await postTo({ section: "bad section!" })).status, 400);
+  assert.equal(written.length, 3);
+});
+
+test("events endpoint: cross-site Origin is rejected, same-site passes (beacon guard)", async () => {
+  const written = [];
+  const env = { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } };
+  // The post() helper builds a Request without a Host header (undici does
+  // not synthesize one), so the legit case must pass host explicitly or
+  // the guard's originHost !== host comparison would 400 it.
+  const postTo = (headers = {}) =>
+    eventsOnRequest({
+      request: post(
+        { name: "audit_started", payload: { page: "/audit" } },
+        { "cf-connecting-ip": "test-cross-site", ...headers },
+      ),
+      env,
+    });
+  assert.equal((await postTo({ origin: "https://evil.example", host: "noveno.ir" })).status, 400);
+  assert.equal((await postTo({ origin: "https://noveno.ir", host: "noveno.ir" })).status, 204);
+  assert.equal((await postTo()).status, 204); // no Origin → same as today
+  assert.equal((await postTo({ origin: "null", host: "noveno.ir" })).status, 400); // opaque origin
+  assert.equal(written.length, 2);
+});
+
+test("events endpoint: text/plain bodies (sendBeacon) still accepted", async () => {
+  // sendBeacon sends string bodies as text/plain (Blob types are
+  // preserved); rejecting on content-type would break real beacons.
+  // JSON.parse remains the actual gate — documented, not enforced.
+  const written = [];
+  const env = { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } };
+  const res = await eventsOnRequest({
+    request: post(
+      JSON.stringify({ name: "audit_started", payload: { page: "/audit" } }),
+      { "cf-connecting-ip": "test-content-type", "content-type": "text/plain" },
+    ),
+    env,
+  });
+  assert.equal(res.status, 204);
+  assert.equal(written.length, 1);
+});
+
+test("events endpoint: floods are rate-limited before any write (MAJOR-2)", async () => {
+  // Injected limiter (60/min) so this test is exact and order-independent:
+  // the module-scope limiter is shared across tests in this process, but
+  // this one owns its own bucket and must see throttling at exactly max.
+  const written = [];
+  const limiter = createRateLimiter({ max: 60, windowMs: 60_000 });
+  const request = () =>
+    handleEventRequest(post({ name: "audit_started", payload: { page: "/audit" } }), {
+      env: { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } },
+      limiter,
     });
   const statuses = [];
   for (let i = 0; i < 80; i += 1) {
     statuses.push((await request()).status);
   }
   const first429 = statuses.indexOf(429);
-  assert.ok(first429 >= 50, `throttling did not kick in within the window (first 429 at ${first429})`);
-  assert.ok(first429 < 80, "the flood was never throttled");
-  assert.ok(statuses.slice(first429).every((s) => s === 429), "all requests after the first 429 must be 429");
-  assert.equal(written.length, first429, "no writes may happen after throttling begins");
+  assert.equal(first429, 60, "throttling must begin exactly at the limiter max");
+  assert.ok(statuses.slice(first429).every((s) => s === 429));
+  assert.equal(written.length, 60, "no writes may happen after throttling begins");
 });

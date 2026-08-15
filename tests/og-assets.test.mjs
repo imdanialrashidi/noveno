@@ -47,6 +47,34 @@ function withCardHidden(rel, fn) {
   }
 }
 
+/** Write a temporary blog entry; always removes it. */
+function withTempEntry(name, body, fn) {
+  const abs = path.join(root, "src", "content", "blog", name);
+  fs.writeFileSync(abs, body);
+  try {
+    fn();
+  } finally {
+    fs.rmSync(abs, { force: true });
+  }
+}
+
+/** Replace a card that may not exist yet; restores/removes it afterwards. */
+function withTempCard(rel, bytes, fn) {
+  const abs = path.join(root, "public", rel);
+  const existed = fs.existsSync(abs);
+  const original = existed ? fs.readFileSync(abs) : null;
+  fs.writeFileSync(abs, bytes);
+  try {
+    fn();
+  } finally {
+    if (existed) fs.writeFileSync(abs, original);
+    else fs.rmSync(abs, { force: true });
+  }
+}
+
+/** Bytes of a real committed card (valid PNG, exactly 1200×630). */
+const validCardBytes = () => fs.readFileSync(path.join(root, "public", "og", "blog.png"));
+
 test("validator passes on the committed asset set (drafts need no card)", () => {
   // draft-sample is a draft: it must NOT have a card and the validator
   // must still pass — drafts never require OG assets.
@@ -95,6 +123,55 @@ test("wrong PNG dimensions fail the validator (1200×630 contract)", () => {
     assert.notEqual(result.status, 0, "validator must reject wrong dimensions");
     assert.match(result.stderr, /100×100, expected 1200×630/);
   });
+});
+
+test("repo-relative ogImage override is gated like a committed card", () => {
+  // blog/[slug].astro resolves `ogImage: og/blog/tmp-relative.png` against
+  // the site origin to https://<site>/og/blog/tmp-relative.png — a public
+  // path that must exist and be 1200×630. The validator must require it
+  // even though the frontmatter value has no leading slash.
+  const rel = "og/blog/tmp-relative.png";
+  withTempEntry(
+    "tmp-relative.md",
+    `---\ntitle: Tmp relative\ndate: 2026-01-01\nogImage: og/blog/tmp-relative.png\n---\n\nBody.\n`,
+    () => {
+      // RED: relative override without its card must fail the gate.
+      const missing = runValidator();
+      assert.notEqual(missing.status, 0, "relative override must require its card");
+      assert.match(
+        missing.stderr,
+        /missing required social card public\/og\/blog\/tmp-relative\.png/,
+      );
+
+      // GREEN: with a real 1200×630 card in place, the gate passes.
+      withTempCard(rel, validCardBytes(), () => {
+        assert.equal(runValidator().status, 0, "gate must pass once the override card exists");
+
+        // RED again: hiding the card must fail even though the override is
+        // repo-relative (pre-fix, this override silently bypassed the gate).
+        withCardHidden(rel, () => {
+          const hidden = runValidator();
+          assert.notEqual(hidden.status, 0, "hiding the override card must fail the gate");
+          assert.match(
+            hidden.stderr,
+            /missing required social card public\/og\/blog\/tmp-relative\.png/,
+          );
+        });
+      });
+    },
+  );
+});
+
+test("external https ogImage override needs no committed card", () => {
+  withTempEntry(
+    "tmp-external.md",
+    `---\ntitle: Tmp external\ndate: 2026-01-01\nogImage: https://example.com/card.png\n---\n\nBody.\n`,
+    () => {
+      const result = runValidator();
+      assert.equal(result.status, 0, `external override must not require a card:\n${result.stderr}`);
+      assert.match(result.stdout, /social cards validated/);
+    },
+  );
 });
 
 test(".node-version satisfies the package engines requirement (>=22.19)", () => {

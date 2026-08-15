@@ -8,8 +8,10 @@
 
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
+import YAML from "yaml";
 
 const contentDir = path.resolve(import.meta.dirname, "..", "src", "content", "blog");
 
@@ -17,14 +19,8 @@ function parseFrontmatter(file) {
   const raw = fs.readFileSync(file, "utf8");
   const match = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
   assert.ok(match, `${file}: missing frontmatter`);
-  const data = {};
-  for (const line of match[1].split(/\r?\n/)) {
-    const kv = /^([a-z_]+):\s*(.*)$/.exec(line.trim());
-    if (!kv) continue;
-    const key = kv[1];
-    const value = kv[2].trim().replace(/^"|"$/g, "");
-    data[key] = value === "true" ? true : value === "false" ? false : value;
-  }
+  const data = YAML.parse(match[1]);
+  assert.ok(data && typeof data === "object", `${file}: frontmatter is not a YAML mapping`);
   return data;
 }
 
@@ -88,5 +84,24 @@ test("article body is real Markdown content, not a placeholder", () => {
     const raw = fs.readFileSync(path.join(contentDir, file), "utf8");
     const body = raw.replace(/^---\r?\n[\s\S]*?\r?\n---/, "").trim();
     assert.ok(body.split(/\s+/).filter(Boolean).length >= 150, `${file}: body too thin (content-farm guard)`);
+  }
+});
+
+test("frontmatter parser handles YAML arrays and quoted colons", () => {
+  // defect-sensitivity probe: the old regex parser could not represent YAML
+  // arrays or quoted values containing colons; this test fails against it.
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "noveno-blog-"));
+  const file = path.join(tmpDir, "probe.md");
+  try {
+    fs.writeFileSync(
+      file,
+      "---\ntitle: \"A: quoted title\"\ntags:\n  - one\n  - two\n---\n",
+      "utf8",
+    );
+    const parsed = parseFrontmatter(file);
+    assert.deepEqual(parsed.tags, ["one", "two"]);
+    assert.equal(parsed.title, "A: quoted title");
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 });

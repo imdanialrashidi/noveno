@@ -1,0 +1,35 @@
+---
+/**
+ * ArrowLink — the "read more" arrow anchor (2026-08-14 redesign link
+ * family), the single place the arrow glyph + hover direction live.
+ * Call sites supply the leading layout class (e.g. `mt-3` in WorkCard)
+ * and any analytics data attributes; the base class string and arrow
+ * markup come verbatim from the two sites that previously hand-rolled
+ * this block (WorkCard, OfferRow) so rendered output stays byte-identical.
+ */
+
+interface Props {
+  href: string;
+  label: string;
+  /** Extra leading class (prepended to the base, e.g. WorkCard's `mt-3`). */
+  class?: string;
+  /** Arbitrary attributes (e.g. analytics data-event wiring). */
+  data?: Record<string, string>;
+}
+
+const { href, label, data = {} } = Astro.props;
+const className = Astro.props["class"] ?? "";
+
+const base =
+  "inline-flex min-h-11 items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-text-action";
+
+const classes = className ? `${className} ${base}` : base;
+---
+
+<a href={href} class={classes} {...data}>
+  {label}
+  <svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M19 12H5" />
+    <path d="m12 19-7-7 7-7" />
+  </svg>
+</a>

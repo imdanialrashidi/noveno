@@ -10,9 +10,18 @@
  * the lead row, not in events.
  */
 
-import { EVENT_NAMES, EVENT_PAYLOAD_KEYS, LIMITS, type AuditEnv } from "../lib/contract.ts";
+import {
+  EVENT_NAMES,
+  EVENT_PAYLOAD_KEYS,
+  EVENT_SERVICE_VALUES,
+  EVENT_STEP_VALUES,
+  EVENT_VALUE_PATTERNS,
+  LIMITS,
+  PREFERRED_CONTACTS,
+  type AuditEnv,
+} from "../lib/contract.ts";
 import { errorResponse, jsonResponse } from "../lib/respond.ts";
-import { createRateLimiter } from "../lib/rate-limit.ts";
+import { createRateLimiter, type RateLimiter } from "../lib/rate-limit.ts";
 
 interface EventInput {
   name: string;
@@ -22,6 +31,17 @@ interface EventInput {
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
+
+/**
+ * Fixed-set payload keys validated against exact value whitelists
+ * (plan 010). The client sends these values as strings; anything else
+ * is rejected before it can burn the metered Analytics Engine quota.
+ */
+const EVENT_ENUM_VALUES: Record<string, Set<string>> = {
+  step: new Set<string>(EVENT_STEP_VALUES),
+  service: new Set<string>(EVENT_SERVICE_VALUES),
+  channel: new Set<string>(PREFERRED_CONTACTS),
+};
 
 export function validateEvent(raw: unknown): { ok: true; event: EventInput } | { ok: false } {
   if (!isRecord(raw)) return { ok: false };
@@ -39,6 +59,23 @@ export function validateEvent(raw: unknown): { ok: true; event: EventInput } | {
         typeof value === "string" || typeof value === "number";
       if (!okValue) return { ok: false };
       if (typeof value === "string" && value.length > LIMITS.maxEventPayloadValue) return { ok: false };
+      // Value whitelists (plan 010): enum keys must be exact client-sent
+      // strings (numbers rejected); page/slug/section/cta_id must match
+      // their pattern when strings. Numbers stay accepted only where a key
+      // legitimately carries them — none do today, so the string/number
+      // type check above remains the baseline.
+      if (key === "step" || key === "service" || key === "channel") {
+        const allowed = EVENT_ENUM_VALUES[key];
+        if (typeof value !== "string" || !allowed || !allowed.has(value)) return { ok: false };
+      } else if (typeof value === "string") {
+        const pattern =
+          key === "page"
+            ? EVENT_VALUE_PATTERNS.page
+            : key === "slug"
+              ? EVENT_VALUE_PATTERNS.slug
+              : EVENT_VALUE_PATTERNS.wordish; // section, cta_id
+        if (!pattern.test(value)) return { ok: false };
+      }
       payload[key] = value;
     }
   }
@@ -49,17 +86,39 @@ export function validateEvent(raw: unknown): { ok: true; event: EventInput } | {
   return { ok: true, event: { name, payload } };
 }
 
-export async function onRequest(context: { request: Request; env: AuditEnv }): Promise<Response> {
-  const { request, env } = context;
+export async function handleEventRequest(
+  request: Request,
+  deps: { env: AuditEnv; limiter: RateLimiter },
+): Promise<Response> {
+  const { env, limiter } = deps;
 
   if (request.method !== "POST") {
     return errorResponse("method_not_allowed", 405);
   }
 
+  // Cross-site guard: a foreign page can send no-cors beacons that look
+  // like our own events. Browsers attach Origin to cross-site POSTs; a
+  // non-null Origin whose host differs from the request Host is rejected.
+  const origin = request.headers.get("origin");
+  const host = request.headers.get("host") ?? "";
+  if (origin && !origin.startsWith("https://") && !origin.startsWith("http://")) {
+    // opaque origin ("null") from sandboxed pages — reject: our own pages
+    // never send an opaque Origin for same-origin fetch/beacon.
+    return errorResponse("validation", 400);
+  }
+  if (origin) {
+    try {
+      const originHost = new URL(origin).host;
+      if (originHost !== host) return errorResponse("validation", 400);
+    } catch {
+      return errorResponse("validation", 400);
+    }
+  }
+
   // Abuse gate for the metered Analytics Engine write path (security
   // review MAJOR-2): per-IP, per-isolate, generous for real users.
   const ip = request.headers.get("cf-connecting-ip") ?? "unknown";
-  if (!eventsLimiter(ip)) {
+  if (!limiter(ip)) {
     return errorResponse("rate_limited", 429);
   }
 
@@ -117,3 +176,6 @@ export async function onRequest(context: { request: Request; env: AuditEnv }): P
 }
 
 const eventsLimiter = createRateLimiter({ max: 60, windowMs: 60_000 });
+
+export const onRequest = (context: { request: Request; env: AuditEnv }): Promise<Response> =>
+  handleEventRequest(context.request, { env: context.env, limiter: eventsLimiter });
