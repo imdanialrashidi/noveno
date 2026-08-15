@@ -9,7 +9,7 @@ The production website for **Noveno** — an Iranian service-and-systems busines
 ## Quick start
 
 ```bash
-npm install          # install dependencies (Node.js ≥ 22.19)
+npm install          # install dependencies (Node.js ≥ 22.19; .node-version pins 22.23.2)
 npm run dev          # local dev server (http://localhost:4321)
 npm run check        # astro check (types + content schema validation)
 npm run build        # production build → dist/
@@ -264,7 +264,7 @@ export function previewFor(id: string): WorkPreview {
 - **Every public image is content-addressed.** `npm run build` runs `scripts/build-image-manifest.mjs` (prebuild), which materializes sha256-hashed copies of every file in `public/images/` and writes `src/generated/image-manifest.ts`. All markup references images via `imageUrl("logical/path.ext")` from that module; the structural test **fails the build** if any built page references an unhashed `/images/` path or a missing file. Never hard-code `/images/...` URLs.
 - **Caching:** `public/_headers` serves `/images/*`, `/_astro/*`, and `/fonts/*` with `immutable` (correct only because of the versioning above); HTML, `sitemap.xml`, `robots.txt` revalidate normally; `og.png`/`og/*`/`favicon.svg` get 1-day caching (social cards must not go stale for long).
 - **Product screenshot workflow:** capture at 1440×900 from the production build (light theme), then `python3 scripts/optimize-work-previews.py shot.png <name>` emits the WebP pair; `npm run build` re-hashes. Alt/caption/provenance updates documented in `docs/IMAGERY.md`.
-- **Social cards + sitemap regenerate on every build** (`prebuild`): `scripts/generate-og-images.py` renders the per-page OG cards (homepage with the brand-art panel, work, work items, blog, articles) and `scripts/generate-sitemap.mjs` writes `public/sitemap.xml` from the published content — drafts are excluded from both.
+- **Social cards are committed; the build validates them.** Cards are rendered locally with `npm run generate:og` (`scripts/generate-og-images.py` — Python + Pillow) and committed under `public/og/`; `prebuild` runs `scripts/validate-og-assets.mjs` (Node, no extra dependencies) which fails the build if a required committed card is missing or not a 1200×630 PNG, and `scripts/generate-sitemap.mjs` writes `public/sitemap.xml` from the published content — drafts are excluded from both. Cloudflare Pages does **not** regenerate cards: a new/changed article needs `npm run generate:og` locally before committing (or `npm run build:with-og` to render + build in one command).
 - **Lab measurement:** `npm run build && node scripts/lab-server.mjs` serves `dist/` with Brotli/gzip (as Cloudflare does) for Lighthouse/CDP runs; `bash scripts/lab-benchmark.sh <outdir>` runs the 3×median sweep across the five representative routes (mobile + desktop).
 
 ## 6. Verification checklist for a new entry

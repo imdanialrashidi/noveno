@@ -68,20 +68,36 @@ edits. Publishing a new article takes about five minutes and one command.
 
 4. **Build and publish**:
 
+   A new article gets its social card rendered **locally** (Python + Pillow
+   — see below) before the build; Cloudflare Pages never renders cards:
+
    ```bash
-   npm run build      # validates content + regenerates sitemap, OG cards, image hashes
-   git add src/content/blog/my-article.md
+   npm run generate:og   # render social cards for NEW/changed articles (local)
+   npm run build         # validates content + committed OG cards; regenerates sitemap, image hashes
+   git add src/content/blog/my-article.md public/og/blog/my-article.png
    git commit -m "feat(blog): publish …"
-   git push           # Cloudflare Pages deploys automatically
+   git push              # Cloudflare Pages deploys automatically
    ```
 
+   Or use the single helper that does the first two steps:
+   `npm run build:with-og`.
+
    Set `draft: false` in the same edit when the article is ready.
+
+   > **Social cards are generated locally and committed.**
+   > `scripts/generate-og-images.py` needs Python + Pillow + raqm and runs
+   > only via `npm run generate:og` on your machine. The production
+   > `prebuild` **validates** the committed cards
+   > (`scripts/validate-og-assets.mjs`, Node — no extra dependencies) and
+   > fails the build if a required card is missing or not a 1200×630 PNG.
+   > Cloudflare Pages does **not** regenerate OG cards — it deploys the
+   > committed ones. A draft article (`draft: true`) never needs a card.
 
 ## What happens automatically on every build
 
 | Step | What runs |
 |---|---|
-| `prebuild` | image manifest (hashed URLs), **social cards** for every published article (`scripts/generate-og-images.py`), **sitemap** (`scripts/generate-sitemap.mjs` — drafts excluded) |
+| `prebuild` | image manifest (hashed URLs), **validation of the committed social cards** (`scripts/validate-og-assets.mjs` — every published article must have a 1200×630 PNG card; drafts are excluded), **sitemap** (`scripts/generate-sitemap.mjs` — drafts excluded). Cards themselves are **not** rendered on Cloudflare — see the note above. |
 | `astro build` | static pages; drafts are never generated |
 | article page | canonical `/blog/[slug]`, `og:type=article`, Article JSON-LD (title, dates, author, publisher), breadcrumbs (خانه / وبلاگ / عنوان), related-by-category + previous/next navigation, contextual audit CTA |
 | `/blog` | newest article featured first; chronological list; index updates automatically |

@@ -62,7 +62,7 @@
     },
     {
       "id": "app",
-      "include": ["src/**", "package.json", "package-lock.json", "astro.config.mjs", "tsconfig.json", "wrangler.jsonc", "public/**", "tests/structural.test.mjs", "tests/seo-contract.test.mjs", "tests/content.test.mjs", "tests/audit-retry.test.mjs", "tests/blog.test.mjs"],
+      "include": ["src/**", "package.json", "package-lock.json", "astro.config.mjs", "tsconfig.json", "wrangler.jsonc", "public/**", "tests/structural.test.mjs", "tests/seo-contract.test.mjs", "tests/content.test.mjs", "tests/audit-retry.test.mjs", "tests/blog.test.mjs", "tests/og-assets.test.mjs"],
       "commands": [
         ["npm", "run", "check"],
         ["npm", "run", "build"],
@@ -70,7 +70,8 @@
         ["node", "--test", "tests/seo-contract.test.mjs"],
         ["node", "--test", "tests/content.test.mjs"],
         ["node", "--test", "tests/audit-retry.test.mjs"],
-        ["node", "--test", "tests/blog.test.mjs"]
+        ["node", "--test", "tests/blog.test.mjs"],
+        ["node", "--test", "tests/og-assets.test.mjs"]
       ]
     },
     {

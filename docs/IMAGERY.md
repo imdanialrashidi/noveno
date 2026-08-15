@@ -36,17 +36,18 @@ Concepts (`clinic-acquisition-concept`, `language-school-concept`) use **no imag
 
 ## Social cards
 
-Build-time generated PNGs (1200×630) by `scripts/generate-og-images.py` (Pillow + raqm; Noto Sans Arabic, brand tokens from docs/DESIGN.md §6):
+Locally rendered PNGs (1200×630) via `npm run generate:og` (`scripts/generate-og-images.py` — Pillow + raqm; Noto Sans Arabic, brand tokens from docs/DESIGN.md §6):
 
 | File | Card | Visual |
 |---|---|---|
 | `public/og.png` | Default / homepage card | NOVENO wordmark + headline + **the brand signal-field artwork** (Pillow mirror of the hero geometry — no screenshot, fourth review) |
+| `public/og/about.png` | `/about` card | Wordmark + why-Noveno headline + proof chip |
 | `public/og/work.png` | `/work` index | Wordmark + section title + featured work preview |
 | `public/og/work/{slug}.png` | `/work/{slug}` | Wordmark + project title + that project's real preview |
 | `public/og/blog.png` | `/blog` index | Wordmark + «وبلاگ نوونو» title + typographic card |
 | `public/og/blog/{slug}.png` | `/blog/{slug}` | Wordmark + article title + category chip (per-article typographic card) |
 
-Generated before every build (`npm run build` prebuild hook), committed so `astro dev` works without a build step. Page metadata references them via `og:image` (BaseLayout `ogImage` prop); `public/_headers` serves `/og/*` with short-lived caching so social crawlers re-fetch after content changes.
+Rendered locally with `npm run generate:og` (`scripts/generate-og-images.py` — Python + Pillow + raqm; Noto Sans Arabic, brand tokens from docs/DESIGN.md §6) and **committed** under `public/og/`. The production build never renders cards (Cloudflare Pages has no image-generation tooling): `prebuild` runs `scripts/validate-og-assets.mjs`, a dependency-free Node check that fails the build if any required committed card is missing or not a 1200×630 PNG. Page metadata references them via `og:image` (BaseLayout `ogImage` prop); `public/_headers` serves `/og/*` with short-lived caching so social crawlers re-fetch after content changes.
 
 ## Replacing product screenshots (founder workflow)
 

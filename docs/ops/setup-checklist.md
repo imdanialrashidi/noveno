@@ -43,6 +43,12 @@ this repository** — this checklist prepares the accounts so a single
 1. Create a Pages project (`noveno`) connected to the GitHub repo; build
    command `npm run build`, output directory `dist` (functions directory is
    auto-detected as `functions/`).
+
+   **Node version:** the repo ships `.node-version` (`22.23.2`, matching the
+   package `engines` requirement `>=22.19`). The Pages build image honors
+   `.node-version` / `.nvmrc` at the repo root, so the build uses 22.23.2
+   instead of the image default (22.16.0 on v2). Do not set a `NODE_VERSION`
+   project variable that contradicts it.
 2. Production branch: `main`. **Compatibility flag `nodejs_compat` is
    already committed in `wrangler.jsonc`** — confirm it shows in the project
    settings (Settings → Functions → Compatibility flags).

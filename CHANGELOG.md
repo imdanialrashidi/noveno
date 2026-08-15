@@ -24,6 +24,7 @@ All notable workflow changes are documented here. This project follows the spiri
 
 ### Changed
 
+- **OG card generation decoupled from the production build (Cloudflare Pages `No module named PIL` fix):** `prebuild` no longer runs the Python generator — it now validates the committed `public/og/` cards with a dependency-free Node script (`scripts/validate-og-assets.mjs`, PNG signature + 1200×630, per-work/per-published-article coverage, drafts excluded) and fails the build with a clear message on a missing/invalid card. Cards are rendered locally via `npm run generate:og` (or `npm run build:with-og`) and committed; the repo ships `.node-version` (22.23.2) so Pages honors the `>=22.19` engine instead of its 22.16.0 default. Publishing docs (`docs/BLOG.md`, `docs/IMAGERY.md`, `README.md`) updated accordingly.
 - Made `./p` trust the checked-out project and run autonomously by default: routine workflow edits, task-branch Git delivery, public browser navigation, and focused page evaluation no longer require intermediate approval; the optional Docker launcher selects strict mode.
 - Narrowed the safety guard to high-blast-radius actions such as secret access, destructive host/Git commands, force/deleting pushes, publication/deployment/production mutation, and browser file exfiltration.
 - Replaced archived `pi-context7` with maintained `pi-doc-search`.
