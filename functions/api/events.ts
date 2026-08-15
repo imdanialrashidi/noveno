@@ -21,7 +21,7 @@ import {
   type AuditEnv,
 } from "../lib/contract.ts";
 import { errorResponse, jsonResponse } from "../lib/respond.ts";
-import { createRateLimiter } from "../lib/rate-limit.ts";
+import { createRateLimiter, type RateLimiter } from "../lib/rate-limit.ts";
 
 interface EventInput {
   name: string;
@@ -86,8 +86,11 @@ export function validateEvent(raw: unknown): { ok: true; event: EventInput } | {
   return { ok: true, event: { name, payload } };
 }
 
-export async function onRequest(context: { request: Request; env: AuditEnv }): Promise<Response> {
-  const { request, env } = context;
+export async function handleEventRequest(
+  request: Request,
+  deps: { env: AuditEnv; limiter: RateLimiter },
+): Promise<Response> {
+  const { env, limiter } = deps;
 
   if (request.method !== "POST") {
     return errorResponse("method_not_allowed", 405);
@@ -115,7 +118,7 @@ export async function onRequest(context: { request: Request; env: AuditEnv }): P
   // Abuse gate for the metered Analytics Engine write path (security
   // review MAJOR-2): per-IP, per-isolate, generous for real users.
   const ip = request.headers.get("cf-connecting-ip") ?? "unknown";
-  if (!eventsLimiter(ip)) {
+  if (!limiter(ip)) {
     return errorResponse("rate_limited", 429);
   }
 
@@ -173,3 +176,6 @@ export async function onRequest(context: { request: Request; env: AuditEnv }): P
 }
 
 const eventsLimiter = createRateLimiter({ max: 60, windowMs: 60_000 });
+
+export const onRequest = (context: { request: Request; env: AuditEnv }): Promise<Response> =>
+  handleEventRequest(context.request, { env: context.env, limiter: eventsLimiter });

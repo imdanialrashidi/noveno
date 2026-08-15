@@ -44,8 +44,7 @@ import {
 import { createRateLimiter } from "../functions/lib/rate-limit.ts";
 import { idempotencyKeyForToken, verifyTurnstile } from "../functions/lib/turnstile.ts";
 import { createSupabasePersister } from "../functions/lib/persist.ts";
-import { validateEvent } from "../functions/api/events.ts";
-import { onRequest as eventsOnRequest } from "../functions/api/events.ts";
+import { handleEventRequest, onRequest as eventsOnRequest, validateEvent } from "../functions/api/events.ts";
 import {
   ACQUISITION_CHANNELS,
   CUSTOMER_VALUE_RANGES,
@@ -551,6 +550,11 @@ test("onRequest wires the siteverify idempotency key to the token hash (never th
 /* Real Turnstile siteverify with official test keys (network-gated)   */
 /* ------------------------------------------------------------------ */
 
+// Network-gated: these hit the real Cloudflare endpoint. Run with
+// RUN_NETWORK_TESTS=1 to exercise them; otherwise they skip so the
+// suite's result is identical in sandboxed and networked environments.
+const NETWORK_TESTS_ENABLED = process.env.RUN_NETWORK_TESTS === "1";
+
 const REAL_SITEVERIFY = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const SECRETS = {
   alwaysPass: "1x0000000000000000000000000000000AA",
@@ -569,31 +573,31 @@ async function realSiteverify(secret, token) {
 }
 
 test("real Turnstile endpoint: official always-pass secret verifies", async (t) => {
-  try {
-    const data = await realSiteverify(SECRETS.alwaysPass, "any-token");
-    assert.equal(data.success, true);
-  } catch (err) {
-    t.skip(`no route to challenges.cloudflare.com in this environment: ${err.message}`);
+  if (!NETWORK_TESTS_ENABLED) {
+    t.skip("network-gated: set RUN_NETWORK_TESTS=1 to run");
+    return;
   }
+  const data = await realSiteverify(SECRETS.alwaysPass, "any-token");
+  assert.equal(data.success, true);
 });
 
 test("real Turnstile endpoint: official always-fail secret is rejected", async (t) => {
-  try {
-    const data = await realSiteverify(SECRETS.alwaysFail, "any-token");
-    assert.equal(data.success, false);
-  } catch (err) {
-    t.skip(`no route to challenges.cloudflare.com in this environment: ${err.message}`);
+  if (!NETWORK_TESTS_ENABLED) {
+    t.skip("network-gated: set RUN_NETWORK_TESTS=1 to run");
+    return;
   }
+  const data = await realSiteverify(SECRETS.alwaysFail, "any-token");
+  assert.equal(data.success, false);
 });
 
 test("real Turnstile endpoint: official duplicate secret reports timeout-or-duplicate", async (t) => {
-  try {
-    const data = await realSiteverify(SECRETS.duplicate, "any-token");
-    assert.equal(data.success, false);
-    assert.ok((data["error-codes"] ?? []).includes("timeout-or-duplicate"));
-  } catch (err) {
-    t.skip(`no route to challenges.cloudflare.com in this environment: ${err.message}`);
+  if (!NETWORK_TESTS_ENABLED) {
+    t.skip("network-gated: set RUN_NETWORK_TESTS=1 to run");
+    return;
   }
+  const data = await realSiteverify(SECRETS.duplicate, "any-token");
+  assert.equal(data.success, false);
+  assert.ok((data["error-codes"] ?? []).includes("timeout-or-duplicate"));
 });
 
 /* ------------------------------------------------------------------ */
@@ -1020,25 +1024,22 @@ test("events endpoint: text/plain bodies (sendBeacon) still accepted", async () 
 });
 
 test("events endpoint: floods are rate-limited before any write (MAJOR-2)", async () => {
-  // A dedicated cf-connecting-ip keeps this test independent of the other
-  // events tests that share the module-scope 60/min limiter under the
-  // "unknown" key — so the first 429 is deterministic at exactly 60.
+  // Injected limiter (60/min) so this test is exact and order-independent:
+  // the module-scope limiter is shared across tests in this process, but
+  // this one owns its own bucket and must see throttling at exactly max.
   const written = [];
-  const env = { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } };
+  const limiter = createRateLimiter({ max: 60, windowMs: 60_000 });
   const request = () =>
-    eventsOnRequest({
-      request: post(
-        { name: "audit_started", payload: { page: "/audit" } },
-        { "cf-connecting-ip": "flood-test-ip" },
-      ),
-      env,
+    handleEventRequest(post({ name: "audit_started", payload: { page: "/audit" } }), {
+      env: { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } },
+      limiter,
     });
   const statuses = [];
   for (let i = 0; i < 80; i += 1) {
     statuses.push((await request()).status);
   }
   const first429 = statuses.indexOf(429);
-  assert.equal(first429, 60, "the limiter must allow exactly the window budget, then throttle");
-  assert.ok(statuses.slice(first429).every((s) => s === 429), "all requests after the first 429 must be 429");
+  assert.equal(first429, 60, "throttling must begin exactly at the limiter max");
+  assert.ok(statuses.slice(first429).every((s) => s === 429));
   assert.equal(written.length, 60, "no writes may happen after throttling begins");
 });
