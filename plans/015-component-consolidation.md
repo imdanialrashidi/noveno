@@ -22,14 +22,24 @@
 ## Why this matters
 
 Three small duplications in the components layer: (1) the `isCurrent`
-nav-highlight helper is copy-pasted in `Header.astro` and `MobileMenu.astro`;
-(2) the "read more" arrow-link pattern (مشاهده کار / جزئیات همکاری / خواندن
-نوشته) is hand-rolled in `WorkCard.astro`, `OfferRow.astro`, and the blog
-band of `index.astro` instead of using the existing `TextLink` primitive —
-three copies of one link style drift independently (hover-arrow direction,
-spacing); (3) `WorkCard.astro` re-declares a `WorkPreview` interface that
-already exists in `src/data/work-previews.ts`. Consolidation is purely
-behavior-preserving: the rendered markup and classes stay identical.
+nav-highlight helper is copy-pasted in `Header.astro` and `MobileMenu.astro`
+(byte-identical implementations — verified);
+(2) the "read more" arrow-link pattern is hand-rolled in `WorkCard.astro`
+and `OfferRow.astro` — two copies of one anchor style that drift
+independently (hover-arrow direction, spacing);
+(3) `WorkCard.astro` re-declares a `WorkPreview` interface that already
+exists in `src/data/work-previews.ts` (the exported type is a compatible
+superset — verified).
+
+REVISED SCOPE (2nd round — executor evidence): the blog band in
+`src/pages/index.astro` is NOT the same pattern: it is a `<span>` inside a
+parent `<a class="group">` (group-hover, `w-fit`), not an anchor — the same
+span family also appears in `services.astro`, `blog/index.astro`, and
+`contact.astro`. That family is deliberately OUT of scope: consolidating it
+is a separate design task (element-type decision), and forcing it into an
+anchor-based component would create nested `<a>` tags and break the blog
+card link. Consolidation here covers the two real anchors only.
+Behavior must stay byte-identical for the consolidated sites.
 
 ## Current state
 
@@ -60,9 +70,12 @@ behavior-preserving: the rendered markup and classes stay identical.
 - `src/components/layout/MobileMenu.astro`
 - `src/components/business/WorkCard.astro`
 - `src/components/business/OfferRow.astro`
-- `src/pages/index.astro`
 - `src/components/ui/ArrowLink.astro` (create)
 - `src/components/layout/nav.ts` (create — shared `isCurrent` helper)
+
+**REVISED (2nd round)**: `src/pages/index.astro` is NO LONGER in scope —
+the blog band is a `<span>` inside a parent `<a class="group">` (a
+different pattern family; consolidating it is a separate design task).
 
 **Out of scope** (do NOT touch):
 - `src/components/ui/TextLink.astro`, `src/components/ui/Button.astro` (existing primitives stay as-is)
@@ -96,23 +109,38 @@ local copies.
 
 **Verify**: `npm run check` → exit 0; `grep -n "const isCurrent" src/components/` → no matches.
 
-### Step 2: ArrowLink component
+### Step 2: ArrowLink component (the two real anchors only)
 
-Create `src/components/ui/ArrowLink.astro` that renders exactly the markup
-currently hand-rolled at the three sites. Read all three current blocks
-first; the component should accept `href` and `label` (plus optional
-`class`) props and render the SAME anchor + arrow markup with the SAME
-classes (copy them verbatim from the current blocks; if the three copies
-differ in classes, use the most common variant and note the difference).
+Create `src/components/ui/ArrowLink.astro` rendering the anchor arrow-link
+markup currently hand-rolled in `WorkCard.astro` and `OfferRow.astro`.
+Read both blocks first. The component signature must absorb the two
+sites' differences:
 
-Replace the three hand-rolled blocks with `<ArrowLink href="..." label="..." />`
-(or equivalent props).
+- `href` (required), `label` (required)
+- `class` prop for the extra leading class (`mt-3` in WorkCard only) — the
+  class string must assemble to the byte-identical attribute each site
+  renders today: `[class] inline-flex min-h-11 items-center gap-1.5
+  text-ui font-medium text-accent-strong transition-colors duration-150
+  hover:text-text-action` (WorkCard's `mt-3` goes FIRST, per its current
+  markup).
+- `data` prop passthrough for `data-event` / `data-event-payload`
+  attributes (WorkCard: conditional; OfferRow: unconditional
+  `data-event="service_opened"` + `{service}` payload). Follow the
+  `data={{...}}` pattern already used by `Button.astro` in this repo.
 
-**Verify**: `npm run check` → exit 0. Then compare rendered output:
-`npm run build` and grep `dist/` for the arrow-link class string — it must
-appear in the same pages as before (`dist/work/index.html`,
-`dist/services/index.html`, `dist/index.html`, `dist/blog/index.html`).
-Also `grep -rn "مشاهده کار\|جزئیات همکاری\|خواندن نوشته" src/components/business/WorkCard.astro src/components/business/OfferRow.astro` → only as props to ArrowLink, not as hand-rolled markup.
+Replace the two hand-rolled blocks with `<ArrowLink href=... label=...
+class=... data=... />` (omit optional props where the site has none).
+The arrow glyph markup and ALL classes come verbatim from the current
+blocks.
+
+Do NOT touch the blog-band `<span>` in `index.astro` (out of scope by
+revision).
+
+**Verify**: `npm run check` → exit 0. Then read the rendered diff: build
+is deferred to the reviewer, so instead compare the two new call sites
+against the two old blocks — the final class attribute string must be
+identical to what each site rendered before (copy the old strings into
+your report for comparison).
 
 ### Step 3: `WorkPreview` type
 
@@ -150,14 +178,14 @@ pages). `npm run build` → exit 0.
 - [ ] `grep -rn "interface WorkPreview" src/` → exactly 1 match (work-previews.ts)
 - [ ] `npm run check`, `npm test`, `npm run build` all pass
 - [ ] `git diff --stat` touches only the in-scope files
-- [ ] Rendered output unchanged: `grep -c` of the arrow-link class in `dist/` matches pre-change counts (record both counts in your report)
+- [ ] `src/pages/index.astro` NOT modified
 
 ## STOP conditions
 
 Stop and report back (do not improvise) if:
 
-- The three arrow-link blocks use materially different classes (report the
-  differences; choose the dominant variant only after reporting).
+- The two anchor blocks use materially different classes that the
+  `class` + `data` passthrough cannot absorb (report the differences).
 - `WorkPreview` in work-previews.ts has a different shape than the local
   interface (report; do not widen the exported type).
 - The two `isCurrent` implementations differ in behavior (report; keep both
