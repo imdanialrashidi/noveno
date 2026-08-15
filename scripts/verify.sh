@@ -23,8 +23,11 @@ fi
 
 bash scripts/pi-doctor.sh --ci
 
+# Run project-verify as a normal script (NOT exec): the npm run check step
+# below is part of the single lane, and exec would replace this shell and
+# skip it — silently dropping the typecheck from the gate.
 if [[ -x scripts/project-verify.sh ]]; then
-  exec scripts/project-verify.sh
+  bash scripts/project-verify.sh
 fi
 
 ran=0
