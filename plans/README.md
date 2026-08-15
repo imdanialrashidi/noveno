@@ -9,25 +9,25 @@ to the reviewer — the reviewer maintains this index.
 
 | Plan | Title | Priority | Effort | Depends on | Status |
 |------|-------|----------|--------|------------|--------|
-| 001  | Turnstile siteverify idempotency keyed per token | P1 | S | — | TODO |
-| 002  | Suppress duplicate email + event on replay 200 | P1 | S | 001 | TODO |
-| 003  | Bound client-supplied `first_seen_at` | P2 | S | 002 | TODO |
-| 004  | Never prune founder-named images that look hashed | P1 | S | — | TODO |
-| 005  | HSTS + `.pi/models.env` hygiene + quoted-value scan | P1 | S | — | TODO |
-| 006  | Lockfile against the official npm registry | P2 | S | 017 | TODO |
-| 007  | Jalali-year March boundary + dead exports | P2 | S | — | TODO |
-| 008  | Derive `AUDIT_STATIONS` from `AUDIT_STEPS` | P2 | S | 007 | TODO |
-| 009  | Gate repo-relative `ogImage` overrides | P2 | S | — | TODO |
-| 010  | Harden `/api/events` (enums, paths, Origin guard) | P2 | M | — | TODO |
-| 011  | Client-module + Web3Forms/offline/draft tests | P2 | M | 002 | TODO |
-| 012  | Real-YAML frontmatter parsing in honesty tests | P3 | S-M | 016 | TODO |
-| 013  | Deterministic suite (network gate + injected limiter) | P3 | S | 010 | TODO |
-| 014  | Pin client↔server validation equivalence | P3 | S-M | — | TODO |
-| 015  | Consolidate `isCurrent`, arrow links, `WorkPreview` | P3 | S | — | TODO |
-| 016  | Sitemap generator: real YAML frontmatter | P3 | M | — | TODO |
-| 017  | Dependency hygiene (fontsource, workers-types) | P3 | S | 016 | TODO |
-| 018  | Single-lane verification gate | P2 | M | — (run last) | TODO |
-| 019  | Reconcile stale docs (PLAN/ARCHITECTURE/exec-plan) | P2 | S | — | TODO |
+| 001  | Turnstile siteverify idempotency keyed per token | P1 | S | — | DONE |
+| 002  | Suppress duplicate email + event on replay 200 | P1 | S | 001 | DONE |
+| 003  | Bound client-supplied `first_seen_at` | P2 | S | 002 | DONE |
+| 004  | Never prune founder-named images that look hashed | P1 | S | — | DONE |
+| 005  | HSTS + `.pi/models.env` hygiene + quoted-value scan | P1 | S | — | DONE |
+| 006  | Lockfile against the official npm registry | P2 | S | 017 | DONE |
+| 007  | Jalali-year March boundary + dead exports | P2 | S | — | DONE |
+| 008  | Derive `AUDIT_STATIONS` from `AUDIT_STEPS` | P2 | S | 007 | DONE |
+| 009  | Gate repo-relative `ogImage` overrides | P2 | S | — | DONE |
+| 010  | Harden `/api/events` (enums, paths, Origin guard) | P2 | M | — | DONE |
+| 011  | Client-module + Web3Forms/offline/draft tests | P2 | M | 002 | DONE |
+| 012  | Real-YAML frontmatter parsing in honesty tests | P3 | S-M | 016 | DONE |
+| 013  | Deterministic suite (network gate + injected limiter) | P3 | S | 010 | DONE |
+| 014  | Pin client↔server validation equivalence | P3 | S-M | — | DONE |
+| 015  | Consolidate `isCurrent`, arrow links, `WorkPreview` | P3 | S | — | DONE |
+| 016  | Sitemap generator: real YAML frontmatter | P3 | M | — | DONE |
+| 017  | Dependency hygiene (fontsource, workers-types) | P3 | S | 016 | DONE |
+| 018  | Single-lane verification gate | P2 | M | — (run last) | DONE |
+| 019  | Reconcile stale docs (PLAN/ARCHITECTURE/exec-plan) | P2 | S | — | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale).
 
