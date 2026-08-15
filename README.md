@@ -2,7 +2,7 @@
 
 The production website for **Noveno** — an Iranian service-and-systems business that helps small and medium service businesses turn scattered customer attention into a clearer, trackable path from visit to inquiry, lead capture, follow-up, and improvement. Primary conversion: **qualified audit requests** (درخواست بررسی مسیر جذب).
 
-**Visual direction (2026-08-14 founder redesign):** image-led editorial system — typography + photography + real product screenshots + editorial numbers. The flowchart/route visual grammar was removed from the public design by founder decision (`docs/DESIGN.md` §3).
+**Visual direction (2026-09 product-led pass):** contextual business photography is retired from the public visual language. The site is built from **real product UI** (the audit interface), **editorial typography** and **restrained Noveno brand geometry**; work previews stay proof-led (`docs/DESIGN.md` §3.5). The flowchart/route visual grammar remains removed (2026-08-14 founder decision).
 
 ---
 
@@ -35,7 +35,7 @@ Environment variables are **names only** in `.env.example` — copy it to `.env`
 
 ## Repository state
 
-The repository is the **Noveno production website project**: Slice 1 (flagship site — Astro app, all public routes), **Slice 2 (acquisition flow + production integration — `/audit`, `/audit/thank-you`, the Pages Function trust boundary, Supabase + Turnstile + Web3Forms wiring, analytics, SEO/production artifacts)**, and the **2026-08-14 founder-directed visual redesign** (image-led editorial system, contact-channel icon set) are committed and verified; launch awaits founder provisioning (`docs/ops/setup-checklist.md`) and a preview-deploy smoke.
+The repository is the **Noveno production website project**: Slice 1 (flagship site — Astro app, all public routes), **Slice 2 (acquisition flow + production integration — `/audit`, `/audit/thank-you`, the Pages Function trust boundary, Supabase + Turnstile + Web3Forms wiring, analytics, SEO/production artifacts)**, the **2026-08-14 founder-directed visual redesign** (image-led editorial system, contact-channel icon set), and the **2026-09 product-led pass** (photography retired → product UI/typography/geometry; `/insights` Markdown publishing system with per-page social cards, build-time sitemap, motion system, About philosophy page, audit experience refinement) are committed and verified; launch awaits founder provisioning (`docs/ops/setup-checklist.md`) and a preview-deploy smoke.
 
 ## Source of truth
 
@@ -49,6 +49,7 @@ The repository is the **Noveno production website project**: Slice 1 (flagship s
 | `docs/IMAGERY.md` | Image asset registry (sources, licenses, processing) |
 | `docs/PLAN.md` | Roadmap, stage gates, deferred decisions |
 | `docs/QUALITY.md` | Evaluator-facing quality contract + project invariants |
+| `docs/INSIGHTS.md` | **Founder publishing guide for the Insights section** (Markdown workflow, content policy, automation) |
 | `branding_assests/` | Brand assets — reuse these; do not recreate the logo |
 
 ## Tech stack
@@ -261,8 +262,9 @@ export function previewFor(id: string): WorkPreview {
 ## 5. Performance & image delivery (read before touching images)
 
 - **Every public image is content-addressed.** `npm run build` runs `scripts/build-image-manifest.mjs` (prebuild), which materializes sha256-hashed copies of every file in `public/images/` and writes `src/generated/image-manifest.ts`. All markup references images via `imageUrl("logical/path.ext")` from that module; the structural test **fails the build** if any built page references an unhashed `/images/` path or a missing file. Never hard-code `/images/...` URLs.
-- **Caching:** `public/_headers` serves `/images/*`, `/_astro/*`, and `/fonts/*` with `immutable` (correct only because of the versioning above); HTML, `sitemap.xml`, `robots.txt` revalidate normally; `og.png`/`favicon.svg` get 1-day caching.
-- **Founder photography workflow:** `python3 scripts/optimize-photography.py --hero <src> --problem <src> --cta <src>` regenerates the three homepage roles (3:2 / 16:10 / 16:9) as AVIF+WebP variants with guarded sizes, then `npm run build` re-hashes. Alt/caption/provenance updates documented in `docs/IMAGERY.md`.
+- **Caching:** `public/_headers` serves `/images/*`, `/_astro/*`, and `/fonts/*` with `immutable` (correct only because of the versioning above); HTML, `sitemap.xml`, `robots.txt` revalidate normally; `og.png`/`og/*`/`favicon.svg` get 1-day caching (social cards must not go stale for long).
+- **Product screenshot workflow:** capture at 1440×900 from the production build (light theme), then `python3 scripts/optimize-work-previews.py shot.png <name>` emits the WebP pair; `npm run build` re-hashes. Alt/caption/provenance updates documented in `docs/IMAGERY.md`.
+- **Social cards + sitemap regenerate on every build** (`prebuild`): `scripts/generate-og-images.py` renders the per-page OG cards (homepage, work, work items, insights, articles) and `scripts/generate-sitemap.mjs` writes `public/sitemap.xml` from the published content — drafts are excluded from both.
 - **Lab measurement:** `npm run build && node scripts/lab-server.mjs` serves `dist/` with Brotli/gzip (as Cloudflare does) for Lighthouse/CDP runs; `bash scripts/lab-benchmark.sh <outdir>` runs the 3×median sweep across the five representative routes (mobile + desktop).
 
 ## 6. Verification checklist for a new entry

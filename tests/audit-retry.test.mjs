@@ -159,6 +159,13 @@ function buildAuditDom() {
   rail.append(progress);
   body.append(rail);
 
+  // Compact in-card mobile progress (2026-09 pass — same hooks, -mobile)
+  const mobileProgress = el("div");
+  for (const attr of ["data-stepper-counter-mobile", "data-stepper-current-mobile", "data-stepper-bar-mobile"]) {
+    mobileProgress.append(el("span", { [attr]: "" }));
+  }
+  body.append(mobileProgress);
+
   // Banner with the six block kinds + retry buttons
   const banner = el("div", { id: "audit-banner", role: "alert", hidden: true });
   for (const kind of ["network", "offline", "turnstile", "rate", "validation", "unconfigured"]) {
@@ -175,7 +182,7 @@ function buildAuditDom() {
   form.append(el("input", { "data-honeypot": "", type: "text", name: "company_website" }));
 
   const field = (id, kind, options = []) => {
-    const wrap = el("div");
+    const wrap = el("div", kind === "multiselect" ? { "data-save": id, "data-multiselect": "" } : {});
     if (kind === "multiselect") {
       const group = el("div", { "data-chip-group": "" });
       for (const option of options) {
@@ -225,6 +232,18 @@ function buildAuditDom() {
   });
 
   form.append(el("div", { id: "turnstile-container", class: "mt-6" }));
+
+  // Last-step review summary (2026-09 pass) — rows for the answered fields.
+  const summary = el("div", { id: "audit-summary", hidden: true });
+  for (const row of ["industry", "channels", "problem", "need"]) {
+    summary.append(
+      el("div", { "data-summary-row": row, hidden: true }, [
+        el("span", { ["data-summary-" + row]: "" }),
+      ]),
+    );
+  }
+  form.append(summary);
+
   form.append(el("button", { type: "button", id: "audit-back", hidden: true }));
   form.append(el("button", { type: "button", id: "audit-next", disabled: true }));
   body.append(form);
@@ -552,4 +571,93 @@ test("retry after a Turnstile script-load failure gets a fresh chance (script re
   assert.equal(env.auditCalls.length, 1, "retry must recover with a fresh token and submit");
   assert.equal(env.auditCalls[0].cf_turnstile_token, "token-fresh");
   assert.equal(env.nav[0], "/audit/thank-you");
+});
+
+test("2026-09 pass: in-card mobile progress stays in sync and the last-step review summary fills from the draft", async () => {
+  const turnstile = makeTurnstileMock();
+  const env = installGlobals({ turnstile, fetchImpl: [] });
+  const dom = buildAuditDom();
+  globalThis.document = dom.document;
+  captureScripts();
+
+  initAudit({ turnstileSiteKey: "test-site-key", web3formsKey: "", web3formsUrl: "" });
+
+  const mobileCounter = dom.document.querySelector("[data-stepper-counter-mobile]");
+  const mobileCurrent = dom.document.querySelector("[data-stepper-current-mobile]");
+  const mobileBar = dom.document.querySelector("[data-stepper-bar-mobile]");
+  assert.ok(mobileCounter && mobileCurrent && mobileBar, "mobile progress hooks must exist");
+
+  // Boot: mobile progress mirrors the desktop rail; summary is hidden;
+  // the step heading is NOT focused on a fresh visit (reviewer finding).
+  const heading = dom.getElementById("step-business-title");
+  let headingFocuses = 0;
+  heading.focus = () => { headingFocuses += 1; };
+  const channelsHeading = dom.getElementById("step-channels-title");
+  let channelsFocuses = 0;
+  channelsHeading.focus = () => { channelsFocuses += 1; };
+  assert.equal(mobileCounter.textContent, "مرحله ۱ از ۶", "mobile counter at boot");
+  assert.equal(mobileCurrent.textContent, "کسب‌وکار", "mobile current label at boot");
+  assert.equal(dom.getElementById("audit-summary").hidden, true, "summary hidden before the contact step");
+  assert.equal(headingFocuses, 0, "boot must not focus the step heading");
+
+  // Fill step 1 (industry) and advance — heading focus happens on the
+  // user-driven step change only.
+  dom.getElementById("industry").value = "salon_beauty";
+  dom.getElementById("industry").dispatchEvent("change");
+  dom.getElementById("audit-next").dispatchEvent("click");
+  await tick();
+  assert.equal(mobileCounter.textContent, "مرحله ۲ از ۶", "mobile counter follows the step change");
+  assert.equal(mobileCurrent.textContent, "کانال‌ها", "mobile current label follows the step change");
+  assert.equal(headingFocuses, 0, "boot-time focus must never happen");
+  assert.equal(channelsFocuses, 1, "user-driven step change focuses the new heading once");
+
+  // Walk to the contact step with answers everywhere.
+  selectChip(dom, "instagram");
+  selectChip(dom, "google");
+  dom.getElementById("audit-next").dispatchEvent("click");
+  await tick();
+  setField(dom, "primary_problem", "scattered_lost");
+  dom.getElementById("audit-next").dispatchEvent("click");
+  await tick();
+  // value step is optional — advance without answering
+  dom.getElementById("audit-next").dispatchEvent("click");
+  await tick();
+  setField(dom, "requested_service", "build_system");
+  dom.getElementById("audit-next").dispatchEvent("click");
+  await tick();
+
+  assert.equal(mobileCounter.textContent, "مرحله ۶ از ۶", "mobile counter at the contact step");
+  assert.equal(mobileBar.style.width, "83.33333333333334%", "mobile bar reflects 5/6 completed");
+
+  const summary = dom.getElementById("audit-summary");
+  assert.equal(summary.hidden, false, "review summary appears on the contact step");
+  const row = (name) =>
+    [...summary.children].find((c) => c.getAttribute("data-summary-row") === name);
+  assert.equal(row("industry").hidden, false, "industry row shown");
+  assert.equal(
+    row("industry").querySelector("[data-summary-industry]").textContent,
+    "آرایشگاه و زیبایی",
+    "industry label filled from the client enum",
+  );
+  assert.equal(
+    row("channels").querySelector("[data-summary-channels]").textContent,
+    "اینستاگرام، گوگل",
+    "channels labels joined from the client enum",
+  );
+  assert.equal(
+    row("problem").querySelector("[data-summary-problem]").textContent,
+    "درخواست‌ها پراکنده‌اند یا گم می‌شوند",
+    "problem label filled",
+  );
+  assert.equal(
+    row("need").querySelector("[data-summary-need]").textContent,
+    "ساخت سیستم جذب",
+    "need label filled",
+  );
+
+  // Back: summary hides again, mobile progress follows.
+  dom.getElementById("audit-back").dispatchEvent("click");
+  await tick();
+  assert.equal(summary.hidden, true, "summary hides when leaving the contact step");
+  assert.equal(mobileCounter.textContent, "مرحله ۵ از ۶", "mobile counter follows Back");
 });

@@ -7,12 +7,18 @@ interface Props {
   path: string;
   /** robots meta override (e.g. noindex for post-submission pages). */
   robots?: string;
+  /** Per-page social card (defaults to /og.png — the homepage card). */
+  ogImage?: string;
+  /** og:type override (article pages use "article"). */
+  ogType?: "website" | "article";
+  /** og:image alt — describe the card's subject truthfully. */
+  ogImageAlt?: string;
 }
 
-const { title, description, path, robots } = Astro.props;
+const { title, description, path, robots, ogImage = "/og.png", ogType = "website", ogImageAlt } = Astro.props;
 const site = Astro.site ?? new URL("https://noveno.ir/");
 const canonical = new URL(path.replace(/\/index\.html$/, "/"), site).toString();
-const ogImage = new URL("/og.png", site).toString();
+const socialImage = new URL(ogImage, site).toString();
 // Brand once: a title that already contains «نوونو» is used as-is;
 // otherwise the brand is appended once at the end (never duplicated).
 const htmlTitle = title.includes("نوونو") ? title : `${title} — نوونو`;
@@ -62,20 +68,20 @@ const websiteJsonLd = JSON.stringify({
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <!-- Open Graph + Twitter metadata -->
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content="نوونو" />
     <meta property="og:locale" content="fa_IR" />
     <meta property="og:title" content={htmlTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:image" content={ogImage} />
+    <meta property="og:image" content={socialImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="نوونو — سیستم جذب مشتری برای کسب‌وکارهای خدماتی" />
+    <meta property="og:image:alt" content={ogImageAlt ?? "نوونو — سیستم جذب مشتری برای کسب‌وکارهای خدماتی"} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={htmlTitle} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image" content={socialImage} />
 
     <!-- Structured data: Organization + WebSite identity (Spec §43) -->
     <script type="application/ld+json" set:html={organizationJsonLd}></script>
@@ -122,8 +128,9 @@ const websiteJsonLd = JSON.stringify({
   import { initAnalytics } from "../scripts/analytics";
   // Motion layer: one shared observer drives all entrance reveals;
   // below-the-fold content only, reduced-motion aware (motion.ts).
-  import { initReveal, initStagger } from "../scripts/motion";
+  import { initReveal, initStagger, initHeroStages } from "../scripts/motion";
   initAnalytics();
   initReveal();
   initStagger();
+  initHeroStages();
 </script>

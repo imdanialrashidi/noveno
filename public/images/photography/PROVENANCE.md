@@ -1,13 +1,18 @@
-# Photography provenance
+# Photography provenance — RETIRED (2026-09)
 
-All files in this directory: **Wikimedia Commons**, photographer **Mostafa Meraji**, license **CC0 1.0** (public-domain dedication).
+This directory's photographs were retired from the public Noveno visual
+language on 2026-09 (docs/DESIGN.md §3.5, §16; docs/IMAGERY.md).
 
-| File | Source page | Original |
+All three subjects were Wikimedia Commons CC0 photographs by
+**Mostafa Meraji**:
+
+| Logical file | Source file | License |
 |---|---|---|
-| `barbershop-workday-*` | https://commons.wikimedia.org/wiki/File:Barbershop_In_Iran_02.jpg | 2000×1500 |
-| `salon-workday-*` | https://commons.wikimedia.org/wiki/File:A_beauty_salon_in_Iran,_Mashhad,_Free_Photo_Wikipedia,_Mostafa_Meraji_03.jpg | 4000×2666 |
-| `workday-close-*` | https://commons.wikimedia.org/wiki/File:Barbershop_In_Iran_04.jpg | 2000×1500 |
+| `barbershop-workday-{1600,800}.{avif,webp}` | https://commons.wikimedia.org/wiki/File:Barbershop_In_Iran_02.jpg | CC0 1.0 |
+| `salon-workday-{1600,800}.{avif,webp}` | https://commons.wikimedia.org/wiki/File:A_beauty_salon_in_Iran,_Mashhad,_Free_Photo_Wikipedia,_Mostafa_Meraji_03.jpg | CC0 1.0 |
+| `workday-close-{1600,800}.{avif,webp}` | https://commons.wikimedia.org/wiki/File:Barbershop_In_Iran_04.jpg | CC0 1.0 |
 
-Processing (regenerated 2026-08-14 performance pass): center crops — hero 3:2, problem 16:10, CTA 16:9 — via `scripts/optimize-photography.py` (Pillow), AVIF q44 / WebP q78, method 6, at 1600w + 800w. Hashed delivery copies are build artifacts (see `docs/IMAGERY.md`).
-
-Replacing a photo: run `scripts/optimize-photography.py --<role> <source>` (see `docs/IMAGERY.md` §replacement), then update this table and the alt/caption text in `src/pages/index.astro`.
+These binaries were deleted from the repository; the source URLs remain
+the retrieval path if photography ever returns through a deliberate,
+documented design decision. `scripts/optimize-photography.py` was
+removed with them. This file is kept as the permanent retention record.

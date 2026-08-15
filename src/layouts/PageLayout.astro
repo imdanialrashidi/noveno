@@ -14,12 +14,26 @@ interface Props {
   path: string;
   /** Forwarded to BaseLayout (e.g. noindex for post-submission pages). */
   robots?: string;
+  /** Forwarded to BaseLayout — per-page social card. */
+  ogImage?: string;
+  /** Forwarded to BaseLayout — og:type override. */
+  ogType?: "website" | "article";
+  /** Forwarded to BaseLayout — og:image alt. */
+  ogImageAlt?: string;
 }
 
-const { title, description, path, robots } = Astro.props;
+const { title, description, path, robots, ogImage, ogType, ogImageAlt } = Astro.props;
 ---
 
-<BaseLayout title={title} description={description} path={path} robots={robots}>
+<BaseLayout
+  title={title}
+  description={description}
+  path={path}
+  robots={robots}
+  ogImage={ogImage}
+  ogType={ogType}
+  ogImageAlt={ogImageAlt}
+>
   <slot name="head" slot="head" />
   <a
     href="#main"

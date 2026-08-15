@@ -1,0 +1,347 @@
+#!/usr/bin/env python3
+"""
+Generate the Noveno social-card set (1200×630 PNGs) at build time.
+
+Cards (docs/IMAGERY.md §Social cards):
+  public/og.png                        homepage / default card
+  public/og/about.png                  about card
+  public/og/work.png                   work index
+  public/og/work/{slug}.png            per work item (real preview when
+                                       available; typographic concept card
+                                       otherwise, always proof-labeled)
+  public/og/insights.png               insights index
+  public/og/insights/{slug}.png        per published article (title +
+                                       category; drafts are never rendered)
+
+Brand tokens come from docs/DESIGN.md §6; typography is Noto Sans Arabic
+(system font; Estedad/Vazirmatn ship as woff2 which Pillow cannot read).
+The NOVENO wordmark is drawn from the brand path geometry (same path as
+src/components/brand/Logo.astro). No runtime OG service — cards are
+static assets referenced by og:image/twitter:image in page metadata.
+
+Requires: python3 + Pillow with raqm (Arabic shaping).
+Run:  python3 scripts/generate-og-images.py
+"""
+
+import os
+import re
+import sys
+from PIL import Image, ImageDraw, ImageFont
+
+W, H = 1200, 630
+CANVAS = "#f9fafa"
+SURFACE = "#ffffff"
+SOFT = "#f1f4f2"
+INK = "#070808"
+MUTED = "#4c5751"
+FAINT = "#66716b"
+PRIMARY = "#679e86"
+ON_PRIMARY = "#06130d"
+LINE = "#dfe3e1"
+GREEN = "#2f7a5e"  # text-action
+
+FONT_DIR = "/usr/share/fonts/noto"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT_DIR = os.path.join(ROOT, "public", "og")
+
+WORDMARK_PATH = (
+    "M266.458,392.827L124.074,174.407L63.904,318.218L0.5,317.995L114.581,51.524"
+    "L265.649,288.586C265.649,288.586 347.798,174.154 371.997,84.837L317.715,62.386"
+    "L263.782,84.45C263.782,84.45 269.742,147.856 313.528,163.292L284.862,214.638"
+    "C284.862,214.638 208.851,188.767 199.035,49.522L317.889,0.5L436.986,49.522"
+    "C436.986,49.522 436.866,152.092 266.458,392.827Z"
+)
+
+
+def font(name, size):
+    return ImageFont.truetype(f"{FONT_DIR}/{name}", size)
+
+
+F_WORD = font("NotoSansArabic-SemiCondensedExtraBold.ttf", 64)
+F_KICKER = font("NotoSansArabic-SemiCondensedBold.ttf", 26)
+F_TITLE = font("NotoSansArabic-SemiCondensedExtraBold.ttf", 44)
+F_TITLE_SMALL = font("NotoSansArabic-SemiCondensedExtraBold.ttf", 36)
+F_BODY = font("NotoSansArabic-SemiCondensedMedium.ttf", 24)
+F_CHIP = font("NotoSansArabic-SemiCondensedBold.ttf", 24)
+F_FOOT = font("NotoSansArabic-SemiCondensedMedium.ttf", 20)
+
+
+def rtl_text(draw, xy, text, fnt, fill, anchor="ra"):
+    draw.text(xy, text, font=fnt, fill=fill, anchor=anchor,
+              features=["rtla"], direction="rtl")
+
+
+def wrap_text(draw, text, fnt, max_width):
+    """Greedy RTL-safe wrapping on word boundaries using measured widths."""
+    words = text.split()
+    if not words:
+        return []
+    lines = []
+    current = ""
+    for word in words:
+        probe = f"{word} {current}".strip() if current else word
+        if draw.textlength(probe, font=fnt) <= max_width or not current:
+            current = probe
+        else:
+            lines.append(current)
+            current = word
+    if current:
+        lines.append(current)
+    return lines
+
+
+def truncate_to_lines(draw, text, fnt, max_width, max_lines):
+    lines = wrap_text(draw, text, fnt, max_width)
+    if len(lines) <= max_lines:
+        return lines
+    out = lines[: max_lines - 1]
+    last = lines[max_lines - 1]
+    while last and draw.textlength(last + "…", font=fnt) > max_width:
+        last = last[:-1]
+    out.append(last.rstrip() + "…")
+    return out
+
+
+def cover_panel(shot_path, panel_w, panel_h, img, draw, x, y):
+    """Cover-crop a screenshot into the left panel + hairline divider."""
+    out = img
+    im = Image.open(shot_path).convert("RGB")
+    ratio = panel_w / panel_h
+    pw, ph = im.size
+    if pw / ph > ratio:
+        nw = int(ph * ratio)
+        left = (pw - nw) // 2
+        im = im.crop((left, 0, left + nw, ph))
+    else:
+        nh = int(pw / ratio)
+        top = (ph - nh) // 2
+        im = im.crop((0, top, pw, top + nh))
+    im = im.resize((panel_w, panel_h), Image.LANCZOS)
+    out.paste(im, (x, y))
+    draw.rectangle([x + panel_w, y, x + panel_w + 2, y + panel_h], fill=LINE)
+
+
+def geometry_panel(draw, x, y, w, h, seed):
+    """Quiet brand geometry panel: hairline grid + squares (insights cards)."""
+    draw.rectangle([x, y, x + w, y + h], fill=SOFT)
+    # hairline grid, 48px pitch — subtle, 1px, low contrast
+    for gx in range(x + 48, x + w, 48):
+        draw.line([gx, y, gx, y + h], fill=LINE, width=1)
+    for gy in range(y + 48, y + h, 48):
+        draw.line([x, gy, x + w, gy], fill=LINE, width=1)
+    # a small filled square accent derived from the seed
+    draw.rectangle([x + 48, y + 48, x + 48 + 14, y + 48 + 14], fill=PRIMARY)
+    draw.rectangle([x + w - 62, y + h - 62, x + w - 48, y + h - 48], fill=PRIMARY)
+
+
+def base_card(kicker):
+    img = Image.new("RGB", (W, H), CANVAS)
+    draw = ImageDraw.Draw(img)
+    # NOVENO wordmark — brand geometry top-right (RTL lead), + green square
+    rtl_text(draw, (W - 56, 44), "NOVENO", F_WORD, INK, anchor="ra")
+    draw.rectangle([W - 56, 44 + 12, W - 56 + 10, 44 + 12 + 10], fill=PRIMARY)
+    if kicker:
+        rtl_text(draw, (W - 56, 128), kicker, F_KICKER, FAINT, anchor="ra")
+    return img, draw
+
+
+def footer(draw, note):
+    rtl_text(draw, (W - 56, H - 44), f"noveno.ir  ·  {note}", F_FOOT, FAINT, anchor="ra")
+
+
+def text_column(draw, title, body, title_font=None, chip=None, chip_fill=None,
+                start_y=168):
+    x = W - 56
+    max_w = 560
+    tf = title_font or F_TITLE
+    lines = truncate_to_lines(draw, title, tf, max_w, 3)
+    y = start_y
+    for line in lines:
+        rtl_text(draw, (x, y), line, tf, INK, anchor="ra")
+        y += int(tf.size * 1.28)
+    y += 6
+    if body:
+        for bline in wrap_text(draw, body, F_BODY, max_w)[:2]:
+            rtl_text(draw, (x, y), bline, F_BODY, MUTED, anchor="ra")
+            y += int(F_BODY.size * 1.5)
+        y += 12
+    if chip:
+        cw = draw.textlength(chip, font=F_CHIP) + 48
+        ch = 56
+        draw.rounded_rectangle([x - cw, y, x, y + ch], radius=6, fill=chip_fill or PRIMARY)
+        rtl_text(draw, (x - cw // 2, y + ch // 2), chip, F_CHIP,
+                 ON_PRIMARY if chip_fill in (None, PRIMARY) else INK, anchor="mm")
+
+
+# --------------------------------------------------------------------------
+# Content inputs (frontmatter parsing — same files the build validates)
+# --------------------------------------------------------------------------
+
+def parse_fm(file):
+    raw = open(file, encoding="utf-8").read()
+    m = re.match(r"^---\r?\n([\s\S]*?)\r?\n---", raw)
+    if not m:
+        return {}
+    data = {}
+    for line in m.group(1).splitlines():
+        kv = re.match(r"^([a-z_]+):\s*(.*)$", line.strip())
+        if kv:
+            key, val = kv.groups()
+            val = val.strip().strip('"')
+            if val == "true":
+                val = True
+            elif val == "false":
+                val = False
+            data[key] = val
+    return data
+
+
+def work_entries():
+    out = []
+    for name in sorted(os.listdir(os.path.join(ROOT, "src", "content", "work"))):
+        if not name.endswith(".md"):
+            continue
+        data = parse_fm(os.path.join(ROOT, "src", "content", "work", name))
+        slug = name[:-3]
+        shot = os.path.join(ROOT, "public", "images", "work", f"{slug}-hero.webp")
+        out.append({
+            "slug": slug,
+            "title": data.get("title", slug),
+            "type": data.get("type", "project"),
+            "shot": shot if os.path.exists(shot) else None,
+        })
+    return out
+
+
+def insight_entries():
+    out = []
+    for name in sorted(os.listdir(os.path.join(ROOT, "src", "content", "insights"))):
+        if not name.endswith(".md"):
+            continue
+        data = parse_fm(os.path.join(ROOT, "src", "content", "insights", name))
+        if data.get("draft"):
+            continue  # drafts never get cards
+        out.append({
+            "slug": name[:-3],
+            "title": data.get("title", name[:-3]),
+            "category": data.get("category", "دیدگاه"),
+        })
+    return out
+
+
+def prune_stale_cards(entries, kind):
+    """Remove cards whose content no longer exists or is no longer published
+    (e.g. an article flipped to draft) so the og/ tree never accumulates
+    dead weight."""
+    dir_path = os.path.join(OUT_DIR, kind)
+    if not os.path.isdir(dir_path):
+        return
+    live = {e["slug"] for e in entries}
+    for name in os.listdir(dir_path):
+        if name.endswith(".png") and name[:-4] not in live:
+            os.remove(os.path.join(dir_path, name))
+            print(f"  pruned stale card: og/{kind}/{name}")
+
+
+PROOF_LABEL = {"case-study": "مطالعه موردی", "project": "پروژه", "concept": "نمونه نمایشی — سناریوی مفهومی"}
+
+
+def hero_headline():
+    src = open(os.path.join(ROOT, "src", "data", "site.ts"), encoding="utf-8").read()
+    m = re.search(r'HERO_HEADLINE\s*=\s*"([^"]+)"', src)
+    return m.group(1) if m else "بازدید را به یک مسیر قابل‌پیگیری برای جذب مشتری تبدیل کنید."
+
+
+def main():
+    os.makedirs(OUT_DIR, exist_ok=True)
+    os.makedirs(os.path.join(OUT_DIR, "work"), exist_ok=True)
+    os.makedirs(os.path.join(OUT_DIR, "insights"), exist_ok=True)
+    made = []
+
+    # --- homepage / default card: real audit-UI screenshot panel ---------
+    img, draw = base_card("سیستم جذب مشتری برای کسب‌وکارهای خدماتی")
+    cover_panel(os.path.join(ROOT, "public", "images", "work", "noveno-website-audit.webp"),
+                528, H, img, draw, 0, 0)
+    text_column(draw, hero_headline(), None,
+                chip="درخواست بررسی مسیر جذب", start_y=200)
+    footer(draw, "رابط واقعی نوونو — فرم بررسی مسیر جذب")
+    img.save(os.path.join(ROOT, "public", "og.png"), "PNG")
+    made.append("og.png")
+
+    # --- about -------------------------------------------------------------
+    img, draw = base_card("درباره نوونو")
+    geometry_panel(draw, 0, 0, 400, H, 1)
+    text_column(draw, "چرا نوونو وجود دارد، چه باوری دارد و چه کاری نمی‌کند",
+                "مسئلهٔ کسب‌وکار قبل از فناوری؛ کوچک‌ترین سیستم قابل اعتماد؛ شواهد واقعی بر ادعا.",
+                chip="خواندن دربارهٔ نوونو", start_y=200)
+    footer(draw, "نوونو — سیستم جذب مشتری")
+    img.save(os.path.join(OUT_DIR, "about.png"), "PNG")
+    made.append("og/about.png")
+
+    # --- work index --------------------------------------------------------
+    entries = work_entries()
+    featured = next((e for e in entries if e["slug"] == "noveno-website"), entries[0] if entries else None)
+    img, draw = base_card("پروژه‌ها و نمونه‌کارها")
+    if featured and featured["shot"]:
+        cover_panel(featured["shot"], 528, H, img, draw, 0, 0)
+    else:
+        geometry_panel(draw, 0, 0, 528, H, 2)
+    text_column(draw, "کارهایی که می‌سازیم — با برچسب صادقانه",
+                "هر کاری یا واقعاً ساخته شده یا صریحاً «نمونه نمایشی» نام دارد.",
+                chip="دیدن پروژه‌ها", start_y=200)
+    footer(draw, "کارهای نوونو")
+    img.save(os.path.join(OUT_DIR, "work.png"), "PNG")
+    made.append("og/work.png")
+
+    # --- per-work cards ------------------------------------------------------
+    prune_stale_cards(entries, "work")
+    for e in entries:
+        img, draw = base_card(PROOF_LABEL.get(e["type"], "پروژه"))
+        if e["shot"]:
+            cover_panel(e["shot"], 528, H, img, draw, 0, 0)
+        else:
+            geometry_panel(draw, 0, 0, 528, H, 3)
+        label = PROOF_LABEL.get(e["type"], "پروژه")
+        text_column(draw, e["title"], None, title_font=F_TITLE_SMALL,
+                    chip=label, chip_fill=PRIMARY, start_y=200)
+        footer(draw, "کارهای نوونو")
+        img.save(os.path.join(OUT_DIR, "work", f"{e['slug']}.png"), "PNG")
+        made.append(f"og/work/{e['slug']}.png")
+
+    # --- insights index -------------------------------------------------------
+    img, draw = base_card("نوونو · دیدگاه‌ها")
+    geometry_panel(draw, 0, 0, 528, H, 4)
+    text_column(draw, "نوشته‌هایی درباره مسیر جذب مشتری",
+                "جذب، پیگیری لید و ثبت درخواست برای کسب‌وکارهای خدماتی — بدون وعده و با روش.",
+                chip="خواندن نوشته‌ها", start_y=200)
+    footer(draw, "دیدگاه‌های نوونو")
+    img.save(os.path.join(OUT_DIR, "insights.png"), "PNG")
+    made.append("og/insights.png")
+
+    # --- per-article cards (published only) ------------------------------------
+    insights = insight_entries()
+    prune_stale_cards(insights, "insights")
+    for a in insights:
+        img, draw = base_card(a["category"])
+        geometry_panel(draw, 0, 0, 528, H, 5)
+        text_column(draw, a["title"], None, title_font=F_TITLE_SMALL,
+                    chip="خواندن نوشته", start_y=200)
+        footer(draw, "دیدگاه‌های نوونو")
+        img.save(os.path.join(OUT_DIR, "insights", f"{a['slug']}.png"), "PNG")
+        made.append(f"og/insights/{a['slug']}.png")
+
+    total = sum(
+        os.path.getsize(os.path.join(ROOT, "public", m if m == "og.png" else os.path.join("og", m.split("/", 1)[1])))
+        for m in made
+    )
+    print(f"og cards: {len(made)} generated, {total // 1024} KB total")
+    for m in made:
+        print(f"  {m}")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as exc:  # pragma: no cover
+        print(f"og generation failed: {exc}", file=sys.stderr)
+        raise SystemExit(1)

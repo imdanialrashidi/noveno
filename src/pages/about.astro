@@ -1,8 +1,9 @@
 ---
 /**
- * About page (Spec §40; 2026-08-14 founder redesign): Why Noveno Exists
- * → What Noveno Believes → How Noveno Works (editorial sequence) →
- * Founder → CTA. No invented team, no fabricated biography.
+ * About page (2026-09 philosophy pass) — Why Noveno exists →
+ * What Noveno believes → How Noveno works → What Noveno does not do
+ * → Founder → CTA. Editorial typography + restrained brand geometry;
+ * no photography, no invented team, no fabricated biography.
  */
 
 import PageLayout from "../layouts/PageLayout.astro";
@@ -11,15 +12,17 @@ import ChannelLink from "../components/ui/ChannelLink.astro";
 import SectionHeader from "../components/layout/SectionHeader.astro";
 import CTASection from "../components/layout/CTASection.astro";
 import Button from "../components/ui/Button.astro";
-import { PROCESS_STAGES, CONTACT, toFaDigits } from "../data/site";
+import { CONTACT, toFaDigits } from "../data/site";
 
 const faIndex = (i: number) => toFaDigits(String(i + 1).padStart(2, "0"));
 ---
 
 <PageLayout
-  title="درباره نوونو"
-  description="چرا نوونو وجود دارد، چه باوری دارد و چگونه کار می‌کند: سیستمی برای جذب مشتری که خودش هم با همین اصول ساخته شده است."
+  title="درباره نوونو — چرا وجود دارد و چه باوری دارد"
+  description="چرا نوونو وجود دارد، چه باوری دارد، چگونه کار می‌کند و چه کاری نمی‌کند: سیستمی برای جذب مشتری که خودش هم با همین اصول ساخته شده است."
   path="/about"
+  ogImage="/og/about.png"
+  ogImageAlt="درباره نوونو — چرا وجود دارد و چه باوری دارد"
 >
   <PageHero
     id="about-hero-title"
@@ -36,27 +39,74 @@ const faIndex = (i: number) => toFaDigits(String(i + 1).padStart(2, "0"));
     </div>
   </PageHero>
 
-  <!-- What Noveno believes -->
-  <section class="border-t border-line" aria-labelledby="beliefs-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
-      <SectionHeader id="beliefs-title" kicker="باورها" title="چه چیزی را باور داریم" />
-      <div class="grid gap-x-10 gap-y-8 sm:grid-cols-2">
-        {[
-          { title: "وضوح بر جلوه", text: "کسب‌وکار به سیستمی که می‌فهمد اعتماد می‌کند، نه به جلوه‌ای که نمی‌فهمد." },
-          { title: "شواهد بر نظر", text: "هر تغییری باید در داده دیده شود؛ نظر مهم است اما جای داده را نمی‌گیرد." },
-          { title: "سادگی بر پیچیدگی", text: "سیستمی که فقط یک نفر بلد است کار کند، برای کسب‌وکار کوچک بدهی است." },
-          { title: "صداقت بر خوش‌قولی", text: "نتیجه‌ای که اندازه‌گیری نشده، گزارش نمی‌شود — حتی اگر گزارشش خوشایندتر باشد." },
-        ].map((item) => (
-          <div class="border-t border-line pt-4">
-            <h3 class="text-ui font-semibold text-text">{item.title}</h3>
-            <p class="mt-2 text-body text-text-muted">{item.text}</p>
-          </div>
-        ))}
+  <!-- The problem — why Noveno exists -->
+  <section class="border-t border-line" aria-labelledby="problem-title">
+    <div class="mx-auto grid max-w-[1200px] gap-12 px-5 py-16 sm:px-8 lg:grid-cols-12 lg:gap-16 lg:py-28">
+      <div class="lg:col-span-5">
+        <SectionHeader
+          id="problem-title"
+          kicker="مشکل"
+          title="وب‌سایت، تبلیغ، پیام، تماس — بدون یک مسیر واحد"
+          lead="کسب‌وکارها معمولاً کمبودِ ابزار ندارند؛ ابزارها را جمع کرده‌اند، اما هیچ‌کدام به هم وصل نیستند."
+        />
+      </div>
+      <div class="flex flex-col gap-4 lg:col-span-7" data-reveal>
+        <p class="text-body text-text-muted measure-prose">
+          یک آرایشگاه یا آموزشگاه معمولی در طول یک هفته از چند جا درخواست می‌گیرد: دایرکت، تماس، پیام‌رسان، معرفی مشتری قبلی، شاید یک فرم روی سایت. هر درخواست در همان کانال خودش می‌ماند، پیگیری‌اش به حافظه وابسته است و هیچ‌کس نمی‌تواند بگوید کدام کانال واقعاً مشتری آورده.
+        </p>
+        <p class="text-body text-text-muted measure-prose">
+          این «پراکندگی» است — و پراکندگی با یک ابزار بیشتر حل نمی‌شود؛ با یک <strong class="text-text">نقطه ثبت واحد</strong> حل می‌شود که همه کانال‌ها به آن می‌رسند.
+        </p>
+        <ul class="mt-4 flex flex-col">
+          {[
+            "درخواست‌ها پراکنده‌اند و جای مشخصی برای ثبت ندارند",
+            "منبع ورودی معلوم نیست؛ بودجهٔ تبلیغ کور خرج می‌شود",
+            "پیگیری به حافظه وابسته است؛ درخواست‌ها بی‌صدا از دست می‌روند",
+            "نتیجهٔ نهایی برای هیچ‌کس قابل اندازه‌گیری نیست",
+          ].map((item, i) => (
+            <li class="grid grid-cols-[auto_1fr] items-baseline gap-4 border-t border-line py-4">
+              <span class="text-xl font-extrabold text-text-action tnum">{faIndex(i)}</span>
+              <span class="text-body font-medium text-text">{item}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   </section>
 
-  <!-- How Noveno works — editorial sequence -->
+  <!-- What Noveno believes -->
+  <section class="border-t border-line" aria-labelledby="beliefs-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+      <SectionHeader
+        id="beliefs-title"
+        kicker="باورها"
+        title="چه چیزی را باور داریم"
+        lead="این‌ها شعار نیستند؛ معیار تصمیم‌گیری‌اند — هم در همکاری با مشتری، هم در ساختن همین وب‌سایت."
+      />
+      <ol class="flex flex-col">
+        {[
+          { title: "مسئلهٔ کسب‌وکار، قبل از فناوری", text: "فناوری در خدمت مسئله است، نه برعکس. «چطور درخواست‌ها را گم می‌کنید؟» قبل از «چه ابزاری استفاده می‌کنیم؟» جواب داده می‌شود." },
+          { title: "کوچک‌ترین سیستم قابل اعتماد", text: "سیستمی که فقط یک نفر بلد است کار کند، برای کسب‌وکار کوچک بدهی است. هر چیزی که لازم نیست، ساخته نمی‌شود." },
+          { title: "قابل اندازه‌گیری، بر جلوه", text: "کسب‌وکار به سیستمی که می‌فهمد اعتماد می‌کند، نه به جلوه‌ای که نمی‌فهمد. هر تغییری باید در داده دیده شود." },
+          { title: "سادگی، بر پیچیدگی", text: "پیچیدگی غیرضروری هزینه دارد: نگهداری، آموزش، خطا و وابستگی. ساده‌ترین چیزی که مسئله را حل می‌کند، انتخاب می‌شود." },
+          { title: "شواهد واقعی، بر ادعا", text: "هر عددی که منتشر می‌شود داده واقعی پشت آن است؛ هر کاری یا واقعی است یا صریحاً «نمونه نمایشی» نام دارد." },
+          { title: "AI شتاب‌دهندهٔ داخلی است، نه وعده", text: "از AI برای تحلیل و سرعت استفاده می‌کنیم؛ اما محصولِ فروخته‌شده «هوش مصنوعی» نیست، سیستم جذب است. خروجی‌های مهم قبل از استفاده بررسی می‌شوند." },
+          { title: "صداقت دربارهٔ محدودیت‌ها", text: "نتیجه‌ای که اندازه‌گیری نشده، گزارش نمی‌شود — حتی اگر گزارشش خوشایندتر باشد. محدودیت‌های هر عدد کنار خودش نوشته می‌شود." },
+          { title: "ساخته‌شده برای شرایط واقعی ایران", text: "موبایل، اینترنت ناپایدار، ابزارهای در دسترس و قابلیت جایگزینی. سیستمی که روی کاغذ عالی است اما در عمل کار نمی‌کند، ساخته نمی‌شود." },
+        ].map((item, i) => (
+          <li class="grid grid-cols-[auto_1fr] items-baseline gap-x-6 gap-y-2 border-t border-line py-6 sm:gap-x-10">
+            <span class="editorial-num">{faIndex(i)}</span>
+            <div class="flex flex-col gap-1.5">
+              <h3 class="text-h3 text-text">{item.title}</h3>
+              <p class="text-body text-text-muted measure-prose">{item.text}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- How Noveno works — the four moves, connected to the offer -->
   <section class="border-t border-line" aria-labelledby="how-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
       <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
@@ -65,22 +115,62 @@ const faIndex = (i: number) => toFaDigits(String(i + 1).padStart(2, "0"));
             id="how-title"
             kicker="روش کار"
             title="چگونه کار می‌کنیم"
-            lead="یک چرخه مشخص، نه وعده‌های پراکنده. هر همکاری با بررسی مسیر فعلی شروع می‌شود."
+            lead="هر همکاری با بررسی مسیر فعلی شروع می‌شود؛ هیچ چیزی بدون دیدن وضعیت واقعی ساخته یا پیشنهاد نمی‌شود."
           />
           <Button href="/process" variant="secondary">دیدن فرآیند کامل</Button>
         </div>
         <ol class="flex flex-col lg:col-span-7">
-          {PROCESS_STAGES.map((stage, i) => (
+          {[
+            { title: "بررسی", text: "مسیر فعلی جذب شما کجاست و کجا درخواست گم می‌شود — با چند سؤال کوتاه و یک گفت‌وگو." },
+            { title: "طراحی و اجرا", text: "کوچک‌ترین سیستمی که مسئله را حل می‌کند: صفحه، فرم، مسیر پیام، ثبت لید — فقط آنچه لازم است." },
+            { title: "اندازه‌گیری", text: "اقدام‌های مهم ثبت و قابل مقایسه می‌شوند: درخواست از کدام کانال، با چه وضعیتی، به چه نتیجه‌ای رسید." },
+            { title: "بهبود", text: "تغییرها بر اساس شواهد اولویت‌بندی می‌شوند — نه سلیقه و نه «همه چیز را عوض کنیم»." },
+          ].map((stage, i) => (
             <li class="grid grid-cols-[auto_1fr] items-baseline gap-x-6 gap-y-2 border-t border-line py-6 sm:gap-x-10">
               <span class="editorial-num">{faIndex(i)}</span>
               <div class="flex flex-col gap-1.5">
-                <h3 class="text-ui font-semibold text-text">{stage.label}</h3>
-                <p class="text-body text-text-muted">{stage.description}</p>
+                <h3 class="text-h3 text-text">{stage.title}</h3>
+                <p class="text-body text-text-muted measure-prose">{stage.text}</p>
               </div>
             </li>
           ))}
         </ol>
       </div>
+    </div>
+  </section>
+
+  <!-- What Noveno does not do -->
+  <section class="border-t border-line" aria-labelledby="not-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+      <SectionHeader
+        id="not-title"
+        kicker="صراحت"
+        title="چه کاری نمی‌کنیم"
+        lead="مشخص کردن مرزها، هم برای شما و هم برای ما وقت ذخیره می‌کند."
+      />
+      <ul class="grid gap-x-14 gap-y-8 sm:grid-cols-2">
+        {[
+          { title: "کارخانهٔ طراحی وب عمومی", text: "سایت‌سازی انبوه بدون نگاه به مسیر جذب، مشکل شما را حل نمی‌کند." },
+          { title: "فروشندهٔ فالوور", text: "تعداد دنبال‌کننده یا بازدید نمایشی، معیار موفقیت ما نیست." },
+          { title: "خدمت تضمین فروش", text: "هیچ‌کس نمی‌تواند فروش را تضمین کند؛ ما چنین وعده‌ای نمی‌دهیم." },
+          { title: "آژانس عمومی هوش مصنوعی", text: "AI ابزار داخلی است، نه محصولی که می‌فروشیم." },
+          { title: "نرم‌افزار سازمانی پیچیده", text: "برای کسب‌وکار خدماتی کوچک، پیچیدگی هزینه است، نه ارزش." },
+        ].map((item) => (
+          <li class="flex items-start gap-3 border-t border-line py-5">
+            <svg viewBox="0 0 24 24" class="mt-1.5 h-4 w-4 flex-none text-text-faint" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+            <span class="flex flex-col gap-1">
+              <span class="text-ui font-semibold text-text">{item.title}</span>
+              <span class="text-body text-text-muted">{item.text}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p class="mt-10 border-t border-line pt-6 text-body text-text-muted">
+        نوشته‌های نوونو دربارهٔ جذب و پیگیری مشتری را در <a href="/insights" class="text-link">دیدگاه‌ها</a> بخوانید؛
+        یا ببینید <a href="/work" class="text-link">چه کارهایی ساخته شده</a> — با برچسب صادقانهٔ هر کدام.
+      </p>
     </div>
   </section>
 

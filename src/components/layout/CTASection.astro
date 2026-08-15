@@ -1,29 +1,18 @@
 ---
 /**
- * CTASection — recurring final CTA (Spec §29; 2026-08-14 founder
- * redesign). Closing band: strong heading + support + dual CTA +
- * microcopy. Default: the next-steps rail on a raised panel. Homepage
- * variant: a strong cropped photograph gives the page a memorable
- * finish (media prop) — photography is contextual/editorial, clearly
- * captioned, never fabricated proof.
+ * CTASection — recurring final CTA (Spec §29; 2026-09 product-led
+ * pass). Closing band: strong heading + support + dual CTA +
+ * microcopy. Right side, two treatments:
+ *  - default: the next-steps rail on a raised panel;
+ *  - brand:   a quiet brand finish — typography + logo geometry
+ *             (the large NOVENO mark, faint), used as the homepage
+ *             ending. No photography anywhere (DESIGN §3.5).
  */
 
 import Button from "../ui/Button.astro";
 import Icon from "../ui/Icon.astro";
 import NextStepsRail from "../business/NextStepsRail.astro";
-import { CTA_URL, PRIMARY_CTA_LABEL, CONTACT } from "../../data/site";
-
-interface Media {
-  src: string;
-  srcset?: string;
-  /** Optional AVIF srcset — rendered as the first <picture> source. */
-  avifSrcset?: string;
-  alt: string;
-  caption: string;
-  /** Intrinsic dimensions of the source image (w/h). */
-  width: number;
-  height: number;
-}
+import { CTA_URL, PRIMARY_CTA_LABEL, CONTACT, toFaDigits } from "../../data/site";
 
 interface Props {
   title?: string;
@@ -33,8 +22,8 @@ interface Props {
   primaryLabel?: string;
   /** Hide the next-steps rail (used where the rail already appears). */
   hideRail?: boolean;
-  /** Homepage finish: a strong cropped photograph beside the CTA. */
-  media?: Media;
+  /** Brand finish: logo geometry + stage words instead of the rail. */
+  brand?: boolean;
 }
 
 const {
@@ -43,13 +32,15 @@ const {
   primaryHref = CTA_URL,
   primaryLabel = PRIMARY_CTA_LABEL,
   hideRail = false,
-  media,
+  brand = false,
 } = Astro.props;
+
+const stages = ["توجه", "درخواست", "ثبت", "پیگیری"];
 ---
 
 <section class="border-t border-line bg-surface-soft" aria-labelledby="cta-title">
   <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24" data-reveal>
-    <div class:list={["grid gap-12", media ? "lg:grid-cols-2 lg:items-center lg:gap-20" : hideRail ? "" : "lg:grid-cols-2 lg:gap-20"]}>
+    <div class="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
       <div class="flex flex-col items-start gap-6">
         <h2 id="cta-title" class="text-h2 max-w-2xl text-text">{title}</h2>
         <p class="text-lead text-text-muted measure-prose">{support}</p>
@@ -75,32 +66,34 @@ const {
         </p>
       </div>
 
-      {media ? (
-        <figure class="media-figure">
-          <div class="media-frame aspect-[16/9]">
-            <picture>
-              {media.avifSrcset && (
-                <source
-                  type="image/avif"
-                  srcset={media.avifSrcset}
-                  sizes="(min-width: 1024px) 560px, 92vw"
-                />
-              )}
-              <img
-                src={media.src}
-                srcset={media.srcset}
-                sizes="(min-width: 1024px) 560px, 92vw"
-                width={media.width}
-                height={media.height}
-                loading="lazy"
-                decoding="async"
-                alt={media.alt}
-                class="transition-transform duration-300 ease-standard group-hover:scale-[1.015]"
-              />
-            </picture>
-          </div>
-          <figcaption class="media-caption">{media.caption}</figcaption>
-        </figure>
+      {brand ? (
+        /* Brand finish — typography + logo geometry, quiet on purpose. */
+        <div class="relative overflow-hidden rounded-[8px] border border-line bg-canvas p-8 sm:p-10" aria-hidden="true">
+          <svg
+            viewBox="0 0 438 394"
+            class="pointer-events-none absolute -bottom-16 -start-16 h-64 w-auto opacity-[0.06]"
+            focusable="false"
+          >
+            <path
+              d="M266.458,392.827L124.074,174.407L63.904,318.218L0.5,317.995L114.581,51.524L265.649,288.586C265.649,288.586 347.798,174.154 371.997,84.837L317.715,62.386L263.782,84.45C263.782,84.45 269.742,147.856 313.528,163.292L284.862,214.638C284.862,214.638 208.851,188.767 199.035,49.522L317.889,0.5L436.986,49.522C436.986,49.522 436.866,152.092 266.458,392.827Z"
+              fill="currentColor"
+            />
+          </svg>
+          <p class="text-meta font-semibold text-text">مسیر مشتری، از توجه تا پیگیری</p>
+          <ul class="mt-6 flex flex-col">
+            {stages.map((stage, i) => (
+              <li class="flex items-center gap-4 border-t border-line py-4">
+                <span class="flex h-7 w-7 flex-none items-center justify-center rounded-[1px] bg-primary-soft text-ui font-semibold text-accent-strong tnum">
+                  {toFaDigits(i + 1)}
+                </span>
+                <span class="text-body font-medium text-text-muted">{stage}</span>
+              </li>
+            ))}
+          </ul>
+          <p class="mt-6 border-t border-line pt-5 text-caption text-text-faint">
+            همین وب‌سایت، اجرای عملی همین اصول است: ثبت درخواست، اندازه‌گیری و پیگیری.
+          </p>
+        </div>
       ) : (
         !hideRail && (
           <div class="panel bg-canvas p-6 sm:p-8 lg:p-10">

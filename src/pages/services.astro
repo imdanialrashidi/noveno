@@ -14,6 +14,8 @@ import SectionHeader from "../components/layout/SectionHeader.astro";
 import CTASection from "../components/layout/CTASection.astro";
 import OfferRow from "../components/business/OfferRow.astro";
 import FAQItem from "../components/ui/FAQItem.astro";
+import { getCollection } from "astro:content";
+import { isPublished, sortByDate } from "../data/insights";
 import {
   toFaDigits,
   OFFERS,
@@ -24,6 +26,8 @@ import {
   PRIMARY_CTA_LABEL,
   FAQ_ITEMS,
 } from "../data/site";
+
+const latestArticle = sortByDate((await getCollection("insights")).filter(isPublished))[0] ?? null;
 ---
 
 <PageLayout
@@ -190,6 +194,39 @@ import {
       </div>
     </div>
   </section>
+
+  <!-- Editorial route into Insights (contextual internal linking) -->
+  {latestArticle && (
+    <section class="border-t border-line" aria-labelledby="services-insights-title">
+      <div class="mx-auto grid max-w-[1200px] gap-10 px-5 py-14 sm:px-8 lg:grid-cols-12 lg:gap-16 lg:py-20">
+        <div class="lg:col-span-5">
+          <SectionHeader
+            id="services-insights-title"
+            kicker="دیدگاه‌ها"
+            title="بیشتر دربارهٔ مسئلهٔ خودتان بخوانید"
+            lead="نوشته‌های نوونو یک موضوع را با مثال و روش بررسی می‌کنند — نه با وعده."
+          />
+        </div>
+        <div class="flex flex-col justify-center lg:col-span-7">
+          <a
+            href={`/insights/${latestArticle.id}`}
+            class="group flex flex-col gap-2 border-t border-line py-7 transition-colors duration-150 hover:bg-surface-soft/40 sm:px-3"
+          >
+            <span class="text-meta text-text-faint">{latestArticle.data.category} — تازه‌ترین نوشته</span>
+            <span class="text-h3 text-text transition-colors duration-150 group-hover:text-text-action">{latestArticle.data.title}</span>
+            <span class="inline-flex min-h-11 w-fit items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 group-hover:text-text-action">
+              خواندن نوشته
+              <svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M19 12H5" />
+                <path d="m12 19-7-7 7-7" />
+              </svg>
+            </span>
+          </a>
+          <Button href="/insights" variant="ghost" class="w-fit">همه نوشته‌ها</Button>
+        </div>
+      </div>
+    </section>
+  )}
 
   <CTASection />
 </PageLayout>

@@ -94,6 +94,63 @@ test("social metadata image exists as a 1200×630 PNG", () => {
   assert.equal(height, 630);
 });
 
+test("per-page social cards exist and are referenced with correct metadata", () => {
+  const png = (rel) => {
+    const file = path.join(root, "public", rel);
+    assert.ok(fs.existsSync(file), `missing social card ${rel}`);
+    const buf = fs.readFileSync(file);
+    assert.ok(buf.subarray(1, 4).toString() === "PNG", `${rel} is not a PNG`);
+    assert.equal(buf.readUInt32BE(16), 1200, `${rel} width`);
+    assert.equal(buf.readUInt32BE(20), 630, `${rel} height`);
+  };
+  const expectCard = (htmlFile, cardPath) => {
+    const html = fs.readFileSync(path.join(dist, htmlFile), "utf8");
+    assert.ok(
+      html.includes(`property="og:image" content="https://noveno.ir${cardPath}"`),
+      `${htmlFile} must reference ${cardPath} as og:image`,
+    );
+    assert.ok(
+      html.includes(`name="twitter:image" content="https://noveno.ir${cardPath}"`),
+      `${htmlFile} must reference ${cardPath} as twitter:image`,
+    );
+  };
+
+  png("og.png");
+  png("og/work.png");
+  png("og/work/noveno-website.png");
+  png("og/work/clinic-acquisition-concept.png");
+  png("og/insights.png");
+  png("og/insights/instagram-lead-tracking.png");
+  png("og/about.png");
+
+  expectCard("index.html", "/og.png");
+  expectCard("work/index.html", "/og/work.png");
+  expectCard("work/noveno-website/index.html", "/og/work/noveno-website.png");
+  expectCard("insights/index.html", "/og/insights.png");
+  expectCard("insights/instagram-lead-tracking/index.html", "/og/insights/instagram-lead-tracking.png");
+  expectCard("about/index.html", "/og/about.png");
+});
+
+test("draft insights articles never build and never enter the sitemap", () => {
+  const draftHtml = path.join(dist, "insights", "draft-sample", "index.html");
+  assert.ok(!fs.existsSync(draftHtml), "draft article must not be built");
+  const sitemap = fs.readFileSync(path.join(root, "public", "sitemap.xml"), "utf8");
+  assert.ok(!sitemap.includes("/insights/draft-sample"), "draft article must not be in the sitemap");
+});
+
+test("published insights article ships Article schema, breadcrumbs, canonical and fa-IR", () => {
+  const html = fs.readFileSync(path.join(dist, "insights", "instagram-lead-tracking", "index.html"), "utf8");
+  assert.match(html, /"@type":"Article"/, "article page must carry Article JSON-LD");
+  assert.match(html, /"datePublished"/, "article schema must carry the publication date");
+  assert.match(html, /"@type":"BreadcrumbList"/, "article page must carry breadcrumbs");
+  assert.match(html, /rel="canonical" href="https:\/\/noveno\.ir\/insights\/instagram-lead-tracking"/, "article canonical must be exact");
+  assert.match(html, /property="og:type" content="article"/, "article og:type must be article");
+  assert.match(html, /<html[^>]*lang="fa"[^>]*dir="rtl"/, "article page must be fa + rtl");
+  // No fabricated schema: no ratings/reviews on the article.
+  assert.ok(!html.includes('"@type":"Review"'), "no fabricated review schema");
+  assert.ok(!html.includes('"@type":"Rating"'), "no fabricated rating schema");
+});
+
 test("built audit page leaks no secret env names or placeholder keys", () => {
   const html = fs.readFileSync(path.join(dist, "audit", "index.html"), "utf8");
   for (const marker of [

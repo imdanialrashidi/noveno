@@ -29,6 +29,11 @@
 /og.png
   Cache-Control: public, max-age=86400
 
+# Build-time social cards (per-page OG images). Short-lived: social
+# crawlers and messaging apps may cache briefly, never stale for long.
+/og/*
+  Cache-Control: public, max-age=86400
+
 /favicon.svg
   Cache-Control: public, max-age=86400
 

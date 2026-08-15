@@ -57,7 +57,7 @@ const breadcrumbJsonLd = JSON.stringify({
 });
 ---
 
-<PageLayout title={pageTitle} description={data.summary} path={`/work/${entry.id}`}>
+<PageLayout title={pageTitle} description={data.summary} path={`/work/${entry.id}`} ogImage={`/og/work/${entry.id}.png`} ogImageAlt={`${data.title} — ${PROOF_LABELS[kind]}`}>
   <script slot="head" type="application/ld+json" set:html={breadcrumbJsonLd}></script>
 
   {preview.type === "image" && preview.src && (

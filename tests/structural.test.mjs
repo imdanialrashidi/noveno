@@ -27,6 +27,8 @@ const PAGE_PATHS = [
   "/contact/index.html",
   "/privacy/index.html",
   "/terms/index.html",
+  "/insights/index.html",
+  "/insights/instagram-lead-tracking/index.html",
   "/404.html",
 ];
 
@@ -125,28 +127,51 @@ test("the flowchart grammar is gone from built pages and CSS (2026-08-14 founder
   }
 });
 
-test("homepage LCP media is wired: hashed AVIF preload + picture source + eager hero image", () => {
+test("homepage LCP media is wired: hashed WebP preload + eager hero figure", () => {
   const home = fs.readFileSync(path.join(dist, "index.html"), "utf8");
   // The image manifest (content-hashed URLs) must be applied: the
-  // preload targets the hashed hero AVIF at HIGH priority.
+  // preload targets the hashed hero product figure at HIGH priority.
   const manifestSrc = fs.readFileSync(path.join(root, "src", "generated", "image-manifest.ts"), "utf8");
-  const heroMatch = manifestSrc.match(/("photography\/barbershop-workday-1600\.avif"): "([^"]+)"/);
-  assert.ok(heroMatch, "manifest must map the hero AVIF");
+  const heroMatch = manifestSrc.match(/("work\/noveno-website-audit\.webp"): "([^"]+)"/);
+  assert.ok(heroMatch, "manifest must map the hero product figure");
   const heroHashed = heroMatch[2];
   assert.match(
     home,
     new RegExp(`<link[^>]*rel="preload"[^>]*as="image"[^>]*href="${escapeRegExp(heroHashed)}"[^>]*fetchpriority="high"`),
-    "homepage must preload the hashed hero photograph (AVIF) at high priority",
+    "homepage must preload the hashed hero product figure (WebP) at high priority",
   );
-  assert.match(home, /<picture>/, "homepage hero must use <picture>");
-  assert.match(home, /type="image\/avif"/, "hero <picture> must offer AVIF first");
   assert.match(
     home,
     /<img[^>]*fetchpriority="high"/,
     "hero image must be fetchpriority=high (the LCP element)",
   );
   const lazyImages = [...home.matchAll(/<img[^>]*loading="lazy"/g)];
-  assert.ok(lazyImages.length >= 3, "below-fold images must be lazy");
+  const eagerImages = [...home.matchAll(/<img(?!.*loading="lazy")[^>]*>/g)];
+  assert.ok(lazyImages.length >= 2, "below-fold images must be lazy");
+  assert.ok(eagerImages.length <= 1, "only the hero image may be eager");
+});
+
+test("contextual business photography is gone from the production path (2026-09 override)", () => {
+  const pages = walk(dist).filter((f) => f.endsWith(".html"));
+  const html = pages.map((f) => fs.readFileSync(f, "utf8")).join("");
+  for (const marker of [
+    "photography/barbershop",
+    "photography/salon",
+    "photography/workday-close",
+    "عکس: Mostafa Meraji",
+  ]) {
+    assert.ok(!html.includes(marker), `built HTML still references retired photography: ${marker}`);
+  }
+  const photoDir = path.join(root, "public", "images", "photography");
+  const remaining = walk(photoDir).filter((f) => /\.(avif|webp|jpe?g|png)$/.test(f));
+  assert.deepEqual(remaining, [], "photography binaries must be removed from public/images/photography");
+});
+
+test("homepage hero is product-led: real audit UI + stage strip, no photograph", () => {
+  const home = fs.readFileSync(path.join(dist, "index.html"), "utf8");
+  assert.match(home, /work\/noveno-website-audit/, "hero must show the real audit UI");
+  assert.match(home, /hero-stages/, "hero must carry the 4-stage typographic strip");
+  assert.match(home, /data-hero-stages/, "hero strip must be wired for the quiet entrance");
 });
 
 test("every /images/ reference in built pages is content-hashed and exists on disk", () => {

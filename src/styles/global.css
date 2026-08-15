@@ -504,10 +504,11 @@
   }
 
   /* 2. Hero moment — one tiny accent line that grows under the kicker
-     (transform-only, ~2px layer). Deliberately NOT the image or the
-     headline: animating those promoted large layers and measurably
-     delayed first paint on throttled mobile (measured; see report).
-     Paint is immediate — the hero content never moves. */
+        (transform-only, ~2px layer), plus the 4-stage strip under the
+        real-UI figure settling quietly. Deliberately NOT the image or
+        the headline: animating those promoted large layers measurably
+        delayed first paint on throttled mobile (measured). Paint is
+        immediate — the hero content never moves. */
   [data-hero-accent] {
     transform: scaleX(0);
     transform-origin: right;
@@ -517,6 +518,36 @@
     to {
       transform: scaleX(1);
     }
+  }
+
+  /* Hero stage strip — typography + small squares (brand geometry).
+     The hidden starting state is added by JS only (motion.ts), so
+     no-JS and reduced-motion render it fully visible instantly. */
+  .hero-stages {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--line);
+  }
+  .hero-stage {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+  .hero-stages.hero-stages-init {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  .hero-stages {
+    transition:
+      opacity 450ms var(--ease-standard),
+      transform 450ms var(--ease-standard);
+  }
+  .hero-stages.hero-stages-in {
+    opacity: 1;
+    transform: none;
   }
 
   /* 3. Mobile menu open/close (menu.ts orchestrates `hidden`). */
@@ -574,6 +605,18 @@
   .nav-link:not([aria-current="page"]):hover::after,
   .nav-link:not([aria-current="page"]):focus-visible::after {
     transform: scaleX(1);
+  }
+
+  /* Work-preview motion: very small scale on hover AND keyboard focus
+     (focus-within on the row) — pointer devices get hover, keyboard
+     gets the same feedback via the focused link. Reduced-motion guard
+     zeroes the duration below. */
+  .group:hover .preview-stage img,
+  .group:focus-within .preview-stage img {
+    transform: scale(1.015);
+  }
+  .preview-stage img {
+    transition: transform 300ms var(--ease-standard);
   }
 
   /* The reduced-motion guard at the bottom of this file zeroes every
@@ -637,6 +680,203 @@
      tabular where they repeat (proof footnotes, sequences). */
   .tnum {
     font-variant-numeric: tabular-nums;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Article prose (Insights) — the long-form Persian reading surface.   */
+  /* RTL, ~70ch measure, generous rhythm; Vazirmatn body + Estedad heads. */
+  /* ------------------------------------------------------------------ */
+
+  .article-prose {
+    max-width: 70ch;
+    font-family: var(--font-body);
+    font-size: clamp(1.0625rem, 1.02rem + 0.2vw, 1.1875rem); /* 17 → 19px */
+    line-height: 2;
+    color: var(--text-muted);
+  }
+  .article-prose > * + * {
+    margin-top: 1.75rem;
+  }
+  .article-prose h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.375rem, 1.28rem + 0.5vw, 1.75rem);
+    line-height: 1.5;
+    color: var(--text);
+    margin-top: 3.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+  }
+  .article-prose h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.125rem, 1.08rem + 0.25vw, 1.3125rem);
+    line-height: 1.6;
+    color: var(--text);
+    margin-top: 2.75rem;
+  }
+  .article-prose h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--text);
+    margin-top: 2.25rem;
+  }
+  .article-prose p {
+    color: var(--text-muted);
+  }
+  .article-prose strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .article-prose a {
+    color: var(--accent-strong);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    transition: color var(--dur-1) var(--ease-standard);
+  }
+  .article-prose a:hover {
+    color: var(--primary-hover);
+  }
+  .article-prose ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+  .article-prose li {
+    position: relative;
+    padding-inline-start: 1.5rem;
+  }
+  .article-prose li::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0.25rem;
+    top: 0.8em;
+    width: 7px;
+    height: 7px;
+    border-radius: 1px;
+    background-color: var(--primary);
+  }
+  .article-prose ol {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    counter-reset: article-item;
+  }
+  .article-prose ol > li {
+    position: relative;
+    padding-inline-start: 2.25rem;
+    counter-increment: article-item;
+  }
+  .article-prose ol > li::before {
+    content: counter(article-item, decimal-leading-zero);
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0.1em;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 0.8125rem;
+    color: var(--text-action);
+    font-variant-numeric: tabular-nums;
+  }
+  .article-prose li > ul,
+  .article-prose li > ol {
+    margin-top: 0.875rem;
+  }
+  .article-prose blockquote {
+    position: relative;
+    border-inline-start: 2px solid var(--primary);
+    padding-inline-start: 1.5rem;
+    font-size: clamp(1.125rem, 1.08rem + 0.25vw, 1.25rem);
+    line-height: 2;
+    color: var(--text);
+    font-family: var(--font-display);
+    font-weight: 500;
+  }
+  .article-prose blockquote p {
+    color: var(--text);
+  }
+  .article-prose code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    direction: ltr;
+    unicode-bidi: embed;
+    background-color: var(--surface-soft);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+    color: var(--text);
+  }
+  .article-prose pre {
+    direction: ltr;
+    text-align: left;
+    overflow-x: auto;
+    background-color: var(--surface-soft);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1.25rem;
+    font-size: 0.875rem;
+    line-height: 1.8;
+  }
+  .article-prose pre code {
+    background: none;
+    border: 0;
+    padding: 0;
+  }
+  .article-prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+    line-height: 1.8;
+  }
+  .article-prose th {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--text);
+    text-align: start;
+    border-bottom: 2px solid var(--line-strong);
+    padding: 0.625rem 0.75rem;
+  }
+  .article-prose td {
+    border-bottom: 1px solid var(--line);
+    padding: 0.625rem 0.75rem;
+    vertical-align: top;
+  }
+  /* Tables stay usable on mobile: horizontal scroll inside a hairline box. */
+  .article-prose table {
+    display: block;
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+  }
+  .article-prose img {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    margin-inline: auto;
+  }
+  .article-prose figure {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .article-prose figure img {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+  }
+  .article-prose figcaption {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--text-faint);
+  }
+  .article-prose hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin-top: 3rem;
+    margin-bottom: 3rem;
   }
 
   /* Markdown body inside work detail pages (66ch measure, system type) */

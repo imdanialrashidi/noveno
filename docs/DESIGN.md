@@ -1,6 +1,6 @@
 # Product Design Contract — Noveno Website
 
-Visual and interaction source of truth shared by design, implementation, browser QA, and review. This file records the **accepted visual direction** (locked by founder decision 2026-08-14, second review: the flowchart/route language is rejected and replaced by an **image-led editorial system**). The thesis, tokens, composition, media, and proof plan below are the contract; later build/review work must implement this direction, not invent a new one. Changes require a deliberate, documented decision (§16).
+Visual and interaction source of truth shared by design, implementation, browser QA, and review. This file records the **accepted visual direction** (locked by founder decision 2026-08-14, second review: the flowchart/route language is rejected; **third review 2026-09: contextual photography is retired from the public visual language** — see §3.5 and the decision log §16). The thesis, tokens, composition, media, and proof plan below are the contract; later build/review work must implement this direction, not invent a new one. Changes require a deliberate, documented decision (§16).
 
 ## 1. Experience brief
 
@@ -39,9 +39,11 @@ The founder reviewed the rendered website twice and rejected the entire line-dia
 ### 3.2 The four visual primitives
 
 1. **Strong editorial typography** — large Persian headlines, controlled supporting copy, deliberate asymmetric composition. Text itself carries the design: bold display type, strong numbers, clear hierarchy, confident whitespace. Empty space is composed, not filled with diagrams.
-2. **High-quality photography** — real, contemporary, understated, premium, business-like, naturally Iranian/Middle-Eastern where possible. Subjects: service-business owners working, inquiries arriving by phone, consultation environments, real working environments, laptop/mobile use, customer communication, business follow-up. **Never**: fake smiling office teams, handshake clichés, call-center imagery, exaggerated startup scenes, neon AI imagery, staged corporate stock. Photography is contextual/editorial and clearly separated from real work evidence; every photo carries a caption with provenance.
-3. **Real product screenshots** — the main visual proof mechanism (homepage work section, `/work`, `/work/[slug]`). Real work looks like real work: large browser-window previews, full-bleed crops in a restrained frame, 16:10 product previews, alternating editorial rows. No screenshots inside fake decorative dashboards. Concept work uses **designed concept previews** (designed page mockups, never wireframe-diagrams) always labeled «نمونه نمایشی — سناریوی مفهومی».
+2. **Real product surfaces** — the main visual proof mechanism (homepage hero, system section, `/work`, `/work/[slug]`). Real work looks like real work: large restrained product previews of the audit interface and delivered sites. No screenshots inside fake decorative dashboards. Concept work uses **designed concept previews** (designed page mockups, never wireframe-diagrams) always labeled «نمونه نمایشی — سناریوی مفهومی».
+3. **Restrained brand geometry** — hairline rules, square/circle primitives, subtle grid texture, logo-derived geometry. Used to frame product surfaces and to give the final CTA a memorable, quiet finish. Never decorative pattern walls.
 4. **Editorial numbers and simple sequences** — where the old site drew process, the new site types it: «۰۱ جذب / ۰۲ متقاعدسازی / ۰۳ اقدام / …». Large numerals, strong headings, short descriptions, grid or vertical editorial layout. No connector line; sequence is communicated by ordering and typography.
+
+Photography is **not** a primitive (third review, §3.5).
 
 ### 3.3 Why this direction (rejection record)
 
@@ -53,13 +55,26 @@ The founder reviewed the rendered website twice and rejected the entire line-dia
 
 ### 3.4 Media rhythm rule
 
-Aim for **4–7 meaningful visual/media moments per long page** — never one per section, never decorative filler. Every image must improve understanding, credibility, emotional connection, proof, or composition. The homepage uses ≈6 moments: hero photograph, problem photograph, real audit-UI screenshot, large work previews, (process stays typographic), final-CTA photograph.
+Aim for **4–7 meaningful visual/media moments per long page** — never one per section, never decorative filler. Every image must improve understanding, credibility, emotional connection, proof, or composition. The homepage uses ≈6 moments: hero real-UI composition, problem editorial typographic states, real audit-UI screenshot, large work previews, (process stays typographic), brand-led final CTA.
+
+### 3.5 Third review — photography retired from the public visual language (2026-09)
+
+**Decision: contextual business photography is no longer a Noveno visual primitive.** The hero photograph, the problem-section photograph, and the final-CTA photograph are removed; the homepage photography slots are replaced by:
+
+1. **Real product/UI surfaces** — the audit interface and real site surfaces (this site's own build) are the primary substantial visual material;
+2. **Typography-led editorial composition** — text and editorial numerals carry argumentative sections (problem, philosophy);
+3. **Restrained Noveno brand geometry** — hairline rules, square/circle primitives, subtle grid texture, logo-derived geometry;
+4. **Truthful work previews** — real project screenshots; concepts stay clearly labeled «نمونه نمایشی — سناریوی مفهومی».
+
+Target ratio: `typography/layout + real product UI + restrained brand geometry`, not photography. The hero must visually reinforce `توجه ← درخواست ← ثبت ← پیگیری` using real Noveno interface material, remain clean enough that the headline stays dominant, and never become a fake dashboard, invented CRM UI, browser-frame cliché, or decorative SaaS card. The final CTA is a brand-led typographic finish (strong type + CTA + restrained surface + logo geometry), never a photo.
+
+Photography assets and their processing scripts were removed from the production path (`docs/IMAGERY.md` records the retirement and retention decision). The `figure.media-frame` language survives for **real product screenshots and work previews only**.
 
 ## 4. Signature visual language
 
 **Signature: the editorial media figure + the large numeral.** Two restrained devices repeat across the site:
 
-1. **Media figure** — `figure.media-figure` → `div.media-frame` (hairline border, 4px radius, reserved aspect ratio: hero 3:2, contextual 16:10, CTA 16:9, work 16:10) + `figcaption.media-caption` (12–13px Estedad 500, `text-faint`, includes photo provenance). All photography and real screenshots use this frame; it is the site's consistent picture language.
+1. **Media figure** — `figure.media-figure` → `div.media-frame` (hairline border, 4px radius, reserved aspect ratio: hero 3:2, product 16:10, work 16:10) + `figcaption.media-caption` (12–13px Estedad 500, `text-faint`, states what the real surface is). All real product screenshots and work previews use this frame; it is the site's consistent picture language.
 2. **Editorial numeral** — `.editorial-num`: Estedad 800, `clamp(2rem, 1.5rem + 2.2vw, 3.25rem)` (32→52px), `text-action` ink, tabular. Used for: system stages (۰۱–۰۶), process steps (۰۱–۰۵), offers (۰۱–۰۳), why-Noveno rows, 404 («۴۰۴»). Numbers are content, never decoration.
 
 **What the site never draws anymore:** connected lines, stations, nodes on rails, scatter fields, channel maps, mini process graphs, route motifs, dotted route extensions, square/circle connector systems, or any decorative system-architecture diagram.
@@ -95,7 +110,7 @@ Base: 16px; scale in `rem`. Line-heights generous because Persian joins four lev
 
 ### 5.3 Fallback strategy (CLS-safe, unchanged)
 
-Stack: `"Estedad", "Estedad Fallback", "Vazirmatn", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif`; body: `"Vazirmatn", "Vazirmatn Fallback", …`. `font-display: swap`; **preload only `estedad-arabic`** (the hero headline is the LCP text) plus the hero photograph (AVIF) on the homepage. Metric-matched Tahoma fallback faces declared locally (CLS target ≤ 0.1).
+Stack: `"Estedad", "Estedad Fallback", "Vazirmatn", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif`; body: `"Vazirmatn", "Vazirmatn Fallback", …`. `font-display: swap`; **preload only `estedad-arabic`** (the hero headline is the LCP text) plus the hero product figure (WebP) on the homepage. Metric-matched Tahoma fallback faces declared locally (CLS target ≤ 0.1).
 
 ### 5.4 Performance (measured, unchanged)
 
@@ -159,7 +174,7 @@ Rule: **the primary button carries dark ink on green** (`#06130d` on `#679e86`/`
 - **Light «روز کاری» (Workday):** near-white canvas with a faint cool cast, flat editorial sections separated by hairline rules, green reserved for action and live state. Depth minimal (one shadow for the audit panel/menu).
 - **Dark «اتاق عملیات» (Ops Room):** true near-black canvas, panels lifted by surface tone (not shadow), hairlines at `#232b28`, green used as action fill and as signal. Muted text is gray-green.
 - **Behavior:** OS preference via `prefers-color-scheme`; persisted explicit override as `noveno-theme` in `localStorage` (never write the OS default); no-wrong-theme-flash inline head script; accessible toggle button (`aria-pressed`, current-state label «حالت روشن/حالت تاریک»), also in the mobile header row; theme transitions ≤150ms, none under reduced motion.
-- **Photography in both themes:** photos render inside the same hairline frame; no theme-specific photo treatments (a neutral, consistent grade is chosen at asset level).
+- **Product surfaces in both themes:** screenshots are captured in the light theme and render inside the same hairline frame in both themes; no theme-specific treatments (a neutral, consistent grade is chosen at asset level).
 
 ## 8. Composition and layout language
 
@@ -174,28 +189,29 @@ Rule: **the primary button carries dark ink on green** (`#06130d` on `#679e86`/`
 
 ### 9.1 Media hierarchy (proof-first)
 
-1. **Real product screenshots** — captured from real, accessible implementations (this site's own build for the `noveno-website` project). Only source for real-work previews.
+1. **Real product screenshots** — captured from real, accessible implementations (this site's own build for the `noveno-website` project). Only source for real-work previews, and the **primary substantial visual material of the public site** (hero composition, system section, work previews).
 2. **Designed concept previews** — for concepts only: a small designed page mockup (real tokens, real Persian UI labels) with the fixed overlay tag «نمونه نمایشی — سناریوی مفهومی». Never a wireframe-diagram, never a screenshot of a nonexistent product, never implying a real client result.
-3. **Contextual/editorial photography** — properly licensed (CC0 preferred), stored locally, captioned with provenance, clearly separated from work evidence.
-4. **No stock-agency clichés, no fabricated proof** (Spec §18–19).
+3. **Typography-led editorial composition + restrained brand geometry** — text, editorial numerals, hairlines, square/circle primitives, subtle grid texture, logo-derived geometry. This is the second visual primitive of the public site (problem section, philosophy, final CTA).
+4. **No contextual business photography** — retired from the public visual language (third review, §3.5). Photography is not part of the production image path; see `docs/IMAGERY.md` for the retirement/retention record. No stock-agency clichés, no fabricated proof (Spec §18–19).
 
-### 9.2 Photography art direction
+### 9.2 Art direction — product surfaces and brand geometry
 
-- Subject: real Iranian/Middle-Eastern service-business working environments (barbershop, beauty salon, café, workshop…); people actively running a service business; phone/mobile inquiry moments.
-- Grade: muted, contemporary, business-like; consistent across the site; generous matte via the hairline frame.
-- Every photo: `figure.media-figure` with caption including source credit (e.g. «عکس: Mostafa Meraji (CC0)»); descriptive Persian `alt`; never decorative filler.
-- Provenance registry: `docs/IMAGERY.md` lists file → source URL → license → photographer → processing.
+- Real product screenshots: captured at 1440×900 from this site's own production build (light theme), processed to WebP pairs (native + half), right-sized, intrinsic `width`/`height`, lazy below the fold, `fetchpriority="high"` + preload only for the LCP hero figure.
+- Brand geometry: hairlines, 4px-radius squares, small filled squares/circles as separators, a subtle 1px grid texture only where it adds quiet depth (hero band, final CTA) — never decorative pattern walls.
+- Every product figure: `figure.media-figure` with caption stating what the real surface is («نمونه واقعی از رابط نوونو: …»); descriptive Persian `alt`; never decorative filler.
+- Provenance registry: `docs/IMAGERY.md` lists file → source → license → processing.
 
 ### 9.3 Asset pipeline
 
-- All substantial images: right-sized variants (1600w/800w, screenshots 1440w/720w), AVIF (hero) + WebP, intrinsic `width`/`height`, `srcset` + `sizes`, lazy below the fold, `fetchpriority="high"` + preload only for the LCP image (hero photo).
+- All substantial images: right-sized variants (1600w/800w, screenshots 1440w/720w), AVIF (only where it does not hurt text-bearing UI; screenshots stay WebP q80 — measured saving ≈9% on text-bearing UI) + WebP, intrinsic `width`/`height`, `srcset` + `sizes`, lazy below the fold, `fetchpriority="high"` + preload only for the LCP image (hero product figure).
 - Portfolio screenshots stay sharp on retina without shipping multi-megabyte originals (WebP q80, ~30–45 KB at 1440×900).
+- Social cards: build-time generated PNGs (1200×630) from brand tokens + real project previews (`scripts/generate-og-images.py`) — no runtime OG service (`docs/INSIGHTS.md` for the article card flow).
 
 ## 10. Components and states
 
 | Group | Components |
 |---|---|
-| Layout | Header, MobileMenu, Footer, PageHero, SectionHeader, CTASection (with optional photo media) |
+| Layout | Header, MobileMenu, Footer, PageHero, SectionHeader, CTASection (brand-finish variant) |
 | UI | Button (primary / secondary / ghost), TextLink, ProofTag (3 text labels), FormField, Select, MultiSelect (channels), FAQItem, Metric (evidence-bound only), **Icon (monoline channel glyphs: phone, whatsapp, telegram, email, instagram)**, **ChannelLink (inline / row / tile variants — one contact-link contract for every surface)** |
 | Business | WorkCard (editorial work row with large preview), ConceptPreview (designed concept mock), NextStepsRail (numbered 1–4), AuditProgress (StepperLine: «مرحله X از ۶» + progress bar) |
 
@@ -218,21 +234,24 @@ Rule: **the primary button carries dark ink on green** (`#06130d` on `#679e86`/`
 - Recoverable error: inline banner «ارسال نشد؛ اتصال را بررسی کنید و دوباره تلاش کنید» + تلاش دوباره; offline variant emphasizes contact fallback; field values preserved; never silent failure.
 - Turnstile renders inside the contact step; re-renders on theme change; resets on retry.
 
-## 12. Motion
+## 12. Motion — the small reusable system (5 behaviors, site-wide)
 
-Restrained; clarifies state or hierarchy only:
+Restrained; clarifies state or hierarchy only. The whole site uses **five reusable behaviors** (one shared `IntersectionObserver` in `src/scripts/motion.ts`; no animation library):
 
-1. One orchestrated moment: none required anymore — the hero is a photograph; the site may load statically with no hero animation. (Reduced-motion guard still global.)
-2. State feedback: hover = color fills (150ms); form focus = border + ring (150ms); step change = fade + 16px shift (250ms); accordion = 250ms; success banner = 400ms entrance.
-3. No: scroll-jacking, parallax, infinite animation, entrance reveals per section, theme crossfades (≤150ms color only).
-4. Global guard: `@media (prefers-reduced-motion: reduce)` zeroes all durations.
+1. **Section reveal** — below-the-fold groups only: opacity + 12px translate, 450ms, stagger 45ms where a sequence matters. Content is visible by default (no-JS, no-CLS, no-LCP risk); hero content never animates.
+2. **Hero moment** — the hero product composition settles quietly: the accent line under the kicker grows (transform-only), and the caption/stage strip under the real-UI figure fades in with a tiny translate. LCP-critical content (headline, figure) is painted immediately and never moves.
+3. **Link/button micro** — directional icon movement on hover/focus (work rows, contact rows), nav underline grows from the RTL start, pressed scale 0.98 on buttons (150ms).
+4. **Work previews** — very small scale (1.015) on hover **and** keyboard focus (`:focus-within`), pointer devices only via hover media where practical.
+5. **Mobile menu** — opacity + 6px translate open/close (250ms), `hidden` applied after the close transition, focus moved in/out, Escape closes.
+
+Rules: transform/opacity only; no blur, no filters, no continuous loops, no raw-scroll listeners, no scroll-jacking, no parallax, no per-section reveals of every paragraph. Reduced motion: `prefers-reduced-motion: reduce` zeroes all durations in CSS AND `motion.ts` skips adding hidden starting states, so everything renders directly in its final state.
 
 ## 13. Content voice (unchanged rules)
 
 - Labels are short business nouns. Fixed CTA language per Spec §3.5–3.6 («درخواست بررسی مسیر جذب»; «دیدن پروژهها»); hero microcopy «بدون وعده فروش تضمینی؛ ابتدا مسیر فعلی کسبوکار بررسی میشود».
 - Prohibited hype per Spec §52.1; no guarantee language anywhere.
 - Buttons describe the action they perform; error/success copy states what happened and what to do next. No decorative copy.
-- Photography captions state the real subject and credit; concept labels state the concept status.
+- Product-figure captions state the real surface; concept labels state the concept status.
 
 ## 14. Quality budgets (design constraints, unchanged)
 
@@ -244,10 +263,12 @@ Restrained; clarifies state or hierarchy only:
 
 Evidence per `browser-qa` + the visual-quality rubric: screenshots with state provenance (route, viewport, theme, locale fa-RTL), accessibility snapshots, reduced-motion check, network panel, lab CWV on a throttled profile. Flagship bar: average craft ≥ 3.25, no dimension < 3.
 
+Post-photography hero/proof expectations: the homepage hero shows the **real audit UI** (product-led composition) with the headline dominant; the problem section is typographic; the final CTA is brand-led with logo geometry; no photograph appears in the primary visual path (browser + network evidence).
+
 | # | Screen / state | Critical states | Viewports · themes | Proof required |
 |---|---|---|---|---|
-| 1 | Homepage hero | photo-led split composition; headline + dual CTA + microcopy | 1440 + 390 · light + dark | Screenshots ×2 viewports ×2 themes |
-| 2 | Problem recognition | photograph + numbered list + two textual states | 1440 + 390 · both themes | Screenshots |
+| 1 | Homepage hero | product-led composition: real audit UI + 4-stage typographic strip; headline + dual CTA + microcopy | 1440 + 390 · light + dark | Screenshots ×2 viewports ×2 themes |
+| 2 | Problem recognition | editorial typography: numbered list + today/with-Noveno states, no image | 1440 + 390 · both themes | Screenshots |
 | 3 | System model | 6-stage editorial numerals + real audit-UI screenshot | 1440 + 390 · both themes | Screenshots; RTL check |
 | 4 | Offers + process | 3 numbered offer rows; 5-step editorial sequence | 1440 + 390 | Screenshots |
 | 5 | Proof section + /work | featured large preview + alternating rows; three proof labels explicit | 1440 + 390 | Screenshots; label contrast evidence |
@@ -263,6 +284,7 @@ Evidence per `browser-qa` + the visual-quality rubric: screenshots with state pr
 
 | Date | Decision | Evidence / rationale | Revisit when |
 |---|---|---|---|
+| 2026-09 | **Third review: contextual business photography is retired from the public visual language.** Homepage hero/problem/final-CTA photos removed; hero becomes a real audit-UI composition (attention → request → capture → follow-up), problem becomes editorial typography, final CTA becomes a brand-led typographic finish with logo geometry. Photography files + optimize script removed from the production path (retention documented in `docs/IMAGERY.md`). Product screenshots and labeled concept previews remain the proof mechanism. | Rendered review of the photo-led homepage (barbershop/salon photos read as generic stock in both themes; photography does not carry Noveno's product argument); product-led hierarchy is specific, truthful, and on-brand | Photography returns only through a deliberate, documented decision |
 | 2026-08-14 | **Founder override (2nd): the flowchart/route language is removed from the public design.** New thesis: Typography + Photography + Real Product Screens + Editorial Numbers (§3). Deleted/rewired: JourneyLine, LeadStatusStrip, SystemArchitectureDiagram, ChannelMap, BeforeAfterJourney, scatter fields, route-band hero, footer mini route, 404 route motif, StepperLine station rail (→ «مرحله X از ۶» + progress bar), thank-you extended route (→ numbered next steps), dashed wireframe concept previews (→ designed concept mocks), ProofTag line-style codes (→ plain text tags), section node markers. Photography introduced (CC0, local, captioned). Hero = photo-led 6/6 split. Work = large preview rows, featured 7/5. Homepage media rhythm ≈6 moments. | Founder verdict on rendered site (diagrams feel technical, small, noisy, non-premium); measured baseline + rebuilt evidence | Any new surface wants a diagram → design review |
 | 2026-08-11 | **Visual thesis «مسیر» accepted** — superseded by the 2026-08-14 override above | — | — |
 | 2026-08-11 | Type system: Estedad + Vazirmatn, variable, self-hosted ≈165KB | License research; measured subsets | License terms change |
@@ -279,5 +301,5 @@ Evidence per `browser-qa` + the visual-quality rubric: screenshots with state pr
 
 - Hero headline choice (Spec §11.2 candidates) — business/copy decision; the type treatment fits both.
 - Audit free-vs-paid policy; prices on site — business decisions.
-- Additional photography subjects (café, gym, workshop) — asset library expansion when needed; current set: barbershop + beauty-salon + work-moment frames (CC0, Meraji).
+- Photography subjects (café, gym, workshop) — photography is retired from the public visual language (third review, §3.5); the CC0 source set and its retrieval path are recorded in `docs/IMAGERY.md` should a deliberate decision ever bring photography back.
 - Exact component markup/class naming, form field micro-interactions beyond §11 — build.

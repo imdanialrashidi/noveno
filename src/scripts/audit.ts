@@ -55,12 +55,16 @@ interface Handles {
   counter: HTMLElement | null;
   currentLabel: HTMLElement | null;
   bar: HTMLElement | null;
+  counterMobile: HTMLElement | null;
+  currentMobile: HTMLElement | null;
+  barMobile: HTMLElement | null;
   announce: HTMLElement | null;
   banner: HTMLElement | null;
   bannerBlocks: Record<string, HTMLElement>;
   back: HTMLButtonElement | null;
   next: HTMLButtonElement | null;
   turnstileContainer: HTMLElement | null;
+  summary: HTMLElement | null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -273,6 +277,9 @@ export function initAudit(config: AuditConfig): void {
     counter: document.querySelector<HTMLElement>("[data-stepper-counter]"),
     currentLabel: document.querySelector<HTMLElement>("[data-stepper-current]"),
     bar: document.querySelector<HTMLElement>("[data-stepper-bar]"),
+    counterMobile: document.querySelector<HTMLElement>("[data-stepper-counter-mobile]"),
+    currentMobile: document.querySelector<HTMLElement>("[data-stepper-current-mobile]"),
+    barMobile: document.querySelector<HTMLElement>("[data-stepper-bar-mobile]"),
     announce: document.getElementById("step-announce"),
     banner: document.getElementById("audit-banner"),
     bannerBlocks: Object.fromEntries(
@@ -284,12 +291,16 @@ export function initAudit(config: AuditConfig): void {
     back: document.getElementById("audit-back") as HTMLButtonElement | null,
     next: document.getElementById("audit-next") as HTMLButtonElement | null,
     turnstileContainer: document.getElementById("turnstile-container"),
+    summary: document.getElementById("audit-summary"),
   };
 
   const totalSteps = handles.sections.length;
   let draft = readDraft();
   let currentStep = draft?.step ?? 1;
-  let renderedStep = 0;
+  // Never focus the step heading on the initial boot of a fresh visit
+  // (reviewer finding): seed the rendered step with the current one so
+  // the focus branch only fires on genuine user-driven step changes.
+  let renderedStep = currentStep;
   let submitting = false;
   let bridge: TurnstileBridge | null = null;
 
@@ -373,10 +384,25 @@ export function initAudit(config: AuditConfig): void {
     if (handles.currentLabel) handles.currentLabel.textContent = AUDIT_STEPS[current - 1]?.label ?? "";
     if (handles.bar) handles.bar.style.width = `${((current - 1) / totalSteps) * 100}%`;
 
+    // Compact in-card progress (mobile-only hooks)
+    if (handles.counterMobile) handles.counterMobile.textContent = `مرحله ${toFaDigits(current)} از ${toFaDigits(totalSteps)}`;
+    if (handles.currentMobile) handles.currentMobile.textContent = AUDIT_STEPS[current - 1]?.label ?? "";
+    if (handles.barMobile) handles.barMobile.style.width = `${((current - 1) / totalSteps) * 100}%`;
+
     if (handles.announce) {
       handles.announce.textContent = `مرحله ${toFaDigits(current)} از ${toFaDigits(totalSteps)}: ${
         AUDIT_STEPS[current - 1]?.label ?? ""
       }`;
+    }
+
+    // Review summary appears on the contact step only — submit stays deliberate.
+    if (handles.summary) {
+      if (current === totalSteps) {
+        fillSummary(draft);
+        handles.summary.hidden = false;
+      } else {
+        handles.summary.hidden = true;
+      }
     }
 
     if (handles.back) handles.back.hidden = current === 1;
@@ -638,6 +664,11 @@ export function initAudit(config: AuditConfig): void {
         // Server-side validation rejection — truthful copy, not "connection".
         showBanner("validation");
       } else {
+        // Server/network failure: a Turnstile token sent to the function
+        // may already be consumed (e.g. 502 after siteverify), so drop it
+        // — a direct re-click of the submit button must mint a fresh one
+        // instead of failing siteverify again (reviewer finding).
+        bridge?.invalidate();
         showBanner(navigator.onLine === false ? "offline" : "network");
       }
       setSubmitting(false);
@@ -659,7 +690,10 @@ export function initAudit(config: AuditConfig): void {
     } catch {
       /* noop */
     }
-    await notifyWeb3Forms(payload);
+    // Fire-and-forget with keepalive: the lead is already safe (Supabase is
+    // the source of truth) and the email is best-effort — never let a slow
+    // Web3Forms endpoint delay the thank-you page (reviewer finding).
+    void notifyWeb3Forms(payload);
     window.location.assign("/audit/thank-you");
   }
 
@@ -828,7 +862,7 @@ export function initAudit(config: AuditConfig): void {
   showBanner(null);
 }
 
-  /* label lookup for Web3Forms payload (client label side of the enums) */
+  /* ----- label lookup for Web3Forms payload + review summary ----- */
 
 function labelOf(group: keyof typeof AUDIT_OPTIONS, id: string): string {
   return (
@@ -836,6 +870,33 @@ function labelOf(group: keyof typeof AUDIT_OPTIONS, id: string): string {
       (option) => option.id === id,
     )?.label ?? id
   );
+}
+
+/**
+ * Fill the last-step review summary from the draft. Rows with no
+ * answer stay hidden; labels are the display side of the client enums.
+ */
+function fillSummary(draft: Draft | null): void {
+  const container = document.getElementById("audit-summary");
+  if (!container) return;
+  const values = draft?.values ?? {};
+  const set = (row: string, value: string): void => {
+    const rowEl = container.querySelector<HTMLElement>(`[data-summary-row="${row}"]`);
+    const textEl = container.querySelector<HTMLElement>(`[data-summary-${row}]`);
+    if (!rowEl || !textEl) return;
+    const has = value.trim() !== "";
+    rowEl.hidden = !has;
+    if (has) textEl.textContent = value;
+  };
+  set("industry", labelOf("industry", String(values.industry ?? "")));
+  set(
+    "channels",
+    Array.isArray(values.acquisition_channels)
+      ? values.acquisition_channels.map((id) => labelOf("channels", String(id))).join("، ")
+      : "",
+  );
+  set("problem", labelOf("problems", String(values.primary_problem ?? "")));
+  set("need", labelOf("needs", String(values.requested_service ?? "")));
 }
 
 /**

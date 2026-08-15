@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "prebuild": "node scripts/build-image-manifest.mjs",
+    "prebuild": "node scripts/build-image-manifest.mjs && python3 scripts/generate-og-images.py && node scripts/generate-sitemap.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
