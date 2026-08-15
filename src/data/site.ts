@@ -252,9 +252,13 @@ export function toFaDigits(value: number | string): string {
  * Persian (jalali) year at build time — Intl-computed so the Nowruz
  * cutover (21 March) is handled by the CLDR data, not a hand-rolled
  * month approximation (the old `getMonth() + 1 >= 3` was wrong for
- * March 1-20). `-u-nu-latn` keeps Latin digits; callers wrap with
- * toFaDigits when Persian digits are wanted.
+ * March 1-20). `-u-nu-latn` keeps the Intl math in Latin digits; the
+ * result is converted back to Persian digits because Persian digits
+ * are the brand default (see `toFaDigits` — the OLD implementation
+ * also returned Persian digits, and `Footer.astro` renders the value
+ * directly without conversion).
  */
 export function jalaliYear(date = new Date()): string {
-  return new Intl.DateTimeFormat("fa-IR-u-nu-latn", { year: "numeric" }).format(date);
+  const latin = new Intl.DateTimeFormat("fa-IR-u-nu-latn", { year: "numeric" }).format(date);
+  return toFaDigits(latin);
 }

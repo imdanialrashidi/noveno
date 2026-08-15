@@ -6,10 +6,14 @@
  * new year — wrong for March 1-20, when the correct Jalali year is still
  * the previous one (the Nowruz cutover is 21 March). The fix delegates to
  * `Intl.DateTimeFormat("fa-IR-u-nu-latn", ...)`, which computes the year
- * from CLDR data.
+ * from CLDR data, then converts the result back to Persian digits via
+ * `toFaDigits` — Persian digits are the brand default (the pre-fix
+ * implementation also returned Persian digits, and `Footer.astro` renders
+ * the value directly without conversion).
  *
  * Defect sensitivity: the first two tests fail on the old implementation
- * (March 1-20 would return "1405" instead of "1404").
+ * (March 1-20 would return "۱۴۰۵" for the wrong year, and the pre-fix
+ * Intl-only variant would return Latin "1405"/"1404").
  *
  * Timezone note: the assertions use LOCAL-time constructors
  * (`new Date(2026, 2, 21)` etc.) rather than UTC date strings because
@@ -23,18 +27,18 @@ import assert from "node:assert/strict";
 
 import { jalaliYear } from "../src/data/site.ts";
 
-test("jalaliYear: Nowruz boundary (2026-03-21 onward is 1405)", () => {
-  assert.equal(jalaliYear(new Date(2026, 2, 21)), "1405");
-  assert.equal(jalaliYear(new Date(2026, 2, 31)), "1405");
+test("jalaliYear: Nowruz boundary (2026-03-21 onward is ۱۴۰۵)", () => {
+  assert.equal(jalaliYear(new Date(2026, 2, 21)), "۱۴۰۵");
+  assert.equal(jalaliYear(new Date(2026, 2, 31)), "۱۴۰۵");
 });
 
-test("jalaliYear: March 1-20 is still the previous year (1404)", () => {
-  assert.equal(jalaliYear(new Date(2026, 2, 1)), "1404");
-  assert.equal(jalaliYear(new Date(2026, 2, 20, 23, 59, 59)), "1404");
+test("jalaliYear: March 1-20 is still the previous year (۱۴۰۴)", () => {
+  assert.equal(jalaliYear(new Date(2026, 2, 1)), "۱۴۰۴");
+  assert.equal(jalaliYear(new Date(2026, 2, 20, 23, 59, 59)), "۱۴۰۴");
 });
 
 test("jalaliYear: early year and year end", () => {
-  assert.equal(jalaliYear(new Date(2026, 0, 1)), "1404");
-  assert.equal(jalaliYear(new Date(2026, 11, 31)), "1405");
-  assert.equal(jalaliYear(new Date(2027, 2, 20)), "1405");
+  assert.equal(jalaliYear(new Date(2026, 0, 1)), "۱۴۰۴");
+  assert.equal(jalaliYear(new Date(2026, 11, 31)), "۱۴۰۵");
+  assert.equal(jalaliYear(new Date(2027, 2, 20)), "۱۴۰۵");
 });
