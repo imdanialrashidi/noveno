@@ -17,11 +17,9 @@ import MobileMenu from "./MobileMenu.astro";
 import { NAV_LINKS, CTA_URL } from "../../data/site";
 import { initThemeToggle } from "../../scripts/theme";
 import { initMobileMenu } from "../../scripts/menu";
+import { isCurrent } from "./nav";
 
 const pathname = Astro.url.pathname;
-
-const isCurrent = (href: string) =>
-  href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
 ---
 
 <header class="sticky top-0 z-40 border-b border-line bg-canvas lg:static">
@@ -38,16 +36,16 @@ const isCurrent = (href: string) =>
       {NAV_LINKS.map((link) => (
         <a
           href={link.href}
-          aria-current={isCurrent(link.href) ? "page" : undefined}
+          aria-current={isCurrent(link.href, pathname) ? "page" : undefined}
           class:list={[
             "nav-link relative inline-flex min-h-11 items-center rounded-[4px] text-ui font-medium transition-colors duration-150",
-            isCurrent(link.href)
+            isCurrent(link.href, pathname)
               ? "font-semibold text-text-action"
               : "text-text-muted hover:text-text",
           ]}
         >
           {link.label}
-          {isCurrent(link.href) && (
+          {isCurrent(link.href, pathname) && (
             <span class="absolute -bottom-1.5 start-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-[1px] bg-primary" aria-hidden="true"></span>
           )}
         </a>

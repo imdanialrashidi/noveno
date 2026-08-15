@@ -13,10 +13,9 @@
 import Button from "../ui/Button.astro";
 import ChannelLink from "../ui/ChannelLink.astro";
 import { NAV_LINKS, CTA_URL, PRIMARY_CTA_LABEL, CONTACT } from "../../data/site";
+import { isCurrent } from "./nav";
 
 const pathname = Astro.url.pathname;
-const isCurrent = (href: string) =>
-  href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
 ---
 
 <div
@@ -37,16 +36,16 @@ const isCurrent = (href: string) =>
         <li class="border-t border-line">
           <a
             href={link.href}
-            aria-current={isCurrent(link.href) ? "page" : undefined}
+            aria-current={isCurrent(link.href, pathname) ? "page" : undefined}
             class:list={[
               "flex min-h-13 items-center gap-3 py-3 text-lg font-medium transition-colors duration-150",
-              isCurrent(link.href) ? "text-text-action" : "text-text hover:text-text-action",
+              isCurrent(link.href, pathname) ? "text-text-action" : "text-text hover:text-text-action",
             ]}
           >
             <span
               class:list={[
                 "h-2 w-2 flex-none rounded-[1px]",
-                isCurrent(link.href) ? "bg-primary" : "border border-line-strong",
+                isCurrent(link.href, pathname) ? "bg-primary" : "border border-line-strong",
               ]}
               aria-hidden="true"
             ></span>
@@ -61,13 +60,13 @@ const isCurrent = (href: string) =>
           href="/process"
           class:list={[
             "flex min-h-13 items-center gap-3 py-3 text-lg font-medium transition-colors duration-150",
-            isCurrent("/process") ? "text-text-action" : "text-text hover:text-text-action",
+            isCurrent("/process", pathname) ? "text-text-action" : "text-text hover:text-text-action",
           ]}
         >
           <span
             class:list={[
               "h-2 w-2 flex-none rounded-[1px]",
-              isCurrent("/process") ? "bg-primary" : "border border-line-strong",
+              isCurrent("/process", pathname) ? "bg-primary" : "border border-line-strong",
             ]}
             aria-hidden="true"
           ></span>
