@@ -118,34 +118,44 @@ test("per-page social cards exist and are referenced with correct metadata", () 
   png("og.png");
   png("og/work.png");
   png("og/work/noveno-website.png");
-  png("og/work/clinic-acquisition-concept.png");
-  png("og/insights.png");
-  png("og/insights/instagram-lead-tracking.png");
+  png("og/blog.png");
+  png("og/blog/instagram-lead-tracking.png");
   png("og/about.png");
 
   expectCard("index.html", "/og.png");
   expectCard("work/index.html", "/og/work.png");
   expectCard("work/noveno-website/index.html", "/og/work/noveno-website.png");
-  expectCard("insights/index.html", "/og/insights.png");
-  expectCard("insights/instagram-lead-tracking/index.html", "/og/insights/instagram-lead-tracking.png");
+  expectCard("blog/index.html", "/og/blog.png");
+  expectCard("blog/instagram-lead-tracking/index.html", "/og/blog/instagram-lead-tracking.png");
   expectCard("about/index.html", "/og/about.png");
 });
 
-test("draft insights articles never build and never enter the sitemap", () => {
-  const draftHtml = path.join(dist, "insights", "draft-sample", "index.html");
-  assert.ok(!fs.existsSync(draftHtml), "draft article must not be built");
-  const sitemap = fs.readFileSync(path.join(root, "public", "sitemap.xml"), "utf8");
-  assert.ok(!sitemap.includes("/insights/draft-sample"), "draft article must not be in the sitemap");
+test("insights → blog migration: permanent redirects and no duplicate indexable routes", () => {
+  const redirects = fs.readFileSync(path.join(root, "public", "_redirects"), "utf8");
+  assert.match(redirects, /^\/insights\/\*\s+\/blog\/:splat\s+301$/m, "article slug redirect must be 301 and 1:1");
+  assert.match(redirects, /^\/insights\s+\/blog\s+301$/m, "index redirect must be 301");
+  // canonical article path is /blog/[slug]; nothing indexable may remain under /insights
+  assert.ok(!fs.existsSync(path.join(dist, "insights")), "no /insights pages may be built");
+  assert.ok(fs.existsSync(path.join(dist, "blog", "instagram-lead-tracking", "index.html")), "/blog/[slug] must be built");
 });
 
-test("published insights article ships Article schema, breadcrumbs, canonical and fa-IR", () => {
-  const html = fs.readFileSync(path.join(dist, "insights", "instagram-lead-tracking", "index.html"), "utf8");
+test("draft blog articles never build and never enter the sitemap", () => {
+  const draftHtml = path.join(dist, "blog", "draft-sample", "index.html");
+  assert.ok(!fs.existsSync(draftHtml), "draft article must not be built");
+  const sitemap = fs.readFileSync(path.join(root, "public", "sitemap.xml"), "utf8");
+  assert.ok(!sitemap.includes("/blog/draft-sample"), "draft article must not be in the sitemap");
+  assert.ok(!sitemap.includes("/insights/"), "sitemap must not list any old /insights URL");
+});
+
+test("published blog article ships Article schema, breadcrumbs, canonical and fa-IR", () => {
+  const html = fs.readFileSync(path.join(dist, "blog", "instagram-lead-tracking", "index.html"), "utf8");
   assert.match(html, /"@type":"Article"/, "article page must carry Article JSON-LD");
   assert.match(html, /"datePublished"/, "article schema must carry the publication date");
   assert.match(html, /"@type":"BreadcrumbList"/, "article page must carry breadcrumbs");
-  assert.match(html, /rel="canonical" href="https:\/\/noveno\.ir\/insights\/instagram-lead-tracking"/, "article canonical must be exact");
+  assert.match(html, /rel="canonical" href="https:\/\/noveno\.ir\/blog\/instagram-lead-tracking"/, "article canonical must be exact /blog URL");
   assert.match(html, /property="og:type" content="article"/, "article og:type must be article");
   assert.match(html, /<html[^>]*lang="fa"[^>]*dir="rtl"/, "article page must be fa + rtl");
+  assert.ok(html.includes("وبلاگ"), "article page must use blog terminology");
   // No fabricated schema: no ratings/reviews on the article.
   assert.ok(!html.includes('"@type":"Review"'), "no fabricated review schema");
   assert.ok(!html.includes('"@type":"Rating"'), "no fabricated rating schema");

@@ -48,7 +48,7 @@ export const CONTACT = {
 export const NAV_LINKS = [
   { href: "/services", label: "خدمات" },
   { href: "/work", label: "پروژه‌ها" },
-  { href: "/insights", label: "دیدگاه‌ها" },
+  { href: "/blog", label: "وبلاگ" },
   { href: "/about", label: "درباره" },
 ] as const;
 

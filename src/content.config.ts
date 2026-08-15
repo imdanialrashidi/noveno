@@ -83,8 +83,8 @@ const work = defineCollection({
   ]),
 });
 
-const insights = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/insights" }),
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/content/blog" }),
   schema: z.object({
     /** Article title — unique per article, used in <title>/og:title/H1. */
     title: z.string().min(3).max(120),
@@ -102,11 +102,11 @@ const insights = defineCollection({
     category: z.string().min(2).max(40),
     /** Optional tags — no tag pages are generated (thin taxonomy rule). */
     tags: z.array(z.string().min(2).max(30)).default([]),
-    /** Optional social-card override (path under public/, e.g. /og/insights/x.png). */
+    /** Optional social-card override (path under public/, e.g. /og/blog/x.png). */
     ogImage: z.string().optional(),
     /** Optional canonical override — only when genuinely required. */
     canonical: z.url().optional(),
   }),
 });
 
-export const collections = { work, insights };
+export const collections = { work, blog };

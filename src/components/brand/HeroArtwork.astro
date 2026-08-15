@@ -1,0 +1,377 @@
+---
+/**
+ * HeroArtwork — «نشانههای پراکنده → سامانهٔ منظم» (Scattered Signal →
+ * Structured System). The homepage's brand artwork, replacing the hero
+ * product screenshot (fourth visual review — docs/DESIGN.md §16).
+ *
+ * Concept: incoming attention (rotated fragments, ticks, dots) settles
+ * into an ordered field — a hairline "system plate" of registered
+ * squares whose pattern converges on the Noveno mark drawn as a quiet
+ * attractor. The transition is perceived through alignment, spacing
+ * and orientation — never drawn as arrows, connectors or labels.
+ *
+ * Uniquely Noveno:
+ *  - the brand mark appears as a hairline structural motif inside the
+ *    plate, with small green squares locked onto its key vertices;
+ *  - the square/circle grammar, hairline rules and 60px field grid are
+ *    the site's own primitives (docs/DESIGN.md §3.2);
+ *  - colors are pure semantic tokens (text/line/primary), so the
+ *    artwork re-themes itself with Light/Dark.
+ *
+ * Motion (docs/DESIGN.md §12 family — transform/opacity only):
+ *  - a handful of transition marks quietly settle into alignment;
+ *  - the plate surface materializes once, and one registered square
+ *    blinks an acknowledgment after load;
+ *  - tiny pointer parallax (two layers, ≤6px) on fine-pointer desktop
+ *    only; prefers-reduced-motion renders the fully settled frame.
+ *
+ * The static first frame is the settled composition: nothing about the
+ * artwork's quality depends on animation. No raster, no remote asset,
+ * no library — the whole piece is one inline SVG (≈4 KB).
+ *
+ * Two variants: a square desktop field and a recomposed wide strip for
+ * mobile (fewer, larger marks — never a shrunk desktop SVG).
+ */
+
+const MOTIF_PATH =
+  "M266.458,392.827L124.074,174.407L63.904,318.218L0.5,317.995L114.581,51.524" +
+  "L265.649,288.586C265.649,288.586 347.798,174.154 371.997,84.837L317.715,62.386" +
+  "L263.782,84.45C263.782,84.45 269.742,147.856 313.528,163.292L284.862,214.638" +
+  "C284.862,214.638 208.851,188.767 199.035,49.522L317.889,0.5L436.986,49.522" +
+  "C436.986,49.522 436.866,152.092 266.458,392.827Z";
+---
+
+<!-- ================= Desktop field (square, lg+) ================= -->
+<svg
+  class="hero-art hidden lg:block"
+  viewBox="0 0 600 600"
+  role="img"
+  aria-label="تصویرسازی نشانه‌های نوونو: نشانه‌های پراکندهٔ توجه که در یک سامانهٔ منظم جای می‌گیرند"
+  data-hero-art
+>
+  <defs>
+    <pattern id="hp-grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M60 0H0V60" fill="none" stroke="var(--line)" stroke-width="1" />
+    </pattern>
+    <linearGradient id="hp-fade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="1" />
+      <stop offset="0.52" stop-color="#fff" stop-opacity="0.85" />
+      <stop offset="0.78" stop-color="#fff" stop-opacity="0" />
+    </linearGradient>
+    <mask id="hp-mask">
+      <rect x="0" y="0" width="600" height="600" fill="url(#hp-fade)" />
+    </mask>
+  </defs>
+
+  <!-- 1. The field — faint 60px grid, present where structure exists -->
+  <g mask="url(#hp-mask)" opacity="0.45">
+    <rect x="0" y="0" width="600" height="600" fill="url(#hp-grid)" />
+  </g>
+
+  <!-- 2. Core layer (structure) — subtle pointer parallax, same direction -->
+  <g class="hero-art-core">
+    <!-- system plate: surface materializes once -->
+    <g class="hero-art-plate">
+      <rect
+        x="40" y="310" width="280" height="280"
+        fill="var(--surface-soft)" opacity="0.82"
+      />
+      <rect
+        x="40" y="310" width="280" height="280"
+        fill="none" stroke="var(--line-strong)" stroke-opacity="0.7" stroke-width="1.5"
+      />
+      <!-- internal 40px pitch — the order the signals join -->
+      <g stroke="var(--line)" stroke-opacity="0.6" stroke-width="1">
+        <path stroke="currentColor" d="M80 310V590M120 310V590M160 310V590M200 310V590M240 310V590M280 310V590" />
+        <path stroke="currentColor" d="M40 350H320M40 390H320M40 430H320M40 470H320M40 510H320M40 550H320" />
+      </g>
+    </g>
+
+    <!-- registered signals: axis-aligned squares on the grid -->
+    <g class="text-text">
+      <rect fill="currentColor" x="55" y="325" width="10" height="10" opacity="0.68" />
+      <rect fill="currentColor" x="135" y="325" width="10" height="10" opacity="0.62" />
+      <rect x="255" y="325" width="10" height="10" fill="none" stroke="currentColor" stroke-opacity="0.75" stroke-width="1.5" />
+      <rect fill="currentColor" x="55" y="365" width="10" height="10" opacity="0.62" />
+      <rect x="175" y="365" width="10" height="10" fill="none" stroke="currentColor" stroke-opacity="0.75" stroke-width="1.5" />
+      <rect fill="currentColor" x="295" y="365" width="10" height="10" opacity="0.68" />
+      <rect x="95" y="405" width="10" height="10" fill="none" stroke="currentColor" stroke-opacity="0.75" stroke-width="1.5" />
+      <rect fill="currentColor" x="215" y="405" width="10" height="10" opacity="0.62" />
+      <rect x="55" y="445" width="10" height="10" fill="none" stroke="currentColor" stroke-opacity="0.75" stroke-width="1.5" />
+      <rect fill="currentColor" x="135" y="445" width="10" height="10" opacity="0.68" />
+      <rect x="295" y="445" width="10" height="10" fill="none" stroke="currentColor" stroke-opacity="0.75" stroke-width="1.5" />
+      <rect x="95" y="485" width="10" height="10" fill="none" stroke="currentColor" stroke-opacity="0.65" stroke-width="1.5" />
+      <rect fill="currentColor" x="215" y="485" width="10" height="10" opacity="0.62" />
+      <rect fill="currentColor" x="135" y="525" width="10" height="10" opacity="0.62" />
+      <rect x="175" y="525" width="10" height="10" fill="none" stroke="currentColor" stroke-opacity="0.75" stroke-width="1.5" />
+      <rect fill="currentColor" x="295" y="525" width="10" height="10" opacity="0.6" />
+      <rect x="95" y="565" width="10" height="10" fill="none" stroke="currentColor" stroke-opacity="0.75" stroke-width="1.5" />
+    </g>
+    <g class="text-primary">
+      <rect fill="currentColor" x="95" y="405" width="10" height="10" opacity="0.9" />
+      <rect fill="currentColor" x="175" y="445" width="10" height="10" opacity="0.85" />
+      <rect fill="currentColor" x="255" y="485" width="10" height="10" opacity="0.9" />
+      <rect fill="currentColor" x="215" y="565" width="10" height="10" opacity="0.85" />
+    </g>
+
+    <!-- the attractor: the Noveno mark, hairline, with signals locked
+         onto its key vertices -->
+    <g transform="translate(105 382.5) scale(0.3425)">
+      <path
+        d={MOTIF_PATH}
+        fill="none"
+        stroke="var(--line-strong)"
+        stroke-opacity="0.62"
+        stroke-width="2.8"
+        stroke-linejoin="round"
+      />
+      <g class="text-primary">
+        <rect fill="currentColor" x="104.6" y="41.5" width="20" height="20" opacity="0.95" />
+        <rect fill="currentColor" x="427" y="39.5" width="20" height="20" opacity="0.95" />
+        <rect fill="currentColor" x="256.5" y="382.8" width="20" height="20" opacity="0.9" />
+        <rect fill="currentColor" x="53.9" y="308.2" width="20" height="20" opacity="0.9" />
+      </g>
+    </g>
+
+    <!-- ordered output beyond the plate — quiet, aligned -->
+    <g class="text-text">
+      <rect fill="currentColor" x="430" y="520" width="8" height="8" opacity="0.4" />
+      <rect fill="currentColor" x="470" y="520" width="8" height="8" opacity="0.4" />
+      <rect fill="currentColor" x="510" y="520" width="8" height="8" opacity="0.45" />
+    </g>
+
+    <!-- queued at the plate's edge: axis-aligned, about to register -->
+    <g class="text-text">
+      <rect fill="currentColor" x="330" y="425" width="10" height="10" opacity="0.68" />
+      <rect x="330" y="465" width="10" height="10" fill="none" stroke="currentColor" stroke-opacity="0.65" stroke-width="1.5" />
+    </g>
+  </g>
+
+  <!-- 3. Scatter layer (incoming attention) — opposing parallax -->
+  <g class="hero-art-scatter">
+    <g class="text-text">
+      <rect fill="currentColor" class="hero-art-mark" x="425" y="55" width="10" height="10" opacity="0.7" style="transform: rotate(22deg)" />
+      <rect fill="currentColor" class="hero-art-mark" x="550" y="205" width="10" height="10" opacity="0.55" style="transform: rotate(28deg)" />
+      <rect fill="currentColor" class="hero-art-mark" x="465" y="245" width="10" height="10" opacity="0.5" style="transform: rotate(-18deg)" />
+      <rect fill="currentColor" class="hero-art-mark" x="345" y="135" width="9" height="9" opacity="0.45" style="transform: rotate(24deg)" />
+      <rect fill="currentColor" class="hero-art-mark" x="405" y="85" width="8" height="8" opacity="0.4" style="transform: rotate(30deg)" />
+      <rect fill="currentColor" class="hero-art-mark" x="540" y="315" width="8" height="8" opacity="0.6" style="transform: rotate(10deg)" />
+      <rect fill="currentColor" class="hero-art-mark" x="447" y="325" width="12" height="12" opacity="0.4" style="transform: rotate(12deg)" />
+    </g>
+    <g class="text-line-strong">
+      <rect fill="currentColor" class="hero-art-mark" x="515" y="125" width="10" height="10" opacity="0.8" style="transform: rotate(14deg)" />
+      <circle fill="currentColor" cx="420" cy="175" r="5" opacity="0.7" />
+      <path stroke="currentColor" d="M448 138l10 -6" stroke-width="1.5" stroke-linecap="round" opacity="0.7" />
+      <path stroke="currentColor" d="M528 243l9 5" stroke-width="1.5" stroke-linecap="round" opacity="0.6" />
+      <g class="hero-art-mark" style="transform: rotate(40deg)" opacity="0.65">
+        <path stroke="currentColor" d="M455 145h14" stroke-width="1.5" stroke-linecap="round" />
+      </g>
+      <g class="hero-art-mark" style="transform: rotate(-25deg)" opacity="0.55">
+        <path stroke="currentColor" d="M535 250h12" stroke-width="1.5" stroke-linecap="round" />
+      </g>
+      <g class="hero-art-mark" style="transform: rotate(15deg)" opacity="0.5">
+        <path stroke="currentColor" d="M410 100h16" stroke-width="1.5" stroke-linecap="round" />
+      </g>
+      <g class="hero-art-mark" style="transform: rotate(45deg)" opacity="0.6">
+        <path stroke="currentColor" d="M464 200h10M464 200v10" stroke-width="1.5" stroke-linecap="round" />
+      </g>
+      <g class="hero-art-mark" style="transform: rotate(30deg)" opacity="0.45">
+        <path stroke="currentColor" d="M544 38h8M544 38v8" stroke-width="1.5" stroke-linecap="round" />
+      </g>
+    </g>
+    <g class="text-text">
+      <circle fill="currentColor" cx="485" cy="55" r="4.5" opacity="0.55" />
+      <circle fill="currentColor" cx="555" cy="85" r="3.5" opacity="0.4" />
+      <circle fill="currentColor" cx="375" cy="220" r="3" opacity="0.45" />
+    </g>
+    <g class="text-primary">
+      <circle fill="currentColor" cx="495" cy="300" r="4" opacity="0.75" />
+    </g>
+    <g class="hero-art-mark text-text" style="transform: rotate(15deg)" opacity="0.5">
+      <rect fill="currentColor" x="578" y="262" width="6" height="6" />
+      <rect fill="currentColor" x="586" y="256" width="6" height="6" />
+      <rect fill="currentColor" x="593" y="264" width="6" height="6" />
+    </g>
+  </g>
+
+  <!-- 4. Transition — the signals quietly finding structure -->
+  <g class="hero-art-scatter">
+    <rect fill="currentColor" class="hero-art-mark hero-art-settle" x="355" y="280" width="10" height="10" opacity="0.75" style="--dx: -30px; --dy: -14px; --dr: 14deg; --d: 150ms" />
+    <rect fill="currentColor" class="hero-art-mark hero-art-settle" x="395" y="315" width="10" height="10" opacity="0.7" style="--dx: -22px; --dy: -22px; --dr: 10deg; --d: 300ms" />
+    <rect fill="currentColor" class="hero-art-mark hero-art-settle" x="345" y="345" width="10" height="10" opacity="0.65" style="--dx: -26px; --dy: -10px; --dr: 8deg; --d: 450ms" />
+    <rect fill="currentColor" class="hero-art-mark hero-art-settle" x="385" y="355" width="10" height="10" opacity="0.6" style="--dx: -18px; --dy: -24px; --dr: 6deg; --d: 600ms" />
+    <circle fill="currentColor" class="hero-art-settle text-primary" cx="370" cy="395" r="4.5" opacity="0.85" style="--dx: -24px; --dy: -16px; --dr: 0deg; --d: 750ms" />
+  </g>
+
+  <!-- 5. The acknowledgment — one registered square blinks twice -->
+  <rect fill="currentColor" class="hero-art-ack text-primary" x="255" y="485" width="10" height="10" opacity="0.9" />
+</svg>
+
+<!-- ================= Mobile strip (recomposed, <lg) ================= -->
+<svg
+  class="hero-art lg:hidden"
+  viewBox="0 0 600 210"
+  role="img"
+  aria-label="تصویرسازی نشانه‌های نوونو: نشانه‌های پراکندهٔ توجه که در یک سامانهٔ منظم جای می‌گیرند"
+  data-hero-art
+>
+  <defs>
+    <pattern id="hp-m-grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M60 0H0V60" fill="none" stroke="var(--line)" stroke-width="1" />
+    </pattern>
+    <linearGradient id="hp-m-fade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#fff" stop-opacity="0.85" />
+      <stop offset="0.75" stop-color="#fff" stop-opacity="0" />
+    </linearGradient>
+    <mask id="hp-m-mask">
+      <rect x="0" y="0" width="600" height="210" fill="url(#hp-m-fade)" />
+    </mask>
+  </defs>
+
+  <!-- faint field, structure side only -->
+  <g mask="url(#hp-m-mask)" opacity="0.4">
+    <rect x="0" y="0" width="600" height="210" fill="url(#hp-m-grid)" />
+  </g>
+
+  <!-- the shelf: an open band the signals land in -->
+  <g class="hero-art-core">
+    <path
+      d="M24 66H330M24 146H330"
+      fill="none"
+      stroke="var(--line-strong)"
+      stroke-opacity="0.6"
+      stroke-width="1.5"
+    />
+    <!-- the Noveno mark as the band's anchor -->
+    <g transform="translate(10 82) scale(0.12)">
+      <path
+        d={MOTIF_PATH}
+        fill="none"
+        stroke="var(--line-strong)"
+        stroke-opacity="0.55"
+        stroke-width="8"
+        stroke-linejoin="round"
+      />
+    </g>
+    <!-- the registered row -->
+    <g class="text-text">
+      <rect fill="currentColor" x="68" y="98" width="16" height="16" opacity="0.6" />
+      <rect x="180" y="98" width="16" height="16" fill="none" stroke="currentColor" stroke-opacity="0.7" stroke-width="1.5" />
+      <rect fill="currentColor" x="236" y="98" width="16" height="16" opacity="0.5" />
+    </g>
+    <g class="text-primary">
+      <rect fill="currentColor" x="124" y="98" width="16" height="16" opacity="0.9" />
+      <rect fill="currentColor" x="292" y="98" width="16" height="16" opacity="0.9" />
+    </g>
+    <!-- queued at the shelf's edge -->
+    <rect fill="currentColor" class="text-text" x="338" y="99" width="14" height="14" opacity="0.6" />
+  </g>
+
+  <!-- transition: two marks settling into the row -->
+  <g class="hero-art-scatter">
+    <rect fill="currentColor" class="hero-art-mark hero-art-settle" x="368" y="86" width="14" height="14" opacity="0.75" style="--dx: -22px; --dy: -12px; --dr: 8deg; --d: 150ms" />
+    <rect fill="currentColor" class="hero-art-mark hero-art-settle" x="400" y="114" width="14" height="14" opacity="0.65" style="--dx: -16px; --dy: -14px; --dr: 4deg; --d: 300ms" />
+  </g>
+
+  <!-- scatter: incoming attention, larger marks for small screens -->
+  <g class="hero-art-scatter">
+    <g class="text-text">
+      <rect fill="currentColor" class="hero-art-mark" x="432" y="62" width="16" height="16" opacity="0.7" style="transform: rotate(20deg)" />
+      <rect fill="currentColor" class="hero-art-mark" x="537" y="142" width="14" height="14" opacity="0.6" style="transform: rotate(-26deg)" />
+      <rect fill="currentColor" class="hero-art-mark" x="414" y="162" width="10" height="10" opacity="0.45" style="transform: rotate(15deg)" />
+    </g>
+    <g class="text-line-strong">
+      <circle fill="currentColor" cx="492" cy="97" r="8" opacity="0.7" />
+      <path stroke="currentColor" d="M462 147l12 -7" stroke-width="2" stroke-linecap="round" opacity="0.6" />
+      <g class="hero-art-mark" style="transform: rotate(35deg)" opacity="0.6">
+        <path stroke="currentColor" d="M460 92h18" stroke-width="2" stroke-linecap="round" />
+      </g>
+      <g class="hero-art-mark" style="transform: rotate(45deg)" opacity="0.5">
+        <path stroke="currentColor" d="M552 52h12M552 52v12" stroke-width="2" stroke-linecap="round" />
+      </g>
+    </g>
+    <g class="text-primary">
+      <circle fill="currentColor" cx="512" cy="37" r="5" opacity="0.8" />
+    </g>
+  </g>
+</svg>
+
+<style>
+  /* Rotations and settle transforms are CSS-only (transform-box: fill-box
+     makes rotate() pivot on each mark's own center — not the viewBox
+     origin). Values live in inline custom properties per mark. */
+  .hero-art-mark {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  /* Signals quietly finding structure: from scattered offset to the
+     aligned final position (one shot, staggered). The final frame IS
+     the natural state — no-JS and reduced-motion see it instantly. */
+  .hero-art-settle {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: hero-settle 1000ms var(--ease-standard) var(--d, 200ms) both;
+  }
+  @keyframes hero-settle {
+    from {
+      transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--dr, 0deg));
+    }
+    to {
+      transform: translate(0, 0) rotate(0deg);
+    }
+  }
+
+  /* The plate materializes once, quietly (structure already exists in
+     the frame; only its surface settles in). */
+  .hero-art-plate {
+    animation: hero-plate 700ms var(--ease-standard) 250ms both;
+  }
+  @keyframes hero-plate {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* One acknowledgment blink after load — two slow pulses, then quiet. */
+  .hero-art-ack {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: hero-ack 700ms ease-in-out 1500ms 2 both;
+  }
+  @keyframes hero-ack {
+    0%,
+    100% {
+      opacity: 0.9;
+    }
+    50% {
+      opacity: 0.2;
+    }
+  }
+
+  /* Pointer parallax — two layers, ≤6px, driven by --par-x/--par-y
+     set from motion.ts (fine-pointer desktop only). Transform-only;
+     the transition smooths pointer steps. Reduced motion zeroes it. */
+  .hero-art-scatter {
+    transform: translate3d(
+      calc(var(--par-x, 0) * -5px),
+      calc(var(--par-y, 0) * -4px),
+      0
+    );
+    transition: transform 400ms var(--ease-standard);
+  }
+  .hero-art-core {
+    transform: translate3d(
+      calc(var(--par-x, 0) * 2px),
+      calc(var(--par-y, 0) * 1.5px),
+      0
+    );
+    transition: transform 400ms var(--ease-standard);
+  }
+</style>

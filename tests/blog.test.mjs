@@ -1,5 +1,5 @@
-// Insights content honesty + publishing-gate tests (product-led pass).
-// The insights collection is a publishing surface: metadata must be
+// Blog content honesty + publishing-gate tests (product-led pass).
+// The blog collection is a publishing surface: metadata must be
 // complete enough for SEO (title/description/date/category), drafts
 // must be gated consistently (this mirrors the same frontmatter the
 // build, index, article pages, sitemap and OG generator read), and no
@@ -11,7 +11,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 
-const contentDir = path.resolve(import.meta.dirname, "..", "src", "content", "insights");
+const contentDir = path.resolve(import.meta.dirname, "..", "src", "content", "blog");
 
 function parseFrontmatter(file) {
   const raw = fs.readFileSync(file, "utf8");
@@ -35,8 +35,8 @@ const entries = fs
 
 const published = entries.filter((e) => !e.data.draft);
 
-test("insights collection exists with the draft fixture in place", () => {
-  assert.ok(entries.length >= 1, "no insights entries found");
+test("blog collection exists with the draft fixture in place", () => {
+  assert.ok(entries.length >= 1, "no blog entries found");
   const draftFixture = entries.find((e) => e.file === "draft-sample.md");
   assert.ok(draftFixture, "draft-sample.md fixture must exist (draft-exclusion regression)");
   assert.equal(draftFixture.data.draft, true, "draft-sample.md must stay a draft");

@@ -1,6 +1,6 @@
 ---
 /**
- * Insights article page (/insights/[slug]) — the reading surface.
+ * Blog article page (/blog/[slug]) — the reading surface.
  * - Exceptionally readable Persian: RTL, ~70ch measure, strong heading
  *   rhythm, blockquotes, lists, tables, figures, captions.
  * - SEO: unique title/description, canonical (optional override),
@@ -11,16 +11,20 @@
  *   when there is no real same-category article.
  * - Drafts never reach this page (getStaticPaths filters them) and
  *   internal recommendations only ever point at published entries.
+ *
+ * Canonical URL: /blog/[slug]. The former /insights/[slug] URLs are
+ * permanently redirected here (public/_redirects) — exactly one
+ * canonical article URL exists.
  */
 
 import PageLayout from "../../layouts/PageLayout.astro";
 import Button from "../../components/ui/Button.astro";
 import { getCollection, render } from "astro:content";
-import { isPublished, relatedEntries, neighbours, formatFaDate, readingMinutes } from "../../data/insights";
+import { isPublished, relatedEntries, neighbours, formatFaDate, readingMinutes } from "../../data/blog";
 import { toFaDigits } from "../../data/site";
 
 export async function getStaticPaths() {
-  const all = await getCollection("insights");
+  const all = await getCollection("blog");
   const published = all.filter(isPublished);
   return published.map((entry) => ({
     params: { slug: entry.id },
@@ -34,8 +38,8 @@ const data = entry.data;
 
 const site = Astro.site ?? new URL("https://noveno.ir/");
 const origin = site.toString().replace(/\/$/, "");
-const canonicalUrl = data.canonical ?? `${origin}/insights/${entry.id}`;
-const ogImage = data.ogImage ?? `/og/insights/${entry.id}.png`;
+const canonicalUrl = data.canonical ?? `${origin}/blog/${entry.id}`;
+const ogImage = data.ogImage ?? `/og/blog/${entry.id}.png`;
 
 const related = relatedEntries(all, entry, 2);
 const { older, newer } = neighbours(all, entry);
@@ -44,13 +48,13 @@ const pageTitle = `${data.title} | نوونو`;
 const publishedIso = data.published_at.toISOString();
 const updatedIso = data.updated_at?.toISOString();
 
-/* BreadcrumbList — truthful hierarchy for the insights section. */
+/* BreadcrumbList — truthful hierarchy for the blog section. */
 const breadcrumbJsonLd = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   itemListElement: [
     { "@type": "ListItem", position: 1, name: "نوونو", item: `${origin}/` },
-    { "@type": "ListItem", position: 2, name: "دیدگاه‌ها", item: `${origin}/insights` },
+    { "@type": "ListItem", position: 2, name: "وبلاگ", item: `${origin}/blog` },
     { "@type": "ListItem", position: 3, name: data.title, item: canonicalUrl },
   ],
 });
@@ -84,7 +88,7 @@ const readingLabel = `${toFaDigits(readingMinutes(entry.body ?? ""))} دقیقه
 <PageLayout
   title={pageTitle}
   description={data.description}
-  path={`/insights/${entry.id}`}
+  path={`/blog/${entry.id}`}
   ogImage={ogImage}
   ogType="article"
   ogImageAlt={data.title}
@@ -92,13 +96,13 @@ const readingLabel = `${toFaDigits(readingMinutes(entry.body ?? ""))} دقیقه
   <script slot="head" type="application/ld+json" set:html={breadcrumbJsonLd}></script>
   <script slot="head" type="application/ld+json" set:html={articleJsonLd}></script>
 
-  <!-- Breadcrumbs -->
+  <!-- Breadcrumbs: خانه / وبلاگ / عنوان -->
   <nav aria-label="مسیر صفحه" class="border-b border-line">
     <div class="mx-auto max-w-[1200px] px-5 py-3 sm:px-8">
       <ol class="flex flex-wrap items-center gap-1.5 text-meta text-text-faint">
-        <li><a href="/" class="rounded-[2px] transition-colors duration-150 hover:text-text-action">نوونو</a></li>
+        <li><a href="/" class="rounded-[2px] transition-colors duration-150 hover:text-text-action">خانه</a></li>
         <li aria-hidden="true"><svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg></li>
-        <li><a href="/insights/" class="rounded-[2px] transition-colors duration-150 hover:text-text-action">دیدگاه‌ها</a></li>
+        <li><a href="/blog/" class="rounded-[2px] transition-colors duration-150 hover:text-text-action">وبلاگ</a></li>
         <li aria-hidden="true"><svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg></li>
         <li aria-current="page" class="text-text-muted">{data.title}</li>
       </ol>
@@ -110,7 +114,7 @@ const readingLabel = `${toFaDigits(readingMinutes(entry.body ?? ""))} دقیقه
     <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
       <div class="flex flex-wrap items-center gap-3">
         <a
-          href="/insights/"
+          href="/blog/"
           class="inline-flex items-center rounded-[4px] border border-line bg-surface px-2.5 py-1 text-caption text-text-muted transition-colors duration-150 hover:border-primary hover:text-text-action"
         >
           {data.category}
@@ -147,7 +151,7 @@ const readingLabel = `${toFaDigits(readingMinutes(entry.body ?? ""))} دقیقه
               <div class="flex flex-col">
                 {older && (
                   <a
-                    href={`/insights/${older.id}`}
+                    href={`/blog/${older.id}`}
                     class="group flex flex-col gap-1 border-t border-line py-5 transition-colors duration-150 hover:bg-surface-soft/40 sm:px-3"
                   >
                     <span class="text-meta text-text-faint">نوشتهٔ بعدی</span>
@@ -157,7 +161,7 @@ const readingLabel = `${toFaDigits(readingMinutes(entry.body ?? ""))} دقیقه
                 )}
                 {newer && (
                   <a
-                    href={`/insights/${newer.id}`}
+                    href={`/blog/${newer.id}`}
                     class="group flex flex-col gap-1 border-t border-line py-5 transition-colors duration-150 hover:bg-surface-soft/40 sm:px-3"
                   >
                     <span class="text-meta text-text-faint">نوشتهٔ قبلی</span>
@@ -178,7 +182,7 @@ const readingLabel = `${toFaDigits(readingMinutes(entry.body ?? ""))} دقیقه
                 {related.map((item) => (
                   <li class="border-t border-line">
                     <a
-                      href={`/insights/${item.id}`}
+                      href={`/blog/${item.id}`}
                       class="group flex flex-col gap-1 py-5 transition-colors duration-150 hover:bg-surface-soft/40 sm:px-3"
                     >
                       <span class="text-meta text-text-faint">{item.data.category}</span>
@@ -196,7 +200,7 @@ const readingLabel = `${toFaDigits(readingMinutes(entry.body ?? ""))} دقیقه
               قدم بعدی بررسی مسیر جذب است: چند سؤال کوتاه تا تصویر دقیق‌تری از وضعیت فعلی داشته باشیم.
             </p>
             <div class="flex flex-wrap items-center gap-4">
-              <Button href="/audit" data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"insights-article"}' }}>درخواست بررسی مسیر جذب</Button>
+              <Button href="/audit" data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"blog-article"}' }}>درخواست بررسی مسیر جذب</Button>
               <Button href="/services" variant="secondary">دیدن خدمات</Button>
             </div>
           </div>

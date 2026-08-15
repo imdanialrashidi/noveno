@@ -7,14 +7,22 @@
  *   restrained brand geometry (hairlines, squares, logo mark).
  *
  * Media rhythm (≈6 visual moments, no decorative filler):
- *   hero      → real audit-UI composition + 4-stage typographic strip
- *               (توجه ← درخواست ← ثبت ← پیگیری)
+ *   hero      → brand artwork «نشانه‌های پراکنده → سامانهٔ منظم»
+ *               (inline SVG signal field, no screenshot/photo) +
+ *               the 4-stage typographic strip (توجه ← درخواست ← ثبت ← پیگیری)
  *   problem   → editorial typographic contrast (today / with Noveno)
  *   system    → real screenshot of the audit channel step (real UI)
  *   work      → large real screenshots (proof section)
  *   process   → typography-led numbered sequence
- *   insights  → latest published article (editorial band)
+ *   blog      → latest published article (editorial band)
  *   final CTA → brand-led finish: typography + logo geometry
+ *
+ * The hero artwork replaces the audit-UI composition (fourth visual
+ * review — docs/DESIGN.md §16): the founder wants brand + concept as
+ * the first impression, with proof (real UI screenshots) shown lower
+ * on the page. The artwork is one inline SVG — no raster hero media,
+ * so the headline text is the LCP element and the hero costs nothing
+ * on the network.
  *
  * Product screenshots are captured from this site's own production
  * build (see docs/IMAGERY.md); no stock photography anywhere.
@@ -28,10 +36,11 @@ import CTASection from "../components/layout/CTASection.astro";
 import OfferRow from "../components/business/OfferRow.astro";
 import WorkCard from "../components/business/WorkCard.astro";
 import FAQItem from "../components/ui/FAQItem.astro";
+import HeroArtwork from "../components/brand/HeroArtwork.astro";
 import { getCollection } from "astro:content";
 import { previewFor } from "../data/work-previews";
 import { imageUrl } from "../generated/image-manifest";
-import { isPublished, sortByDate, formatFaMonth } from "../data/insights";
+import { isPublished, sortByDate, formatFaMonth } from "../data/blog";
 import {
   HERO_HEADLINE,
   PRIMARY_CTA_LABEL,
@@ -51,8 +60,8 @@ const proofEntries = (await getCollection("work"))
   .filter((entry) => entry.data.featured)
   .sort((a, b) => b.data.published_at.valueOf() - a.data.published_at.valueOf());
 
-const insights = sortByDate((await getCollection("insights")).filter(isPublished));
-const latestArticle = insights[0] ?? null;
+const blogPosts = sortByDate((await getCollection("blog")).filter(isPublished));
+const latestArticle = blogPosts[0] ?? null;
 
 const homeFaq = FAQ_ITEMS.slice(0, 6);
 
@@ -65,15 +74,6 @@ const faIndex = (i: number) => toFaDigits(String(i + 1).padStart(2, "0"));
 
 /* Real product surface — the audit interface (this site's own build).
    Content-hashed URLs via the image manifest — never hard-coded paths. */
-const AUDIT_SHOT = {
-  w1440: imageUrl("work/noveno-website-audit.webp"),
-  w720: imageUrl("work/noveno-website-audit-800.webp"),
-  alt: "فرم بررسی مسیر جذب در وب‌سایت نوونو — نمونه واقعی از رابط نوونو",
-  caption: "نمونه واقعی از رابط نوونو: درخواست بررسی مسیر جذب — شش مرحلهٔ کوتاه.",
-};
-const AUDIT_SRCSET = `${AUDIT_SHOT.w1440} 1440w, ${AUDIT_SHOT.w720} 720w`;
-const AUDIT_SIZES = "(min-width: 1024px) 560px, 92vw";
-
 const CHANNELS_SHOT = {
   w1440: imageUrl("work/noveno-website-audit-channels.webp"),
   w720: imageUrl("work/noveno-website-audit-channels-800.webp"),
@@ -93,24 +93,22 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
   ogImage="/og.png"
   ogImageAlt="نوونو — سیستم جذب مشتری برای کسب‌وکارهای خدماتی"
 >
-  <!-- LCP media: preload the hero product figure (real audit UI, WebP —
-       text-bearing screenshots stay WebP per DESIGN §9.3) at HIGH
-       priority with the hashed URL. -->
-  <link
-    rel="preload"
-    as="image"
-    href={AUDIT_SHOT.w1440}
-    imagesrcset={AUDIT_SRCSET}
-    imagesizes={AUDIT_SIZES}
-    type="image/webp"
-    fetchpriority="high"
-    slot="head"
-  />
+  <!-- LCP is the hero headline text (Estedad is preloaded in
+       BaseLayout); the hero carries NO raster media — the brand
+       artwork is an inline SVG, so there is nothing to preload.
+       Real product screenshots below the fold stay lazy. -->
 
-  <!-- ============ Hero — real product composition ============ -->
-  <section aria-labelledby="hero-title" class="border-b border-line">
-    <div class="mx-auto max-w-[1200px] px-5 pb-16 pt-14 sm:px-8 lg:pb-24 lg:pt-20">
-      <div class="grid items-center gap-10 lg:grid-cols-12 lg:gap-16">
+  <!-- ============ Hero — brand artwork + editorial composition ============ -->
+  <!-- The hero's job is brand + concept + first impression; proof
+       (real product UI) appears lower on the page. Desktop: an
+       asymmetric editorial split — the artwork column bleeds toward
+       the page edge and its square field hangs slightly lower than
+       the text block; the scatter zone sits nearest the headline.
+       Mobile: the artwork is recomposed as a wide strip below the
+       CTAs (never a shrunk desktop SVG). -->
+  <section aria-labelledby="hero-title" class="border-b border-line" data-hero-parallax>
+    <div class="mx-auto max-w-[1200px] px-5 pb-16 pt-14 sm:px-8 lg:pb-20 lg:pt-20">
+      <div class="grid items-start gap-12 lg:grid-cols-12 lg:gap-10">
         <!-- Primary side: headline + support + CTAs (right, RTL-first) -->
         <div class="flex flex-col items-start lg:col-span-6">
           <p class="text-ui font-medium text-text-faint">
@@ -143,26 +141,16 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
           </p>
         </div>
 
-        <!-- Visual side: the real product — the audit interface itself.
-             The figure is the product: attention → request → capture →
-             follow-up, shown truthfully, headline stays dominant. -->
+        <!-- Visual side: the brand artwork — scattered signals finding
+             structure. The square field hangs below the headline block
+             and bleeds out of its column toward the page edge (a
+             controlled 32px escape; no overflow at ≥1024px). The
+             4-stage strip beneath is typography + small squares, not
+             a diagram (motion §12.2). -->
         <div class="lg:col-span-6">
-          <figure class="media-figure" data-hero-figure>
-            <div class="media-frame aspect-[16/10]">
-              <img
-                src={AUDIT_SHOT.w1440}
-                srcset={AUDIT_SRCSET}
-                sizes={AUDIT_SIZES}
-                width="1440"
-                height="900"
-                fetchpriority="high"
-                decoding="async"
-                alt={AUDIT_SHOT.alt}
-              />
-            </div>
-            <!-- 4-stage strip: typography + small squares (brand geometry),
-                 not a diagram. One quiet entrance moment (motion §12.2). -->
-            <div class="hero-stages" data-hero-stages aria-label="چهار گام مسیر: توجه، درخواست، ثبت، پیگیری">
+          <div class="lg:-me-8 lg:mt-14">
+            <HeroArtwork />
+            <div class="hero-stages mt-8" data-hero-stages aria-label="چهار گام مسیر: توجه، درخواست، ثبت، پیگیری">
               <span class="sr-only">توجه، درخواست، ثبت، پیگیری</span>
               {HERO_STAGES.map((stage, i) => (
                 <Fragment>
@@ -176,8 +164,7 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
                 </Fragment>
               ))}
             </div>
-            <figcaption class="media-caption">{AUDIT_SHOT.caption}</figcaption>
-          </figure>
+          </div>
         </div>
       </div>
     </div>
@@ -479,22 +466,22 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
     </div>
   </section>
 
-  <!-- ============ Insights band — latest published article ============ -->
+  <!-- ============ Blog band — latest published article ============ -->
   {latestArticle && (
-    <section class="border-t border-line" aria-labelledby="insights-teaser-title">
+    <section class="border-t border-line" aria-labelledby="blog-teaser-title">
       <div class="mx-auto grid max-w-[1200px] gap-10 px-5 py-16 sm:px-8 lg:grid-cols-12 lg:gap-16 lg:py-24" data-reveal>
         <div class="lg:col-span-5">
           <SectionHeader
-            id="insights-teaser-title"
-            kicker="دیدگاه‌ها"
+            id="blog-teaser-title"
+            kicker="وبلاگ"
             title="نوشته‌هایی از جنس مسئله‌های واقعی"
             lead="دربارهٔ جذب مشتری، پیگیری لید و ثبت درخواست برای کسب‌وکارهای خدماتی — بدون وعده و با روش."
           />
-          <Button href="/insights" variant="secondary">همه نوشته‌ها</Button>
+          <Button href="/blog" variant="secondary">همه نوشته‌ها</Button>
         </div>
         <div class="flex flex-col justify-center lg:col-span-7">
           <a
-            href={`/insights/${latestArticle.id}`}
+            href={`/blog/${latestArticle.id}`}
             class="group flex flex-col gap-3 border-t border-line py-8 transition-colors duration-150 hover:bg-surface-soft/40 sm:px-3"
           >
             <span class="flex flex-wrap items-center gap-2 text-meta text-text-faint">

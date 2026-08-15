@@ -128,9 +128,10 @@ const websiteJsonLd = JSON.stringify({
   import { initAnalytics } from "../scripts/analytics";
   // Motion layer: one shared observer drives all entrance reveals;
   // below-the-fold content only, reduced-motion aware (motion.ts).
-  import { initReveal, initStagger, initHeroStages } from "../scripts/motion";
+  import { initReveal, initStagger, initHeroStages, initHeroParallax } from "../scripts/motion";
   initAnalytics();
   initReveal();
   initStagger();
   initHeroStages();
+  initHeroParallax();
 </script>

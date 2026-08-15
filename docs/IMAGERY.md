@@ -1,6 +1,6 @@
 # Imagery Registry — Noveno Website
 
-Every substantial image shipped in `public/images/` with its source, license, and processing. Policy (docs/DESIGN.md §9, third review 2026-09): **the public visual language is product-led** — real product screenshots for real work; designed concept previews (labeled) for concepts; typography + restrained brand geometry for editorial moments. **Contextual business photography is retired from the public visual language** (§3.5). No hotlinked remote images.
+Every substantial image shipped in `public/images/` with its source, license, and processing. Policy (docs/DESIGN.md §9): **the public visual language is product-led with a brand-art hero** — real product screenshots for proof; designed concept previews (labeled) for concepts; typography + restrained brand geometry for editorial moments; **the homepage hero is an original inline-SVG brand artwork** (no raster at all, fourth review 2026-10 — docs/DESIGN.md §3.6/§16). **Contextual business photography is retired from the public visual language** (§3.5). No hotlinked remote images.
 
 ## Retired photography — retirement and retention record (2026-09)
 
@@ -23,7 +23,7 @@ Captured with Playwright from this repository's own production build (`astro bui
 | File | Source | Captured | Used where |
 |---|---|---|---|
 | `noveno-website-hero.webp` / `-800.webp` | `/` homepage viewport, 1440×900 | 2026-09 (product-led build) | Work section preview + `/work` featured row + `/work/noveno-website` hero (LCP, preload + `fetchpriority=high`) |
-| `noveno-website-audit.webp` / `-800.webp` | `/audit` at step ۱ (business), 1440×900 | 2026-09 (product-led build) | Homepage hero composition + system section figure + `/work/noveno-website` detail |
+| `noveno-website-audit.webp` / `-800.webp` | `/audit` at step ۱ (business), 1440×900 | 2026-09 (product-led build) | Homepage system section figure + `/work/noveno-website` detail + social card (pre-2026-10 builds used it as the hero figure; **the hero now carries the brand artwork — no screenshot**) |
 | `noveno-website-audit-channels.webp` / `-800.webp` | `/audit` at step ۲ (channels), 1440×900 | 2026-09 (product-led build) | Homepage system section figure (channel capture with selected chips) |
 
 Other real-project previews (`mobile-khorsandi-hero`, `elsa-hamrah-hero`, `php-ielts-house-hero`, `isbatab-hero`, `danial-rashidi-portfolio-hero`) are captures of the public delivered sites via thum.io (see `public/images/work/SOURCES.md`); refresh with `bash scripts/refresh-portfolio-previews.sh` (downloads 1440×900, then the same Pillow optimizer emits the WebP pair).
@@ -40,11 +40,11 @@ Build-time generated PNGs (1200×630) by `scripts/generate-og-images.py` (Pillow
 
 | File | Card | Visual |
 |---|---|---|
-| `public/og.png` | Default / homepage card | NOVENO wordmark + headline + real audit-UI screenshot panel |
+| `public/og.png` | Default / homepage card | NOVENO wordmark + headline + **the brand signal-field artwork** (Pillow mirror of the hero geometry — no screenshot, fourth review) |
 | `public/og/work.png` | `/work` index | Wordmark + section title + featured work preview |
 | `public/og/work/{slug}.png` | `/work/{slug}` | Wordmark + project title + that project's real preview |
-| `public/og/insights.png` | `/insights` index | Wordmark + «دیدگاهها» title + typographic card |
-| `public/og/insights/{slug}.png` | `/insights/{slug}` | Wordmark + article title + category chip (per-article typographic card) |
+| `public/og/blog.png` | `/blog` index | Wordmark + «وبلاگ نوونو» title + typographic card |
+| `public/og/blog/{slug}.png` | `/blog/{slug}` | Wordmark + article title + category chip (per-article typographic card) |
 
 Generated before every build (`npm run build` prebuild hook), committed so `astro dev` works without a build step. Page metadata references them via `og:image` (BaseLayout `ogImage` prop); `public/_headers` serves `/og/*` with short-lived caching so social crawlers re-fetch after content changes.
 

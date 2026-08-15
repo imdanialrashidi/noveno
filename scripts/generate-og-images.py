@@ -9,9 +9,13 @@ Cards (docs/IMAGERY.md §Social cards):
   public/og/work/{slug}.png            per work item (real preview when
                                        available; typographic concept card
                                        otherwise, always proof-labeled)
-  public/og/insights.png               insights index
-  public/og/insights/{slug}.png        per published article (title +
+  public/og/blog.png                   blog index (وبلاگ نوونو)
+  public/og/blog/{slug}.png            per published article (title +
                                        category; drafts are never rendered)
+
+The homepage card uses the brand «signal field» artwork (the same
+scatter-to-structure composition as the hero — drawn in Pillow geometry,
+no screenshots) since the hero is now brand artwork, not a product shot.
 
 Brand tokens come from docs/DESIGN.md §6; typography is Noto Sans Arabic
 (system font; Estedad/Vazirmatn ship as woff2 which Pillow cannot read).
@@ -38,6 +42,7 @@ FAINT = "#66716b"
 PRIMARY = "#679e86"
 ON_PRIMARY = "#06130d"
 LINE = "#dfe3e1"
+LINE_STRONG = "#7e8a83"
 GREEN = "#2f7a5e"  # text-action
 
 FONT_DIR = "/usr/share/fonts/noto"
@@ -121,8 +126,76 @@ def cover_panel(shot_path, panel_w, panel_h, img, draw, x, y):
     draw.rectangle([x + panel_w, y, x + panel_w + 2, y + panel_h], fill=LINE)
 
 
+def signal_panel(draw, x, y, w, h):
+    """The brand artwork — scattered signals becoming a structured system.
+    Pillow mirror of the hero SVG composition (docs/DESIGN.md §16):
+    faint field grid, a hairline system plate with registered squares,
+    and scattered rotated marks converging into it. No logo paste, no
+    text — geometry only, so the card stays brand art like the hero."""
+    import math
+    draw.rectangle([x, y, x + w, y + h], fill=CANVAS)
+    # faint field grid (only the structured half, faded)
+    for gx in range(x + 48, x + 340, 48):
+        draw.line([gx, y, gx, y + h], fill=LINE, width=1)
+    for gy in range(y + 48, y + h, 48):
+        draw.line([x, gy, x + w, gy], fill=LINE, width=1)
+    # system plate (lower-left)
+    px, py, pw, ph = x + 40, y + 250, 280, 280
+    draw.rectangle([px, py, px + pw, py + ph], fill=SOFT)
+    draw.rectangle([px, py, px + pw, py + ph], outline=LINE, width=1)
+    for gx in range(px + 40, px + pw, 40):
+        draw.line([gx, py, gx, py + ph], fill=LINE, width=1)
+    for gy in range(py + 40, py + ph, 40):
+        draw.line([px, gy, px + pw, gy], fill=LINE, width=1)
+    # registered signals (axis-aligned squares on the grid; outline=0.0)
+    cells = [
+        (px + 20, py + 20, 1), (px + 100, py + 20, 0), (px + 180, py + 20, 1),
+        (px + 260, py + 20, 0), (px + 20, py + 60, 0), (px + 140, py + 60, 1),
+        (px + 60, py + 100, 0), (px + 180, py + 100, 1), (px + 260, py + 100, 1),
+        (px + 100, py + 140, 0), (px + 20, py + 180, 0), (px + 140, py + 180, 1),
+        (px + 260, py + 180, 0), (px + 60, py + 220, 1), (px + 180, py + 220, 0),
+    ]
+    for cx, cy, filled in cells:
+        if filled:
+            draw.rectangle([cx, cy, cx + 10, cy + 10], fill=INK)
+        else:
+            draw.rectangle([cx, cy, cx + 10, cy + 10], outline=INK, width=1)
+    for cx, cy in [(px + 60, py + 100), (px + 140, py + 140), (px + 220, py + 180), (px + 180, py + 220)]:
+        draw.rectangle([cx, cy, cx + 10, cy + 10], fill=GREEN)
+    # queued at the plate's edge
+    draw.rectangle([px + pw + 10, py + 120, px + pw + 20, py + 130], fill=INK)
+    draw.rectangle([px + pw + 10, py + 160, px + pw + 20, py + 170], outline=INK, width=1)
+
+    def rot_rect(cx, cy, s, ang):
+        a = math.radians(ang)
+        pts = []
+        for dx, dy in [(-1, -1), (1, -1), (1, 1), (-1, 1)]:
+            rx = dx * s / 2 * math.cos(a) - dy * s / 2 * math.sin(a)
+            ry = dx * s / 2 * math.sin(a) + dy * s / 2 * math.cos(a)
+            pts.append((cx + rx, cy + ry))
+        return pts
+
+    for cx, cy, s, ang, ink, op in [
+        (x + 400, y + 60, 12, 22, INK, 0.7), (x + 470, y + 130, 12, -14, INK, 0.55),
+        (x + 430, y + 210, 12, 28, INK, 0.6), (x + 490, y + 300, 14, 12, INK, 0.4),
+        (x + 380, y + 100, 9, 30, INK, 0.45), (x + 500, y + 170, 9, 18, INK, 0.5),
+    ]:
+        draw.polygon(rot_rect(cx, cy, s, ang), fill=ink)
+    for cx, cy, r, ink, op in [
+        (x + 440, y + 50, 5, INK, 0.55), (x + 515, y + 250, 6, GREEN, 0.75),
+        (x + 395, y + 180, 4, INK, 0.5), (x + 530, y + 60, 4, INK, 0.4),
+    ]:
+        draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=ink)
+    a = math.radians(40)
+    draw.line([x + 420, y + 140, x + 434, y + 140], fill=LINE_STRONG, width=2)
+    draw.line([x + 427 - 7 * math.cos(a), y + 140 - 7 * math.sin(a), x + 427 + 7 * math.cos(a), y + 140 + 7 * math.sin(a)], fill=LINE_STRONG, width=2)
+    a2 = math.radians(-25)
+    draw.line([x + 470, y + 240, x + 482, y + 240], fill=LINE_STRONG, width=2)
+    draw.line([x + 476 - 6 * math.cos(a2), y + 240 - 6 * math.sin(a2), x + 476 + 6 * math.cos(a2), y + 240 + 6 * math.sin(a2)], fill=LINE_STRONG, width=2)
+
+
 def geometry_panel(draw, x, y, w, h, seed):
-    """Quiet brand geometry panel: hairline grid + squares (insights cards)."""
+    """Quiet brand geometry panel: hairline grid + squares (blog cards)."""
     draw.rectangle([x, y, x + w, y + h], fill=SOFT)
     # hairline grid, 48px pitch — subtle, 1px, low contrast
     for gx in range(x + 48, x + w, 48):
@@ -213,18 +286,18 @@ def work_entries():
     return out
 
 
-def insight_entries():
+def blog_entries():
     out = []
-    for name in sorted(os.listdir(os.path.join(ROOT, "src", "content", "insights"))):
+    for name in sorted(os.listdir(os.path.join(ROOT, "src", "content", "blog"))):
         if not name.endswith(".md"):
             continue
-        data = parse_fm(os.path.join(ROOT, "src", "content", "insights", name))
+        data = parse_fm(os.path.join(ROOT, "src", "content", "blog", name))
         if data.get("draft"):
             continue  # drafts never get cards
         out.append({
             "slug": name[:-3],
             "title": data.get("title", name[:-3]),
-            "category": data.get("category", "دیدگاه"),
+            "category": data.get("category", "وبلاگ"),
         })
     return out
 
@@ -255,16 +328,15 @@ def hero_headline():
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
     os.makedirs(os.path.join(OUT_DIR, "work"), exist_ok=True)
-    os.makedirs(os.path.join(OUT_DIR, "insights"), exist_ok=True)
+    os.makedirs(os.path.join(OUT_DIR, "blog"), exist_ok=True)
     made = []
 
-    # --- homepage / default card: real audit-UI screenshot panel ---------
+    # --- homepage / default card: the brand signal-field artwork ---------
     img, draw = base_card("سیستم جذب مشتری برای کسب‌وکارهای خدماتی")
-    cover_panel(os.path.join(ROOT, "public", "images", "work", "noveno-website-audit.webp"),
-                528, H, img, draw, 0, 0)
+    signal_panel(draw, 0, 0, 528, H)
     text_column(draw, hero_headline(), None,
                 chip="درخواست بررسی مسیر جذب", start_y=200)
-    footer(draw, "رابط واقعی نوونو — فرم بررسی مسیر جذب")
+    footer(draw, "هنر نشانهٔ نوونو — از توجه پراکنده تا سامانهٔ منظم")
     img.save(os.path.join(ROOT, "public", "og.png"), "PNG")
     made.append("og.png")
 
@@ -308,27 +380,27 @@ def main():
         img.save(os.path.join(OUT_DIR, "work", f"{e['slug']}.png"), "PNG")
         made.append(f"og/work/{e['slug']}.png")
 
-    # --- insights index -------------------------------------------------------
-    img, draw = base_card("نوونو · دیدگاه‌ها")
+    # --- blog index ---------------------------------------------------------
+    img, draw = base_card("نوونو · وبلاگ")
     geometry_panel(draw, 0, 0, 528, H, 4)
-    text_column(draw, "نوشته‌هایی درباره مسیر جذب مشتری",
+    text_column(draw, "وبلاگ نوونو",
                 "جذب، پیگیری لید و ثبت درخواست برای کسب‌وکارهای خدماتی — بدون وعده و با روش.",
                 chip="خواندن نوشته‌ها", start_y=200)
-    footer(draw, "دیدگاه‌های نوونو")
-    img.save(os.path.join(OUT_DIR, "insights.png"), "PNG")
-    made.append("og/insights.png")
+    footer(draw, "وبلاگ نوونو")
+    img.save(os.path.join(OUT_DIR, "blog.png"), "PNG")
+    made.append("og/blog.png")
 
     # --- per-article cards (published only) ------------------------------------
-    insights = insight_entries()
-    prune_stale_cards(insights, "insights")
-    for a in insights:
+    blogs = blog_entries()
+    prune_stale_cards(blogs, "blog")
+    for a in blogs:
         img, draw = base_card(a["category"])
         geometry_panel(draw, 0, 0, 528, H, 5)
         text_column(draw, a["title"], None, title_font=F_TITLE_SMALL,
                     chip="خواندن نوشته", start_y=200)
-        footer(draw, "دیدگاه‌های نوونو")
-        img.save(os.path.join(OUT_DIR, "insights", f"{a['slug']}.png"), "PNG")
-        made.append(f"og/insights/{a['slug']}.png")
+        footer(draw, "وبلاگ نوونو")
+        img.save(os.path.join(OUT_DIR, "blog", f"{a['slug']}.png"), "PNG")
+        made.append(f"og/blog/{a['slug']}.png")
 
     total = sum(
         os.path.getsize(os.path.join(ROOT, "public", m if m == "og.png" else os.path.join("og", m.split("/", 1)[1])))

@@ -17,6 +17,9 @@
  *                                  under the real-UI figure; transform +
  *                                  opacity only, tiny layer, painted after
  *                                  the headline and figure — LCP-safe).
+ *  3b. `[data-hero-parallax]`     — tiny two-layer pointer parallax for the
+ *                                  hero artwork (fine-pointer desktop only,
+ *                                  ≤6px, transform-only; motion.ts).
  *  4. Mobile menu open/close      — orchestrated in src/scripts/menu.ts.
  *  5. Link/button + work preview  — pure CSS (global.css).
  *
@@ -33,6 +36,38 @@ function prefersReducedMotion(): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Hero artwork parallax — two-layer depth, pointer-driven, desktop-only.
+ * Sets --par-x/--par-y (-1..1) on the hero section; the artwork layers
+ * translate a few px in opposing directions (transform-only, ≤6px).
+ * Guards: fine pointer only (never touch), reduced motion respected,
+ * and the desktop variant only (lg+). No scroll listener, passive.
+ */
+export function initHeroParallax(root: Document | HTMLElement = document): void {
+  if (prefersReducedMotion()) return;
+  try {
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+    if (!window.matchMedia("(min-width: 1024px)").matches) return;
+  } catch {
+    return;
+  }
+  const hero = root.querySelector<HTMLElement>("[data-hero-parallax]");
+  if (!hero) return;
+  let raf = 0;
+  const onMove = (event: PointerEvent) => {
+    const rect = hero.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    const nx = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    const ny = ((event.clientY - rect.top) / rect.height) * 2 - 1;
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      hero.style.setProperty("--par-x", nx.toFixed(3));
+      hero.style.setProperty("--par-y", ny.toFixed(3));
+    });
+  };
+  hero.addEventListener("pointermove", onMove, { passive: true });
 }
 
 /**

@@ -10,8 +10,8 @@ tags: []
 
 این فایل یک پیش‌نویس است و عمداً `draft: true` دارد. نباید هیچ‌وقت:
 
-- در `/insights` دیده شود؛
+- در `/blog` دیده شود؛
 - در `sitemap.xml` بیاید؛
-- به‌صورت `/insights/draft-sample` ساخته شود.
+- به‌صورت `/blog/draft-sample` ساخته شود.
 
-ساختار تست (tests/insights.test.mjs و seo-contract.test.mjs) همین سه شرط را بررسی می‌کند؛ اگر این فایل حذف شود، تست‌ها باید به‌روزرسانی شوند.
+ساختار تست (tests/blog.test.mjs و seo-contract.test.mjs) همین سه شرط را بررسی می‌کند؛ اگر این فایل حذف شود، تست‌ها باید به‌روزرسانی شوند.

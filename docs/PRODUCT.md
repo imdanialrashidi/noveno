@@ -23,8 +23,8 @@ Durable source of truth for what the product must do. Sources: `docs/Noveno_Webs
 4. **Qualification:** explicit good-fit / bad-fit section reduces bad leads (Spec §23).
 
 ## Non-goals
-- No client portal, user accounts, authentication, CMS, conventional backend, or custom CRM (Spec §60; accepted bootstrap override).
-- No blog/insights at launch; no industry pages until real traction (Spec §42, §44, §8.2–8.3).
+- No CMS, client portal, user accounts, authentication, conventional backend, or custom CRM (Spec §60; accepted bootstrap override).
+- No industry pages until real traction; the small `/blog` (وبلاگ — Markdown-first, in-house topics only) is the only editorial surface; no general tech/startup news (Spec §42, §44, §8.2–8.3; docs/BLOG.md).
 - No guaranteed-sales claims, fake testimonials, fake logos, or invented results (Spec §19, §53–54).
 - No SSR, no client UI framework, no speculative infrastructure (accepted bootstrap overrides).
 

@@ -15,7 +15,7 @@ import CTASection from "../components/layout/CTASection.astro";
 import OfferRow from "../components/business/OfferRow.astro";
 import FAQItem from "../components/ui/FAQItem.astro";
 import { getCollection } from "astro:content";
-import { isPublished, sortByDate } from "../data/insights";
+import { isPublished, sortByDate } from "../data/blog";
 import {
   toFaDigits,
   OFFERS,
@@ -27,7 +27,7 @@ import {
   FAQ_ITEMS,
 } from "../data/site";
 
-const latestArticle = sortByDate((await getCollection("insights")).filter(isPublished))[0] ?? null;
+const latestArticle = sortByDate((await getCollection("blog")).filter(isPublished))[0] ?? null;
 ---
 
 <PageLayout
@@ -195,21 +195,21 @@ const latestArticle = sortByDate((await getCollection("insights")).filter(isPubl
     </div>
   </section>
 
-  <!-- Editorial route into Insights (contextual internal linking) -->
+  <!-- Editorial route into Blog (contextual internal linking) -->
   {latestArticle && (
-    <section class="border-t border-line" aria-labelledby="services-insights-title">
+    <section class="border-t border-line" aria-labelledby="services-blog-title">
       <div class="mx-auto grid max-w-[1200px] gap-10 px-5 py-14 sm:px-8 lg:grid-cols-12 lg:gap-16 lg:py-20">
         <div class="lg:col-span-5">
           <SectionHeader
-            id="services-insights-title"
-            kicker="دیدگاه‌ها"
+            id="services-blog-title"
+            kicker="وبلاگ"
             title="بیشتر دربارهٔ مسئلهٔ خودتان بخوانید"
             lead="نوشته‌های نوونو یک موضوع را با مثال و روش بررسی می‌کنند — نه با وعده."
           />
         </div>
         <div class="flex flex-col justify-center lg:col-span-7">
           <a
-            href={`/insights/${latestArticle.id}`}
+            href={`/blog/${latestArticle.id}`}
             class="group flex flex-col gap-2 border-t border-line py-7 transition-colors duration-150 hover:bg-surface-soft/40 sm:px-3"
           >
             <span class="text-meta text-text-faint">{latestArticle.data.category} — تازه‌ترین نوشته</span>
@@ -222,7 +222,7 @@ const latestArticle = sortByDate((await getCollection("insights")).filter(isPubl
               </svg>
             </span>
           </a>
-          <Button href="/insights" variant="ghost" class="w-fit">همه نوشته‌ها</Button>
+          <Button href="/blog" variant="ghost" class="w-fit">همه نوشته‌ها</Button>
         </div>
       </div>
     </section>

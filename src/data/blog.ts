@@ -1,5 +1,5 @@
 /**
- * Insights helpers — shared editorial logic for the /insights section.
+ * Blog helpers — shared logic for the /blog section (وبلاگ نوونو).
  * Draft filtering lives in exactly one place so the index, article
  * pages, and internal recommendations can never disagree about what
  * is published (draft articles must never reach production pages).
@@ -7,15 +7,15 @@
 
 import type { CollectionEntry } from "astro:content";
 
-export type InsightsEntry = CollectionEntry<"insights">;
+export type BlogEntry = CollectionEntry<"blog">;
 
 /** Published = not draft. The only gate between content and the public site. */
-export function isPublished(entry: InsightsEntry): boolean {
+export function isPublished(entry: BlogEntry): boolean {
   return !entry.data.draft;
 }
 
 /** Newest first; never reorders drafts (they are filtered before this). */
-export function sortByDate(entries: InsightsEntry[]): InsightsEntry[] {
+export function sortByDate(entries: BlogEntry[]): BlogEntry[] {
   return [...entries].sort(
     (a, b) => b.data.published_at.valueOf() - a.data.published_at.valueOf(),
   );
@@ -50,10 +50,10 @@ export function readingMinutes(body: string): number {
  * related content — never fabricates recommendations.
  */
 export function relatedEntries(
-  all: InsightsEntry[],
-  current: InsightsEntry,
+  all: BlogEntry[],
+  current: BlogEntry,
   limit = 2,
-): InsightsEntry[] {
+): BlogEntry[] {
   return sortByDate(
     all.filter((entry) => isPublished(entry) && entry.id !== current.id && entry.data.category === current.data.category),
   ).slice(0, limit);
@@ -61,9 +61,9 @@ export function relatedEntries(
 
 /** Chronological neighbours for previous/next navigation (by published date). */
 export function neighbours(
-  all: InsightsEntry[],
-  current: InsightsEntry,
-): { older: InsightsEntry | null; newer: InsightsEntry | null } {
+  all: BlogEntry[],
+  current: BlogEntry,
+): { older: BlogEntry | null; newer: BlogEntry | null } {
   const sorted = sortByDate(all.filter((entry) => isPublished(entry)));
   const index = sorted.findIndex((entry) => entry.id === current.id);
   if (index === -1) return { older: null, newer: null };

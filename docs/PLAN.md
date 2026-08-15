@@ -47,7 +47,7 @@ Product-level path from idea to production. Task-level, multi-session execution 
 ### 3. Vertical MVP
 - Scope: Phase 1 launch scope (Spec §73) — homepage, services, work, process, about, audit, thank-you, contact, privacy, terms; analytics events (Spec §36); lead persistence + notification; acceptance criteria from `docs/PRODUCT.md` (Spec §74).
 - Exit evidence: must-have journeys function with real submission data, negative paths (validation errors, abuse, offline), attribution preserved, accepted visual quality.
-- Non-goals: insights, industry pages, testimonials without real data, dashboards.
+- Non-goals: industry pages, testimonials without real data, dashboards; the blog (`/blog`) stays a small Markdown-first surface with in-house topics only (docs/BLOG.md).
 
 ### 4. Internal alpha
 - Scope: founder-led use; real audit submissions flow to Supabase + email; controlled failure testing (function outage, Supabase outage → visible error, no silent loss).
@@ -96,4 +96,4 @@ Product-level path from idea to production. Task-level, multi-session execution 
 - Astro project scaffolding details, package manager (npm/pnpm), Tailwind config → `/plan` (first build).
 - Supabase schema/table names, email transport provider, function route shape → `/plan` (with risk review).
 - Prices, audit pricing policy, headline copy, hero visual → business decisions (see `docs/PRODUCT.md` open decisions).
-- Insights, industry pages, productized platform (Spec §72 Phases 3–5) → only after real evidence.
+- A larger editorial operation, industry pages, productized platform (Spec §72 Phases 3–5) → only after real evidence; the blog stays focused (`docs/BLOG.md` content policy).
