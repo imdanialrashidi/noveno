@@ -13,6 +13,8 @@
  *   required before submit, reset on retry after a consumed/expired token.
  * - Submit: single in-flight guard; 200 → fire audit_submitted → best-effort
  *   Web3Forms notification (bounded, one retry) → /audit/thank-you.
+ *   Both side effects are skipped when the 200 reports `status: "replay"`
+ *   (duplicate submission_id — the lead was already delivered).
  *   Recoverable failures → banner + retry with values preserved.
  * - Client validation is UX-only; the function is authoritative.
  */
@@ -643,7 +645,14 @@ export function initAudit(config: AuditConfig): void {
       }
 
       if (response.ok) {
-        await onSuccess(payload);
+        let replay = false;
+        try {
+          const body = (await response.json()) as { status?: string };
+          replay = body.status === "replay";
+        } catch {
+          /* body unreadable — treat as fresh insert (default) */
+        }
+        await onSuccess(payload, replay);
         return;
       }
 
@@ -682,18 +691,22 @@ export function initAudit(config: AuditConfig): void {
 
   /* ----- success: persistence confirmed by the function ----- */
 
-  async function onSuccess(payload: Record<string, unknown>): Promise<void> {
-    track("audit_submitted");
+  async function onSuccess(payload: Record<string, unknown>, replay = false): Promise<void> {
+    // A replay 200 means this submission_id already exists (e.g. the server
+    // persisted but the response was lost) — the lead is already delivered,
+    // so only a fresh insert may notify / fire the conversion event. The
+    // thank-you navigation stays unconditional: the user's journey is
+    // identical on replay.
+    if (!replay) {
+      track("audit_submitted");
+      void notifyWeb3Forms(payload); // only a fresh insert may notify/event
+    }
     clearDraft();
     try {
       sessionStorage.setItem(DONE_KEY, String(payload.submission_id ?? ""));
     } catch {
       /* noop */
     }
-    // Fire-and-forget with keepalive: the lead is already safe (Supabase is
-    // the source of truth) and the email is best-effort — never let a slow
-    // Web3Forms endpoint delay the thank-you page (reviewer finding).
-    void notifyWeb3Forms(payload);
     window.location.assign("/audit/thank-you");
   }
 

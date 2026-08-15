@@ -640,6 +640,26 @@ test("valid submission persists then returns 200 with normalized row", async () 
   assert.equal(row.submitted_at, undefined); // column default, not client-controlled
 });
 
+test("replay 200 carries the persist status (replay vs inserted)", async () => {
+  const replay = makeDeps({
+    persistLead: async () => ({ status: "replay", id: "lead-9" }),
+  });
+  const replayRes = await handleAuditRequest(post(validPayload()), replay.deps);
+  assert.equal(replayRes.status, 200);
+  const replayBody = await replayRes.json();
+  assert.equal(replayBody.ok, true);
+  assert.equal(replayBody.id, "lead-9");
+  assert.equal(replayBody.status, "replay", "a duplicate submission_id must be reported as replay");
+
+  const inserted = makeDeps(); // stub persister returns { status: "inserted", id: "lead-1" }
+  const insertedRes = await handleAuditRequest(post(validPayload()), inserted.deps);
+  assert.equal(insertedRes.status, 200);
+  const insertedBody = await insertedRes.json();
+  assert.equal(insertedBody.ok, true);
+  assert.equal(insertedBody.id, "lead-1");
+  assert.equal(insertedBody.status, "inserted", "a fresh insert must be reported as inserted");
+});
+
 test("persistence failure returns 502 — success is never faked", async () => {
   const { deps, calls } = makeDeps({
     persistLead: async (row) => {
