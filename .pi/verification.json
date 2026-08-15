@@ -62,7 +62,7 @@
     },
     {
       "id": "app",
-      "include": ["src/**", "package.json", "package-lock.json", "astro.config.mjs", "tsconfig.json", "wrangler.jsonc", "public/**", "tests/structural.test.mjs", "tests/seo-contract.test.mjs", "tests/content.test.mjs", "tests/audit-retry.test.mjs", "tests/blog.test.mjs", "tests/og-assets.test.mjs"],
+      "include": ["src/**", "package.json", "package-lock.json", "astro.config.mjs", "tsconfig.json", "wrangler.jsonc", "public/**", "scripts/build-image-manifest.mjs", "scripts/generate-sitemap.mjs", "scripts/validate-og-assets.mjs", "tests/structural.test.mjs", "tests/seo-contract.test.mjs", "tests/content.test.mjs", "tests/audit-retry.test.mjs", "tests/blog.test.mjs", "tests/og-assets.test.mjs", "tests/site-data.test.mjs", "tests/client-modules.test.mjs", "tests/validation-equivalence.test.mjs", "tests/image-manifest.test.mjs", "tests/sitemap-parser.test.mjs"],
       "commands": [
         ["npm", "run", "check"],
         ["npm", "run", "build"],
@@ -71,7 +71,12 @@
         ["node", "--test", "tests/content.test.mjs"],
         ["node", "--test", "tests/audit-retry.test.mjs"],
         ["node", "--test", "tests/blog.test.mjs"],
-        ["node", "--test", "tests/og-assets.test.mjs"]
+        ["node", "--test", "tests/og-assets.test.mjs"],
+        ["node", "--test", "tests/site-data.test.mjs"],
+        ["node", "--test", "tests/client-modules.test.mjs"],
+        ["node", "--test", "tests/validation-equivalence.test.mjs"],
+        ["node", "--test", "tests/image-manifest.test.mjs"],
+        ["node", "--test", "tests/sitemap-parser.test.mjs"]
       ]
     },
     {
