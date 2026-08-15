@@ -26,6 +26,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { jalaliYear } from "../src/data/site.ts";
+import { AUDIT_STATIONS, AUDIT_STEPS } from "../src/data/audit.ts";
 
 test("jalaliYear: Nowruz boundary (2026-03-21 onward is ۱۴۰۵)", () => {
   assert.equal(jalaliYear(new Date(2026, 2, 21)), "۱۴۰۵");
@@ -41,4 +42,14 @@ test("jalaliYear: early year and year end", () => {
   assert.equal(jalaliYear(new Date(2026, 0, 1)), "۱۴۰۴");
   assert.equal(jalaliYear(new Date(2026, 11, 31)), "۱۴۰۵");
   assert.equal(jalaliYear(new Date(2027, 2, 20)), "۱۴۰۵");
+});
+
+test("audit stations are derived from audit steps (ids + labels)", () => {
+  assert.equal(AUDIT_STATIONS.length, AUDIT_STEPS.length);
+  for (const step of AUDIT_STEPS) {
+    const station = AUDIT_STATIONS.find((s) => s.id === step.id);
+    assert.ok(station, `missing station for step ${step.id}`);
+    assert.equal(station.label, step.label);
+  }
+  assert.equal(new Set(AUDIT_STATIONS.map((s) => s.id)).size, AUDIT_STATIONS.length, "station ids must be unique");
 });

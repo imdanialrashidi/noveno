@@ -213,19 +213,6 @@ export const FAQ_ITEMS = [
 ] as const;
 
 /* ------------------------------------------------------------------ */
-/* Audit stations (Slice 2 — data contract lives here now)             */
-/* ------------------------------------------------------------------ */
-
-export const AUDIT_STATIONS = [
-  { id: "business", label: "کسب‌وکار" },
-  { id: "channels", label: "کانال‌ها" },
-  { id: "problem", label: "مشکل اصلی" },
-  { id: "value", label: "ارزش مشتری" },
-  { id: "need", label: "نیاز" },
-  { id: "contact", label: "تماس" },
-] as const;
-
-/* ------------------------------------------------------------------ */
 /* Proof-type labels (DESIGN §10 — plain typographic tags)             */
 /* ------------------------------------------------------------------ */
 
