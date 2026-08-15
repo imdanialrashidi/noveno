@@ -34,11 +34,11 @@ export const CONTACT = {
   phone: "09353598620",
   phoneHref: "tel:09353598620",
   whatsappHref: "https://wa.me/989353598620",
-  telegramHref: "https://t.me/+989353598620",
+  telegramHref: "https://t.me/noveno_ir",
   email: "imdanialrashidi@gmail.com",
   emailHref: "mailto:imdanialrashidi@gmail.com",
-  instagramHandle: "@noveno.ir",
-  instagramHref: "https://instagram.com/noveno.ir",
+  instagramHandle: "@noveno_ir",
+  instagramHref: "https://instagram.com/noveno_ir",
 } as const;
 
 /* ------------------------------------------------------------------ */
