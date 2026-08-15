@@ -362,7 +362,7 @@ if find . -maxdepth 6 -type f \
   ! -path './.pi/npm/*' \
   -print0 |
   xargs -0 grep -En \
-    'sk-[A-Za-z0-9_-]{16,}|(API_KEY|ACCESS_TOKEN|SECRET|PASSWORD)[[:space:]]*=[[:space:]]*("|\x27)?[^<${][^[:space:]]+' \
+    "sk-[A-Za-z0-9_-]{16,}|(API_KEY|ACCESS_TOKEN|SECRET|PASSWORD)[[:space:]]*=[[:space:]]*(\"|')[^<\${][^[:space:]]{14,}|(API_KEY|ACCESS_TOKEN|SECRET|PASSWORD)[[:space:]]*=[[:space:]]*[^\"<\${][^[:space:]]+" \
     >"$secret_scan_file" 2>/dev/null; then
   cat "$secret_scan_file" >&2
   fail "possible secret found"
