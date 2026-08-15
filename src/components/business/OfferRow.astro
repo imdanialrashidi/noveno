@@ -7,6 +7,7 @@
 
 import type { Offer } from "../../data/site";
 import { toFaDigits } from "../../data/site";
+import ArrowLink from "../ui/ArrowLink.astro";
 
 interface Props {
   offer: Offer;
@@ -36,18 +37,11 @@ const { offer, href, index } = Astro.props;
 
     <div class="flex flex-col items-start gap-4 lg:pt-1">
       <p class="text-meta text-text-faint">{offer.framing}</p>
-      <a
+      <ArrowLink
         href={href}
-        class="inline-flex min-h-11 items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-text-action"
-        data-event="service_opened"
-        data-event-payload={JSON.stringify({ service: offer.id })}
-      >
-        {offer.id === "audit" ? "شروع با بررسی مسیر جذب" : "جزئیات همکاری"}
-        <svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M19 12H5" />
-          <path d="m12 19-7-7 7-7" />
-        </svg>
-      </a>
+        label={offer.id === "audit" ? "شروع با بررسی مسیر جذب" : "جزئیات همکاری"}
+        data={{ "data-event": "service_opened", "data-event-payload": JSON.stringify({ service: offer.id }) }}
+      />
     </div>
   </div>
 </article>
