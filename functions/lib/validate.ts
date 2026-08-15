@@ -2,7 +2,7 @@
  * Server-side payload validation (plan §5.5) — the authoritative gate.
  * The client validates for UX only; this module decides what may reach
  * persistence. All enum values are whitelisted, lengths are capped, the
- * submission_id must be a UUID, attribution is shape-checked, and the
+ * submission_id must be a UUID, attribution is shape- and time-bounded, and the
  * normalized phone must be a plausible number.
  */
 
@@ -24,6 +24,10 @@ import { normalizeEmail, normalizePhone, normalizePlain, normalizeText } from ".
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 /** Strict ISO-8601 — must also be valid Postgres timestamptz input. */
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
+/** Client-clock skew tolerance: accept timestamps up to 5 minutes in the future. */
+const FIRST_SEEN_MAX_SKEW_MS = 5 * 60_000;
+/** First-seen older than 180 days is dropped (long-lived sessions are normal). */
+const FIRST_SEEN_MAX_AGE_MS = 180 * 24 * 3600_000;
 const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -134,7 +138,7 @@ export function validateAuditPayload(raw: unknown): ValidationResult {
   const turnstileToken = str(raw.cf_turnstile_token) ?? "";
   if (turnstileToken === "") fail("cf_turnstile_token", "required");
 
-  /* attribution — shape + length checks only (values are stored, not trusted) */
+  /* attribution — shape + length + time bounds (values are self-reported, not trusted) */
   const attributionRaw = raw.attribution;
   const attribution: AuditSubmission["attribution"] = {};
   if (attributionRaw !== undefined) {
@@ -153,10 +157,23 @@ export function validateAuditPayload(raw: unknown): ValidationResult {
       for (const key of UTM_KEYS) check(key, LIMITS.utm, key);
       const firstSeen = str(attributionRaw.first_seen_at);
       if (firstSeen !== undefined) {
+        // first_seen_at is client-clock data — bound it: no future dates
+        // (5 min skew tolerance), nothing older than 180 days. Out-of-range
+        // values are dropped (nulled), never stored. Attribution remains
+        // self-reported (landing_page/referrer/utm_*), but timestamps that
+        // would corrupt funnel analysis are not trusted.
         if (firstSeen.length > LIMITS.firstSeenAt) fail("attribution.first_seen_at", "too_long");
-        else if (!ISO_DATE_PATTERN.test(firstSeen) || Number.isNaN(Date.parse(firstSeen))) {
-          fail("attribution.first_seen_at", "invalid_date");
-        } else attribution.first_seen_at = firstSeen;
+        else {
+          const parsed = Date.parse(firstSeen);
+          if (!ISO_DATE_PATTERN.test(firstSeen) || Number.isNaN(parsed)) {
+            fail("attribution.first_seen_at", "invalid_date");
+          } else if (parsed > Date.now() + FIRST_SEEN_MAX_SKEW_MS) {
+            fail("attribution.first_seen_at", "invalid_date");
+          } else if (parsed >= Date.now() - FIRST_SEEN_MAX_AGE_MS) {
+            attribution.first_seen_at = firstSeen;
+          }
+          // else: older than 180 days — an old-but-plausible session, drop the field
+        }
       }
     }
   }
