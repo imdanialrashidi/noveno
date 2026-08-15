@@ -28,9 +28,19 @@ outage or rate limit breaks every build, and "checked against the official
 registry" is false in practice: `npm audit` against the configured registry
 fails with 404 (`audit endpoint not implemented`). Integrity hashes in the
 lockfile mitigate tampering, but availability and provenance depend on the
-mirror. This plan regenerates the lockfile against `registry.npmjs.org`
-(keeping exact versions) and adds a CI-time guard so the lockfile cannot
-silently flip back to a non-official registry.
+mirror.
+
+REVISED METHOD (2nd round — executor evidence): `npm install
+--package-lock-only` on npm 12 does NOT rewrite existing `resolved` hosts
+(verified in npm's source: the shrinkwrap write path never rewrites
+persisted hosts), and deleting the lockfile to re-resolve changes transitive
+VERSIONS (`@napi-rs/wasm-runtime` 1.2.2→1.2.3 etc.) — rejected per the
+plan's own STOP condition. The sound alternative: a mechanical HOST-ONLY
+rewrite (npmmirror → npmjs.org) that keeps every version and `integrity`
+field exactly as committed. The `integrity` sha512 fields pin the tarball
+bytes — npmjs.org is the mirror's upstream and serves identical bytes, so
+`npm ci` verifies the rewrite cryptographically. Then a CI-time guard
+prevents silent drift back.
 
 ## Current state
 
@@ -79,23 +89,23 @@ silently flip back to a non-official registry.
 
 ## Steps
 
-### Step 1: Regenerate the lockfile
+### Step 1: Host-only rewrite of the lockfile `resolved` URLs
 
-Run:
+Rewrite every `"resolved"` value host from `registry.npmmirror.com` to
+`registry.npmjs.org` — nothing else may change. Use a small Node one-liner
+(read the file, replace the exact prefix `https://registry.npmmirror.com/`
+with `https://registry.npmjs.org/` inside `"resolved":` values only — a
+plain global string replace is safe because that host appears ONLY in
+resolved URLs; verify with the diff), or `sed -i 's#\(\"resolved\": \"\)https://registry.npmmirror.com/#\1https://registry.npmjs.org/#g' package-lock.json`.
 
-```bash
-npm install --package-lock-only --registry=https://registry.npmjs.org/ --no-audit
-```
-
-**Verify**: exit 0. Then inspect the diff:
-
-```bash
-git diff package-lock.json | grep -c "registry.npmmirror"   # → 0 (or only removals)
-git diff package-lock.json | grep "^[+-].*resolved" | grep -c "registry.npmjs.org"  # → matches the number of changed lines
-```
-
-Also confirm versions are unchanged for the pinned packages:
-`grep -n '"astro": "7.2.0"\|"tailwindcss": "4.3.3"\|"wrangler": "4.120.1"' package-lock.json` → present with the same version strings (check both the top-level deps section and the resolved package entries).
+**Verify**:
+- `grep -c "registry.npmmirror" package-lock.json` → 0
+- `grep -c "registry.npmjs.org" package-lock.json` → ≥ 497
+- `git diff --numstat package-lock.json` → the diff touches ONLY lines
+  containing `resolved` (no version/integrity/name lines changed):
+  `git diff package-lock.json | grep "^[+-]" | grep -v "^[+-][+-]" | grep -vc resolved` → 0
+- Pinned versions unchanged: `grep -n '"astro": "7.2.0"\|"tailwindcss": "4.3.3"\|"wrangler": "4.120.1"' package-lock.json` → present
+- Spot-check 3 rewritten URLs resolve: `curl -sI https://registry.npmjs.org/astro | head -1` → HTTP/2 200 (and one fontsource + one yaml URL)
 
 ### Step 2: Add a lockfile-registry guard
 
@@ -124,31 +134,44 @@ new check passing. Negative test (manual, not committed): temporarily set
 one `resolved` URL back to npmmirror and re-run → the check must fail; then
 restore.
 
-### Step 3: Prove install + suite
+### Step 3: Prove install + suite (the cryptographic check)
 
-**Verify**: `npm ci` → exit 0. `npm test` → all pass. `npm run build` → exit 0.
+**Verify**: `npm ci` → exit 0. This reinstalls ALL packages from
+registry.npmjs.org and verifies every tarball against the (unchanged)
+`integrity` sha512 fields — if the rewritten host served different bytes,
+this fails. If npm 12 blocks remote fetches (`EALLOWREMOTE`, this npm's
+new default `allow-remote=none`), retry the ONE-SHOT flag
+`npm ci --allow-remote=all` and note it (CI runners use older npm where
+this flag does not exist and is unnecessary). Then `npm test` (deferred:
+reviewer) and `npm run build` (deferred: reviewer).
 
 ## Test plan
 
 - No new test files — the guard lives in the existing integrity script
-  (which CI runs); its negative path is proven manually in Step 2.
+  (which CI runs); its negative path is proven manually in Step 2 (temporarily
+  flip one URL back to npmmirror → guard fails → restore).
 
 ## Done criteria
 
 - [ ] `grep -c "registry.npmmirror" package-lock.json` → 0
+- [ ] The lockfile diff touches ONLY `resolved` lines (numstat check in Step 1)
 - [ ] `node scripts/verify-package-integrity.mjs` → exit 0 and includes the new registry guard
-- [ ] `npm ci` succeeds
-- [ ] `npm test` and `npm run build` pass
+- [ ] `npm ci` succeeds (integrity-verified against npmjs.org)
+- [ ] `npm test` and `npm run build` pass (reviewer's gate)
 - [ ] No files outside the in-scope list modified
 
 ## STOP conditions
 
 Stop and report back (do not improvise) if:
 
-- `npm install --package-lock-only` changes dependency VERSIONS (other than
-  reflecting the plan-016/017 package.json changes) — restore and report.
-- The official registry is unreachable from this network (exit code / timeout) — report; do not fall back to a different registry.
-- `npm ci` fails after the regeneration — report the error.
+- The host-only rewrite changes anything other than `resolved` hosts (the
+  numstat check fails) — restore and report.
+- `npm ci` fails with an integrity mismatch (the mirror served different
+  bytes than npmjs.org) — restore and report; do NOT weaken integrity
+  fields.
+- The official registry is unreachable from this network — report; do not
+  fall back to a different registry.
+- A step's verification fails twice after a reasonable fix attempt.
 
 ## Maintenance notes
 
