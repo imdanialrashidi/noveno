@@ -165,23 +165,31 @@ In `scripts/pi-doctor.sh`:
 ### Step 5: Widen the secret scan to quoted values
 
 In `scripts/pi-doctor.sh` (~lines 362-363), change the regex so a value that
-begins with a quote is still scanned. The current guard `[^"<${]` excludes
-`"`, `<`, `$`, `{`. New pattern (keep the sk- pattern unchanged):
+begins with a quote is still scanned, WITHOUT flagging doc examples. The
+current guard `[^"<${]` excludes `"`, `<`, `$`, `{`. New pattern (keep the
+sk- pattern unchanged):
 
 ```
-'sk-[A-Za-z0-9_-]{16,}|(API_KEY|ACCESS_TOKEN|SECRET|PASSWORD)[[:space:]]*=[[:space:]]*("|')?[^<${][^[:space:]]+'
+'sk-[A-Za-z0-9_-]{16,}|(API_KEY|ACCESS_TOKEN|SECRET|PASSWORD)[[:space:]]*=[[:space:]]*("|')[^<${][^[:space:]]{14,}|(API_KEY|ACCESS_TOKEN|SECRET|PASSWORD)[[:space:]]*=[[:space:]]*[^"<${][^[:space:]]+'
 ```
 
-(Allow an optional opening quote — `"` or `'` — written as a proper ERE
-character class `("|')`; do NOT use `\x27` (GNU grep treats it as literal
-`x27`). Still skip shell-expansion characters. The scan then flags
-`KEY="value"` and `KEY='value'` assignments — including benign doc
-examples, which must be reworded rather than weakening the scan.)
+Semantics: quoted values (`"..."` or `'...'`) are flagged only when the
+value is ≥ 15 characters (real credentials; short doc examples like
+`KEY="value"` stay silent); unquoted values keep the original
+any-length behavior; `<`, `$`, `{` still never start a value (shell
+placeholders). Do NOT use `\x27` — GNU grep treats it as literal `x27`.
 
 **Verify**: `bash scripts/pi-doctor.sh --ci` → exits 0, "no obvious committed
-secret pattern found". Sanity-check the new regex matches a quoted
-assignment: `printf 'export FOO_API_KEY="example-value"\n' | grep -En <regex>`
-→ matches.
+secret pattern found". Sanity check the regex with a probe OUTSIDE the repo
+(a temp file — the probe value must never be written into a committed
+file, or the scan would self-flag it):
+
+```bash
+f=$(mktemp); printf 'export FOO_API_KEY="%s"\n' "$(printf 'x%.0s' {1..20})" > "$f"; grep -En <regex> "$f"; rc=$?; rm -f "$f"; exit $rc
+```
+
+→ exit 0 (matches). Also confirm `KEY="value"` (short, doc-style) does NOT
+match via the same probe with a 5-char value.
 
 ### Step 6: Reword the flagged doc example (scan must be clean)
 

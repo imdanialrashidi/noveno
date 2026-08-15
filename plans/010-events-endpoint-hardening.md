@@ -119,8 +119,8 @@ export const EVENT_SERVICE_VALUES = [
 
 /** Payload value patterns for the events endpoint (non-enum keys). */
 export const EVENT_VALUE_PATTERNS = {
-  /** page = location.pathname — always a leading-slash path. */
-  page: /^\/[^\s]{1,99}$/,
+  /** page = location.pathname — a leading-slash path; "/" (homepage) is valid. */
+  page: /^\/[^\s]{0,99}$/,
   /** slug = content slugs (work/blog entries). */
   slug: /^[a-z0-9-]{1,80}$/,
   /** section / cta_id — word chars (incl. Persian) + hyphen, ≤ 40. */
@@ -208,13 +208,17 @@ In `tests/audit-function.test.mjs` (events section), add tests:
 1. Enum enforcement: `step: "not_a_step"` → 400; `step: "3"` → 204 (with
    a stub binding); `service: "system"` → 204; `service: "audit_analysis"`
    → 204; `channel: "whatsapp"` → 204.
-2. Pattern enforcement: `page: "not-a-path"` → 400; `page: "/audit"` → 204;
-   `slug: "Bad Slug!"` → 400; `section: "hero"` → 204; `section: "bad
-   section!"` → 400.
+2. Pattern enforcement: `page: "not-a-path"` → 400; `page: "/"` → 204
+   (the homepage fires real events with `page: "/"`); `page: "/audit"` →
+   204; `slug: "Bad Slug!"` → 400; `section: "hero"` → 204; `section:
+   "bad section!"` → 400.
 3. Cross-site: request with `Origin: https://evil.example` and a Host header
    of the site → 400; `Origin: https://noveno.ir` + `Host: noveno.ir` →
-   204 (adjust host to whatever the `post()` helper sets — read it first;
-   it already accepts an optional headers arg); no Origin → 204.
+   204; no Origin → 204. IMPORTANT: the `post()` test helper builds a
+   Request WITHOUT a Host header, and the guard compares `originHost !==
+   host` where host would be `""` — the legit-origin case would then 400.
+   Pass `host: "noveno.ir"` (and `origin: "https://noveno.ir"`) through
+   the helper's optional headers arg for the legit case.
 4. Content-type: a request with `content-type: text/plain` → still 204
    (beacons send Blob JSON; do not reject on content-type — document why in
    a comment: `sendBeacon` uses `text/plain` for string bodies but Blob
