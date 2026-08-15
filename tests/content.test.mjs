@@ -8,6 +8,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
+import YAML from "yaml";
 
 const contentDir = path.resolve(import.meta.dirname, "..", "src", "content", "work");
 
@@ -15,58 +16,8 @@ function parseFrontmatter(file) {
   const raw = fs.readFileSync(file, "utf8");
   const match = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
   assert.ok(match, `${file}: missing frontmatter`);
-  const body = match[1];
-  const data = {};
-  const lines = body.split(/\r?\n/);
-  let i = 0;
-  while (i < lines.length) {
-    const line = lines[i].trim();
-    if (line === "") { i += 1; continue; }
-    const keyMatch = /^([a-z_]+):\s*(.*)$/.exec(line);
-    if (!keyMatch) { i += 1; continue; }
-    const [, key, rest] = keyMatch;
-    if (rest.startsWith("{")) {
-      // inline map: { name: "...", public: false }
-      const obj = {};
-      for (const pair of rest.slice(1, -1).split(",")) {
-        const [k, ...v] = pair.split(":");
-        const value = v.join(":").trim().replace(/^"|"$/g, "");
-        obj[k.trim()] = value === "true" ? true : value === "false" ? false : value;
-      }
-      data[key] = obj;
-      i += 1;
-    } else if (rest.startsWith("[")) {
-      // inline array
-      data[key] = rest
-        .slice(1, -1)
-        .split(",")
-        .map((s) => s.trim().replace(/^"|"$/g, ""))
-        .filter(Boolean);
-      i += 1;
-    } else if (rest === "") {
-      // block scalar: either a list ("- item") or a map ("key: value")
-      const values = [];
-      const obj = {};
-      let isMap = false;
-      i += 1;
-      while (i < lines.length && /^\s{2,}\S/.test(lines[i])) {
-        const raw = lines[i].trim();
-        const mapMatch = /^([a-z_]+):\s*(.*)$/.exec(raw);
-        if (mapMatch && !raw.startsWith("-")) {
-          isMap = true;
-          const [, k, v] = mapMatch;
-          obj[k] = v === "true" ? true : v === "false" ? false : v.replace(/^"|"$/g, "");
-        } else {
-          values.push(raw.replace(/^-\s*/, ""));
-        }
-        i += 1;
-      }
-      data[key] = isMap ? obj : values;
-    } else {
-      data[key] = rest.replace(/^"|"$/g, "");
-      i += 1;
-    }
-  }
+  const data = YAML.parse(match[1]);
+  assert.ok(data && typeof data === "object", `${file}: frontmatter is not a YAML mapping`);
   return data;
 }
 
