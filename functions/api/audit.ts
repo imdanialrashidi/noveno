@@ -115,7 +115,10 @@ export async function handleAuditRequest(request: Request, deps: AuditDeps): Pro
   try {
     const persisted = await deps.persistLead(toLeadRow(submission, submittedAt));
     // 200 ⇔ Supabase accepted the row (fresh insert or idempotent replay).
-    return jsonResponse({ ok: true, id: persisted.id }, 200);
+    // `status` distinguishes the two: a replay means the lead already exists,
+    // so the client must not re-notify (no duplicate PII email / conversion
+    // event for one lead row).
+    return jsonResponse({ ok: true, id: persisted.id, status: persisted.status }, 200);
   } catch {
     // Supabase failure — never a success (invariant A4-i/ii).
     return errorResponse("persistence_failed", 502);
