@@ -83,7 +83,7 @@ construction), and remove three dead exports from the same file.
 
 ## Steps
 
-### Step 1: Make `jalaliYear` Intl-based
+### Step 1: Make `jalaliYear` Intl-based (Persian digits preserved)
 
 In `src/data/site.ts`, replace the implementation with:
 
@@ -92,18 +92,21 @@ In `src/data/site.ts`, replace the implementation with:
  * Persian (jalali) year at build time — Intl-computed so the Nowruz
  * cutover (21 March) is handled by the CLDR data, not a hand-rolled
  * month approximation (the old `getMonth() + 1 >= 3` was wrong for
- * March 1-20). `-u-nu-latn` keeps Latin digits; callers wrap with
- * toFaDigits when Persian digits are wanted.
+ * March 1-20). `-u-nu-latn` keeps the Intl math in Latin digits; the
+ * result is converted back to Persian digits because Persian digits
+ * are the brand default (see `toFaDigits` — the OLD implementation
+ * also returned Persian digits, and `Footer.astro` renders the value
+ * directly without conversion).
  */
 export function jalaliYear(date = new Date()): string {
-  return new Intl.DateTimeFormat("fa-IR-u-nu-latn", { year: "numeric" }).format(date);
+  const latin = new Intl.DateTimeFormat("fa-IR-u-nu-latn", { year: "numeric" }).format(date);
+  return toFaDigits(latin);
 }
 ```
 
-Check the callers: if `Footer.astro` passes the result through `toFaDigits`
-or renders it directly, keep behavior consistent (the function now returns
-Latin digits — same as before, since the old code also returned Latin digits
-and callers converted). Read `Footer.astro` to confirm; do not change it.
+IMPORTANT: do NOT change `Footer.astro` — it renders `jalaliYear()`
+directly, so this function must keep returning Persian digits (the
+pre-fix behavior).
 
 **Verify**: `node -e "import('./src/data/site.ts').then(m => { console.log(m.jalaliYear(new Date('2026-03-15'))); console.log(m.jalaliYear(new Date('2026-03-21'))); console.log(m.jalaliYear(new Date('2026-01-01'))); })"` — but `src/data/site.ts` is TypeScript; use the test in Step 3 instead, or `npx tsx` if available. If no TS runner is available, rely on Step 3's tests.
 
@@ -118,29 +121,30 @@ Remove `SITE_NAME_FA`, `MEASURED_ACTIONS`, and `CONCEPT_UI_LABEL` from
 
 Create `tests/site-data.test.mjs` (pattern: plain `node:test` + `assert`,
 importing from `../src/data/site.ts` — check how `tests/audit-retry.test.mjs`
-imports TS source and mirror it):
+imports TS source and mirror it). The function returns PERSIAN digits
+(brand default — `toFaDigits`):
 
 ```js
 test("jalaliYear: Nowruz boundary (2026-03-21 onward is 1405)", () => {
-  assert.equal(jalaliYear(new Date("2026-03-21T12:00:00Z")), "1405");
-  assert.equal(jalaliYear(new Date("2026-03-31T12:00:00Z")), "1405");
+  assert.equal(jalaliYear(new Date("2026-03-21T12:00:00Z")), "۱۴۰۵");
+  assert.equal(jalaliYear(new Date("2026-03-31T12:00:00Z")), "۱۴۰۵");
 });
 test("jalaliYear: March 1-20 is still the previous year (1404)", () => {
-  assert.equal(jalaliYear(new Date("2026-03-01T12:00:00Z")), "1404");
-  assert.equal(jalaliYear(new Date("2026-03-20T23:59:59Z")), "1404");
+  assert.equal(jalaliYear(new Date("2026-03-01T12:00:00Z")), "۱۴۰۴");
+  assert.equal(jalaliYear(new Date("2026-03-20T23:59:59Z")), "۱۴۰۴");
 });
 test("jalaliYear: early year and year end", () => {
-  assert.equal(jalaliYear(new Date("2026-01-01T12:00:00Z")), "1404");
-  assert.equal(jalaliYear(new Date("2026-12-31T12:00:00Z")), "1405");
-  assert.equal(jalaliYear(new Date("2027-03-20T12:00:00Z")), "1405");
+  assert.equal(jalaliYear(new Date("2026-01-01T12:00:00Z")), "۱۴۰۴");
+  assert.equal(jalaliYear(new Date("2026-12-31T12:00:00Z")), "۱۴۰۵");
+  assert.equal(jalaliYear(new Date("2027-03-20T12:00:00Z")), "۱۴۰۵");
 });
 ```
 
 Defect sensitivity: the first two tests fail on the old implementation
-(March 1-20 would return "1405"). Note: these tests use UTC dates — if the
-machine's timezone shifts the date, use local-time constructors
-(`new Date(2026, 2, 21)` etc.) instead; pick whichever is stable on the
-machine and note it in the file.
+(March 1-20 would return "۱۴۰۵" Persian for the wrong year). Note: these
+tests use UTC dates — if the machine's timezone shifts the date, use
+local-time constructors (`new Date(2026, 2, 21)` etc.) instead; pick
+whichever is stable on the machine and note it in the file.
 
 **Verify**: `node --test tests/site-data.test.mjs` → all pass.
 

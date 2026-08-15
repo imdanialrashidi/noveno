@@ -48,9 +48,14 @@ requests via the Origin header.
   - `page`: `location.pathname` (always starts with `/`)
   - `section`: `hero`, `blog-article`, `blog-hero`, `header`, `cta-section`,
     `mobile-menu`, `contact`
-  - `step`: audit step ids `business`, `channels`, `problem`, `value`,
-    `need`, `contact` (from `src/data/audit.ts` `AUDIT_STEPS`)
-  - `service`: `REQUESTED_SERVICES` values (contract.ts)
+  - `step`: the CLIENT sends the **1-based positional step index** as a
+    string: `track("audit_step_completed", { step: String(draft.step) })`
+    in `src/scripts/audit.ts` — real values are `"1"`…`"6"` (NOT the
+    step ids from `AUDIT_STEPS`; the form has 6 steps)
+  - `service`: the CLIENT sends the OFFER id: `service: offer.id` in
+    `src/components/business/OfferRow.astro` where `OFFERS` ids are
+    `audit`, `system`, `growth` (`src/data/site.ts`) — NOT
+    `REQUESTED_SERVICES`
   - `channel`: `whatsapp`, `telegram` (contact.astro) — subset of
     `PREFERRED_CONTACTS` (contract.ts)
   - `slug`: work/blog slugs (lowercase + hyphens)
@@ -92,14 +97,24 @@ requests via the Origin header.
 In `functions/lib/contract.ts`, add near the existing enums:
 
 ```ts
-/** Audit step ids — the canonical step values for analytics events. */
-export const EVENT_STEP_IDS = [
-  "business",
-  "channels",
-  "problem",
-  "value",
-  "need",
-  "contact",
+/**
+ * Analytics `step` values — the client sends the 1-based positional
+ * step index of the audit journey as a string ("1"…"6"; 6 steps in
+ * AUDIT_STEPS), NOT the step ids. Bounded by the form's step count;
+ * if the form gains/loses steps, update the array with it.
+ */
+export const EVENT_STEP_VALUES = ["1", "2", "3", "4", "5", "6"] as const;
+
+/**
+ * Analytics `service` values — union of the homepage OFFER ids
+ * (audit/system/growth from src/data/site.ts OFFERS) and the audit
+ * form's REQUESTED_SERVICES, both sent by the client today.
+ */
+export const EVENT_SERVICE_VALUES = [
+  ...REQUESTED_SERVICES,
+  "audit",
+  "system",
+  "growth",
 ] as const;
 
 /** Payload value patterns for the events endpoint (non-enum keys). */
@@ -118,14 +133,14 @@ export const EVENT_VALUE_PATTERNS = {
 ### Step 2: Enforce the values in `validateEvent`
 
 In `functions/api/events.ts`, inside `validateEvent`, after the key
-whitelist check, validate values by key (import `EVENT_STEP_IDS`,
-`REQUESTED_SERVICES`, `ACQUISITION_CHANNELS`, `PREFERRED_CONTACTS`,
-`EVENT_VALUE_PATTERNS` from contract.ts):
+whitelist check, validate values by key (import `EVENT_STEP_VALUES`,
+`EVENT_SERVICE_VALUES`, `PREFERRED_CONTACTS`, `EVENT_VALUE_PATTERNS`
+from contract.ts):
 
 ```ts
 const ENUM_VALUES = {
-  step: new Set<string>(EVENT_STEP_IDS),
-  service: new Set<string>(REQUESTED_SERVICES),
+  step: new Set<string>(EVENT_STEP_VALUES),
+  service: new Set<string>(EVENT_SERVICE_VALUES),
   channel: new Set<string>(PREFERRED_CONTACTS),
 };
 ```
@@ -190,20 +205,24 @@ Add new tests (Step 4) for the guard.
 
 In `tests/audit-function.test.mjs` (events section), add tests:
 
-1. Enum enforcement: `step: "not_a_step"` → 400; `service: "build_system"`
-   → 204 (with a stub binding); `channel: "whatsapp"` → 204; `channel:
-   "whatsapp"` with `step: "contact"` → 204.
+1. Enum enforcement: `step: "not_a_step"` → 400; `step: "3"` → 204 (with
+   a stub binding); `service: "system"` → 204; `service: "audit_analysis"`
+   → 204; `channel: "whatsapp"` → 204.
 2. Pattern enforcement: `page: "not-a-path"` → 400; `page: "/audit"` → 204;
    `slug: "Bad Slug!"` → 400; `section: "hero"` → 204; `section: "bad
    section!"` → 400.
 3. Cross-site: request with `Origin: https://evil.example` and a Host header
    of the site → 400; `Origin: https://noveno.ir` + `Host: noveno.ir` →
-   204 (adjust host to whatever the `post()` helper sets — read it first);
-   no Origin → 204.
+   204 (adjust host to whatever the `post()` helper sets — read it first;
+   it already accepts an optional headers arg); no Origin → 204.
 4. Content-type: a request with `content-type: text/plain` → still 204
    (beacons send Blob JSON; do not reject on content-type — document why in
    a comment: `sendBeacon` uses `text/plain` for string bodies but Blob
    types are preserved; JSON.parse remains the actual gate).
+
+NOTE: the existing flood-test fixture `{ step: "2" }` (used by the
+`audit_step_completed` write test) is the REAL client format and must
+continue to pass.
 
 **Verify**: `node --test tests/audit-function.test.mjs` → all pass with the
 new tests.

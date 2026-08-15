@@ -68,6 +68,8 @@ Two cheap, high-value hygiene gaps:
 - `.pi/models.env.example` (create)
 - `scripts/pi-doctor.sh`
 - `tests/structural.test.mjs`
+- `docs/TOOLING_SETUP.md` — one-line reword of the Context7 key example
+  (see Step 6; it is an EXAMPLE placeholder that the widened scan flags).
 
 **Out of scope** (do NOT touch):
 - `.pi/models.env` content — never edit, never commit; it stays on disk.
@@ -167,15 +169,38 @@ begins with a quote is still scanned. The current guard `[^"<${]` excludes
 `"`, `<`, `$`, `{`. New pattern (keep the sk- pattern unchanged):
 
 ```
-'sk-[A-Za-z0-9_-]{16,}|(API_KEY|ACCESS_TOKEN|SECRET|PASSWORD)[[:space:]]*=[[:space:]]*("|\x27)?[^<${][^[:space:]]+'
+'sk-[A-Za-z0-9_-]{16,}|(API_KEY|ACCESS_TOKEN|SECRET|PASSWORD)[[:space:]]*=[[:space:]]*("|')?[^<${][^[:space:]]+'
 ```
 
-(Allow an optional opening quote — `"` or `'` — but still skip shell
-expansion characters. Verify the repo scan stays clean.)
+(Allow an optional opening quote — `"` or `'` — written as a proper ERE
+character class `("|')`; do NOT use `\x27` (GNU grep treats it as literal
+`x27`). Still skip shell-expansion characters. The scan then flags
+`KEY="value"` and `KEY='value'` assignments — including benign doc
+examples, which must be reworded rather than weakening the scan.)
 
 **Verify**: `bash scripts/pi-doctor.sh --ci` → exits 0, "no obvious committed
-secret pattern found". Also sanity-check the new regex matches a quoted
-assignment: `printf 'export FOO_API_KEY="sk-abcdefghijklmnopqrstuvwxyz1234"\n' | grep -En <regex>` → matches.
+secret pattern found". Sanity-check the new regex matches a quoted
+assignment: `printf 'export FOO_API_KEY="example-value"\n' | grep -En <regex>`
+→ matches.
+
+### Step 6: Reword the flagged doc example (scan must be clean)
+
+`docs/TOOLING_SETUP.md:113` contains:
+
+```bash
+export CONTEXT7_API_KEY="ctx7sk-..."
+```
+
+It is an EXAMPLE placeholder, but the widened scan matches `API_KEY="..."`
+and will fail the doctor. Reword the example so it cannot read as a key
+assignment (the surrounding sentence already says "never in the repository"):
+
+```bash
+export CONTEXT7_API_KEY="<your-context7-key>"
+```
+
+**Verify**: `bash scripts/pi-doctor.sh --ci` → exits 0 with "no obvious
+committed secret pattern found".
 
 ## Test plan
 
@@ -187,7 +212,8 @@ assignment: `printf 'export FOO_API_KEY="sk-abcdefghijklmnopqrstuvwxyz1234"\n' |
 - [ ] `grep -n "Strict-Transport-Security" public/_headers` → present
 - [ ] `grep -c "upgrade-insecure-requests" public/_headers` → 1
 - [ ] `git ls-files .pi/models.env` → empty; `.pi/models.env.example` tracked
-- [ ] `bash scripts/pi-doctor.sh --ci` → exit 0
+- [ ] `bash scripts/pi-doctor.sh --ci` → exit 0, scan clean (both the plan-doc
+      example AND the TOOLING_SETUP.md example are reworded/scrubbed)
 - [ ] `node --test tests/structural.test.mjs` passes (after build)
 - [ ] `npm test` and `npm run build` pass
 - [ ] No files outside the in-scope list modified (`git status --porcelain`
