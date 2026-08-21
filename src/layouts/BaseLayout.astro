@@ -88,10 +88,24 @@ const websiteJsonLd = JSON.stringify({
     <script type="application/ld+json" set:html={websiteJsonLd}></script>
 
     {cfAnalyticsToken !== "" && (
-      <script
-        defer
-        src="https://static.cloudflareinsights.com/beacon.min.js"
-        data-cf-beacon={JSON.stringify({ token: cfAnalyticsToken })}>
+      <script is:inline data-cf-token={cfAnalyticsToken}>
+        (function () {
+          var t = document.currentScript.getAttribute("data-cf-token");
+          if (!t) return;
+          function load() {
+            var s = document.createElement("script");
+            s.defer = true;
+            s.src = "https://static.cloudflareinsights.com/beacon.min.js";
+            s.setAttribute("data-cf-beacon", JSON.stringify({ token: t }));
+            s.onerror = function () { s.remove(); };
+            document.head.appendChild(s);
+          }
+          if ("requestIdleCallback" in window) {
+            requestIdleCallback(load, { timeout: 4000 });
+          } else {
+            window.addEventListener("load", function () { setTimeout(load, 2000); }, { once: true });
+          }
+        })();
       </script>
     )}
 
@@ -112,7 +126,14 @@ const websiteJsonLd = JSON.stringify({
          Vazirmatn stays CSS-discovered (font-display: swap with the
          metric-matched fallback): preloading it competed with the LCP
          image on throttled mobile and regressed LCP (measured). -->
-    <link rel="preload" href="/fonts/estedad-arabic-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link
+      rel="preload"
+      href="/fonts/estedad-arabic-wght-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      fetchpriority="high"
+    />
 
     <meta name="generator" content={Astro.generator} />
     <slot name="head" />
@@ -123,15 +144,28 @@ const websiteJsonLd = JSON.stringify({
 </html>
 
 <script>
-  // Acquisition telemetry: declarative data-event clicks + attribution
-  // capture (plan §5.8). Non-blocking; never contains lead PII.
+  // Acquisition telemetry + motion — idle-deferred to keep the main
+  // thread free for FCP/LCP and to cut TBT. Attribution capture is
+  // inlined eagerly (sessionStorage write is <1ms), everything else
+  // waits for idle so it never blocks first paint or input.
+  import { captureAttribution } from "../scripts/analytics";
   import { initAnalytics } from "../scripts/analytics";
-  // Motion layer: one shared observer drives all entrance reveals;
-  // below-the-fold content only, reduced-motion aware (motion.ts).
   import { initReveal, initStagger, initHeroStages, initHeroParallax } from "../scripts/motion";
-  initAnalytics();
-  initReveal();
-  initStagger();
-  initHeroStages();
-  initHeroParallax();
+  try { captureAttribution(); } catch {}
+  // Hero moment runs immediately — it's above-the-fold, transform-only,
+  // and the settled state is the natural frame; delaying it would make
+  // the strip pop late. Everything else (analytics wiring, below-fold
+  // reveals, parallax) can wait for idle so it never blocks FCP/LCP.
+  try { initHeroStages(); } catch {}
+  function runDeferred() {
+    try { initAnalytics(); } catch {}
+    try { initReveal(); } catch {}
+    try { initStagger(); } catch {}
+    try { initHeroParallax(); } catch {}
+  }
+  if ("requestIdleCallback" in window) {
+    requestIdleCallback(runDeferred, { timeout: 2000 });
+  } else {
+    setTimeout(runDeferred, 0);
+  }
 </script>
