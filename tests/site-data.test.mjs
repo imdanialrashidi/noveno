@@ -44,6 +44,14 @@ test("jalaliYear: early year and year end", () => {
   assert.equal(jalaliYear(new Date(2027, 2, 20)), "۱۴۰۵");
 });
 
+test("jalaliYear resolves the date in Asia/Tehran", () => {
+  // 2026-03-20T22:30:00Z is 2026-03-21T02:00 in Tehran → Jalali year must be 1405.
+  // Proves the function is timezone-pinned, not host-dependent.
+  assert.equal(jalaliYear(new Date("2026-03-20T22:30:00Z")), "۱۴۰۵");
+  // Same instant 6 hours earlier is still March 20 in Tehran → 1404
+  assert.equal(jalaliYear(new Date("2026-03-20T18:00:00Z")), "۱۴۰۴");
+});
+
 test("audit stations are derived from audit steps (ids + labels)", () => {
   assert.equal(AUDIT_STATIONS.length, AUDIT_STEPS.length);
   for (const step of AUDIT_STEPS) {
@@ -51,5 +59,9 @@ test("audit stations are derived from audit steps (ids + labels)", () => {
     assert.ok(station, `missing station for step ${step.id}`);
     assert.equal(station.label, step.label);
   }
-  assert.equal(new Set(AUDIT_STATIONS.map((s) => s.id)).size, AUDIT_STATIONS.length, "station ids must be unique");
+  assert.equal(
+    new Set(AUDIT_STATIONS.map((s) => s.id)).size,
+    AUDIT_STATIONS.length,
+    "station ids must be unique",
+  );
 });

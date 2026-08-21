@@ -1,0 +1,11 @@
+package-lock.json
+dist/
+node_modules/
+.artifacts/
+.noveno-backups/
+src/generated/image-manifest.ts
+public/
+CHANGELOG.md
+plans/
+# prettier-plugin-astro 0.14.1 cannot parse is:inline with dynamic data attribute
+src/layouts/BaseLayout.astro

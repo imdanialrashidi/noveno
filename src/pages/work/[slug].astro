@@ -20,7 +20,7 @@ import { CONCEPT_DISCLAIMER, PROOF_LABELS } from "../../data/site";
 import { previewFor } from "../../data/work-previews";
 
 export async function getStaticPaths() {
-  const entries = await getCollection("work");
+  const entries = (await getCollection("work")).filter(({ data }) => !data.draft);
   return entries.map((entry) => ({
     params: { slug: entry.id },
     props: { entry },
@@ -57,33 +57,67 @@ const breadcrumbJsonLd = JSON.stringify({
 });
 ---
 
-<PageLayout title={pageTitle} description={data.summary} path={`/work/${entry.id}`} ogImage={`/og/work/${entry.id}.png`} ogImageAlt={`${data.title} — ${PROOF_LABELS[kind]}`}>
-  <script slot="head" type="application/ld+json" set:html={breadcrumbJsonLd}></script>
+<PageLayout
+  title={pageTitle}
+  description={data.summary}
+  path={`/work/${entry.id}`}
+  ogImage={`/og/work/${entry.id}.png`}
+  ogImageAlt={`${data.title} — ${PROOF_LABELS[kind]}`}
+>
+  <script slot="head" type="application/ld+json" set:html={breadcrumbJsonLd} />
 
-  {preview.type === "image" && preview.src && (
-    /* LCP media on work detail: the main preview is above the fold and
+  {
+    preview.type === "image" && preview.src && (
+      /* LCP media on work detail: the main preview is above the fold and
        the first image — preload at high priority (was lazy + no preload
        before; measured LCP regression). */
-    <link
-      slot="head"
-      rel="preload"
-      as="image"
-      href={preview.src}
-      imagesrcset={preview.srcset}
-      imagesizes="(min-width: 1024px) 1136px, 92vw"
-      type="image/webp"
-      fetchpriority="high"
-    />
-  )}
+      <link
+        slot="head"
+        rel="preload"
+        as="image"
+        href={preview.src}
+        imagesrcset={preview.srcset}
+        imagesizes="(min-width: 1024px) 1136px, 92vw"
+        type="image/webp"
+        fetchpriority="high"
+      />
+    )
+  }
 
   <!-- Breadcrumbs -->
   <nav aria-label="مسیر صفحه" class="border-b border-line">
     <div class="mx-auto max-w-[1200px] px-5 py-3 sm:px-8">
       <ol class="flex flex-wrap items-center gap-1.5 text-meta text-text-faint">
-        <li><a href="/" class="rounded-[2px] transition-colors duration-150 hover:text-text-action">نوونو</a></li>
-        <li aria-hidden="true"><svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg></li>
-        <li><a href="/work/" class="rounded-[2px] transition-colors duration-150 hover:text-text-action">پروژه‌ها</a></li>
-        <li aria-hidden="true"><svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg></li>
+        <li>
+          <a href="/" class="rounded-[2px] transition-colors duration-150 hover:text-text-action">نوونو</a>
+        </li>
+        <li aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            class="h-3.5 w-3.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg
+          >
+        </li>
+        <li>
+          <a href="/work/" class="rounded-[2px] transition-colors duration-150 hover:text-text-action"
+            >پروژه‌ها</a
+          >
+        </li>
+        <li aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            class="h-3.5 w-3.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg
+          >
+        </li>
         <li aria-current="page" class="text-text-muted">{data.title}</li>
       </ol>
     </div>
@@ -101,16 +135,20 @@ const breadcrumbJsonLd = JSON.stringify({
       <h1 id="work-title" class="mt-6 max-w-3xl text-h1-page text-text">{data.title}</h1>
       <p class="mt-5 max-w-2xl text-lead text-text-muted">{data.summary}</p>
 
-      {isConcept && (
-        <p class="mt-6 inline-flex items-center gap-2 border border-dashed border-line-strong px-3 py-2 text-meta text-text-faint">
-          {CONCEPT_DISCLAIMER} — این صفحه قصد ندارد شبیه یک نتیجه واقعی باشد.
-        </p>
-      )}
-      {isProject && (
-        <p class="mt-6 inline-flex items-center gap-2 border border-line px-3 py-2 text-meta text-text-muted">
-          نتیجه: در دست اندازه‌گیری — بدون داده، عددی گزارش نمی‌شود.
-        </p>
-      )}
+      {
+        isConcept && (
+          <p class="mt-6 inline-flex items-center gap-2 border border-dashed border-line-strong px-3 py-2 text-meta text-text-faint">
+            {CONCEPT_DISCLAIMER} — این صفحه قصد ندارد شبیه یک نتیجه واقعی باشد.
+          </p>
+        )
+      }
+      {
+        isProject && (
+          <p class="mt-6 inline-flex items-center gap-2 border border-line px-3 py-2 text-meta text-text-muted">
+            نتیجه: در دست اندازه‌گیری — بدون داده، عددی گزارش نمی‌شود.
+          </p>
+        )
+      }
     </div>
   </section>
 
@@ -118,62 +156,70 @@ const breadcrumbJsonLd = JSON.stringify({
   <section class="border-t border-line" aria-label="پیش‌نمایش کار">
     <div class="mx-auto max-w-[1200px] px-5 py-10 sm:px-8 lg:py-14">
       <div class="preview-stage">
-        {preview.type === "image" && preview.src && (
-          <img
-            src={preview.src}
-            srcset={preview.srcset}
-            sizes="(min-width: 1024px) 1136px, 92vw"
-            width="1440"
-            height="900"
-            fetchpriority="high"
-            decoding="async"
-            alt={preview.alt ?? data.title}
-          />
-        )}
-        {preview.type === "concept" && (
-          <>
-            <p class="sr-only">{preview.scenario}</p>
-            <ConceptPreview layout={preview.layout ?? "form"} />
-            <span class="preview-tag">نمونه نمایشی — سناریوی مفهومی</span>
-          </>
-        )}
-      </div>
-      {preview.type === "concept" && (
-        <p class="mt-3 text-meta text-text-faint">
-          طراحی پیشنهادی این سناریو — نه یک رابط واقعی و نه یک نتیجه اجراشده.
-        </p>
-      )}
-      {preview.type === "image" && (
-        <p class="mt-3 text-meta text-text-faint">
-          تصویر واقعی از اجرای این پروژه — {data.title}.
-        </p>
-      )}
-
-      {preview.type === "image" && preview.detailSrc && (
-        <div class="mt-8">
-          <div class="preview-stage">
+        {
+          preview.type === "image" && preview.src && (
             <img
-              src={preview.detailSrc}
-              srcset={preview.detailSrcset}
+              src={preview.src}
+              srcset={preview.srcset}
               sizes="(min-width: 1024px) 1136px, 92vw"
               width="1440"
               height="900"
-              loading="lazy"
+              fetchpriority="high"
               decoding="async"
-              alt={preview.detailAlt ?? data.title}
+              alt={preview.alt ?? data.title}
             />
-          </div>
+          )
+        }
+        {
+          preview.type === "concept" && (
+            <>
+              <p class="sr-only">{preview.scenario}</p>
+              <ConceptPreview layout={preview.layout ?? "form"} />
+              <span class="preview-tag">نمونه نمایشی — سناریوی مفهومی</span>
+            </>
+          )
+        }
+      </div>
+      {
+        preview.type === "concept" && (
           <p class="mt-3 text-meta text-text-faint">
-            فرم بررسی مسیر جذب — نقطه تبدیل اصلی همین پروژه.
+            طراحی پیشنهادی این سناریو — نه یک رابط واقعی و نه یک نتیجه اجراشده.
           </p>
-        </div>
-      )}
+        )
+      }
+      {
+        preview.type === "image" && (
+          <p class="mt-3 text-meta text-text-faint">تصویر واقعی از اجرای این پروژه — {data.title}.</p>
+        )
+      }
+
+      {
+        preview.type === "image" && preview.detailSrc && (
+          <div class="mt-8">
+            <div class="preview-stage">
+              <img
+                src={preview.detailSrc}
+                srcset={preview.detailSrcset}
+                sizes="(min-width: 1024px) 1136px, 92vw"
+                width="1440"
+                height="900"
+                loading="lazy"
+                decoding="async"
+                alt={preview.detailAlt ?? data.title}
+              />
+            </div>
+            <p class="mt-3 text-meta text-text-faint">فرم بررسی مسیر جذب — نقطه تبدیل اصلی همین پروژه.</p>
+          </div>
+        )
+      }
     </div>
   </section>
 
   <!-- Long content + sticky rail -->
   <section class="border-t border-line" aria-label="جزئیات کار">
-    <div class="mx-auto grid max-w-[1200px] gap-12 px-5 py-12 sm:px-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:py-16">
+    <div
+      class="mx-auto grid max-w-[1200px] gap-12 px-5 py-12 sm:px-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:py-16"
+    >
       <article class="work-prose min-w-0">
         <Content />
       </article>
@@ -183,158 +229,199 @@ const breadcrumbJsonLd = JSON.stringify({
         <div class="flex flex-col gap-4 border-t border-line pt-5">
           <h2 class="text-ui font-semibold text-text">اطلاعات کار</h2>
           <dl class="flex flex-col gap-3 text-body">
-            {data.client && (
-              <div>
-                <dt class="text-meta text-text-faint">مشتری</dt>
-                <dd class="text-text">{data.client.name}</dd>
-              </div>
-            )}
-            {data.timeline && (
-              <div>
-                <dt class="text-meta text-text-faint">زمان</dt>
-                <dd class="text-text">{data.timeline}</dd>
-              </div>
-            )}
-            {data.scope && (
-              <div>
-                <dt class="text-meta text-text-faint">Scope</dt>
-                <dd class="text-text">{data.scope}</dd>
-              </div>
-            )}
-            {data.components.length > 0 && (
-              <div>
-                <dt class="text-meta text-text-faint">اجزا</dt>
-                <dd class="flex flex-col gap-1.5">
-                  {data.components.map((component) => (
-                    <span class="text-text">{component}</span>
-                  ))}
-                </dd>
-              </div>
-            )}
+            {
+              data.client && (
+                <div>
+                  <dt class="text-meta text-text-faint">مشتری</dt>
+                  <dd class="text-text">{data.client.name}</dd>
+                </div>
+              )
+            }
+            {
+              data.timeline && (
+                <div>
+                  <dt class="text-meta text-text-faint">زمان</dt>
+                  <dd class="text-text">{data.timeline}</dd>
+                </div>
+              )
+            }
+            {
+              data.scope && (
+                <div>
+                  <dt class="text-meta text-text-faint">Scope</dt>
+                  <dd class="text-text">{data.scope}</dd>
+                </div>
+              )
+            }
+            {
+              data.components.length > 0 && (
+                <div>
+                  <dt class="text-meta text-text-faint">اجزا</dt>
+                  <dd class="flex flex-col gap-1.5">
+                    {data.components.map((component) => (
+                      <span class="text-text">{component}</span>
+                    ))}
+                  </dd>
+                </div>
+              )
+            }
           </dl>
         </div>
 
         <!-- outcome summary -->
-        {isCaseStudy && data.metrics.length > 0 && (
-          <div class="flex flex-col gap-3 border-t border-line pt-5">
-            <h2 class="text-ui font-semibold text-text">خلاصه نتیجه</h2>
-            {data.metrics.slice(0, 3).map((metric) => (
-              <div class="flex items-baseline justify-between gap-4 border-t border-line pt-3">
-                <span class="text-meta text-text-muted">{metric.name}</span>
-                <span class="text-data text-lg text-text tnum">{metric.value}{metric.unit ? ` ${metric.unit}` : ""}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        {isProject && (
-          <div class="flex flex-col gap-3 border-t border-line pt-5">
-            <h2 class="text-ui font-semibold text-text">وضعیت نتیجه</h2>
-            <p class="text-body text-text-muted">در دست اندازه‌گیری</p>
-            <p class="text-meta text-text-faint">شاخص‌ها پس از جمع‌آوری داده واقعی در همین بخش گزارش می‌شوند.</p>
-          </div>
-        )}
-        {isConcept && (
-          <div class="flex flex-col gap-3 border-t border-line pt-5">
-            <h2 class="text-ui font-semibold text-text">ماهیت کار</h2>
-            <p class="text-body text-text-muted">نمونه نمایشی — سناریوی مفهومی</p>
-            <p class="text-meta text-text-faint">اهداف و KPIها پیشنهاد طراحی‌اند؛ هیچ داده‌ای از اجرای واقعی وجود ندارد.</p>
-          </div>
-        )}
+        {
+          isCaseStudy && data.metrics.length > 0 && (
+            <div class="flex flex-col gap-3 border-t border-line pt-5">
+              <h2 class="text-ui font-semibold text-text">خلاصه نتیجه</h2>
+              {data.metrics.slice(0, 3).map((metric) => (
+                <div class="flex items-baseline justify-between gap-4 border-t border-line pt-3">
+                  <span class="text-meta text-text-muted">{metric.name}</span>
+                  <span class="text-data text-lg text-text tnum">
+                    {metric.value}
+                    {metric.unit ? ` ${metric.unit}` : ""}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )
+        }
+        {
+          isProject && (
+            <div class="flex flex-col gap-3 border-t border-line pt-5">
+              <h2 class="text-ui font-semibold text-text">وضعیت نتیجه</h2>
+              <p class="text-body text-text-muted">در دست اندازه‌گیری</p>
+              <p class="text-meta text-text-faint">
+                شاخص‌ها پس از جمع‌آوری داده واقعی در همین بخش گزارش می‌شوند.
+              </p>
+            </div>
+          )
+        }
+        {
+          isConcept && (
+            <div class="flex flex-col gap-3 border-t border-line pt-5">
+              <h2 class="text-ui font-semibold text-text">ماهیت کار</h2>
+              <p class="text-body text-text-muted">نمونه نمایشی — سناریوی مفهومی</p>
+              <p class="text-meta text-text-faint">
+                اهداف و KPIها پیشنهاد طراحی‌اند؛ هیچ داده‌ای از اجرای واقعی وجود ندارد.
+              </p>
+            </div>
+          )
+        }
       </aside>
     </div>
   </section>
 
   <!-- Concept: design goals + proposed KPIs (Spec §19 language) -->
-  {isConcept && (
-    <section class="border-t border-line" aria-labelledby="concept-goals-title">
-      <div class="mx-auto grid max-w-[1200px] gap-10 px-5 py-12 sm:px-8 lg:grid-cols-2 lg:gap-16 lg:py-16">
-        <div>
-          <h2 id="concept-goals-title" class="text-h3 text-text">هدف طراحی</h2>
-          <ul class="mt-5 flex flex-col gap-3">
-            {data.goals.map((goal) => (
-              <li class="flex items-start gap-2.5 text-body text-text-muted">
-                <span class="mt-2.5 h-1 w-1 flex-none rounded-full bg-line-strong" aria-hidden="true"></span>
-                {goal}
-              </li>
-            ))}
-          </ul>
+  {
+    isConcept && (
+      <section class="border-t border-line" aria-labelledby="concept-goals-title">
+        <div class="mx-auto grid max-w-[1200px] gap-10 px-5 py-12 sm:px-8 lg:grid-cols-2 lg:gap-16 lg:py-16">
+          <div>
+            <h2 id="concept-goals-title" class="text-h3 text-text">
+              هدف طراحی
+            </h2>
+            <ul class="mt-5 flex flex-col gap-3">
+              {data.goals.map((goal) => (
+                <li class="flex items-start gap-2.5 text-body text-text-muted">
+                  <span class="mt-2.5 h-1 w-1 flex-none rounded-full bg-line-strong" aria-hidden="true" />
+                  {goal}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h2 class="text-h3 text-text">KPI پیشنهادی</h2>
+            <ul class="mt-5 flex flex-col gap-3">
+              {data.kpis.map((kpi) => (
+                <li class="flex items-start gap-2.5 text-body text-text-muted">
+                  <span class="mt-2.5 h-1 w-1 flex-none rounded-full bg-line-strong" aria-hidden="true" />
+                  {kpi}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-        <div>
-          <h2 class="text-h3 text-text">KPI پیشنهادی</h2>
-          <ul class="mt-5 flex flex-col gap-3">
-            {data.kpis.map((kpi) => (
-              <li class="flex items-start gap-2.5 text-body text-text-muted">
-                <span class="mt-2.5 h-1 w-1 flex-none rounded-full bg-line-strong" aria-hidden="true"></span>
-                {kpi}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </section>
-  )}
+      </section>
+    )
+  }
 
   <!-- Case study / project: measured metrics with sources + limitations -->
-  {!isConcept && data.metrics.length > 0 && (
-    <section class="border-t border-line" aria-labelledby="metrics-title">
-      <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
-        <h2 id="metrics-title" class="text-h2 text-text">نتیجه‌های اندازه‌گیری‌شده</h2>
-        <p class="mt-4 text-meta text-text-faint">هر عدد با منبع و محدودیت تفسیر آن همراه است؛ بدون داده، عددی نیست.</p>
-        <div class="mt-8 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-          {data.metrics.map((metric) => (
-            <Metric
-              value={`${metric.value}${metric.unit ? ` ${metric.unit}` : ""}`}
-              name={metric.name}
-              source={metric.source}
-              limitation={metric.note ?? metric.period ?? undefined}
-            />
-          ))}
+  {
+    !isConcept && data.metrics.length > 0 && (
+      <section class="border-t border-line" aria-labelledby="metrics-title">
+        <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
+          <h2 id="metrics-title" class="text-h2 text-text">
+            نتیجه‌های اندازه‌گیری‌شده
+          </h2>
+          <p class="mt-4 text-meta text-text-faint">
+            هر عدد با منبع و محدودیت تفسیر آن همراه است؛ بدون داده، عددی نیست.
+          </p>
+          <div class="mt-8 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+            {data.metrics.map((metric) => (
+              <Metric
+                value={`${metric.value}${metric.unit ? ` ${metric.unit}` : ""}`}
+                name={metric.name}
+                source={metric.source}
+                limitation={metric.note ?? metric.period ?? undefined}
+              />
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
-  )}
+      </section>
+    )
+  }
 
   <!-- Mandatory limitations (§21.8) -->
-  {data.limitations && data.limitations.length > 0 && (
-    <section class="border-t border-line" aria-labelledby="limitations-title">
-      <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
-        <h2 id="limitations-title" class="text-h3 text-text">محدودیت‌های تفسیر</h2>
-        <ul class="mt-5 flex max-w-2xl flex-col gap-3">
-          {data.limitations.map((limitation) => (
-            <li class="flex items-start gap-2.5 text-body text-text-muted">
-              <span class="mt-2.5 h-1 w-1 flex-none rounded-full bg-line-strong" aria-hidden="true"></span>
-              {limitation}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
-  )}
+  {
+    data.limitations && data.limitations.length > 0 && (
+      <section class="border-t border-line" aria-labelledby="limitations-title">
+        <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
+          <h2 id="limitations-title" class="text-h3 text-text">
+            محدودیت‌های تفسیر
+          </h2>
+          <ul class="mt-5 flex max-w-2xl flex-col gap-3">
+            {data.limitations.map((limitation) => (
+              <li class="flex items-start gap-2.5 text-body text-text-muted">
+                <span class="mt-2.5 h-1 w-1 flex-none rounded-full bg-line-strong" aria-hidden="true" />
+                {limitation}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
 
   <!-- System breakdown — the diagram's information, as text -->
   <section class="border-t border-line" aria-labelledby="architecture-title">
     <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
       <h2 id="architecture-title" class="text-h3 text-text">ساختار سیستم</h2>
       <p class="mt-3 mb-8 max-w-2xl text-body text-text-muted">
-        {isConcept
-          ? "ورودی‌ها و اجزای پیشنهادی این سناریو — نه یک سیستم اجراشده."
-          : "ورودی‌ها و اجزای این سیستم؛ هر درخواست از یک کانال وارد می‌شود و در یک نقطه ثبت، پیگیری و گزارش می‌شود."}
+        {
+          isConcept
+            ? "ورودی‌ها و اجزای پیشنهادی این سناریو — نه یک سیستم اجراشده."
+            : "ورودی‌ها و اجزای این سیستم؛ هر درخواست از یک کانال وارد می‌شود و در یک نقطه ثبت، پیگیری و گزارش می‌شود."
+        }
       </p>
       <div class="grid max-w-3xl gap-10 sm:grid-cols-2">
         <div>
           <h3 class="text-ui font-semibold text-text">کانال‌های ورودی</h3>
           <ul class="mt-4 flex flex-col gap-2">
-            {["اینستاگرام", "گوگل", "معرفی"].map((channel) => (
-              <li class="text-body text-text-muted">{channel}</li>
-            ))}
+            {
+              ["اینستاگرام", "گوگل", "معرفی"].map((channel) => (
+                <li class="text-body text-text-muted">{channel}</li>
+              ))
+            }
           </ul>
         </div>
         <div>
           <h3 class="text-ui font-semibold text-text">اجزای اصلی</h3>
           <ul class="mt-4 flex flex-col gap-2">
-            {(isConcept ? ["ثبت درخواست", "پیگیری", "گزارش"] : ["ثبت لید", "پیگیری", "گزارش"]).map((part) => (
-              <li class="text-body text-text-muted">{part}</li>
-            ))}
+            {
+              (isConcept ? ["ثبت درخواست", "پیگیری", "گزارش"] : ["ثبت لید", "پیگیری", "گزارش"]).map(
+                (part) => <li class="text-body text-text-muted">{part}</li>,
+              )
+            }
           </ul>
         </div>
       </div>
@@ -343,4 +430,3 @@ const breadcrumbJsonLd = JSON.stringify({
 
   <CTASection />
 </PageLayout>
-

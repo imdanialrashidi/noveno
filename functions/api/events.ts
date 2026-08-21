@@ -55,8 +55,7 @@ export function validateEvent(raw: unknown): { ok: true; event: EventInput } | {
     if (entries.length > 8) return { ok: false };
     for (const [key, value] of entries) {
       if (!EVENT_PAYLOAD_KEYS.includes(key as never)) return { ok: false };
-      const okValue =
-        typeof value === "string" || typeof value === "number";
+      const okValue = typeof value === "string" || typeof value === "number";
       if (!okValue) return { ok: false };
       if (typeof value === "string" && value.length > LIMITS.maxEventPayloadValue) return { ok: false };
       // Value whitelists (plan 010): enum keys must be exact client-sent
@@ -161,8 +160,7 @@ export async function handleEventRequest(
   }
 
   const dataset = env.NOVENO_EVENTS as
-    | { writeDataPoint(data: { indexes: string[]; doubles: number[]; blobs: string[] }): void }
-    | undefined;
+    { writeDataPoint(data: { indexes: string[]; doubles: number[]; blobs: string[] }): void } | undefined;
 
   if (!dataset || typeof dataset.writeDataPoint !== "function") {
     // Binding unavailable (local dev / not configured) — degrade, never fail hard.
@@ -183,7 +181,10 @@ export async function handleEventRequest(
     return jsonResponse({ ok: false, error: { code: "analytics_unavailable" } }, 501);
   }
 
-  return new Response(null, { status: 204 });
+  return new Response(null, {
+    status: 204,
+    headers: { "cache-control": "no-store", "x-content-type-options": "nosniff" },
+  });
 }
 
 const eventsLimiter = createRateLimiter({ max: 60, windowMs: 60_000 });

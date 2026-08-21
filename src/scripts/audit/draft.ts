@@ -9,7 +9,12 @@
  */
 
 import { AUDIT_OPTIONS } from "../../data/audit.ts";
+import { LIMITS } from "../../../functions/lib/contract.ts";
 import { readAttribution, type Attribution } from "../analytics.ts";
+
+function clampAttr(value: string | undefined, max: number): string {
+  return typeof value === "string" && value.length > max ? value.slice(0, max) : (value ?? "");
+}
 
 export interface Draft {
   submission_id: string;
@@ -59,13 +64,13 @@ export function clearDraft(): void {
 export function captureAttributionNow(): Attribution {
   const params = new URLSearchParams(location.search);
   const attribution: Attribution = {
-    landing_page: location.pathname + location.search,
-    referrer: document.referrer,
+    landing_page: clampAttr(location.pathname + location.search, LIMITS.landingPage),
+    referrer: clampAttr(document.referrer, LIMITS.referrer),
     first_seen_at: new Date().toISOString(),
   };
   for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"] as const) {
     const value = params.get(key);
-    if (value) attribution[key] = value;
+    if (value) attribution[key] = clampAttr(value, LIMITS.utm);
   }
   return attribution;
 }
@@ -120,7 +125,12 @@ export function applyDraftToDom(draft: Draft | null, root: HTMLElement): void {
   }
 }
 
-export function saveValues(root: HTMLElement, draft: Draft, multiselectValue: (fieldId: string) => string[], fieldValue: (fieldId: string) => string): void {
+export function saveValues(
+  root: HTMLElement,
+  draft: Draft,
+  multiselectValue: (fieldId: string) => string[],
+  fieldValue: (fieldId: string) => string,
+): void {
   for (const section of root.querySelectorAll<HTMLElement>("[data-step-section]")) {
     for (const field of section.querySelectorAll<HTMLElement>("[data-save]")) {
       const fieldId = field.getAttribute("data-save");
@@ -137,7 +147,8 @@ export function saveValues(root: HTMLElement, draft: Draft, multiselectValue: (f
 
 function labelOf(group: keyof typeof AUDIT_OPTIONS, id: string): string {
   return (
-    (AUDIT_OPTIONS[group] as readonly { id: string; label: string }[]).find((option) => option.id === id)?.label ?? id
+    (AUDIT_OPTIONS[group] as readonly { id: string; label: string }[]).find((option) => option.id === id)
+      ?.label ?? id
   );
 }
 

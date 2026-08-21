@@ -20,14 +20,14 @@ bash scripts/verify.sh   # canonical full gate (build + pi-doctor + project cont
 
 Environment variables are **names only** in `.env.example` — copy it to `.env` for local development and fill values; real secrets live in the Cloudflare Pages project settings, never in the repository:
 
-| Variable | Purpose |
-|---|---|
-| `PUBLIC_APP_URL` | Canonical site URL for metadata/SEO |
-| `PUBLIC_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key (client-side) |
+| Variable                      | Purpose                                                                |
+| ----------------------------- | ---------------------------------------------------------------------- |
+| `PUBLIC_APP_URL`              | Canonical site URL for metadata/SEO                                    |
+| `PUBLIC_TURNSTILE_SITE_KEY`   | Cloudflare Turnstile site key (client-side)                            |
 | `PUBLIC_WEB3FORMS_ACCESS_KEY` | Web3Forms access key (lead email delivery — the sole lead destination) |
-| `PUBLIC_WEB3FORMS_URL` | Optional Web3Forms endpoint override (local testing) |
-| `PUBLIC_CF_ANALYTICS_TOKEN` | Cloudflare Web Analytics beacon token |
-| `TURNSTILE_SECRET_KEY` | **Server-side secret** — Cloudflare Pages secret only |
+| `PUBLIC_WEB3FORMS_URL`        | Optional Web3Forms endpoint override (local testing)                   |
+| `PUBLIC_CF_ANALYTICS_TOKEN`   | Cloudflare Web Analytics beacon token                                  |
+| `TURNSTILE_SECRET_KEY`        | **Server-side secret** — Cloudflare Pages secret only                  |
 
 > The audit form needs `PUBLIC_TURNSTILE_SITE_KEY` + `PUBLIC_WEB3FORMS_ACCESS_KEY` to submit; without them the form still validates locally and shows the honest «not available» fallback with direct-contact options. The Turnstile secret is used only by `functions/` (see `docs/ops/setup-checklist.md`). There is **no database**: audit leads are delivered as email via Web3Forms and nothing is durably stored by this site.
 
@@ -39,18 +39,18 @@ The repository is the **Noveno production website project**: Slice 1 (flagship s
 
 ## Source of truth
 
-| Document | Purpose |
-|---|---|
-| `docs/Noveno_Website_Master_Spec.md` | Primary product/UX/content/technical spec (v1.0, 84 sections) |
-| `docs/Noveno Business DNA.md` | Durable business identity (v1.1) |
-| `docs/PRODUCT.md` | Product contract (users, outcome, flows, acceptance) |
-| `docs/ARCHITECTURE.md` | Accepted technical direction and invariants |
-| `docs/DESIGN.md` | Accepted visual contract (image-led editorial thesis, tokens, themes, media rules) |
-| `docs/IMAGERY.md` | Image asset registry (sources, licenses, processing) |
-| `docs/PLAN.md` | Roadmap, stage gates, deferred decisions |
-| `docs/QUALITY.md` | Evaluator-facing quality contract + project invariants |
-| `docs/BLOG.md` | **Founder publishing guide for the Blog** (Markdown workflow, content policy, automation; `/insights` → `/blog` route history) |
-| `branding_assests/` | Brand assets — reuse these; do not recreate the logo |
+| Document                             | Purpose                                                                                                                        |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `docs/Noveno_Website_Master_Spec.md` | Primary product/UX/content/technical spec (v1.0, 84 sections)                                                                  |
+| `docs/Noveno Business DNA.md`        | Durable business identity (v1.1)                                                                                               |
+| `docs/PRODUCT.md`                    | Product contract (users, outcome, flows, acceptance)                                                                           |
+| `docs/ARCHITECTURE.md`               | Accepted technical direction and invariants                                                                                    |
+| `docs/DESIGN.md`                     | Accepted visual contract (image-led editorial thesis, tokens, themes, media rules)                                             |
+| `docs/IMAGERY.md`                    | Image asset registry (sources, licenses, processing)                                                                           |
+| `docs/PLAN.md`                       | Roadmap, stage gates, deferred decisions                                                                                       |
+| `docs/QUALITY.md`                    | Evaluator-facing quality contract + project invariants                                                                         |
+| `docs/BLOG.md`                       | **Founder publishing guide for the Blog** (Markdown workflow, content policy, automation; `/insights` → `/blog` route history) |
+| `branding_assests/`                  | Brand assets — reuse these; do not recreate the logo                                                                           |
 
 ## Tech stack
 
@@ -65,20 +65,41 @@ The repository is the **Noveno production website project**: Slice 1 (flagship s
 
 ```
 src/
-├── content/
-│   └── work/            ← WORK ITEMS (markdown + frontmatter — see below)
 ├── components/
-│   ├── business/        WorkCard, ConceptPreview, NextStepsRail, OfferRow, StepperLine (audit progress)
-│   ├── layout/          Header, MobileMenu, Footer, PageHero, SectionHeader, CTASection
-│   └── ui/              Button, Icon, ChannelLink, ProofTag, FormField, Select, MultiSelect, FAQItem, Metric
+│   ├── brand/           HeroArtwork.astro, Logo.astro (signal-field artwork, wordmark) — src/components/brand/
+│   ├── business/        WorkCard.astro, ConceptPreview.astro, NextStepsRail.astro, OfferRow.astro, StepperLine.astro
+│   ├── layout/          Header.astro, MobileMenu.astro, Footer.astro, PageHero.astro, SectionHeader.astro, CTASection.astro, ThemeToggle.astro, nav.ts
+│   └── ui/              ArrowLink.astro, Button.astro, ChannelLink.astro, FAQItem.astro, FormField.astro, Icon.astro, Metric.astro, MultiSelect.astro, ProofTag.astro, Select.astro, TextLink.astro
+├── content/
+│   ├── blog/            articles (Markdown, draft-gated) — draft-sample.md fixture
+│   └── work/            work items (Markdown, draft-gated) — 6 real + draft-sample fixture
+├── content.config.ts    collections + honesty contract (work union + blog schema)
 ├── data/
-│   ├── site.ts          nav, contact facts, offers, stages, FAQ, copy constants
-│   ├── audit.ts         audit form field definitions (client contract)
-│   └── work-previews.ts ← preview metadata per work id (screenshots / concept layouts)
-├── layouts/             BaseLayout (html shell), PageLayout (shell + header/footer)
-├── pages/               route pages (index, services, work, process, about, contact, privacy, terms, audit, 404)
-├── scripts/             theme.ts, menu.ts, audit.ts (form state machine), analytics.ts
-└── styles/global.css    tokens, themes, typography, components layer
+│   ├── audit.ts         audit form field definitions, AUDIT_OPTIONS, client validation
+│   ├── blog.ts          blog helpers (isPublished, sortByDate, neighbours, relatedEntries) — src/data/blog.ts
+│   ├── site.ts          nav, contact, offers, stages, FAQ, toFaDigits, jalaliYear (Asia/Tehran)
+│   └── work-previews.ts preview metadata per work id (imageUrl via manifest)
+├── generated/
+│   └── image-manifest.ts (regenerated by prebuild — logical → hashed URLs)
+├── layouts/
+│   ├── BaseLayout.astro html shell, fonts, meta, theme, analytics, hero preload (fetchpriority)
+│   └── PageLayout.astro shell + header/footer + skip link (forwards og + font priority)
+├── pages/
+│   ├── index.astro, about/services/process/contact/privacy/terms.astro, 404.astro
+│   ├── work/index.astro, work/[slug].astro
+│   ├── blog/index.astro, blog/[slug].astro
+│   ├── audit.astro, audit/thank-you.astro
+│   └── rss.xml.ts       RSS feed (draft-gated)
+├── scripts/
+│   ├── analytics.ts     attribution capture (first-page-wins), event queue, sendBeacon fallback
+│   ├── audit/           index.ts (state machine + submit), draft.ts (draft + attribution clamp), delivery.ts (Web3Forms + validated_at), turnstile.ts (bridge + TTL)
+│   ├── audit.ts         barrel re-export (preserves ../scripts/audit import path)
+│   ├── menu.ts          mobile menu (open/close, Escape, focus, fallback)
+│   ├── motion.ts        reveal, hero stages, parallax, reduced-motion guards
+│   ├── theme.ts         theme toggle, persistence, system sync, no-flash
+│   └── work-filter.ts   industry filter (query-param hydrated, progressive enhancement)
+└── styles/
+    └── global.css       tokens, themes, typography, components layer
 ```
 
 ---
@@ -91,11 +112,11 @@ The `/work` portfolio is fully content-driven: every entry is one markdown file 
 
 The site's proof integrity is **mechanically enforced** by the content schema (`src/content.config.ts`) and `tests/content.test.mjs`. Every entry must be one of exactly three types:
 
-| Type | Tag shown | What it may claim | Schema guards |
-|---|---|---|---|
-| `case-study` | «مطالعه موردی» | Real client + real, **verified** results | `client.public: true` required; every metric needs `verified: true` + `source` |
-| `project` | «پروژه» | Real implementation, **no outcome claims** | `outcome` must be `measuring` or `unknown`; metrics optional but evidence-bound |
-| `concept` | «نمونه نمایشی — سناریوی مفهومی» | Fictional/demo scenario; design goals + proposed KPIs only | `metrics` forbidden; `goals` + `kpis` required; `client.public` must be `false` |
+| Type         | Tag shown                       | What it may claim                                          | Schema guards                                                                   |
+| ------------ | ------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `case-study` | «مطالعه موردی»                  | Real client + real, **verified** results                   | `client.public: true` required; every metric needs `verified: true` + `source`  |
+| `project`    | «پروژه»                         | Real implementation, **no outcome claims**                 | `outcome` must be `measuring` or `unknown`; metrics optional but evidence-bound |
+| `concept`    | «نمونه نمایشی — سناریوی مفهومی» | Fictional/demo scenario; design goals + proposed KPIs only | `metrics` forbidden; `goals` + `kpis` required; `client.public` must be `false` |
 
 Rules that never change:
 
@@ -107,6 +128,7 @@ Rules that never change:
 ## 2. Step-by-step
 
 1. **Create the file** — `src/content/work/<slug>.md` (slug = URL path, e.g. `restaurant-acquisition` → `/work/restaurant-acquisition`). Use the matching template below.
+   To stage an entry without publishing it (e.g. awaiting client sign-off), set `draft: true` in the frontmatter; it stays out of `/work`, the homepage proof section, and the sitemap until you flip it to false.
 2. **Fill the frontmatter honestly** — pick the template for your type and keep every field's meaning intact.
 3. **Write the body** — markdown rendered in the detail page at 66ch measure; sections like `## مسئله`, `## آنچه ساخته شد`, `## وضعیت`, `## محدودیت` match the existing entries.
 4. **Register the preview** in `src/data/work-previews.ts` (`previewFor(id)`):
@@ -141,9 +163,9 @@ components:
   - "لندینگ"
   - "فرم لید"
   - "ثبت لید"
-outcome: "measuring"   # یا "unknown" — هرگز عدد وعده داده نمی‌شود
+outcome: "measuring" # یا "unknown" — هرگز عدد وعده داده نمی‌شود
 featured: false
-metrics: []            # فقط با داده واقعی؛ هر آیتم نیاز به source + verified: true
+metrics: [] # فقط با داده واقعی؛ هر آیتم نیاز به source + verified: true
 limitations:
   - "محدودیت تفسیر یا داده."
 ---
@@ -233,7 +255,7 @@ Every metric **must** carry `source` and `verified: true` — the schema rejects
      ```bash
      python3 scripts/optimize-work-previews.py <home-png> <audit-png>
      ```
-     The script asserts 1440×900 input and writes WebP (q80) at native + half size into `public/images/work/`. For a new project, extend the script's calls with the new capture (or run it once per capture). Live-site previews refresh via `bash scripts/refresh-portfolio-previews.sh`.
+     The script asserts 1440×900 input and writes WebP (q80) at native + half size into `assets/images/work/` (logical sources; hashed copies materialize into `public/images/` on build). For a new project, extend the script's calls with the new capture (or run it once per capture). Live-site previews refresh via `bash scripts/refresh-portfolio-previews.sh`.
   3. Reference the files in `previewFor(id)` through the **image manifest** (`imageUrl()` — never hard-coded `/images/...` paths) with `src` + `srcset` (1440w + 720w) + descriptive Persian `alt`, plus optional `detailSrc`/`detailSrcset` for a second screenshot on the detail page.
 - **Concepts** — no image files. Pick `layout: "form"` or `"course"`; the site renders the designed mock (labeled «نمونه نمایشی — سناریوی مفهومی») from `ConceptPreview.astro`.
 - Photography elsewhere on the site is CC0, captioned, and registered in `docs/IMAGERY.md` — do not hotlink remote images.
@@ -262,10 +284,10 @@ export function previewFor(id: string): WorkPreview {
 
 ## 5. Performance & image delivery (read before touching images)
 
-- **Every public image is content-addressed.** `npm run build` runs `scripts/build-image-manifest.mjs` (prebuild), which materializes sha256-hashed copies of every file in `public/images/` and writes `src/generated/image-manifest.ts`. All markup references images via `imageUrl("logical/path.ext")` from that module; the structural test **fails the build** if any built page references an unhashed `/images/` path or a missing file. Never hard-code `/images/...` URLs.
+- **Every public image is content-addressed.** `npm run build` runs `scripts/build-image-manifest.mjs` (prebuild), which materializes sha256-hashed copies of every file in `assets/images/` into `public/images/` and writes `src/generated/image-manifest.ts`. All markup references images via `imageUrl("logical/path.ext")` from that module; the structural test **fails the build** if any built page references an unhashed `/images/` path or a missing file. Never hard-code `/images/...` URLs.
 - **Caching:** `public/_headers` serves `/images/*`, `/_astro/*`, and `/fonts/*` with `immutable` (correct only because of the versioning above); HTML, `sitemap.xml`, `robots.txt` revalidate normally; `og.png`/`og/*`/`favicon.svg` get 1-day caching (social cards must not go stale for long).
 - **Product screenshot workflow:** capture at 1440×900 from the production build (light theme), then `python3 scripts/optimize-work-previews.py shot.png <name>` emits the WebP pair; `npm run build` re-hashes. Alt/caption/provenance updates documented in `docs/IMAGERY.md`.
-- **Social cards are committed; the build validates them.** Cards are rendered locally with `npm run generate:og` (`scripts/generate-og-images.py` — Python + Pillow) and committed under `public/og/`; `prebuild` runs `scripts/validate-og-assets.mjs` (Node, no extra dependencies) which fails the build if a required committed card is missing or not a 1200×630 PNG, and `scripts/generate-sitemap.mjs` writes `public/sitemap.xml` from the published content — drafts are excluded from both. Cloudflare Pages does **not** regenerate cards: a new/changed article needs `npm run generate:og` locally before committing (or `npm run build:with-og` to render + build in one command).
+- **Social cards are committed; the build validates them.** Cards are rendered locally with `npm run generate:og` (`scripts/generate-og-images.py` — Python + Pillow) and committed under `public/og/`; `prebuild` runs `scripts/validate-og-assets.mjs` (Node, no extra dependencies) which fails the build if a required committed card is missing or not a 1200×630 PNG, and `scripts/generate-sitemap.mjs` writes `public/sitemap.xml` from the published content — drafts are excluded from both. Cloudflare Pages does **not** regenerate cards: a new/changed article needs `npm run generate:og` locally before committing (or `npm run build:with-og` to render + build in one command). First time on a machine? Run `python3 -m pip install -r requirements-og.txt`; `generate:og` preflights everything else.
 - **Lab measurement:** `npm run build && node scripts/lab-server.mjs` serves `dist/` with Brotli/gzip (as Cloudflare does) for Lighthouse/CDP runs; `bash scripts/lab-benchmark.sh <outdir>` runs the 3×median sweep across the five representative routes (mobile + desktop).
 
 ## 6. Verification checklist for a new entry
@@ -286,8 +308,9 @@ Then look at `/work`, `/work/<slug>`, and the homepage proof section in the brow
 - **Targeted/affected:** `node scripts/verify-affected.mjs --file <path>` — routes in `.pi/verification.json`; unmatched files fall back to the canonical full gate.
 - **Feature:** once after a bounded change: project contract + relevant tests + build.
 - **Full:** `bash scripts/verify.sh` — builds the project (fresh `dist/` for structural tests), then runs `scripts/pi-doctor.sh --ci` (harness integrity, security scan, context budgets) and `scripts/project-verify.sh` (Noveno doc/branding/env contract). CI mirrors this in `.github/workflows/quality.yml`.
+- **Formatting:** `npm run format:check` (also enforced in CI) — formatting is mechanical; never hand-fix format-only feedback.
 
-Structural tests (run inside the gate) also pin the design contract: the flowchart grammar classes are banned from built output, the homepage LCP media wiring (hashed AVIF preload + eager hero) must exist, every `/images/` reference must be content-hashed and exist on disk, fonts ≤ 200 KB, interactive JS ≤ 15 KB gzip, every page `fa` + `dir="rtl"`, theme anchors present, no dead links, no env names leaked.
+Structural tests (run inside the gate) also pin the design contract: the flowchart grammar classes are banned from built output, the homepage LCP is the headline text (no hero image preload, no eager images, brand artwork is an inline SVG, below-fold screenshots stay lazy), every `/images/` reference must be content-hashed and exist on disk, fonts ≤ 200 KB (four subsets), interactive JS ≤ 15 KB gzip, every page `fa` + `dir="rtl"`, theme anchors present, no dead links, no env names leaked, and security headers/CSP are present.
 
 ## Browser QA
 

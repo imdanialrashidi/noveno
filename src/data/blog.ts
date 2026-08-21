@@ -16,9 +16,7 @@ export function isPublished(entry: BlogEntry): boolean {
 
 /** Newest first; never reorders drafts (they are filtered before this). */
 export function sortByDate(entries: BlogEntry[]): BlogEntry[] {
-  return [...entries].sort(
-    (a, b) => b.data.published_at.valueOf() - a.data.published_at.valueOf(),
-  );
+  return [...entries].sort((a, b) => b.data.published_at.valueOf() - a.data.published_at.valueOf());
 }
 
 /** Editorial Persian date — «۱۴ شهریور ۱۴۰۵» style (no invented precision). */
@@ -49,13 +47,12 @@ export function readingMinutes(body: string): number {
  * current article, capped at `limit`. Returns [] when there is no real
  * related content — never fabricates recommendations.
  */
-export function relatedEntries(
-  all: BlogEntry[],
-  current: BlogEntry,
-  limit = 2,
-): BlogEntry[] {
+export function relatedEntries(all: BlogEntry[], current: BlogEntry, limit = 2): BlogEntry[] {
   return sortByDate(
-    all.filter((entry) => isPublished(entry) && entry.id !== current.id && entry.data.category === current.data.category),
+    all.filter(
+      (entry) =>
+        isPublished(entry) && entry.id !== current.id && entry.data.category === current.data.category,
+    ),
   ).slice(0, limit);
 }
 

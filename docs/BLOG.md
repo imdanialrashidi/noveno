@@ -27,9 +27,9 @@ edits. Publishing a new article takes about five minutes and one command.
    title: "عنوان نوشته — یک جملهٔ مشخص و جستجوپذیر"
    description: "یک تا دو جمله که دقیقاً می‌گوید نوشته چه مسئله‌ای را جواب می‌دهد (همان متا دیسکریپشن)."
    published_at: 2026-09-01
-   author: "نوونو"            # یا نام نویسندهٔ واقعی
-   category: "پیگیری لید"      # موضوع — قدرت «نوشته‌های هم‌موضوع» است
-   draft: true                # تا وقتی آمادهٔ انتشار نیستید true بماند
+   author: "نوونو" # یا نام نویسندهٔ واقعی
+   category: "پیگیری لید" # موضوع — قدرت «نوشته‌های هم‌موضوع» است
+   draft: true # تا وقتی آمادهٔ انتشار نیستید true بماند
    tags: ["پیگیری لید", "ثبت درخواست"]
    # updated_at: 2026-09-05   # فقط وقتی مطلب واقعاً بازبینی شده
    # ogImage: "/og/blog/my-article.png"   # فقط اگر کارت اختصاصی می‌خواهید
@@ -79,6 +79,8 @@ edits. Publishing a new article takes about five minutes and one command.
    git push              # Cloudflare Pages deploys automatically
    ```
 
+   First time on a machine? Run `python3 -m pip install -r requirements-og.txt`; `generate:og` preflights everything else.
+
    Or use the single helper that does the first two steps:
    `npm run build:with-og`.
 
@@ -95,13 +97,13 @@ edits. Publishing a new article takes about five minutes and one command.
 
 ## What happens automatically on every build
 
-| Step | What runs |
-|---|---|
-| `prebuild` | image manifest (hashed URLs), **validation of the committed social cards** (`scripts/validate-og-assets.mjs` — every published article must have a 1200×630 PNG card; drafts are excluded), **sitemap** (`scripts/generate-sitemap.mjs` — drafts excluded). Cards themselves are **not** rendered on Cloudflare — see the note above. |
-| `astro build` | static pages; drafts are never generated; RSS feed `/rss.xml` rebuilt |
-| Feed | `https://noveno.ir/rss.xml` — rebuilt with `npm run build`; draft articles excluded |
-| article page | canonical `/blog/[slug]`, `og:type=article`, Article JSON-LD (title, dates, author, publisher), breadcrumbs (خانه / وبلاگ / عنوان), related-by-category + previous/next navigation, contextual audit CTA |
-| `/blog` | newest article featured first; chronological list; index updates automatically |
+| Step          | What runs                                                                                                                                                                                                                                                                                                                             |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `prebuild`    | image manifest (hashed URLs), **validation of the committed social cards** (`scripts/validate-og-assets.mjs` — every published article must have a 1200×630 PNG card; drafts are excluded), **sitemap** (`scripts/generate-sitemap.mjs` — drafts excluded). Cards themselves are **not** rendered on Cloudflare — see the note above. |
+| `astro build` | static pages; drafts are never generated; RSS feed `/rss.xml` rebuilt                                                                                                                                                                                                                                                                 |
+| Feed          | `https://noveno.ir/rss.xml` — rebuilt with `npm run build`; draft articles excluded                                                                                                                                                                                                                                                   |
+| article page  | canonical `/blog/[slug]`, `og:type=article`, Article JSON-LD (title, dates, author, publisher), breadcrumbs (خانه / وبلاگ / عنوان), related-by-category + previous/next navigation, contextual audit CTA                                                                                                                              |
+| `/blog`       | newest article featured first; chronological list; index updates automatically                                                                                                                                                                                                                                                        |
 
 ## Editing an existing article
 

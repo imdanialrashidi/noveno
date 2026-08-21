@@ -29,8 +29,7 @@ interface Props {
 
 const { kind, title, summary, meta, href, outcome, preview, featured = false, flip = false } = Astro.props;
 
-const openEvent =
-  kind === "case-study" ? "case_study_opened" : kind === "project" ? "project_opened" : null;
+const openEvent = kind === "case-study" ? "case_study_opened" : kind === "project" ? "project_opened" : null;
 const slug = href.split("/").filter(Boolean).pop() ?? "";
 
 const textOrder = flip ? "lg:order-2" : "lg:order-1";
@@ -55,44 +54,52 @@ const cols = featured
       </div>
       <h3 class:list={["text-text", featured ? "text-h2" : "text-h3"]}>{title}</h3>
       <p class="text-body text-text-muted measure-prose">{summary}</p>
-      {outcome && (
-        <span class="mt-1 inline-flex items-center gap-2 text-meta text-text-faint">
-          <span class="h-1.5 w-1.5 flex-none rounded-full bg-line-strong" aria-hidden="true"></span>
-          {outcome}
-        </span>
-      )}
+      {
+        outcome && (
+          <span class="mt-1 inline-flex items-center gap-2 text-meta text-text-faint">
+            <span class="h-1.5 w-1.5 flex-none rounded-full bg-line-strong" aria-hidden="true" />
+            {outcome}
+          </span>
+        )
+      }
       <ArrowLink
         href={href}
         label="مشاهده کار"
         class="mt-3"
-        data={openEvent ? { "data-event": openEvent, "data-event-payload": JSON.stringify({ slug }) } : undefined}
+        data={openEvent
+          ? { "data-event": openEvent, "data-event-payload": JSON.stringify({ slug }) }
+          : undefined}
       />
     </div>
 
     <!-- preview -->
     <div class:list={["preview-stage", mediaOrder]}>
-      {preview.type === "image" && preview.src && (
-        <img
-          src={preview.src}
-          srcset={preview.srcset}
-          sizes="(min-width: 1024px) 660px, 92vw"
-          width="1440"
-          height="900"
-          loading="lazy"
-          decoding="async"
-          alt={preview.alt ?? title}
-          class="transition-transform duration-300 ease-standard group-hover:scale-[1.015]"
-        />
-      )}
-      {preview.type === "concept" && (
-        <>
-          <p class="sr-only">
-            {preview.scenario ?? "نمایش طراحی سناریوی مفهومی — بدون اجرا و بدون داده عملکردی"}
-          </p>
-          <ConceptPreview layout={preview.layout ?? "form"} />
-          <span class="preview-tag">نمونه نمایشی — سناریوی مفهومی</span>
-        </>
-      )}
+      {
+        preview.type === "image" && preview.src && (
+          <img
+            src={preview.src}
+            srcset={preview.srcset}
+            sizes="(min-width: 1024px) 660px, 92vw"
+            width="1440"
+            height="900"
+            loading="lazy"
+            decoding="async"
+            alt={preview.alt ?? title}
+            class="transition-transform duration-300 ease-standard group-hover:scale-[1.015]"
+          />
+        )
+      }
+      {
+        preview.type === "concept" && (
+          <>
+            <p class="sr-only">
+              {preview.scenario ?? "نمایش طراحی سناریوی مفهومی — بدون اجرا و بدون داده عملکردی"}
+            </p>
+            <ConceptPreview layout={preview.layout ?? "form"} />
+            <span class="preview-tag">نمونه نمایشی — سناریوی مفهومی</span>
+          </>
+        )
+      }
     </div>
   </div>
 </article>

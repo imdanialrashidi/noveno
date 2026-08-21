@@ -54,7 +54,10 @@ export function initThemeToggle(button: HTMLButtonElement): () => void {
     const dark = effectiveTheme() === "dark";
     button.setAttribute("aria-pressed", String(dark));
     if (label !== null) {
-      button.setAttribute("aria-label", dark ? "حالت تاریک فعال است؛ روشن کردن" : "حالت روشن فعال است؛ تاریک کردن");
+      button.setAttribute(
+        "aria-label",
+        dark ? "حالت تاریک فعال است؛ روشن کردن" : "حالت روشن فعال است؛ تاریک کردن",
+      );
     }
     if (iconLight && iconDark) {
       iconLight.setAttribute("aria-hidden", String(dark));

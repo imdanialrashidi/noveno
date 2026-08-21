@@ -124,34 +124,41 @@ export async function handleAuditRequest(request: Request, deps: AuditDeps): Pro
     return errorResponse("turnstile_failed", 403);
   }
 
-  // Spike D-01: server-side email takes precedence when configured — validated leads are emailed
-  // before any client delivery. This is flag-gated: no sendEmail dep → legacy "validated" path.
-  if (deps.sendEmail) {
-    const sent = await deps.sendEmail(submission);
-    if (!sent.ok) return errorResponse("server_error", 500);
-    return jsonResponse({ ok: true, status: "sent" }, 200);
-  }
-
+  // Both success paths carry a short-lived HMAC receipt (Mitigation 021) and an
+  // explicit validated_at timestamp so the client never parses the receipt format.
   // Validation accepted — this is a validation-success response, NOT a
   // persistence or delivery confirmation. The visitor journey completes
   // only when the browser's Web3Forms delivery confirms success.
-  // Mitigation 021: issue a short-lived HMAC receipt so the inbox can
-  // distinguish validated leads from direct Web3Forms POSTs.
+  const issuedAt = new Date().toISOString();
+  let receipt: string | null = null;
   if (deps.receiptSecret) {
-    const issuedAt = new Date().toISOString();
-    const receipt = await createValidationReceipt(submission.submission_id, issuedAt, deps.receiptSecret);
-    if (receipt) {
-      return jsonResponse({ ok: true, status: "validated", receipt }, 200);
-    }
+    receipt = await createValidationReceipt(submission.submission_id, issuedAt, deps.receiptSecret);
   }
-  return jsonResponse({ ok: true, status: "validated" }, 200);
+
+  if (deps.sendEmail) {
+    const sent = await deps.sendEmail(submission);
+    if (!sent.ok) return errorResponse("server_error", 500);
+    return jsonResponse(
+      receipt
+        ? { ok: true, status: "sent", receipt, validated_at: issuedAt }
+        : { ok: true, status: "sent", validated_at: issuedAt },
+      200,
+    );
+  }
+
+  return jsonResponse(
+    receipt
+      ? { ok: true, status: "validated", receipt, validated_at: issuedAt }
+      : { ok: true, status: "validated", validated_at: issuedAt },
+    200,
+  );
 }
 
 const limiter = createRateLimiter({ max: 10, windowMs: 60_000 });
 
 export const onRequest = (context: { request: Request; env: AuditEnv }): Promise<Response> => {
   const { request, env } = context;
-  const hasServerEmail = Boolean((env as AuditEnv & { RESEND_API_KEY?: string }).RESEND_API_KEY);
+  const hasServerEmail = Boolean(env.RESEND_API_KEY);
   return handleAuditRequest(request, {
     rateLimiter: limiter,
     receiptSecret: env.TURNSTILE_SECRET_KEY,

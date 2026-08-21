@@ -5,11 +5,11 @@
 
 ## 1. Provider matrix
 
-| Provider | API | Free tier | Pages `fetch` compat | Iranian deliverability | PII | Notes |
-|---|---|---|---|---|---:|---|
-| **Resend** (recommended) | `POST https://api.resend.com/emails` `Authorization: Bearer <key>` JSON | 100/day, 3000/mo | Yes — pure `fetch`, no `net`/`smtp`, works with `nodejs_compat` | Gmail/Outlook ok; Iranian `.ir` recipient fine; sending domain `noveno.ir` needs SPF/DKIM | To/subject/html only | Official docs: https://resend.com/docs/send-with-cloudflare-workers — `fetch` example, no SDK needed |
-| Cloudflare Email Workers / MailChannels | Email Workers routing or MailChannels `fetch` | Email Workers free but routing-only; MailChannels deprecated 2024 | Workers fetch ok, but Email Workers requires zone email routing + worker, more ops | Same as Resend (recipient agnostic) | Same | More setup than Resend; not needed for 3k/mo |
-| SMTP via `fetch` (e.g. generic SMTP POST) | `smtp`/`net` socket | varies | No — `net` not in Workers, would need service binding | — | — | Rejected: not Workers-compatible |
+| Provider                                  | API                                                                     | Free tier                                                         | Pages `fetch` compat                                                               | Iranian deliverability                                                                    |                  PII | Notes                                                                                                |
+| ----------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------: | ---------------------------------------------------------------------------------------------------- |
+| **Resend** (recommended)                  | `POST https://api.resend.com/emails` `Authorization: Bearer <key>` JSON | 100/day, 3000/mo                                                  | Yes — pure `fetch`, no `net`/`smtp`, works with `nodejs_compat`                    | Gmail/Outlook ok; Iranian `.ir` recipient fine; sending domain `noveno.ir` needs SPF/DKIM | To/subject/html only | Official docs: https://resend.com/docs/send-with-cloudflare-workers — `fetch` example, no SDK needed |
+| Cloudflare Email Workers / MailChannels   | Email Workers routing or MailChannels `fetch`                           | Email Workers free but routing-only; MailChannels deprecated 2024 | Workers fetch ok, but Email Workers requires zone email routing + worker, more ops | Same as Resend (recipient agnostic)                                                       |                 Same | More setup than Resend; not needed for 3k/mo                                                         |
+| SMTP via `fetch` (e.g. generic SMTP POST) | `smtp`/`net` socket                                                     | varies                                                            | No — `net` not in Workers, would need service binding                              | —                                                                                         |                    — | Rejected: not Workers-compatible                                                                     |
 
 **Pick:** **Resend** — smallest code, no native, free tier far above expected SMB funnel (<10 leads/day), `fetch` timeout 10s matches existing delivery pattern.
 
@@ -22,6 +22,7 @@
 ## 3. API shape
 
 Extend `AuditEnv`:
+
 ```ts
 interface AuditEnv {
   TURNSTILE_SECRET_KEY: string;
@@ -39,11 +40,12 @@ export interface AuditDeps {
   verifyTurnstile: (submission: AuditSubmission, ip: string) => Promise<TurnstileOutcome>;
   rateLimiter: RateLimiter;
   receiptSecret?: string;
-  sendEmail?: (lead: AuditSubmission) => Promise<{ok:boolean}>;
+  sendEmail?: (lead: AuditSubmission) => Promise<{ ok: boolean }>;
 }
 ```
 
 `handleAuditRequest` after Turnstile pass:
+
 - if `deps.sendEmail` provided (spike flag = `RESEND_API_KEY` present), await `sendEmail(lead)` → `200 { ok:true, status:"sent" }` on ok, `500` on fail (no false success).
 - else keep `200 { ok:true, status:"validated" }` (current path — spike is flag-gated, no regression).
 
@@ -54,6 +56,7 @@ Client (`src/scripts/audit.ts`) deferred: after spike, `deliverLead` becomes no-
 ## 4. Client change (deferred)
 
 Not in spike — after approval:
+
 - Remove `deliverLead` / `buildWeb3FormsBody` fetch to Web3Forms, keep `submission_id` stable.
 - Success = `response.ok && (body.status==="sent" || body.status==="validated")` during transition, then `"sent"` only.
 - Web3Forms CSP origin removed.

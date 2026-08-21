@@ -20,8 +20,7 @@ export const CTA_URL = "/audit";
  * Hero headline — approved candidate A (Spec §11.2). Single-line swap;
  * both candidates are verified to fit the display treatment (§5.2).
  */
-export const HERO_HEADLINE =
-  "بازدید را به یک مسیر قابل‌پیگیری برای جذب مشتری تبدیل کنید.";
+export const HERO_HEADLINE = "بازدید را به یک مسیر قابل‌پیگیری برای جذب مشتری تبدیل کنید.";
 
 export const PRIMARY_CTA_LABEL = "درخواست بررسی مسیر جذب";
 export const SECONDARY_CTA_LABEL = "دیدن پروژه‌ها";
@@ -246,6 +245,10 @@ export function toFaDigits(value: number | string): string {
  * directly without conversion).
  */
 export function jalaliYear(date = new Date()): string {
-  const latin = new Intl.DateTimeFormat("fa-IR-u-nu-latn", { year: "numeric" }).format(date);
+  // Iran's calendar cutover (Nowruz) must not depend on the build machine's TZ.
+  const latin = new Intl.DateTimeFormat("fa-IR-u-nu-latn", {
+    year: "numeric",
+    timeZone: "Asia/Tehran",
+  }).format(date);
   return toFaDigits(latin);
 }

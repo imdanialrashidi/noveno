@@ -11,10 +11,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const SOURCE_DOCS = [
-  "docs/Noveno_Website_Master_Spec.md",
-  "docs/Noveno Business DNA.md",
-];
+const SOURCE_DOCS = ["docs/Noveno_Website_Master_Spec.md", "docs/Noveno Business DNA.md"];
 
 // Per-document identity requirements and template-placeholder forbiddens.
 // Keep markers durable: they must survive legitimate /design and /plan edits.
@@ -25,6 +22,8 @@ const DOC_CONTRACTS = {
       /^- Primary users:\s*$/m,
       /^- Measurable outcome:\s*$/m,
       /^- Must-have user flows\s*$/m,
+      /Hero headline selection between the two approved candidates/,
+      /Persian font choice[^\n]*deferred to [`\/]?design/,
     ],
   },
   "docs/ARCHITECTURE.md": {
@@ -45,8 +44,19 @@ const DOC_CONTRACTS = {
     forbid: [/`\/bootstrap` should replace this paragraph/],
   },
   "README.md": {
-    require: ["Noveno"],
-    forbid: [/Pi Production Workflow Template/],
+    require: [
+      "Noveno",
+      // Directory-map accuracy spot checks (full equality is too brittle):
+      "components/brand/",
+      "motion.ts",
+      "work-filter.ts",
+      "data/blog.ts",
+    ],
+    forbid: [
+      /Pi Production Workflow Template/,
+      // Pre-2026-10 brand pass contract, inverted vs tests/structural.test.mjs
+      /AVIF preload \+ eager hero/,
+    ],
   },
 };
 
@@ -86,6 +96,16 @@ function checkDocContract(root, relative, contract) {
     }
   }
   return errors;
+}
+
+function checkSpecRouteHistory(root, relative) {
+  const text = readText(root, relative);
+  const offenders = text
+    .split("\n")
+    .map((line, i) => ({ line, n: i + 1 }))
+    .filter(({ line }) => line.includes("/insights"))
+    .filter(({ line }) => !/(renamed|DESIGN §16|301)/.test(line));
+  return offenders.map(({ n }) => `${relative}:${n} mentions /insights without the rename annotation`);
 }
 
 function checkEnvExample(root) {
@@ -165,6 +185,7 @@ export function checkProjectContract(root) {
   for (const [relative, contract] of Object.entries(DOC_CONTRACTS)) {
     errors.push(...checkDocContract(root, relative, contract));
   }
+  errors.push(...checkSpecRouteHistory(root, "docs/Noveno_Website_Master_Spec.md"));
   errors.push(...checkEnvExample(root));
   errors.push(...checkVerificationConfig(root));
   errors.push(...checkBranding(root));
@@ -189,6 +210,8 @@ if (invokedPath === path.resolve(import.meta.filename)) {
     process.stderr.write(`\n${errors.length} project contract violation(s).\n`);
     process.exitCode = 1;
   } else {
-    process.stdout.write("Project contract passed: repository is identified as the Noveno production website.\n");
+    process.stdout.write(
+      "Project contract passed: repository is identified as the Noveno production website.\n",
+    );
   }
 }

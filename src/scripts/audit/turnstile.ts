@@ -22,6 +22,9 @@ declare global {
 export class TurnstileBridge {
   private widgetId: string | null = null;
   private token: string | null = null;
+  private tokenAt = 0;
+  /** Cloudflare tokens live ~5 minutes; refresh margin keeps siteverify safe. */
+  private static readonly TOKEN_TTL_MS = 4 * 60_000;
   private scriptLoaded = false;
   private scriptFailed = false;
   private waiters: ((token: string | null) => void)[] = [];
@@ -57,6 +60,8 @@ export class TurnstileBridge {
 
   private onToken(value: string | null): void {
     this.token = value;
+    if (value !== null) this.tokenAt = Date.now();
+    else this.tokenAt = 0;
     for (const waiter of this.waiters.splice(0)) waiter(value);
   }
 
@@ -74,9 +79,9 @@ export class TurnstileBridge {
     return true;
   }
 
-  /** Existing token if fresh, else reset the widget and wait (bounded). */
+  /** Existing token if fresh (TTL 4 min), else reset the widget and wait (bounded). */
   async getToken(): Promise<string | null> {
-    if (this.token) return this.token;
+    if (this.token && Date.now() - this.tokenAt < TurnstileBridge.TOKEN_TTL_MS) return this.token;
     if (!(await this.ensureRendered())) return null;
     if (!this.widgetId || !window.turnstile) return null;
     this.token = null;
@@ -97,6 +102,7 @@ export class TurnstileBridge {
   /** A token was rejected server-side: clear it and force a fresh challenge. */
   invalidate(): void {
     this.token = null;
+    this.tokenAt = 0;
   }
 
   /**
@@ -108,6 +114,7 @@ export class TurnstileBridge {
    */
   retry(): void {
     this.token = null;
+    this.tokenAt = 0;
     this.scriptFailed = false;
   }
 
@@ -117,6 +124,7 @@ export class TurnstileBridge {
     window.turnstile.remove(id);
     this.widgetId = null;
     this.token = null;
+    this.tokenAt = 0;
     void this.ensureRendered();
   }
 }

@@ -37,14 +37,8 @@ function buildFixture() {
   fs.mkdirSync(path.join(fixtureRoot, ".pi"), { recursive: true });
 
   fs.cpSync(path.join(repositoryRoot, "docs"), path.join(fixtureRoot, "docs"), { recursive: true });
-  fs.copyFileSync(
-    path.join(repositoryRoot, ".env.example"),
-    path.join(fixtureRoot, ".env.example"),
-  );
-  fs.copyFileSync(
-    path.join(repositoryRoot, "README.md"),
-    path.join(fixtureRoot, "README.md"),
-  );
+  fs.copyFileSync(path.join(repositoryRoot, ".env.example"), path.join(fixtureRoot, ".env.example"));
+  fs.copyFileSync(path.join(repositoryRoot, "README.md"), path.join(fixtureRoot, "README.md"));
   fs.copyFileSync(
     path.join(repositoryRoot, ".pi", "verification.json"),
     path.join(fixtureRoot, ".pi", "verification.json"),
@@ -61,7 +55,9 @@ function buildFixture() {
     "Logo_Social_Media.png",
   ];
   for (const name of assetFiles) {
-    const content = name.endsWith(".png") ? "dummy-png-bytes" : '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg"></svg>';
+    const content = name.endsWith(".png")
+      ? "dummy-png-bytes"
+      : '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg"></svg>';
     fs.writeFileSync(path.join(fixtureRoot, "branding_assests", name), content);
   }
 }
@@ -130,13 +126,65 @@ test("red: a verification config without the project route or canonical fallback
     `expected missing-route failure, got: ${JSON.stringify(errors)}`,
   );
 
-  config.routes.push({ id: "project-contract", include: ["README.md"], commands: [["bash", "scripts/project-verify.sh"]] });
+  config.routes.push({
+    id: "project-contract",
+    include: ["README.md"],
+    commands: [["bash", "scripts/project-verify.sh"]],
+  });
   config.fallback = [["echo", "weakened-gate"]];
   writeFixtureFile(".pi/verification.json", JSON.stringify(config, null, 2));
   errors = checkProjectContract(fixtureRoot);
   assert.ok(
     errors.some((error) => error.includes("fallback must be the canonical full gate")),
     `expected weakened-fallback failure, got: ${JSON.stringify(errors)}`,
+  );
+  buildFixture();
+});
+
+test("red: README with forbidden AVIF preload + eager hero is rejected", () => {
+  const readme = fs.readFileSync(path.join(fixtureRoot, "README.md"), "utf8");
+  writeFixtureFile("README.md", readme + "\nAVIF preload + eager hero\n");
+  const errors = checkProjectContract(fixtureRoot);
+  assert.ok(
+    errors.some((e) => e.includes("README.md") && e.includes("AVIF preload")),
+    `expected README forbid failure, got: ${JSON.stringify(errors)}`,
+  );
+  buildFixture();
+});
+
+test("red: README missing required map markers is rejected", () => {
+  let readme = fs.readFileSync(path.join(fixtureRoot, "README.md"), "utf8");
+  readme = readme.replaceAll("components/brand/", "components/band/");
+  writeFixtureFile("README.md", readme);
+  const errors = checkProjectContract(fixtureRoot);
+  assert.ok(
+    errors.some((e) => e.includes('missing required marker "components/brand/"')),
+    `expected missing marker failure, got: ${JSON.stringify(errors)}`,
+  );
+  buildFixture();
+});
+
+test("red: spec with unannotated /insights is rejected (route history)", () => {
+  const spec = fs.readFileSync(path.join(fixtureRoot, "docs", "Noveno_Website_Master_Spec.md"), "utf8");
+  writeFixtureFile("docs/Noveno_Website_Master_Spec.md", spec + "\n/insights-unannotated\n");
+  const errors = checkProjectContract(fixtureRoot);
+  assert.ok(
+    errors.some((e) => e.includes("mentions /insights without the rename annotation")),
+    `expected route-history failure, got: ${JSON.stringify(errors)}`,
+  );
+  buildFixture();
+});
+
+test("red: PRODUCT reintroducing settled decisions is rejected", () => {
+  const product = fs.readFileSync(path.join(fixtureRoot, "docs", "PRODUCT.md"), "utf8");
+  writeFixtureFile(
+    "docs/PRODUCT.md",
+    product + "\nHero headline selection between the two approved candidates\n",
+  );
+  const errors = checkProjectContract(fixtureRoot);
+  assert.ok(
+    errors.some((e) => e.includes("Hero headline selection")),
+    `expected PRODUCT forbid failure, got: ${JSON.stringify(errors)}`,
   );
   buildFixture();
 });

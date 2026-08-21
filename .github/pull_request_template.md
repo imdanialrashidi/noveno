@@ -6,8 +6,8 @@
 ## Acceptance evidence
 
 | Criterion | PASS / FAIL / UNPROVEN / BLOCKED | Exact evidence |
-|---|---|---|
-|  |  |  |
+| --------- | -------------------------------- | -------------- |
+|           |                                  |                |
 
 ## Verification
 

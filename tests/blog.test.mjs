@@ -12,6 +12,7 @@ import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import YAML from "yaml";
+import { neighbours, sortByDate } from "../src/data/blog.ts";
 
 const contentDir = path.resolve(import.meta.dirname, "..", "src", "content", "blog");
 
@@ -46,7 +47,10 @@ test("every published article carries the SEO-critical metadata", () => {
       typeof data.description === "string" && data.description.length >= 20,
       `${file}: description too short (SEO surface)`,
     );
-    assert.ok(data.published_at && !Number.isNaN(new Date(data.published_at).valueOf()), `${file}: published_at`);
+    assert.ok(
+      data.published_at && !Number.isNaN(new Date(data.published_at).valueOf()),
+      `${file}: published_at`,
+    );
     assert.ok(typeof data.category === "string" && data.category.length >= 2, `${file}: category`);
     assert.ok(typeof data.author === "string" && data.author.length >= 2, `${file}: author`);
   }
@@ -93,11 +97,7 @@ test("frontmatter parser handles YAML arrays and quoted colons", () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "noveno-blog-"));
   const file = path.join(tmpDir, "probe.md");
   try {
-    fs.writeFileSync(
-      file,
-      "---\ntitle: \"A: quoted title\"\ntags:\n  - one\n  - two\n---\n",
-      "utf8",
-    );
+    fs.writeFileSync(file, '---\ntitle: "A: quoted title"\ntags:\n  - one\n  - two\n---\n', "utf8");
     const parsed = parseFrontmatter(file);
     assert.deepEqual(parsed.tags, ["one", "two"]);
     assert.equal(parsed.title, "A: quoted title");
@@ -111,7 +111,10 @@ test("rss feed exists, is valid RSS 2.0, and excludes drafts (plan 029)", () => 
   if (!fs.existsSync(distRss)) {
     // Allow test to be skipped when dist not built (e.g. verify-affected without full gate)
     // but in full gate it must exist.
-    if (process.env.CI || fs.existsSync(path.resolve(import.meta.dirname, "..", "dist", "blog", "index.html"))) {
+    if (
+      process.env.CI ||
+      fs.existsSync(path.resolve(import.meta.dirname, "..", "dist", "blog", "index.html"))
+    ) {
       assert.fail("dist/rss.xml missing — run npm run build");
     }
     return;
@@ -129,6 +132,46 @@ test("rss feed exists, is valid RSS 2.0, and excludes drafts (plan 029)", () => 
     assert.ok(!feed.includes(`/blog/${slug}/`), `draft ${slug} must not be in feed`);
   }
   // discovery link
-  const blogHtml = fs.readFileSync(path.resolve(import.meta.dirname, "..", "dist", "blog", "index.html"), "utf8");
-  assert.ok(blogHtml.includes('href="/rss.xml"') && blogHtml.includes('application/rss+xml'), "blog must expose RSS discovery link");
+  const blogHtml = fs.readFileSync(
+    path.resolve(import.meta.dirname, "..", "dist", "blog", "index.html"),
+    "utf8",
+  );
+  assert.ok(
+    blogHtml.includes('href="/rss.xml"') && blogHtml.includes("application/rss+xml"),
+    "blog must expose RSS discovery link",
+  );
+});
+
+test("neighbours mapping: older = published before (قبلی), newer = published after (بعدی)", () => {
+  const entry = (id, date) => ({
+    id,
+    data: {
+      published_at: new Date(date),
+      draft: false,
+      category: "test",
+      title: id,
+      description: "desc",
+      author: "test",
+    },
+  });
+  const olderPost = entry("older-post", "2026-02-01");
+  const newerPost = entry("newer-post", "2026-03-01");
+  const middlePost = entry("middle-post", "2026-02-15");
+  const all = [olderPost, newerPost, middlePost];
+  // sortByDate is newest-first
+  const sorted = sortByDate(all);
+  assert.equal(sorted[0].id, "newer-post");
+  assert.equal(sorted[1].id, "middle-post");
+  assert.equal(sorted[2].id, "older-post");
+  // neighbours for middle: older = older-post, newer = newer-post
+  const { older, newer } = neighbours(all, middlePost);
+  assert.equal(older?.id, "older-post", "older must be published before");
+  assert.equal(newer?.id, "newer-post", "newer must be published after");
+  // Edge: newest has no newer, oldest has no older
+  const newestNeighbour = neighbours(all, newerPost);
+  assert.equal(newestNeighbour.newer, null);
+  assert.equal(newestNeighbour.older?.id, "middle-post");
+  const oldestNeighbour = neighbours(all, olderPost);
+  assert.equal(oldestNeighbour.older, null);
+  assert.equal(oldestNeighbour.newer?.id, "middle-post");
 });

@@ -8,8 +8,8 @@ Updated: 2026-10
 > **Status (2026-08, reconciled):** both slices are committed and verified — the app exists (`src/`, `functions/`, `tests/`); `.pi/verification.json` has an `app` route. Launch awaits founder provisioning (`docs/ops/setup-checklist.md`). The steps below document the accepted plan; see README "Repository state" for the shipped reality.
 
 > **Founder override (2026-08-14, second review): the flowchart/route visual language is removed from the public design.** The Journey Line / route-band / station-rail grammar (JourneyLine, BeforeAfterJourney, ChannelMap, LeadStatusStrip, SystemArchitectureDiagram, ProofRow, scatter fields, StepperLine station rail, footer mini route, 404 route motif, dashed wireframe concept previews, line-style ProofTag codes, section node markers) is **rejected as a visual concept** and must not be reintroduced. The accepted replacement is the image-led editorial system — Typography + Photography + Real Product Screens + Editorial Numbers — recorded in `docs/DESIGN.md` §3 (thesis), §4 (signature), §9 (media), §15 (screen matrix), §16 (decision log). The word «مسیر» survives only as product copy (fixed CTA «درخواست بررسی مسیر جذب»), never as a drawn route. All acceptance criteria and in-scope items below that name the old grammar are superseded by the 2026-08-14 thesis; audit progress is «مرحله X از ۶» + progress bar, thank-you is a numbered next-steps sequence, work previews are large real screenshots (projects) and labeled designed mocks (concepts).
-Source of truth: `AGENTS.md` (order of precedence), `docs/DESIGN.md` (visual contract), `docs/PRODUCT.md` (product contract), `docs/ARCHITECTURE.md` (invariants), `docs/QUALITY.md` (quality contract), Master Spec v1.0 (full reference), `docs/PLAN.md` (roadmap).
-Use: `/resume docs/exec-plans/active/noveno-launch.md` for any fresh context that continues this work.
+> Source of truth: `AGENTS.md` (order of precedence), `docs/DESIGN.md` (visual contract), `docs/PRODUCT.md` (product contract), `docs/ARCHITECTURE.md` (invariants), `docs/QUALITY.md` (quality contract), Master Spec v1.0 (full reference), `docs/PLAN.md` (roadmap).
+> Use: `/resume docs/exec-plans/active/noveno-launch.md` for any fresh context that continues this work.
 
 ## Slice 2 evidence (recorded at completion)
 
@@ -36,6 +36,7 @@ Use: `/resume docs/exec-plans/active/noveno-launch.md` for any fresh context tha
 **Goal.** Launch the Noveno production website in exactly two coherent implementation slices — (1) the flagship public site with the accepted «مسیر» design system, and (2) the acquisition flow and production integration — on the accepted stack (Astro + TypeScript, static, Tailwind, Persian-first/RTL, Cloudflare Pages + one narrowly scoped Pages Function project, **email-only lead delivery via Web3Forms (2026-10; Supabase removed)**, Turnstile anti-abuse, Cloudflare analytics), with every trust boundary, integration, and verification expectation resolved at plan level so implementation does not rediscover architecture or sequencing.
 
 **Non-goals (do not reopen).**
+
 - No implementation during `/plan`; no redesign of the accepted visual direction (`docs/DESIGN.md` is the contract, not a suggestion).
 - No client UI framework (no React/Vue/Svelte); no SSR; no adapter-driven server output.
 - No authentication, CMS, custom CRM UI, client portal, dashboard, payment system, blog, industry pages, or speculative infrastructure.
@@ -57,30 +58,34 @@ Use: `/resume docs/exec-plans/active/noveno-launch.md` for any fresh context tha
 ## 3. Confirmed facts, constraints, assumptions, unknowns
 
 ### Confirmed repository state
+
 - Bootstrap + `/design` were complete at plan time; the app did not yet exist then — both slices shipped since (status note above). Docs are the accepted contracts; `branding_assests/` holds the logo SVGs (legacy purple fill, embedded Tahoma «NOVENO» in `Logo_Website_SVG.svg`).
 - Verification system: `.pi/verification.json` routes, `scripts/verify-affected.mjs`, `scripts/verify.sh` (pi-doctor + project-contract), `node --test tests/*.test.mjs`, CI `.github/workflows/quality.yml` (Node 22.23.2). The `src/**` evidence routes promised then are delivered — `.pi/verification.json` has an `app` route (status note above).
 - Env contract at plan time: `.env.example` documented only `APP_ENV=development`; it now documents all required names (build-time publics + server-side secrets — values never committed). Node ≥ 22.19 pinned.
 - DESIGN.md records measured font sizes (≈165 KB total, 2026-08-11) and verified AA token contrast; anchors `#679e86`/`#619881` are mechanically asserted by `check-project-contract.mjs`.
 
 ### External facts verified against current official sources (2026-08-11)
-| Area | Verified fact | Source |
-|---|---|---|
-| Astro | Latest `astro@7.2.0`; static output is default; Content Layer API = `src/content.config.ts` + `defineCollection` + `glob` loader + zod schema; no adapter needed for a static site with a Pages `functions/` directory | npm registry; Astro docs |
-| Cloudflare Pages | `functions/` dir at project root; `pages_build_output_dir` (default `./dist`); `compatibility_flags: ["nodejs_compat"]` required for Node-API packages; Analytics Engine binding **is supported on Pages Functions** via `context.env` (not available in local `wrangler pages dev`); no `_routes.json` needed when only `functions/` files define routes | developers.cloudflare.com/pages |
-| Web3Forms | POST `https://api.web3forms.com/submit` with `access_key` + arbitrary fields (JSON or FormData); access key is **public by design** (embedded in client HTML); response codes 200/303/400/429/500; **server-side usage requires the paid plan + server IP whitelisting**; official Astro guide posts from the browser | docs.web3forms.com (API reference, Astro guide) |
-| Turnstile | Client script `https://challenges.cloudflare.com/turnstile/v0/api.js` (explicit render, callback/error-callback, `turnstile.reset`); siteverify POST `https://challenges.cloudflare.com/turnstile/v0/siteverify` with `secret` + `response` (+ optional `remoteip`, `idempotency_key`); tokens single-use, expire (~5 min) → `timeout-or-duplicate`; **official test keys** exist (always-pass sitekey `1x00000000000000000000AA` / secret `1x0000000000000000000000000000000AA`, always-fail `2x…AB`, duplicate-token `3x…AA`); test keys work on localhost | developers.cloudflare.com/turnstile |
-| Supabase | ~~Server-side client with service-role key~~ **REMOVED (2026-10)** — no persistent lead store; email-only delivery via Web3Forms | ~~supabase docs~~ n/a |
-| Web Analytics | Baseline page views/visits/CWV only; **custom events: "Not yet"**; UTM query strings are **not** logged | developers.cloudflare.com/web-analytics FAQ (current) |
-| Analytics Engine | Cloudflare-native time-series store; `writeDataPoint` non-blocking; free tier 5M writes/month; SQL API for queries; bindable to Pages Functions | developers.cloudflare.com |
-| Zaraz | Tag manager (edge proxy), **not an event store** — custom `zaraz.track` events only persist via a configured destination; free destinations (GA4) are blocked in Iran; privacy-friendly stores (Plausible/Fathom) are paid | developers.cloudflare.com/zaraz |
-| Fonts | `@fontsource-variable/estedad@5.3.0` and `@fontsource-variable/vazirmatn@5.3.0` exist on npm (SIL OFL 1.1); DESIGN.md measured subset sizes | npm registry |
+
+| Area             | Verified fact                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Source                                                |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| Astro            | Latest `astro@7.2.0`; static output is default; Content Layer API = `src/content.config.ts` + `defineCollection` + `glob` loader + zod schema; no adapter needed for a static site with a Pages `functions/` directory                                                                                                                                                                                                                                                                                                                                       | npm registry; Astro docs                              |
+| Cloudflare Pages | `functions/` dir at project root; `pages_build_output_dir` (default `./dist`); `compatibility_flags: ["nodejs_compat"]` required for Node-API packages; Analytics Engine binding **is supported on Pages Functions** via `context.env` (not available in local `wrangler pages dev`); no `_routes.json` needed when only `functions/` files define routes                                                                                                                                                                                                    | developers.cloudflare.com/pages                       |
+| Web3Forms        | POST `https://api.web3forms.com/submit` with `access_key` + arbitrary fields (JSON or FormData); access key is **public by design** (embedded in client HTML); response codes 200/303/400/429/500; **server-side usage requires the paid plan + server IP whitelisting**; official Astro guide posts from the browser                                                                                                                                                                                                                                        | docs.web3forms.com (API reference, Astro guide)       |
+| Turnstile        | Client script `https://challenges.cloudflare.com/turnstile/v0/api.js` (explicit render, callback/error-callback, `turnstile.reset`); siteverify POST `https://challenges.cloudflare.com/turnstile/v0/siteverify` with `secret` + `response` (+ optional `remoteip`, `idempotency_key`); tokens single-use, expire (~5 min) → `timeout-or-duplicate`; **official test keys** exist (always-pass sitekey `1x00000000000000000000AA` / secret `1x0000000000000000000000000000000AA`, always-fail `2x…AB`, duplicate-token `3x…AA`); test keys work on localhost | developers.cloudflare.com/turnstile                   |
+| Supabase         | ~~Server-side client with service-role key~~ **REMOVED (2026-10)** — no persistent lead store; email-only delivery via Web3Forms                                                                                                                                                                                                                                                                                                                                                                                                                             | ~~supabase docs~~ n/a                                 |
+| Web Analytics    | Baseline page views/visits/CWV only; **custom events: "Not yet"**; UTM query strings are **not** logged                                                                                                                                                                                                                                                                                                                                                                                                                                                      | developers.cloudflare.com/web-analytics FAQ (current) |
+| Analytics Engine | Cloudflare-native time-series store; `writeDataPoint` non-blocking; free tier 5M writes/month; SQL API for queries; bindable to Pages Functions                                                                                                                                                                                                                                                                                                                                                                                                              | developers.cloudflare.com                             |
+| Zaraz            | Tag manager (edge proxy), **not an event store** — custom `zaraz.track` events only persist via a configured destination; free destinations (GA4) are blocked in Iran; privacy-friendly stores (Plausible/Fathom) are paid                                                                                                                                                                                                                                                                                                                                   | developers.cloudflare.com/zaraz                       |
+| Fonts            | `@fontsource-variable/estedad@5.3.0` and `@fontsource-variable/vazirmatn@5.3.0` exist on npm (SIL OFL 1.1); DESIGN.md measured subset sizes                                                                                                                                                                                                                                                                                                                                                                                                                  | npm registry                                          |
 
 ### Assumptions (recorded, not verified)
+
 - Supabase free tier and Cloudflare free tier are sufficient for launch volume (no evidence of otherwise). **2026-10: Supabase is removed — the free-tier Cloudflare + Web3Forms stack is the shipped stack.**
 - Launch content set: founder supplies real case studies; until then only clearly labeled concepts/projects ship (Spec §18–19 allow concepts; fabrication is not).
 - `wrangler` CLI (latest v4) is an acceptable devDependency for local function testing; it is tooling, not application infrastructure.
 
 ### Material unknowns (handled, not blocking)
+
 - Exact founder-provisioned credentials (Turnstile keys, Web3Forms access key, analytics token) — provisioning is a founder step documented in Slice 2; the plan requires only names, never values.
 - Real case-study content availability at launch — handled by the honest empty/labeled-concept path; content is data, not code.
 
@@ -96,6 +101,7 @@ Use: `/resume docs/exec-plans/active/noveno-launch.md` for any fresh context tha
 ## 5. Smallest viable architecture (resolved decisions)
 
 ### 5.1 Astro structure
+
 - **Scaffold:** `npm create astro` (TypeScript, strict) at repo root; npm as package manager; `astro@^7`, `tailwindcss` v4 via `@tailwindcss/vite` plugin, `@astrojs/check` + `typescript` for `astro check`. No adapter. Engine `>=22.19`.
 - **Layout:** `src/layouts/BaseLayout.astro` (html shell: `lang="fa" dir="rtl"`, theme init inline script, fonts, meta, analytics beacon) + `PageLayout.astro` (Header/MobileMenu/Footer/SectionHeader composition).
 - **Components (2026-08-14 inventory):** `src/components/ui/` (Button, TextLink, ProofTag, FormField, Select, MultiSelect, Textarea, FAQItem, Metric), `src/components/business/` (WorkCard/WorkRow, ConceptPreview, NextStepsRail, StepperLine-as-AuditProgress, OfferRow), `src/components/layout/` (Header, MobileMenu, Footer, SectionHeader, PageHero, CTASection) — the DESIGN §10 inventory is the contract; exact file/class naming is build-agent choice.
@@ -108,7 +114,9 @@ Use: `/resume docs/exec-plans/active/noveno-launch.md` for any fresh context tha
 - **Package/tooling boundary:** `wrangler` (devDep). No other runtime dependencies. No client framework — enforced by dependency assertion test + build output inspection. **`@supabase/supabase-js` was removed (2026-10) — no runtime dependency remains for lead storage.**
 
 ### 5.2 Content model (work collection)
+
 Zod schema, `type` discriminated union:
+
 ```ts
 type: 'case-study' | 'project' | 'concept'          // Spec §18, DESIGN §4.3
 title, slug (derived), industry, summary, published_at
@@ -120,15 +128,18 @@ limitations?: string[]                               // §21.8 mandatory when in
 gallery?: image[]                                   // real screenshots only, labeled «نمونه رابط سیستم» when fictional
 featured?: boolean
 ```
+
 Rendering rules (mechanical): `case-study` → ProofTag «مطالعه موردی» + solid line/filled squares + metrics with source+limitation footnotes; `project` → «پروژه» + solid/hollow + honest «نتیجه: در دست اندازهگیری/نامشخص»; `concept` → dashed line + «نمونه نمایشی — سناریوی مفهومی» + «هدف طراحی»/«KPI پیشنهادی» language. **Missing content is safe:** `/work` renders an honest curated list or a designed empty state; optional fields use schema defaults + component guards; never fabricate entries, testimonials, logos, or numbers.
 
 ### 5.3 Theme, typography, Journey Line
+
 - Fonts: import `@fontsource-variable/estedad` + `@fontsource-variable/vazirmatn`; copy **arabic + latin** subsets to `public/fonts/` (skip latin-ext/vietnamese; total ≤ 200 KB per DESIGN §5.4); `@font-face` with `font-display: swap`; metric-matched local fallback faces (Tahoma) behind webfonts (CLS-safe); **preload only `estedad-arabic`**; `Cache-Control: immutable` for `/fonts/*` via Pages `_headers` (Slice 2 hardening).
 - Theme: CSS custom properties per DESIGN §6 on `:root` (light) + `[data-theme="dark"]`; `@media (prefers-color-scheme: dark)` default wiring; inline ≈0.4 KB head script reads `localStorage['noveno-theme']` (values `light`/`dark` only, **never writes the OS default**) and sets `data-theme` before first paint; `<meta name="color-scheme" content="light dark">` + CSS `color-scheme`; accessible toggle `<button aria-pressed>` in header + mobile menu (label «حالت روشن / حالت تاریک», ≥44px); transitions ≤150 ms, none under `prefers-reduced-motion`.
 - Journey Line: five-place rule from DESIGN §3 (hero, system model, process, audit progress, proof line codes) + square section-header node marker; geometry rules §4.2; line-style proof code §4.3 — solid = real, dashed = demo, hollow = unverified outcome; label/line, never color alone.
 - Tailwind: v4 CSS-first config; tokens mapped from DESIGN §6 as theme values; component-local colors forbidden (token-only); build-agent choice on exact `@theme` mechanics.
 
 ### 5.4 Audit state machine (Slice 2, framework-free)
+
 - One TS module (`src/scripts/audit.ts`), no state library. Step data in a typed `AuditDraft`; **persisted to `sessionStorage` (`noveno:audit:draft`) on every step change and restored on load** (reload-safe journey); cleared on successful submission.
 - `submission_id = crypto.randomUUID()` generated when the journey starts (first step interaction), **stable across retries**; a genuinely new journey gets a new id.
 - Attribution captured at journey start into the draft: `landing_page` (pathname+search), `referrer`, `utm_*` params, `first_seen_at` (ISO) — preserved independently of analytics availability; sent with the submission.
@@ -138,9 +149,11 @@ Rendering rules (mechanical): `case-study` → ProofTag «مطالعه مورد�
 - Retry semantics: same `submission_id`, fresh Turnstile token (a token sent to the function may already be consumed).
 
 ### 5.5 Submission trust boundary (`functions/api/audit.ts`)
+
 **Responsibilities (and nothing else):** parse + size-limit the body (≤ ~32 KB); server-side field validation (enums whitelisted, lengths capped, phone normalized **Persian digits → Latin**, email format when present, required-field completeness); honeypot check if present; Turnstile **siteverify (mandatory)** with `remoteip` + `idempotency_key = token hash`; per-IP in-memory rate limit (small sliding window, isolate-local — documented limitation, Turnstile is the primary gate); return contract below. **The function does NOT persist and does NOT send email** — validation only. **No Web3Forms call from the function** (official docs: server-side usage requires paid plan + IP whitelisting — see §9 risk R1). Never log lead content (fields, phone, attribution); log only outcome codes + `submission_id`.
 
 **Request/response contract (public):**
+
 ```
 POST /api/audit  (application/json)
 { submission_id, name, phone, email?, preferred_contact, business_name?, industry, website?,
@@ -154,17 +167,21 @@ POST /api/audit  (application/json)
 429 { ok: false, error: { code: 'rate_limited' } }
 413 / 405 / 500  — body-too-large, method, generic
 ```
+
 Client maps codes to the DESIGN §11 Persian copy. Invariant: 200 means **validated only** — it never implies the lead was stored or the email delivered.
 
 ### 5.6 Web3Forms delivery (client-side — the sole lead destination and the completion gate)
+
 - After `/api/audit` returns 200 `validated`, the browser POSTs the lead to `https://api.web3forms.com/submit` (JSON): `access_key` (public by design; `PUBLIC_WEB3FORMS_ACCESS_KEY`), `subject` («درخواست بررسی مسیر جذب — {business|name}»), all normalized fields with readable **Persian labels** + attribution + `submission_id` for traceability. The payload is HTML-stripped and never contains the Turnstile token.
 - `fetch` with a bounded timeout (~10 s) and **exactly two attempts** (initial + one automatic retry; never infinite). The **response is inspected**: success requires HTTP 2xx whose JSON body is `{ success: true }` (current official API contract). Non-2xx, `{ success: false }`, unreadable body, timeout, or network failure → delivery failure.
 - **Failure semantics:** delivery failure = stay on `/audit`, keep the draft + stable `submission_id`, show a truthful recoverable banner («دریافت درخواست ناموفق بود…» + retry + direct-contact fallback; 429 → the rate banner). **No thank-you, no `audit_submitted`, no draft clear** until confirmed delivery. Duplicate-message recognition: `submission_id` in the email (accepted trade-off of the email-only architecture — see runbook).
 
 ### 5.7 Data (none — email-only)
+
 - **No database, no migration, no backup step (2026-10 founder decision).** Lead emails are the lead record; `submission_id` in each email enables duplicate recognition. Retention is governed by Web3Forms/email policy and disclosed in `/privacy`.
 
 ### 5.8 Analytics (smallest Cloudflare-native, verified)
+
 - **Baseline:** Cloudflare Web Analytics beacon in `BaseLayout` (async, non-blocking; token is public, injected as a build-time env value). Page views + CWV. Confirmed: custom events and UTM logging are **not** supported by Web Analytics (official FAQ) — do not attempt `data-cf-analytics` custom events.
 - **Acquisition events (Spec §36):** `src/scripts/analytics.ts` (framework-free, ~1–2 KB) sends `primary_cta_click`, `secondary_cta_click`, `audit_started`, `audit_step_completed{step}`, `audit_submitted`, `phone_click`, `messaging_click{channel}`, `service_opened{service}`, `case_study_opened{slug}`, `project_opened{slug}` to `POST /api/events` (Pages Function route in the same project) which writes them to the **Analytics Engine** binding (`NOVENO_EVENTS.writeDataPoint` — non-blocking, free tier). Event payloads contain **no PII** (no name/phone); attribution rides in the lead email, not in events.
 - Non-blocking everywhere: module queues events, flushes with `fetch keepalive`/`sendBeacon` on idle + pagehide, wraps all calls in try/catch, never throws into UI handlers; `audit_submitted` fires from the client **only after Web3Forms confirms delivery** (it is a true conversion signal, not a validation signal).
@@ -172,6 +189,7 @@ Client maps codes to the DESIGN §11 Persian copy. Invariant: 200 means **valida
 - Local dev limitation: Analytics Engine is unavailable in `wrangler pages dev` → the events route degrades gracefully (returns 501 with a log line); verified on a preview deploy.
 
 ### 5.9 Cloudflare Pages production readiness (documented, not executed)
+
 - Build: `npm run build` → `dist/`; Pages project settings: build command `npm run build`, output directory `dist`, functions directory auto-detected (`functions/`), `nodejs_compat` via committed `wrangler.jsonc` (or dashboard flag).
 - Environment (names only, in `.env.example`):
   - Build-time public: `APP_ENV`, `PUBLIC_APP_URL`, `PUBLIC_TURNSTILE_SITE_KEY`, `PUBLIC_WEB3FORMS_ACCESS_KEY`, `PUBLIC_CF_ANALYTICS_TOKEN`.
@@ -181,6 +199,7 @@ Client maps codes to the DESIGN §11 Persian copy. Invariant: 200 means **valida
 - Rollback: redeploy previous commit. Runbook + founder setup checklist (Turnstile keys, Web3Forms access key, Pages project + secret, verify preview) delivered as a doc in Slice 2 — **no Supabase step exists** (2026-10).
 
 ### 5.10 Data/control flow (single picture)
+
 ```
 Visitor ──▶ Static Astro site (fa/RTL, theme)                          [Slice 1]
               │  CTAs → /contact (Slice 1) → /audit (Slice 2)
@@ -198,6 +217,7 @@ Visitor ──▶ Static Astro site (fa/RTL, theme)                          [Sl
         audit_submitted → draft cleared → done marker → /audit/thank-you
         client events → POST /api/events → Analytics Engine (non-blocking, no PII)
 ```
+
 Invariants: 200 `validated` never means delivery. Thank-you ⇔ Web3Forms confirmed acceptance. Delivery failure never loses values and never presents false success. Client state is never trusted for validation decisions. Secrets exist only in Pages secrets.
 
 ## 6. Slice 1 — Flagship Website Experience (exact boundary)
@@ -207,6 +227,7 @@ Invariants: 200 `validated` never means delivery. Thank-you ⇔ Web3Forms confir
 **Explicitly out.** `/audit`, `/audit/thank-you`, any form submission code, `functions/`, Web3Forms/Turnstile wiring, analytics events module, sitemap/robots/structured-data completion, secrets, deployment.
 
 **Ordered vertical work + stop points.**
+
 1. Scaffold Astro + TS strict + Tailwind v4 + `astro check`; commit `wrangler.jsonc` placeholder; extend `.pi/verification.json` (`src/**` → check+build+structural tests; `functions/**` → function tests+build) and CI job. — stop: `astro build` + `astro check` green; affected routes plan (`--plan`) resolves; full gate still green.
 2. Fonts (fontsource deps → `public/fonts/` subsets, @font-face, fallbacks, preload) + token/theme layer + no-flash script + toggle. — stop: fonts ≤200 KB asserted; no-flash + contrast verified in browser (matrix screen 10).
 3. Global shell + UI components + states. — stop: keyboard/focus/labels/320px reflow pass; header/footer RTL evidence.
@@ -224,6 +245,7 @@ Invariants: 200 `validated` never means delivery. Thank-you ⇔ Web3Forms confir
 **Explicitly out.** Auth, CMS, CRM UI, dashboard, payment, blog, industry pages, rate-limit persistence beyond in-memory, notification retry machinery beyond one client retry, Zaraz configuration, deployment.
 
 **Ordered vertical work + stop points.**
+
 1. Function core (validation/normalization/contract) as pure, testable modules + unit tests (defect-sensitive: fail on pre-fix behavior). — stop: `node --test tests/audit-function.test.mjs` green incl. Persian-digit normalization, enum whitelist, length caps.
 2. `/audit` UI (static) + StepperLine wiring + audit.ts state machine + sessionStorage restore + validation UX. — stop: browser journey through all 6 steps; reload-mid-journey restores draft; keyboard + aria snapshot.
 3. Trust boundary completion: Turnstile siteverify (test keys in test env), limiter, validate-only response contract; negative-path tests (malformed → 400, honeypot → 400, rate limit → 429, turnstile fail → 403, validated → 200). — stop: A4/A5 negative-path evidence (simulated delivery failure → truthful banner, no thank-you; duplicate submission_id → honest re-validation, no replay machinery; turnstile fail → 403).
@@ -263,14 +285,14 @@ Invariants: 200 `validated` never means delivery. Thank-you ⇔ Web3Forms confir
 
 ## 11. Decisions intentionally deferred (founder-owned; isolated so they never block build)
 
-| Decision | Isolation mechanism | Default while undecided |
-|---|---|---|
-| Hero headline (Spec §11.2 candidates) | `HERO_HEADLINE` constant in `src/data/site.ts`; both candidates verified to fit the display treatment (DESIGN §5.2) | Candidate A («بازدید را به یک مسیر قابلپیگیری…») until founder picks |
-| Audit free-vs-paid policy (Spec §15) | No price/«رایگان» claims in audit copy; copy avoids commitment | Neutral: «بررسی مسیر جذب» without price framing |
-| Public pricing (Spec §39) | Services page uses the scoped-after-audit framing; no numbers; easy-update structure if prices arrive later | «پروژهها پس از بررسی مسیر، Scope میشوند» |
-| Logo recolor (DESIGN §17: green semantic tokens vs legacy purple) | Single logo component; geometry unchanged; `fill` from tokens | Recolor to `text`/`primary` tokens (DESIGN-recommended) — founder confirms at review |
-| Zaraz/third-party analytics destination | Events module emits semantic names; Zaraz wiring documented as upgrade path | Not configured at launch |
-| Web3Forms Pro features (webhook, autoresponder) | Not used; no paid plan | — |
+| Decision                                                          | Isolation mechanism                                                                                                 | Default while undecided                                                              |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Hero headline (Spec §11.2 candidates)                             | `HERO_HEADLINE` constant in `src/data/site.ts`; both candidates verified to fit the display treatment (DESIGN §5.2) | Candidate A («بازدید را به یک مسیر قابلپیگیری…») until founder picks                 |
+| Audit free-vs-paid policy (Spec §15)                              | No price/«رایگان» claims in audit copy; copy avoids commitment                                                      | Neutral: «بررسی مسیر جذب» without price framing                                      |
+| Public pricing (Spec §39)                                         | Services page uses the scoped-after-audit framing; no numbers; easy-update structure if prices arrive later         | «پروژهها پس از بررسی مسیر، Scope میشوند»                                             |
+| Logo recolor (DESIGN §17: green semantic tokens vs legacy purple) | Single logo component; geometry unchanged; `fill` from tokens                                                       | Recolor to `text`/`primary` tokens (DESIGN-recommended) — founder confirms at review |
+| Zaraz/third-party analytics destination                           | Events module emits semantic names; Zaraz wiring documented as upgrade path                                         | Not configured at launch                                                             |
+| Web3Forms Pro features (webhook, autoresponder)                   | Not used; no paid plan                                                                                              | —                                                                                    |
 
 ## 12. Handoff-ready current state and first action
 

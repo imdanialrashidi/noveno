@@ -3,11 +3,7 @@ import path from "node:path";
 
 const strictMode = process.env.PI_GUARD_MODE === "strict";
 
-const sensitiveNames = [
-  /^\.env(?:\.|$)/i,
-  /\.(?:pem|key|p12|pfx|jks|keystore)$/i,
-  /^storageState.*\.json$/i,
-];
+const sensitiveNames = [/^\.env(?:\.|$)/i, /\.(?:pem|key|p12|pfx|jks|keystore)$/i, /^storageState.*\.json$/i];
 
 const sensitiveSegments = [
   ".git",
@@ -74,11 +70,12 @@ function sensitivePathReason(absolutePath, cwd) {
     return `Sensitive file access is blocked: ${relative || normalized}`;
   }
 
-  if (sensitiveSegments.some((segment) =>
-    normalized === segment ||
-    normalized.endsWith(`/${segment}`) ||
-    normalized.includes(`/${segment}/`)
-  )) {
+  if (
+    sensitiveSegments.some(
+      (segment) =>
+        normalized === segment || normalized.endsWith(`/${segment}`) || normalized.includes(`/${segment}/`),
+    )
+  ) {
     return `Sensitive directory access is blocked: ${relative || normalized}`;
   }
 
@@ -91,9 +88,11 @@ function protectedWriteReason(absolutePath, cwd) {
   }
 
   const relative = relativeToCwd(absolutePath, cwd);
-  if (strictMode && isInside(absolutePath, cwd) && workflowPaths.some((entry) =>
-    relative === entry || relative.startsWith(`${entry}/`)
-  )) {
+  if (
+    strictMode &&
+    isInside(absolutePath, cwd) &&
+    workflowPaths.some((entry) => relative === entry || relative.startsWith(`${entry}/`))
+  ) {
     return `Workflow policy files are locked in strict guard mode: ${relative}`;
   }
 
@@ -118,9 +117,7 @@ function pathInputs(toolName, input) {
 }
 
 function commandContainsSensitivePath(command) {
-  const scrubbed = command
-    .replaceAll(".env.example", "")
-    .replaceAll("docs/private/.gitkeep", "");
+  const scrubbed = command.replaceAll(".env.example", "").replaceAll("docs/private/.gitkeep", "");
 
   const checks = [
     /(^|[\s"'=])\.env(?:[\s"'./]|$)/i,
@@ -216,7 +213,9 @@ function mcpCallReason(input) {
 }
 
 function blockedCommandReason(command) {
-  const value = String(command ?? "").replace(/\\\n/g, " ").trim();
+  const value = String(command ?? "")
+    .replace(/\\\n/g, " ")
+    .trim();
   if (!value) return null;
 
   if (commandContainsSensitivePath(value)) {
@@ -233,14 +232,38 @@ function blockedCommandReason(command) {
     [/(^|[;&|]\s*)(systemctl|service|crontab)\b/i, "Host service/scheduler mutation is blocked."],
     [/\brm\s+(?:--recursive|-[A-Za-z]*[rR][A-Za-z]*)(?=\s|$)/, "Recursive deletion is blocked."],
     [/\bfind\b[^\n;&|]*\s-delete\b/i, "Recursive find deletion is blocked."],
-    [/\b(?:shred|dd|mkfs(?:\.\w+)?|mount|umount|chown)\b/i, "Destructive host/filesystem mutation is blocked."],
+    [
+      /\b(?:shred|dd|mkfs(?:\.\w+)?|mount|umount|chown)\b/i,
+      "Destructive host/filesystem mutation is blocked.",
+    ],
     [/\bchmod\s+-R\s+777\b/i, "Recursive world-writable permissions are blocked."],
-    [new RegExp(`${gitCommand}reset\\b[^\\n;&|]*(?:--(?:hard|merge|keep)|-[^\\s]*h)`, "i"), "Destructive Git reset is blocked."],
-    [new RegExp(`${gitCommand}clean\\b[^\\n;&|]*(?:--force|-[^\\s]*f)`, "i"), "Destructive Git clean is blocked."],
-    [new RegExp(`${gitCommand}checkout\\b`, "i"), "Git checkout is blocked; use switch for branches and targeted edits for working-tree changes."],
-    [new RegExp(`${gitCommand}restore\\b`, "i"), "Discarding or rewriting index/worktree state with Git restore is blocked."],
-    [new RegExp(`${gitCommand}push\\b[^\\n;&|]*(?:--force(?:-with-lease|-if-includes)?|\\s-[A-Za-z]*f[A-Za-z]*(?:\\s|$)|--mirror|--delete)`, "i"), "Forced, mirrored, or deleting Git push is blocked."],
-    [new RegExp(`${gitCommand}push\\b[^\\n;&|]*\\s+:[^\\s]+`, "i"), "Deleting a remote ref through Git push is blocked."],
+    [
+      new RegExp(`${gitCommand}reset\\b[^\\n;&|]*(?:--(?:hard|merge|keep)|-[^\\s]*h)`, "i"),
+      "Destructive Git reset is blocked.",
+    ],
+    [
+      new RegExp(`${gitCommand}clean\\b[^\\n;&|]*(?:--force|-[^\\s]*f)`, "i"),
+      "Destructive Git clean is blocked.",
+    ],
+    [
+      new RegExp(`${gitCommand}checkout\\b`, "i"),
+      "Git checkout is blocked; use switch for branches and targeted edits for working-tree changes.",
+    ],
+    [
+      new RegExp(`${gitCommand}restore\\b`, "i"),
+      "Discarding or rewriting index/worktree state with Git restore is blocked.",
+    ],
+    [
+      new RegExp(
+        `${gitCommand}push\\b[^\\n;&|]*(?:--force(?:-with-lease|-if-includes)?|\\s-[A-Za-z]*f[A-Za-z]*(?:\\s|$)|--mirror|--delete)`,
+        "i",
+      ),
+      "Forced, mirrored, or deleting Git push is blocked.",
+    ],
+    [
+      new RegExp(`${gitCommand}push\\b[^\\n;&|]*\\s+:[^\\s]+`, "i"),
+      "Deleting a remote ref through Git push is blocked.",
+    ],
     [new RegExp(`${gitCommand}branch\\s+-D\\b`, "i"), "Forced branch deletion is blocked."],
     [new RegExp(`${gitCommand}worktree\\s+remove\\b`, "i"), "Worktree deletion is blocked."],
     [new RegExp(`${gitCommand}remote\\s+(?:set-url|remove)\\b`, "i"), "Git remote mutation is blocked."],
@@ -251,18 +274,27 @@ function blockedCommandReason(command) {
     [/\b(?:curl|wget)\b[^|]*\|\s*(?:sh|bash)\b/i, "Remote script execution is blocked."],
     [/(^|[;&|]\s*)(ssh|scp|sftp)\b/i, "Remote shell/file transfer is blocked."],
     [/\brsync\b[^\n;&|]*:[^\n;&|]*/i, "Remote rsync is blocked."],
-    [/\bdocker\s+(?:push|system\s+prune|volume\s+prune)\b/i, "Container publication/destructive pruning is blocked."],
+    [
+      /\bdocker\s+(?:push|system\s+prune|volume\s+prune)\b/i,
+      "Container publication/destructive pruning is blocked.",
+    ],
     [/\b(?:kubectl|helm)\b/i, "Cluster mutation is blocked."],
     [/\bterraform\s+(?:apply|destroy|import|state\s+rm)\b/i, "Infrastructure mutation is blocked."],
     [/\bansible-playbook\b/i, "Infrastructure mutation is blocked."],
     [/\b(?:vercel|netlify|wrangler|fly|firebase)\s+deploy\b/i, "External deployment is blocked."],
     [/\bsupabase\s+db\s+push\b/i, "Remote database mutation is blocked."],
-    [/\bgh\s+(?:release\s+create|pr\s+(?:merge|close)|repo\s+delete)\b/i, "Irreversible or integration-changing GitHub mutation is blocked."],
+    [
+      /\bgh\s+(?:release\s+create|pr\s+(?:merge|close)|repo\s+delete)\b/i,
+      "Irreversible or integration-changing GitHub mutation is blocked.",
+    ],
   ];
 
   if (strictMode) {
     rules.push([
-      new RegExp(`${gitCommand}(?:commit|push|pull|reset|clean|checkout|switch|restore|stash|rebase|merge|cherry-pick|tag)\\b`, "i"),
+      new RegExp(
+        `${gitCommand}(?:commit|push|pull|reset|clean|checkout|switch|restore|stash|rebase|merge|cherry-pick|tag)\\b`,
+        "i",
+      ),
       "Git mutation is locked in strict guard mode.",
     ]);
   }

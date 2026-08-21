@@ -20,9 +20,7 @@ const { id, title, lead, eyebrow, meta } = Astro.props;
 
 <section aria-labelledby={id}>
   <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
-    {eyebrow && (
-      <p class="text-ui font-medium text-text-faint">{eyebrow}</p>
-    )}
+    {eyebrow && <p class="text-ui font-medium text-text-faint">{eyebrow}</p>}
     <h1 id={id} class:list={["max-w-3xl text-h1-page text-text", eyebrow ? "mt-4" : ""]}>{title}</h1>
     {lead && <p class="mt-6 max-w-2xl text-lead text-text-muted">{lead}</p>}
     {meta && <p class="mt-6 text-meta text-text-faint">{meta}</p>}

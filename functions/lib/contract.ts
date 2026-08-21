@@ -55,13 +55,7 @@ export const REQUESTED_SERVICES = [
   "not_sure_yet",
 ] as const;
 
-export const CUSTOMER_VALUE_RANGES = [
-  "under_5m",
-  "5m_20m",
-  "20m_50m",
-  "50m_200m",
-  "over_200m",
-] as const;
+export const CUSTOMER_VALUE_RANGES = ["under_5m", "5m_20m", "20m_50m", "50m_200m", "over_200m"] as const;
 
 export const PREFERRED_CONTACTS = ["phone", "whatsapp", "telegram", "email"] as const;
 
@@ -103,12 +97,7 @@ export const EVENT_STEP_VALUES = ["1", "2", "3", "4", "5", "6"] as const;
  * (audit/system/growth from src/data/site.ts OFFERS) and the audit
  * form's REQUESTED_SERVICES, both sent by the client today.
  */
-export const EVENT_SERVICE_VALUES = [
-  ...REQUESTED_SERVICES,
-  "audit",
-  "system",
-  "growth",
-] as const;
+export const EVENT_SERVICE_VALUES = [...REQUESTED_SERVICES, "audit", "system", "growth"] as const;
 
 /** Payload value patterns for the events endpoint (non-enum keys). */
 export const EVENT_VALUE_PATTERNS = {
@@ -138,8 +127,8 @@ export const LIMITS = {
   referrer: 500,
   utm: 200,
   firstSeenAt: 40,
-  /** Channel ids per submission (one full pass over the enum + slack). */
-  maxChannels: 6,
+  /** Upper bound == full enum pass; a user may legitimately select every channel. */
+  maxChannels: ACQUISITION_CHANNELS.length,
   /** Analytics payload value length. */
   maxEventPayloadValue: 100,
   maxEventPayloadBytes: 1024,
@@ -148,8 +137,7 @@ export const LIMITS = {
 /** Honeypot field — hidden from humans; a non-empty value marks a bot. */
 export const HONEYPOT_FIELD = "company_website";
 
-export const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /* ------------------------------------------------------------------ */
 /* Request/response contract (plan §5.5)                               */
@@ -204,4 +192,8 @@ export type ErrorCode =
 export interface AuditEnv {
   TURNSTILE_SECRET_KEY: string;
   NOVENO_EVENTS?: unknown;
+  /** Spike D-01 (server-side email): presence of RESEND_API_KEY arms the sent path */
+  RESEND_API_KEY?: string;
+  LEAD_TO_EMAIL?: string;
+  EMAIL_FROM?: string;
 }

@@ -32,13 +32,13 @@ database, no lead table, and no backup to run.
 
 ## Failure semantics (by design — do not "fix" silently)
 
-| Failure | Visitor sees | Lead status | Action |
-|---|---|---|---|
-| `/api/audit` validation/abuse rejection | Field errors on the rejected fields + validation banner | Not delivered | Normal bot/traffic; no action |
-| Turnstile reject/expire | «بررسی امنیتی ناموفق بود» + retry | Not delivered | Normal bot/token-lifetime traffic; no action |
-| Web3Forms delivery fails (network/timeout/non-2xx/`success:false`/429) | Truthful «دریافت درخواست ناموفق بود» banner + retry + direct contact; values preserved; **no thank-you** | Not delivered | Check access key/inbox/rate limit; retry happens client-side |
-| Analytics Engine down | Nothing | Delivered normally | Binding issue; check dataset exists |
-| Visitor offline mid-form | Offline banner + contact fallback | Not delivered | Nothing; draft kept in their session |
+| Failure                                                                | Visitor sees                                                                                             | Lead status        | Action                                                       |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------ |
+| `/api/audit` validation/abuse rejection                                | Field errors on the rejected fields + validation banner                                                  | Not delivered      | Normal bot/traffic; no action                                |
+| Turnstile reject/expire                                                | «بررسی امنیتی ناموفق بود» + retry                                                                        | Not delivered      | Normal bot/token-lifetime traffic; no action                 |
+| Web3Forms delivery fails (network/timeout/non-2xx/`success:false`/429) | Truthful «دریافت درخواست ناموفق بود» banner + retry + direct contact; values preserved; **no thank-you** | Not delivered      | Check access key/inbox/rate limit; retry happens client-side |
+| Analytics Engine down                                                  | Nothing                                                                                                  | Delivered normally | Binding issue; check dataset exists                          |
+| Visitor offline mid-form                                               | Offline banner + contact fallback                                                                        | Not delivered      | Nothing; draft kept in their session                         |
 
 Never present a false success: thank-you is reachable **only after
 Web3Forms confirms acceptance**. Never change Web3Forms to another provider

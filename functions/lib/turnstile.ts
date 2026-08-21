@@ -13,9 +13,7 @@
  */
 
 export type TurnstileOutcome =
-  | { status: "pass" }
-  | { status: "fail"; errorCodes: string[] }
-  | { status: "upstream_error" };
+  { status: "pass" } | { status: "fail"; errorCodes: string[] } | { status: "upstream_error" };
 
 export interface VerifyTurnstileParams {
   secret: string;

@@ -62,10 +62,7 @@
         "browser_type",
         "browser_evaluate"
       ],
-      "excludeTools": [
-        "browser_file_upload",
-        "browser_drop"
-      ]
+      "excludeTools": ["browser_file_upload", "browser_drop"]
     }
   }
 }

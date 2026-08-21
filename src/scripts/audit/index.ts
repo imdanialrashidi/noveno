@@ -26,6 +26,7 @@
  */
 
 import {
+  AUDIT_OPTIONS,
   AUDIT_STEPS,
   normalizePhoneClient,
   requiredFieldsForStep,
@@ -80,17 +81,29 @@ interface Handles {
 /* ------------------------------------------------------------------ */
 
 const FIELD_ERROR_COPY: Record<string, Record<string, string>> = {
-  name: { required: "نام و نام خانوادگی را وارد کنید", too_short: "نام کوتاه است", too_long: "نام خیلی طولانی است" },
+  name: {
+    required: "نام و نام خانوادگی را وارد کنید",
+    too_short: "نام کوتاه است",
+    too_long: "نام خیلی طولانی است",
+  },
   phone: { required: "شماره تماس را وارد کنید", invalid: "شماره تماس را کامل وارد کنید" },
   email: { invalid: "ایمیل معتبر وارد کنید", too_long: "ایمیل خیلی طولانی است" },
   website: { too_long: "نشانی خیلی طولانی است" },
   business_name: { too_long: "نام کسب‌وکار خیلی طولانی است" },
   industry: { required: "یک حوزه فعالیت انتخاب کنید" },
+  acquisition_channels: {
+    required: "حداقل یک کانال ورود مشتری را انتخاب کنید",
+    too_long: "بیشتر از این گزینه انتخاب نشود؛ فقط کانال‌های اصلی را علامت بزنید",
+    invalid_enum: "یکی از گزینه‌های فهرست را انتخاب کنید",
+  },
   primary_problem: { required: "یک گزینه انتخاب کنید" },
   requested_service: { required: "یک گزینه انتخاب کنید" },
   preferred_contact: { required: "روش دلخواه تماس را انتخاب کنید" },
   customer_value_range: {},
 };
+
+// Mirrors functions/lib/contract.ts LIMITS.maxChannels — server is authoritative.
+const MAX_CLIENT_CHANNELS = AUDIT_OPTIONS.channels.length;
 
 /* ------------------------------------------------------------------ */
 /* Main controller                                                      */
@@ -113,7 +126,7 @@ export function initAudit(config: AuditConfig): void {
     announce: document.getElementById("step-announce"),
     banner: document.getElementById("audit-banner"),
     bannerBlocks: Object.fromEntries(
-      [...(document.querySelectorAll<HTMLElement>("[data-banner]"))].map((el) => [
+      [...document.querySelectorAll<HTMLElement>("[data-banner]")].map((el) => [
         el.getAttribute("data-banner"),
         el,
       ]),
@@ -180,11 +193,13 @@ export function initAudit(config: AuditConfig): void {
       section.hidden = index + 1 !== current;
     });
 
-    if (handles.counter) handles.counter.textContent = `مرحله ${toFaDigits(current)} از ${toFaDigits(totalSteps)}`;
+    if (handles.counter)
+      handles.counter.textContent = `مرحله ${toFaDigits(current)} از ${toFaDigits(totalSteps)}`;
     if (handles.currentLabel) handles.currentLabel.textContent = AUDIT_STEPS[current - 1]?.label ?? "";
     if (handles.bar) handles.bar.style.width = `${((current - 1) / totalSteps) * 100}%`;
 
-    if (handles.counterMobile) handles.counterMobile.textContent = `مرحله ${toFaDigits(current)} از ${toFaDigits(totalSteps)}`;
+    if (handles.counterMobile)
+      handles.counterMobile.textContent = `مرحله ${toFaDigits(current)} از ${toFaDigits(totalSteps)}`;
     if (handles.currentMobile) handles.currentMobile.textContent = AUDIT_STEPS[current - 1]?.label ?? "";
     if (handles.barMobile) handles.barMobile.style.width = `${((current - 1) / totalSteps) * 100}%`;
 
@@ -210,7 +225,14 @@ export function initAudit(config: AuditConfig): void {
       handles.next.setAttribute("data-last", last ? "true" : "false");
     }
 
-    if (current === totalSteps && config.turnstileSiteKey && handles.turnstileContainer) {
+    const onContactStep = current === totalSteps;
+    if (handles.turnstileContainer) {
+      // The widget lives outside the step sections: hide it whenever the user
+      // is not on the contact step (rendered lazily on first arrival; token is
+      // still consumed at submit time only).
+      handles.turnstileContainer.hidden = !onContactStep;
+    }
+    if (onContactStep && config.turnstileSiteKey && handles.turnstileContainer) {
       bridge ??= new TurnstileBridge(config.turnstileSiteKey, handles.turnstileContainer);
       void bridge.ensureRendered();
     }
@@ -275,6 +297,10 @@ export function initAudit(config: AuditConfig): void {
       const filled = fieldId === "acquisition_channels" ? multi.length > 0 : value.trim() !== "";
       if (!filled) {
         showFieldError(fieldId, "required");
+        valid = false;
+      } else if (fieldId === "acquisition_channels" && multi.length > MAX_CLIENT_CHANNELS) {
+        // Mirrors functions/lib/contract.ts LIMITS.maxChannels — server is authoritative.
+        showFieldError(fieldId, "too_long");
         valid = false;
       } else {
         const key = validateFieldClient(fieldId, value);
@@ -430,10 +456,19 @@ export function initAudit(config: AuditConfig): void {
       if (response.ok) {
         let validated = true;
         let receipt: string | null = null;
+        let validatedAt: string | null = null;
         try {
-          const body = (await response.json()) as { status?: string; receipt?: string };
-          validated = body.status === "validated";
+          const body = (await response.json()) as {
+            status?: string;
+            receipt?: string;
+            validated_at?: string;
+          };
+          // D-01 transition (spike §4): accept both statuses while Web3Forms
+          // delivery still runs client-side. After cutover this narrows to "sent".
+          validated = body.status === "validated" || body.status === "sent";
           if (typeof body.receipt === "string" && body.receipt.length > 0) receipt = body.receipt;
+          if (typeof body.validated_at === "string" && body.validated_at.length > 0)
+            validatedAt = body.validated_at;
         } catch {
           /* unreadable body — the server contract still holds */
         }
@@ -443,7 +478,7 @@ export function initAudit(config: AuditConfig): void {
           setSubmitting(false);
           return;
         }
-        const delivered = await deliverLead(payload, config, receipt);
+        const delivered = await deliverLead(payload, config, receipt, validatedAt);
         if (!delivered.ok) {
           bridge?.invalidate();
           showBanner(delivered.rateLimited ? "rate" : "delivery");
@@ -457,7 +492,9 @@ export function initAudit(config: AuditConfig): void {
       let code = "";
       let fields: Record<string, string> = {};
       try {
-        const body = (await response.json()) as { error?: { code?: string; fields?: Record<string, string> } };
+        const body = (await response.json()) as {
+          error?: { code?: string; fields?: Record<string, string> };
+        };
         code = body.error?.code ?? "";
         fields = body.error?.fields ?? {};
       } catch {

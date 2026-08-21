@@ -12,77 +12,86 @@ Product-level path from idea to production. Task-level, multi-session execution 
 
 ## Evidence ledger
 
-| Claim or assumption | Status | Evidence | Next test / decision |
-|---|---|---|---|
-| Master Spec v1.0 is the product source of truth | confirmed | `docs/Noveno_Website_Master_Spec.md` (84 sections) | Keep current |
-| Business DNA v1.1 is the identity source | confirmed | `docs/Noveno Business DNA.md` | Keep current |
-| Brand anchors: light/dark palettes, contact facts, assets under `branding_assests/` | confirmed | Accepted bootstrap prompt; asset files present | /design token development |
-| Astro + TS + static Cloudflare Pages, no client framework, email-only lead delivery via Web3Forms + validation function, Cloudflare analytics | confirmed (accepted) | Bootstrap prompt overrides (2026-10: Supabase removed — email-only) | First build validates practicality |
-| SMB owners complete a multi-step audit form | assumed | None yet | Launch → measure audit completion rate |
-| Web Analytics (baseline) + Analytics Engine via `/api/events` satisfy acquisition measurement; Zaraz deferred | confirmed (shipped) | `functions/api/events.ts`, `src/scripts/analytics.ts`, event tests | Measure field events after launch |
-| Self-hosted licensed Persian font is feasible on Cloudflare free tier | confirmed | DESIGN §5.4 (≈165 KB measured) + npm packages verified | Slice 1 font pipeline proof |
-| Two-slice launch plan maps the accepted scope | confirmed | `docs/exec-plans/active/noveno-launch.md` (A1) | Execute Slices 1–2 |
-| Web3Forms free tier requires client-side submission | confirmed | docs.web3forms.com API reference (server-side = paid plan + IP whitelist) | Done — client-side delivery shipped; Web3Forms acceptance is the only completion gate |
-| Web Analytics lacks custom events; Analytics Engine is the Cloudflare-native store | confirmed | Web Analytics FAQ + Pages Functions binding docs | Slice 2 `/api/events` |
-| Audit free-vs-paid policy | deferred | — | Business decision (Spec §15) |
-| Prices on site | deferred | — | Business decision (Spec §39) |
+| Claim or assumption                                                                                                                           | Status               | Evidence                                                                  | Next test / decision                                                                  |
+| --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Master Spec v1.0 is the product source of truth                                                                                               | confirmed            | `docs/Noveno_Website_Master_Spec.md` (84 sections)                        | Keep current                                                                          |
+| Business DNA v1.1 is the identity source                                                                                                      | confirmed            | `docs/Noveno Business DNA.md`                                             | Keep current                                                                          |
+| Brand anchors: light/dark palettes, contact facts, assets under `branding_assests/`                                                           | confirmed            | Accepted bootstrap prompt; asset files present                            | /design token development                                                             |
+| Astro + TS + static Cloudflare Pages, no client framework, email-only lead delivery via Web3Forms + validation function, Cloudflare analytics | confirmed (accepted) | Bootstrap prompt overrides (2026-10: Supabase removed — email-only)       | First build validates practicality                                                    |
+| SMB owners complete a multi-step audit form                                                                                                   | assumed              | None yet                                                                  | Launch → measure audit completion rate                                                |
+| Web Analytics (baseline) + Analytics Engine via `/api/events` satisfy acquisition measurement; Zaraz deferred                                 | confirmed (shipped)  | `functions/api/events.ts`, `src/scripts/analytics.ts`, event tests        | Measure field events after launch                                                     |
+| Self-hosted licensed Persian font is feasible on Cloudflare free tier                                                                         | confirmed            | DESIGN §5.4 (≈165 KB measured) + npm packages verified                    | Slice 1 font pipeline proof                                                           |
+| Two-slice launch plan maps the accepted scope                                                                                                 | confirmed            | `docs/exec-plans/active/noveno-launch.md` (A1)                            | Execute Slices 1–2                                                                    |
+| Web3Forms free tier requires client-side submission                                                                                           | confirmed            | docs.web3forms.com API reference (server-side = paid plan + IP whitelist) | Done — client-side delivery shipped; Web3Forms acceptance is the only completion gate |
+| Web Analytics lacks custom events; Analytics Engine is the Cloudflare-native store                                                            | confirmed            | Web Analytics FAQ + Pages Functions binding docs                          | Slice 2 `/api/events`                                                                 |
+| Audit free-vs-paid policy                                                                                                                     | deferred             | —                                                                         | Business decision (Spec §15)                                                          |
+| Prices on site                                                                                                                                | deferred             | —                                                                         | Business decision (Spec §39)                                                          |
 
 ## Stage gates
 
 ### 0. Discovery proof
+
 - Scope: target user (SMB service businesses), painful job (lost/trackless leads), current alternative (scattered channels), riskiest assumption (audit-form conversion).
 - Exit evidence: **done** — thesis in `docs/PRODUCT.md`, positioning in Master Spec §3, ICP in §4.
 - Next smallest experiment: launch Phase 1 and measure audit completion.
 
-### 1. Experience direction  ✔ DONE (exit evidence: accepted `docs/DESIGN.md`, 2026-08-11; screen-proof plan in DESIGN §15)
+### 1. Experience direction ✔ DONE (exit evidence: accepted `docs/DESIGN.md`, 2026-08-11; screen-proof plan in DESIGN §15)
+
 - Scope: critical journey (understand → qualify → audit), IA (Spec §8.1), brand character, visual thesis, theme tokens, typography (licensed Persian font), RTL/mobile composition, light/dark mechanics.
 - Exit evidence: accepted `docs/DESIGN.md`; critical states and desktop/mobile proof plan defined.
 - Decision owner: `/design` run, evaluated against `docs/QUALITY.md` + `frontend-design` gates.
 
-### 2. Walking skeleton  ✔ DONE (code shipped and verified; staging browser proof deferred to launch)
+### 2. Walking skeleton ✔ DONE (code shipped and verified; staging browser proof deferred to launch)
+
 - Scope: one deployable end-to-end path: static site shell on Cloudflare Pages + audit validation function + Web3Forms email delivery, with analytics tags.
 - Exit evidence: canonical install/start/test path works (`npm install`/`npm run dev`/`npm run build`/`npm run test`), `scripts/verify.sh` green, function exercised in a real browser with a test lead (staging — pending founder provisioning, `docs/ops/setup-checklist.md`), rollback = redeploy previous commit.
 - Verification: `.pi/verification.json` has an `app` route covering `src/**` and a `functions` route covering `functions/**`.
 
-### 3. Vertical MVP  ✔ DONE (shipped; live-provider evidence pending launch)
+### 3. Vertical MVP ✔ DONE (shipped; live-provider evidence pending launch)
+
 - Scope: Phase 1 launch scope (Spec §73) — homepage, services, work, process, about, audit, thank-you, contact, privacy, terms; analytics events (Spec §36); lead persistence + notification; acceptance criteria from `docs/PRODUCT.md` (Spec §74).
 - Exit evidence: must-have journeys function with real submission data (browser matrix exercised against the local function; live Web3Forms email delivery pending founder provisioning), negative paths (validation errors, abuse, offline), attribution preserved, accepted visual quality.
 - Non-goals: industry pages, testimonials without real data, dashboards; the blog (`/blog`) stays a small Markdown-first surface with in-house topics only (docs/BLOG.md).
 
 ### 4. Internal alpha
+
 - Scope: founder-led use; real audit submissions flow as Web3Forms email; controlled failure testing (function outage, delivery outage → visible truthful error, no false success).
 - Exit evidence: no release-blocking correctness/security/accessibility issues; recovery path (lead data backup/restore reasoning) exercised.
 - Feedback sample / owner: founder.
 
 ### 5. External beta
+
 - Scope: bounded promotion; monitor audit completion, CTA clicks, phone/messaging clicks; support via WhatsApp/Telegram/phone.
 - Exit evidence: activation and guardrail metrics meet targets; field performance (Web Analytics) measured; top UX failures resolved.
 - Rollback trigger: form failure rate spike or silent-loss incident → revert deployment, alert founder via email.
 
 ### 6. Release candidate
+
 - Scope: frozen launch scope; security review of the form boundary (`risk-review` + `security-auditor`); performance lab budget; accessibility pass; `/ship` READY.
 - Exit evidence: no unresolved BLOCKER/MAJOR; recovery/rollback and runbook proven.
 - Sign-off owners: founder.
 
 ### 7. Staged production
+
 - Scope: progressive exposure with telemetry; explicit stop conditions on conversion or reliability metrics.
 - Exit evidence: health window passes per stage; incident/support ownership active (founder).
 - Stages and stop conditions: internal → referral/limited → public; stop on silent form failure or conversion collapse.
 
 ### 8. Learning loop
+
 - Scope: qualified-audit outcomes, failed conversions, support signals.
 - Exit evidence: validated learning updates `docs/PRODUCT.md`, roadmap, regression tests.
 - Review cadence: monthly with the monthly reporting offer in mind (DNA §24).
 
 ## Critical path and risks
 
-| Risk / dependency | Control or experiment | Owner | Decision date / trigger |
-|---|---|---|---|
-| Audit-form conversion unproven | Measure starts/completion from launch; keep form short | founder | 30 days after launch |
-| Email deliverability in Iran | Choose replaceable providers; contact redundancy on site (Spec §64.1) | founder | implementation |
-| Persian font licensing/performance | /design selection of licensed self-hosted font; performance proof | /design | design stage |
-| Cloudflare Pages function limits on free tier | One narrow function; static by default | /design+build | build stage |
-| Fabricated-proof drift in content | Proof policy (Spec §19) enforced in QUALITY + copy review | review agents | every content change |
+| Risk / dependency                             | Control or experiment                                                 | Owner         | Decision date / trigger |
+| --------------------------------------------- | --------------------------------------------------------------------- | ------------- | ----------------------- |
+| Audit-form conversion unproven                | Measure starts/completion from launch; keep form short                | founder       | 30 days after launch    |
+| Email deliverability in Iran                  | Choose replaceable providers; contact redundancy on site (Spec §64.1) | founder       | implementation          |
+| Persian font licensing/performance            | /design selection of licensed self-hosted font; performance proof     | /design       | design stage            |
+| Cloudflare Pages function limits on free tier | One narrow function; static by default                                | /design+build | build stage             |
+| Fabricated-proof drift in content             | Proof policy (Spec §19) enforced in QUALITY + copy review             | review agents | every content change    |
 
 ## Next step (launch gate)
 

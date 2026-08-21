@@ -50,7 +50,11 @@ if (existsSync(headersFile)) {
 function cacheHeadersFor(urlPath) {
   const out = {};
   for (const rule of headerRules) {
-    if (rule.path === "*" || rule.path === urlPath || (rule.path.endsWith("*") && urlPath.startsWith(rule.path.slice(0, -1)))) {
+    if (
+      rule.path === "*" ||
+      rule.path === urlPath ||
+      (rule.path.endsWith("*") && urlPath.startsWith(rule.path.slice(0, -1)))
+    ) {
       out[rule.name] = rule.value;
     }
   }

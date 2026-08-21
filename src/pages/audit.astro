@@ -50,8 +50,8 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
             <div>
               <h2 id="audit-journey-title" class="text-h3 text-text">مراحل بررسی</h2>
               <p class="mt-3 text-body text-text-muted measure-prose">
-                حدود دو دقیقه وقت می‌گیرد؛ هر مرحله یک سؤال کوتاه است. پاسخ‌ها پیش‌نویس می‌شوند و
-                اگر وسط کار بگذارید، از همان‌جا ادامه می‌دهید.
+                حدود دو دقیقه وقت می‌گیرد؛ هر مرحله یک سؤال کوتاه است. پاسخ‌ها پیش‌نویس می‌شوند و اگر وسط کار
+                بگذارید، از همان‌جا ادامه می‌دهید.
               </p>
             </div>
 
@@ -106,14 +106,29 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
             <div id="audit-banner" role="alert" hidden>
               <div data-banner="network" hidden>
                 <div class="flex items-start gap-3 rounded-[4px] border border-danger/40 bg-surface p-4">
-                  <svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 flex-none text-danger" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 8v5" />
-                    <path d="M12 16.5v.01" />
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="mt-0.5 h-5 w-5 flex-none text-danger"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 8v5"></path>
+                    <path d="M12 16.5v.01"></path>
                   </svg>
                   <div class="flex flex-col gap-3">
-                    <p class="text-body font-medium text-danger">ارسال نشد؛ اتصال را بررسی کنید و دوباره تلاش کنید.</p>
-                    <button type="button" data-retry class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action">
+                    <p class="text-body font-medium text-danger">
+                      ارسال نشد؛ اتصال را بررسی کنید و دوباره تلاش کنید.
+                    </p>
+                    <button
+                      type="button"
+                      data-retry
+                      class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action"
+                    >
                       تلاش دوباره
                     </button>
                   </div>
@@ -122,13 +137,25 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
 
               <div data-banner="delivery" hidden>
                 <div class="flex items-start gap-3 rounded-[4px] border border-danger/40 bg-surface p-4">
-                  <svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 flex-none text-danger" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 8v5" />
-                    <path d="M12 16.5v.01" />
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="mt-0.5 h-5 w-5 flex-none text-danger"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 8v5"></path>
+                    <path d="M12 16.5v.01"></path>
                   </svg>
                   <div class="flex flex-col gap-3">
-                    <p class="text-body font-medium text-danger">دریافت درخواست ناموفق بود؛ پاسخ‌های شما ذخیره شده‌اند. دوباره تلاش کنید یا مستقیم در تماس باشید.</p>
+                    <p class="text-body font-medium text-danger">
+                      دریافت درخواست ناموفق بود؛ پاسخ‌های شما ذخیره شده‌اند. دوباره تلاش کنید یا مستقیم در
+                      تماس باشید.
+                    </p>
                     <div class="flex flex-wrap gap-x-5 gap-y-1">
                       <ChannelLink
                         icon="phone"
@@ -142,17 +169,27 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
                         label="واتساپ"
                         href={CONTACT.whatsappHref}
                         external
-                        event={{ name: "messaging_click", payload: { section: "audit-banner", channel: "whatsapp" } }}
+                        event={{
+                          name: "messaging_click",
+                          payload: { section: "audit-banner", channel: "whatsapp" },
+                        }}
                       />
                       <ChannelLink
                         icon="telegram"
                         label="تلگرام"
                         href={CONTACT.telegramHref}
                         external
-                        event={{ name: "messaging_click", payload: { section: "audit-banner", channel: "telegram" } }}
+                        event={{
+                          name: "messaging_click",
+                          payload: { section: "audit-banner", channel: "telegram" },
+                        }}
                       />
                     </div>
-                    <button type="button" data-retry class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action">
+                    <button
+                      type="button"
+                      data-retry
+                      class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action"
+                    >
                       تلاش دوباره
                     </button>
                   </div>
@@ -161,13 +198,25 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
 
               <div data-banner="offline" hidden>
                 <div class="flex items-start gap-3 rounded-[4px] border border-danger/40 bg-surface p-4">
-                  <svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 flex-none text-danger" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 8v5" />
-                    <path d="M12 16.5v.01" />
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="mt-0.5 h-5 w-5 flex-none text-danger"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 8v5"></path>
+                    <path d="M12 16.5v.01"></path>
                   </svg>
                   <div class="flex flex-col gap-3">
-                    <p class="text-body font-medium text-danger">ارسال نشد؛ به اینترنت وصل نیستید. پاسخ‌ها ذخیره شده‌اند و با اتصال دوباره می‌توانید ادامه دهید.</p>
+                    <p class="text-body font-medium text-danger">
+                      ارسال نشد؛ به اینترنت وصل نیستید. پاسخ‌ها ذخیره شده‌اند و با اتصال دوباره می‌توانید
+                      ادامه دهید.
+                    </p>
                     <p class="text-caption text-text-muted">یا مستقیم در تماس باشید:</p>
                     <div class="flex flex-wrap gap-x-5 gap-y-1">
                       <ChannelLink
@@ -182,17 +231,27 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
                         label="واتساپ"
                         href={CONTACT.whatsappHref}
                         external
-                        event={{ name: "messaging_click", payload: { section: "audit-banner", channel: "whatsapp" } }}
+                        event={{
+                          name: "messaging_click",
+                          payload: { section: "audit-banner", channel: "whatsapp" },
+                        }}
                       />
                       <ChannelLink
                         icon="telegram"
                         label="تلگرام"
                         href={CONTACT.telegramHref}
                         external
-                        event={{ name: "messaging_click", payload: { section: "audit-banner", channel: "telegram" } }}
+                        event={{
+                          name: "messaging_click",
+                          payload: { section: "audit-banner", channel: "telegram" },
+                        }}
                       />
                     </div>
-                    <button type="button" data-retry class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action">
+                    <button
+                      type="button"
+                      data-retry
+                      class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action"
+                    >
                       تلاش دوباره
                     </button>
                   </div>
@@ -201,14 +260,29 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
 
               <div data-banner="turnstile" hidden>
                 <div class="flex items-start gap-3 rounded-[4px] border border-danger/40 bg-surface p-4">
-                  <svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 flex-none text-danger" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 8v5" />
-                    <path d="M12 16.5v.01" />
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="mt-0.5 h-5 w-5 flex-none text-danger"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 8v5"></path>
+                    <path d="M12 16.5v.01"></path>
                   </svg>
                   <div class="flex flex-col gap-3">
-                    <p class="text-body font-medium text-danger">بررسی امنیتی ناموفق بود؛ دوباره تلاش کنید.</p>
-                    <button type="button" data-retry class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action">
+                    <p class="text-body font-medium text-danger">
+                      بررسی امنیتی ناموفق بود؛ دوباره تلاش کنید.
+                    </p>
+                    <button
+                      type="button"
+                      data-retry
+                      class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action"
+                    >
                       تلاش دوباره
                     </button>
                   </div>
@@ -217,21 +291,41 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
 
               <div data-banner="rate" hidden>
                 <div class="flex items-start gap-3 rounded-[4px] border border-danger/40 bg-surface p-4">
-                  <svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 flex-none text-danger" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 8v5" />
-                    <path d="M12 16.5v.01" />
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="mt-0.5 h-5 w-5 flex-none text-danger"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 8v5"></path>
+                    <path d="M12 16.5v.01"></path>
                   </svg>
-                  <p class="text-body font-medium text-danger">تعداد درخواست‌ها زیاد است؛ چند لحظه بعد دوباره تلاش کنید.</p>
+                  <p class="text-body font-medium text-danger">
+                    تعداد درخواست‌ها زیاد است؛ چند لحظه بعد دوباره تلاش کنید.
+                  </p>
                 </div>
               </div>
 
               <div data-banner="validation" hidden>
                 <div class="flex items-start gap-3 rounded-[4px] border border-danger/40 bg-surface p-4">
-                  <svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 flex-none text-danger" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 8v5" />
-                    <path d="M12 16.5v.01" />
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="mt-0.5 h-5 w-5 flex-none text-danger"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 8v5"></path>
+                    <path d="M12 16.5v.01"></path>
                   </svg>
                   <p class="text-body font-medium text-danger">یک مورد را کامل کنید.</p>
                 </div>
@@ -239,13 +333,24 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
 
               <div data-banner="unconfigured" hidden>
                 <div class="flex items-start gap-3 rounded-[4px] border border-danger/40 bg-surface p-4">
-                  <svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 flex-none text-danger" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 8v5" />
-                    <path d="M12 16.5v.01" />
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="mt-0.5 h-5 w-5 flex-none text-danger"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 8v5"></path>
+                    <path d="M12 16.5v.01"></path>
                   </svg>
                   <div class="flex flex-col gap-3">
-                    <p class="text-body font-medium text-danger">ثبت درخواست در این لحظه در دسترس نیست؛ از راه‌های تماس مستقیم استفاده کنید.</p>
+                    <p class="text-body font-medium text-danger">
+                      ثبت درخواست در این لحظه در دسترس نیست؛ از راه‌های تماس مستقیم استفاده کنید.
+                    </p>
                     <div class="flex flex-wrap gap-x-5 gap-y-1">
                       <ChannelLink icon="phone" label={CONTACT.phone} value="تماس" href={CONTACT.phoneHref} />
                       <ChannelLink icon="whatsapp" label="واتساپ" href={CONTACT.whatsappHref} external />
@@ -285,51 +390,61 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
                 data-honeypot
               />
               <div class="flex flex-col gap-8">
-                {AUDIT_STEPS.map((step, index) => (
-                  <section
-                    data-step-section={step.id}
-                    aria-labelledby={`step-${step.id}-title`}
-                    hidden={index !== 0}
-                  >
-                    <h2 id={`step-${step.id}-title`} tabindex="-1" class="text-h3 text-text">
-                      {step.question}
-                    </h2>
-                    <p class="mt-2 text-body text-text-muted">{step.description}</p>
-                    <div class="mt-6 flex flex-col gap-5">
-                      {step.fields.map((field) =>
-                        field.kind === "select" ? (
-                          <Select
-                            id={field.id}
-                            label={field.label}
-                            options={field.options ?? []}
-                            placeholder={field.placeholder}
-                            optional={field.optional}
-                            hint={field.hint}
-                          />
-                        ) : field.kind === "multiselect" ? (
-                          <MultiSelect
-                            id={field.id}
-                            label={field.label}
-                            options={field.options ?? []}
-                            hint={field.hint}
-                          />
-                        ) : (
-                          <FormField
-                            id={field.id}
-                            label={field.label}
-                            type={field.id === "phone" ? "tel" : field.id === "email" ? "email" : field.id === "website" ? "url" : "text"}
-                            placeholder={field.placeholder}
-                            hint={field.hint}
-                            optional={field.optional}
-                            autocomplete={field.autocomplete}
-                            inputmode={field.inputmode}
-                            maxlength={field.maxlength}
-                          />
-                        ),
-                      )}
-                    </div>
-                  </section>
-                ))}
+                {
+                  AUDIT_STEPS.map((step, index) => (
+                    <section
+                      data-step-section={step.id}
+                      aria-labelledby={`step-${step.id}-title`}
+                      hidden={index !== 0}
+                    >
+                      <h2 id={`step-${step.id}-title`} tabindex="-1" class="text-h3 text-text">
+                        {step.question}
+                      </h2>
+                      <p class="mt-2 text-body text-text-muted">{step.description}</p>
+                      <div class="mt-6 flex flex-col gap-5">
+                        {step.fields.map((field) =>
+                          field.kind === "select" ? (
+                            <Select
+                              id={field.id}
+                              label={field.label}
+                              options={field.options ?? []}
+                              placeholder={field.placeholder}
+                              optional={field.optional}
+                              hint={field.hint}
+                            />
+                          ) : field.kind === "multiselect" ? (
+                            <MultiSelect
+                              id={field.id}
+                              label={field.label}
+                              options={field.options ?? []}
+                              hint={field.hint}
+                            />
+                          ) : (
+                            <FormField
+                              id={field.id}
+                              label={field.label}
+                              type={
+                                field.id === "phone"
+                                  ? "tel"
+                                  : field.id === "email"
+                                    ? "email"
+                                    : field.id === "website"
+                                      ? "url"
+                                      : "text"
+                              }
+                              placeholder={field.placeholder}
+                              hint={field.hint}
+                              optional={field.optional}
+                              autocomplete={field.autocomplete}
+                              inputmode={field.inputmode}
+                              maxlength={field.maxlength}
+                            />
+                          ),
+                        )}
+                      </div>
+                    </section>
+                  ))
+                }
               </div>
 
               <!-- Turnstile renders here when the contact station is reached -->
@@ -358,9 +473,7 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
                     <dd class="text-body text-text" data-summary-need></dd>
                   </div>
                 </dl>
-                <p class="mt-4 text-caption text-text-faint">
-                  برای تغییر هر پاسخ، «قبلی» را بزنید.
-                </p>
+                <p class="mt-4 text-caption text-text-faint">برای تغییر هر پاسخ، «قبلی» را بزنید.</p>
               </div>
 
               <div class="mt-8 flex items-center justify-between gap-4">
@@ -411,7 +524,11 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
     import { initAudit, type AuditConfig } from "../scripts/audit";
 
     const card = document.querySelector<HTMLElement>("[data-audit-config]");
-    let config: AuditConfig = { turnstileSiteKey: "", web3formsKey: "", web3formsUrl: "https://api.web3forms.com/submit" };
+    let config: AuditConfig = {
+      turnstileSiteKey: "",
+      web3formsKey: "",
+      web3formsUrl: "https://api.web3forms.com/submit",
+    };
     if (card) {
       try {
         config = JSON.parse(card.getAttribute("data-audit-config") ?? "{}") as AuditConfig;

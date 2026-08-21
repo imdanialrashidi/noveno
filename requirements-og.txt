@@ -1,0 +1,4 @@
+# Social-card renderer (scripts/generate-og-images.py).
+# libraqm is a system package for Persian shaping: Debian/Ubuntu:
+#   sudo apt-get install libraqm0   (macOS: brew install pillow ships raqm via wheels)
+Pillow==12.3.0

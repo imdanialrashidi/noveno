@@ -16,7 +16,8 @@ export interface DeliveryOutcome {
 
 function labelOf(group: keyof typeof AUDIT_OPTIONS, id: string): string {
   return (
-    (AUDIT_OPTIONS[group] as readonly { id: string; label: string }[]).find((option) => option.id === id)?.label ?? id
+    (AUDIT_OPTIONS[group] as readonly { id: string; label: string }[]).find((option) => option.id === id)
+      ?.label ?? id
   );
 }
 
@@ -33,28 +34,28 @@ export function safeText(value: string): string {
  * Sanitized Web3Forms payload — the full useful audit data with readable
  * Persian labels. Never includes the Turnstile token, secrets, or
  * unnecessary browser/internal state.
+ * validated_at comes from the server's 200 body; the fallback clock is only
+ * for direct/unconfigured deployments.
  */
 export function buildWeb3FormsBody(
   payload: Record<string, unknown>,
   config: AuditConfig,
   receipt: string | null,
   attempt: number,
+  validatedAt: string | null = null,
 ): Record<string, string> {
   const label = (ids: unknown, group: keyof typeof AUDIT_OPTIONS): string =>
     Array.isArray(ids)
       ? ids.map((id) => labelOf(group, String(id))).join("، ")
       : labelOf(group, String(ids ?? ""));
   const attribution = payload.attribution as Record<string, string> | undefined;
-  let validatedAt = new Date().toISOString();
-  if (receipt) {
-    const lastDot = receipt.lastIndexOf(".");
-    if (lastDot > 36) validatedAt = receipt.slice(37, lastDot);
-  }
+  const validatedAtIso =
+    validatedAt && !Number.isNaN(Date.parse(validatedAt)) ? validatedAt : new Date().toISOString();
   return {
     access_key: config.web3formsKey,
     subject: `درخواست بررسی مسیر جذب — ${safeText(String(payload.business_name ?? payload.name ?? ""))}`,
     validation_receipt: receipt ?? "none",
-    validated_at: validatedAt,
+    validated_at: validatedAtIso,
     delivery_attempt: String(attempt + 1),
     submission_id: String(payload.submission_id ?? ""),
     name: safeText(String(payload.name ?? "")),
@@ -87,10 +88,11 @@ export async function deliverLead(
   payload: Record<string, unknown>,
   config: AuditConfig,
   receipt: string | null,
+  validatedAt: string | null = null,
 ): Promise<DeliveryOutcome> {
   let lastStatus = 0;
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    const body = buildWeb3FormsBody(payload, config, receipt, attempt);
+    const body = buildWeb3FormsBody(payload, config, receipt, attempt, validatedAt);
     try {
       const result = await fetch(config.web3formsUrl, {
         method: "POST",

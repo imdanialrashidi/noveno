@@ -16,8 +16,8 @@
  *   - the fixed per-page cards    public/og/about.png, og/work.png,
  *                                 og/blog.png (one per page that sets a
  *                                 dedicated ogImage — mirrors src/pages)
- *   - one card per WORK entry     public/og/work/{slug}.png
- *                                 (the work collection has no draft gate)
+ *   - one card per PUBLISHED work entry  public/og/work/{slug}.png
+ *                                 (draft: true skipped — same gate as pages)
  *   - one card per PUBLISHED blog article  public/og/blog/{slug}.png
  *                                 (draft: true articles never get a card;
  *                                  a frontmatter ogImage override is
@@ -81,7 +81,7 @@ function requiredCards() {
     { rel: "og/work.png", why: "/work index card" },
     { rel: "og/blog.png", why: "/blog index card" },
   ];
-  for (const slug of contentSlugs("work", { skipDrafts: false })) {
+  for (const slug of contentSlugs("work", { skipDrafts: true })) {
     cards.push({ rel: `og/work/${slug}.png`, why: `work entry \`${slug}\`` });
   }
   // OG_ASSETS_BLOG_DIR lets tests point the gate at a throwaway fixture
@@ -150,9 +150,7 @@ for (const card of cards) {
 if (failures.length > 0) {
   console.error("og asset validation failed:");
   for (const failure of failures) console.error(`  ✗ ${failure}`);
-  console.error(
-    "Regenerate missing/changed cards locally with `npm run generate:og`, then commit them:",
-  );
+  console.error("Regenerate missing/changed cards locally with `npm run generate:og`, then commit them:");
   console.error("  npm run generate:og && npm run build");
   process.exit(1);
 }

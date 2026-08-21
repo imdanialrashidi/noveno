@@ -275,8 +275,10 @@ def work_entries():
         if not name.endswith(".md"):
             continue
         data = parse_fm(os.path.join(ROOT, "src", "content", "work", name))
+        if data.get("draft"):
+            continue  # drafts never get cards (parity with blog)
         slug = name[:-3]
-        shot = os.path.join(ROOT, "public", "images", "work", f"{slug}-hero.webp")
+        shot = os.path.join(ROOT, "assets", "images", "work", f"{slug}-hero.webp")
         out.append({
             "slug": slug,
             "title": data.get("title", slug),

@@ -18,7 +18,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 
-import { normalizePhoneClient, validateFieldClient } from "../src/data/audit.ts";
+import { AUDIT_OPTIONS, normalizePhoneClient, validateFieldClient } from "../src/data/audit.ts";
+import { LIMITS } from "../functions/lib/contract.ts";
 import { normalizePhone, normalizeEmail } from "../functions/lib/normalize.ts";
 import { validateAuditPayload } from "../functions/lib/validate.ts";
 
@@ -120,6 +121,10 @@ test("phone validity agreement: client and server accept exactly the same phones
       `server accepted ${JSON.stringify(phone)}`,
     );
   }
+});
+
+test("channel cap parity: server LIMITS.maxChannels equals full enum size (regression: maxChannels was 6 for 7 channels)", () => {
+  assert.equal(LIMITS.maxChannels, AUDIT_OPTIONS.channels.length);
 });
 
 test("documented divergence pinned: client ≤15-digit cap vs server ≤24 limit", () => {

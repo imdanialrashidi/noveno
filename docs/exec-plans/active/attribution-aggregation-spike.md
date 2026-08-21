@@ -1,6 +1,7 @@
 # Spike — Attribution Aggregation View over Analytics Engine (D-04)
 
 **Questions to answer**
+
 - What is the cheapest read API for Analytics Engine (`wrangler analytics-engine sql` vs Cloudflare GraphQL API vs Dashboard)? Can it be run without prod binding (`NOVENO_EVENTS` provisioned per `docs/ops/setup-checklist.md:3.4`)?
 - Cost of current write rate (`60/min/IP` per `functions/api/events.ts:179` + ~5 events/visitor funnel) at free tier?
 - Should attribution (`landing_page`, `referrer`, `utm_*`) be enriched into event blobs so funnel can segment by channel without joining emails? Today `blobs[2]` only holds `page/section/step/service/slug/channel` — `landing_page` is email-only.
@@ -10,11 +11,13 @@
 ## Current write schema
 
 From `functions/api/events.ts:195`:
+
 ```
 indexes: [event.name]
 doubles: [Date.now()]
 blobs: [page, section, JSON.stringify(payload)]  // payload ⊆ EVENT_PAYLOAD_KEYS = page, section, cta_id, step, service, slug, channel
 ```
+
 `NOVENO_EVENTS` has no attribution columns — channel/UTM segmentation must come from enriching `payload` or joining inbox. PII-free (`functions/lib/contract.ts:40-60`).
 
 ## Read shape
@@ -45,6 +48,7 @@ In Analytics Engine SQL, `doubles` map to `timestamp`, `indexes` to `index1`, `b
 ## Recommendation
 
 **A — Keep email + weekly AE SQL** (cheapest, no new binding). Founder runs `node scripts/query-events.mjs --range 7` weekly, pastes funnel into evidence ledger. No new plan unless volume warrants.
+
 - **B — Enrich events with attribution** would add `utm_source`/`landing_page` to `track("audit_submitted", { service, utm_source })` — requires `EVENT_PAYLOAD_KEYS` + `EVENT_VALUE_PATTERNS.page` update (plan 022 gates) and low PII risk, but not needed until channel segmentation proven via email scan.
 - **C — Minimal /admin reader** (`GET /api/events/summary` behind CF Access/basic-auth) returns 7d funnel — needs `risk-review` for auth; deferred until `N/week > threshold` in `docs/PLAN.md` stage 6.
 

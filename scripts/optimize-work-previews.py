@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Optimize work-preview captures → public/images/work/{webp,avif}.
+Optimize work-preview captures → assets/images/work/{webp,avif} (logical sources).
+Hashed copies are materialized into public/images/ by the manifest script.
 
 Real screenshots captured from the actual delivered public sites
 (1440×900 = 16:10) are the only source for real-project previews.
@@ -20,7 +21,7 @@ from pathlib import Path
 
 from PIL import Image
 
-OUT = Path("public/images/work")
+OUT = Path("assets/images/work")
 OUT.mkdir(parents=True, exist_ok=True)
 
 WEBP_QUALITY = 80
