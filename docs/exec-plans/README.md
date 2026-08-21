@@ -19,29 +19,36 @@ Updated: YYYY-MM-DD
 ## Non-goals
 
 ## Acceptance contract
+
 - [ ] A1 — observable criterion — proof required
 - [ ] A2 — observable criterion — proof required
 
 ## Confirmed current state
+
 - Facts established from code/runtime/tests
 
 ## Relevant surface
+
 - Important files, modules, services, endpoints, tests
 
 ## Decisions
+
 - Decision — rationale — consequence
 
 ## Evidence
+
 - Command/tool — result
 - Browser/API/measurement evidence
 
 ## Next actions
+
 1. Smallest next discriminating or implementation action
 2. ...
 
 ## Risks / blockers
 
 ## Handoff
+
 - What changed
 - What remains
 - What must not be overwritten

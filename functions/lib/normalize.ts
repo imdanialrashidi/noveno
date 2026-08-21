@@ -11,7 +11,9 @@ const AR_DIGITS = "٠١٢٣٤٥٦٧٨٩";
 
 /** Map Persian and Arabic-Indic digits to Latin digits; other chars unchanged. */
 export function normalizeDigits(input: string): string {
-  return input.replace(/[۰-۹]/g, (d) => String(FA_DIGITS.indexOf(d))).replace(/[٠-٩]/g, (d) => String(AR_DIGITS.indexOf(d)));
+  return input
+    .replace(/[۰-۹]/g, (d) => String(FA_DIGITS.indexOf(d)))
+    .replace(/[٠-٩]/g, (d) => String(AR_DIGITS.indexOf(d)));
 }
 
 /**

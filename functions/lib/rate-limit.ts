@@ -18,14 +18,25 @@ export interface RateLimiterOptions {
   now?: () => number;
 }
 
-export type RateLimiter = (key: string) => boolean;
+export type RateLimiter = ((key: string) => boolean) & { readonly size: number };
 
 export function createRateLimiter({ max, windowMs, now = Date.now }: RateLimiterOptions): RateLimiter {
   const hits = new Map<string, number[]>();
+  /** Memory bound: sweep when tracked keys exceed this many. */
+  const MAX_TRACKED_KEYS = 10_000;
 
-  return (key: string): boolean => {
+  const limit = (key: string): boolean => {
     const t = now();
     const windowStart = t - windowMs;
+
+    // Opportunistic sweep: keeps the map bounded under IP-rotation floods.
+    if (hits.size > MAX_TRACKED_KEYS) {
+      for (const [k, stamps] of hits) {
+        const newest = stamps[stamps.length - 1] ?? 0;
+        if (newest <= windowStart) hits.delete(k);
+      }
+    }
+
     const recent = (hits.get(key) ?? []).filter((ts) => ts > windowStart);
     if (recent.length >= max) {
       hits.set(key, recent);
@@ -35,4 +46,11 @@ export function createRateLimiter({ max, windowMs, now = Date.now }: RateLimiter
     hits.set(key, recent);
     return true;
   };
+  Object.defineProperty(limit, "size", {
+    get() {
+      return hits.size;
+    },
+    enumerable: true,
+  });
+  return limit as RateLimiter;
 }

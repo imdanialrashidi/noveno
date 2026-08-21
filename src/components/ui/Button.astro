@@ -12,7 +12,15 @@ interface Props {
   data?: Record<string, string>;
 }
 
-const { href, variant = "primary", size = "md", type = "button", ariaLabel, disabled = false, data = {} } = Astro.props;
+const {
+  href,
+  variant = "primary",
+  size = "md",
+  type = "button",
+  ariaLabel,
+  disabled = false,
+  data = {},
+} = Astro.props;
 const className = Astro.props["class"] ?? "";
 
 /**
@@ -25,8 +33,7 @@ const className = Astro.props["class"] ?? "";
  */
 const variantClasses: Record<string, string> = {
   primary: "bg-primary text-on-primary hover:bg-primary-hover active:bg-primary-active",
-  secondary:
-    "border border-line-strong text-text hover:border-primary hover:text-text-action bg-transparent",
+  secondary: "border border-line-strong text-text hover:border-primary hover:text-text-action bg-transparent",
   ghost: "text-accent-strong hover:text-text-action underline-offset-4",
 };
 
@@ -41,25 +48,23 @@ const base =
 const classes = [base, variantClasses[variant], sizeClasses[size], className].join(" ");
 ---
 
-{href && (
-  <a
-    href={href}
-    class={classes}
-    aria-label={ariaLabel}
-    aria-disabled={disabled ? "true" : undefined}
-    {...data}
-  >
-    <slot />
-  </a>
-)}
-{!href && (
-  <button
-    type={type}
-    class={classes}
-    aria-label={ariaLabel}
-    disabled={disabled}
-    {...data}
-  >
-    <slot />
-  </button>
-)}
+{
+  href && (
+    <a
+      href={href}
+      class={classes}
+      aria-label={ariaLabel}
+      aria-disabled={disabled ? "true" : undefined}
+      {...data}
+    >
+      <slot />
+    </a>
+  )
+}
+{
+  !href && (
+    <button type={type} class={classes} aria-label={ariaLabel} disabled={disabled} {...data}>
+      <slot />
+    </button>
+  )
+}

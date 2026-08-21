@@ -34,6 +34,9 @@ node_modules/
 venv/
 vendor/
 
+# Local backup snapshots
+.noveno-backups/
+
 # Build, test, browser, and framework output
 dist/
 build/

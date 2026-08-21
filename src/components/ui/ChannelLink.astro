@@ -47,8 +47,8 @@ const chipClasses: Record<string, string> = {
 <a
   href={href}
   class:list={[variantClasses[variant], className]}
-  {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-  {...(event ? { "data-event": event.name, "data-event-payload": JSON.stringify(event.payload) } : {})}
+  {...external ? { target: "_blank", rel: "noopener noreferrer" } : {}}
+  {...event ? { "data-event": event.name, "data-event-payload": JSON.stringify(event.payload) } : {}}
 >
   <span class={chipClasses[variant]} aria-hidden="true">
     <Icon name={icon} class="h-4 w-4" />

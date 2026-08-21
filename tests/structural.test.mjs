@@ -131,7 +131,11 @@ test("reduced-motion guard zeroes animation delays too (no from-state flash)", (
   const guard = css.match(/@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{([^}]*)\}/s);
   assert.ok(guard, "built CSS must carry the reduced-motion guard");
   assert.match(guard[1], /animation-duration:[^;]+!important/, "guard must zero animation durations");
-  assert.match(guard[1], /animation-delay:[^;]+!important/, "guard must zero animation delays (else fill-mode:both holds `from` keyframes)");
+  assert.match(
+    guard[1],
+    /animation-delay:[^;]+!important/,
+    "guard must zero animation delays (else fill-mode:both holds `from` keyframes)",
+  );
 });
 
 test("homepage hero is the brand artwork: inline SVG, zero raster hero media", () => {
@@ -163,7 +167,10 @@ test("homepage hero is brand-led: signal-field artwork + stage strip, no screens
 test("old /insights routes no longer build — no duplicate indexable routes", () => {
   assert.ok(!fs.existsSync(path.join(dist, "insights")), "dist must not contain /insights pages");
   assert.ok(fs.existsSync(path.join(dist, "blog", "index.html")), "dist must contain /blog");
-  assert.ok(fs.existsSync(path.join(dist, "blog", "instagram-lead-tracking", "index.html")), "dist must contain /blog/[slug]");
+  assert.ok(
+    fs.existsSync(path.join(dist, "blog", "instagram-lead-tracking", "index.html")),
+    "dist must contain /blog/[slug]",
+  );
 });
 
 test("contextual business photography is gone from the production path (2026-09 override)", () => {
@@ -178,7 +185,9 @@ test("contextual business photography is gone from the production path (2026-09 
     assert.ok(!html.includes(marker), `built HTML still references retired photography: ${marker}`);
   }
   const photoDir = path.join(root, "public", "images", "photography");
-  const remaining = walk(photoDir).filter((f) => /\.(avif|webp|jpe?g|png)$/.test(f));
+  const remaining = fs.existsSync(photoDir)
+    ? walk(photoDir).filter((f) => /\.(avif|webp|jpe?g|png)$/.test(f))
+    : [];
   assert.deepEqual(remaining, [], "photography binaries must be removed from public/images/photography");
 });
 
@@ -246,7 +255,10 @@ test("primary CTA flows to /audit in Slice 2 (launch contract), contact fallback
   // The header CTA is the canonical primary conversion on every page.
   for (const file of pages) {
     const html = fs.readFileSync(file, "utf8");
-    assert.ok(html.includes('href="/audit"'), `${path.relative(dist, file)}: missing header/primary CTA to /audit`);
+    assert.ok(
+      html.includes('href="/audit"'),
+      `${path.relative(dist, file)}: missing header/primary CTA to /audit`,
+    );
   }
   // Homepage: primary = audit, secondary = work (Spec §3.5–3.6).
   const home = fs.readFileSync(path.join(dist, "index.html"), "utf8");
@@ -257,7 +269,10 @@ test("primary CTA flows to /audit in Slice 2 (launch contract), contact fallback
   assert.ok(contact.includes('href="tel:09353598620"'), "contact page must keep click-to-call");
   for (const file of pages) {
     const html = fs.readFileSync(file, "utf8");
-    assert.ok(html.includes('href="tel:09353598620"'), `${path.relative(dist, file)}: footer contact fallback missing`);
+    assert.ok(
+      html.includes('href="tel:09353598620"'),
+      `${path.relative(dist, file)}: footer contact fallback missing`,
+    );
   }
 });
 
@@ -306,7 +321,10 @@ test("the app route is wired into verification routing", () => {
   const appRoute = config.routes.find((r) => r.id === "app");
   assert.ok(appRoute, "missing app route");
   assert.ok(appRoute.include.includes("src/**"), "app route must include src/**");
-  assert.ok(appRoute.commands.some((c) => c.includes("tests/structural.test.mjs")), "app route must run structural tests");
+  assert.ok(
+    appRoute.commands.some((c) => c.includes("tests/structural.test.mjs")),
+    "app route must run structural tests",
+  );
 });
 
 test("security headers include HSTS and upgrade-insecure-requests", () => {
@@ -318,9 +336,14 @@ test("security headers include HSTS and upgrade-insecure-requests", () => {
 test("CSP connect-src includes the Web3Forms origin (plan 024)", () => {
   const headers = fs.readFileSync(path.join(root, "public", "_headers"), "utf8");
   const fallback = "https://api.web3forms.com";
-  const envOrigin = process.env.PUBLIC_WEB3FORMS_URL ? new URL(process.env.PUBLIC_WEB3FORMS_URL).origin : fallback;
+  const envOrigin = process.env.PUBLIC_WEB3FORMS_URL
+    ? new URL(process.env.PUBLIC_WEB3FORMS_URL).origin
+    : fallback;
   assert.ok(headers.includes(envOrigin), `public/_headers connect-src must include ${envOrigin}`);
-  assert.ok(!headers.includes("connect-src *") && !headers.includes("connect-src https:"), "connect-src must not contain wildcards");
+  assert.ok(
+    !headers.includes("connect-src *") && !headers.includes("connect-src https:"),
+    "connect-src must not contain wildcards",
+  );
 });
 
 // Convenience: run the canonical build from the test (used by verify.sh flow).

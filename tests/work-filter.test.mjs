@@ -11,13 +11,27 @@ class FakeEl {
     this.children = [];
     this._handlers = {};
   }
-  getAttribute(k) { return this._attrs.get(k) ?? null; }
-  setAttribute(k, v) { this._attrs.set(k, String(v)); }
-  hasAttribute(k) { return this._attrs.has(k); }
-  addEventListener(type, fn) { (this._handlers[type] ??= []).push(fn); }
-  dispatchEvent(type) { for (const fn of this._handlers[type] ?? []) fn({ target: this }); }
+  getAttribute(k) {
+    return this._attrs.get(k) ?? null;
+  }
+  setAttribute(k, v) {
+    this._attrs.set(k, String(v));
+  }
+  hasAttribute(k) {
+    return this._attrs.has(k);
+  }
+  addEventListener(type, fn) {
+    (this._handlers[type] ??= []).push(fn);
+  }
+  dispatchEvent(type) {
+    for (const fn of this._handlers[type] ?? []) fn({ target: this });
+  }
   querySelectorAll(sel) {
-    const m = sel.match(/\[data-industry-filter\]/) ? "filter" : sel.match(/\[data-industry\]/) ? "row" : null;
+    const m = sel.match(/\[data-industry-filter\]/)
+      ? "filter"
+      : sel.match(/\[data-industry\]/)
+        ? "row"
+        : null;
     if (m === "filter") return this._filterButtons ?? [];
     if (m === "row") return globalThis.__rows ?? [];
     return [];
@@ -27,7 +41,12 @@ class FakeEl {
 function makeEnv(initialUrl = "https://noveno.ir/work") {
   const historyCalls = [];
   globalThis.location = new URL(initialUrl);
-  globalThis.history = { replaceState: (_a, _b, url) => { historyCalls.push(String(url)); globalThis.location = new URL(String(url)); } };
+  globalThis.history = {
+    replaceState: (_a, _b, url) => {
+      historyCalls.push(String(url));
+      globalThis.location = new URL(String(url));
+    },
+  };
   globalThis.document = {
     querySelectorAll: (sel) => {
       if (sel === "[data-industry]") return globalThis.__rows;
@@ -44,7 +63,10 @@ function makeEnv(initialUrl = "https://noveno.ir/work") {
 test("work industry filter hides non-matching rows and updates URL", () => {
   const btnAll = new FakeEl("button", { "data-industry-filter": "all", "aria-pressed": "true" });
   const btnA = new FakeEl("button", { "data-industry-filter": "رستوران و کافه", "aria-pressed": "false" });
-  const btnB = new FakeEl("button", { "data-industry-filter": "آموزش زبان و آیلتس", "aria-pressed": "false" });
+  const btnB = new FakeEl("button", {
+    "data-industry-filter": "آموزش زبان و آیلتس",
+    "aria-pressed": "false",
+  });
   const rowA = new FakeEl("div", { "data-industry": "رستوران و کافه" });
   const rowB = new FakeEl("div", { "data-industry": "آموزش زبان و آیلتس" });
   const rowC = new FakeEl("div", { "data-industry": "رستوران و کافه" });
@@ -88,7 +110,9 @@ test("work filter empty state shows when no rows match", () => {
   globalThis.__empty = empty;
   const root = new FakeEl("div");
   root._filterButtons = [btnAll, btnA];
-  makeEnv("https://noveno.ir/work?industry=%D8%B1%D8%B3%D8%AA%D9%88%D8%B1%D8%A7%D9%86%20%D9%88%20%DA%A9%D8%A7%D9%81%D9%87");
+  makeEnv(
+    "https://noveno.ir/work?industry=%D8%B1%D8%B3%D8%AA%D9%88%D8%B1%D8%A7%D9%86%20%D9%88%20%DA%A9%D8%A7%D9%81%D9%87",
+  );
   initWorkFilter(root);
   assert.equal(empty.hidden, false, "empty should show when single row filtered out");
 });

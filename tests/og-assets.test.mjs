@@ -152,10 +152,7 @@ test("repo-relative ogImage override is gated like a committed card", () => {
       // RED: relative override without its card must fail the gate.
       const missing = run();
       assert.notEqual(missing.status, 0, "relative override must require its card");
-      assert.match(
-        missing.stderr,
-        /missing required social card public\/og\/blog\/tmp-relative\.png/,
-      );
+      assert.match(missing.stderr, /missing required social card public\/og\/blog\/tmp-relative\.png/);
 
       // GREEN: with a real 1200×630 card in place, the gate passes.
       withTempCard(rel, validCardBytes(), () => {
@@ -166,10 +163,7 @@ test("repo-relative ogImage override is gated like a committed card", () => {
         withCardHidden(rel, () => {
           const hidden = run();
           assert.notEqual(hidden.status, 0, "hiding the override card must fail the gate");
-          assert.match(
-            hidden.stderr,
-            /missing required social card public\/og\/blog\/tmp-relative\.png/,
-          );
+          assert.match(hidden.stderr, /missing required social card public\/og\/blog\/tmp-relative\.png/);
         });
       });
     },

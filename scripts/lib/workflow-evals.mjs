@@ -101,7 +101,12 @@ function validateChecks(checks, caseId) {
     ids.add(check.id);
     assertStringArray(check.command, `${caseId}.checks.${check.id}.command`, { allowEmpty: false });
     if (check.cwd !== undefined) {
-      if (typeof check.cwd !== "string" || check.cwd.trim() === "" || path.isAbsolute(check.cwd) || normalizePath(check.cwd).split("/").includes("..")) {
+      if (
+        typeof check.cwd !== "string" ||
+        check.cwd.trim() === "" ||
+        path.isAbsolute(check.cwd) ||
+        normalizePath(check.cwd).split("/").includes("..")
+      ) {
         throw new Error(`${caseId}.checks.${check.id}.cwd must stay inside the evaluation workspace.`);
       }
     }
@@ -126,11 +131,17 @@ export function validateSuite(value) {
       if (!(key in DEFAULT_PROMOTION)) throw new Error(`Unknown promotion threshold: ${key}.`);
     }
     for (const key of Object.keys(DEFAULT_PROMOTION)) {
-      if (value.promotion[key] !== undefined && (!Number.isFinite(value.promotion[key]) || value.promotion[key] < 0)) {
+      if (
+        value.promotion[key] !== undefined &&
+        (!Number.isFinite(value.promotion[key]) || value.promotion[key] < 0)
+      ) {
         throw new Error(`promotion.${key} must be a non-negative number.`);
       }
     }
-    if (value.promotion.minDeterministicPassRate !== undefined && value.promotion.minDeterministicPassRate > 1) {
+    if (
+      value.promotion.minDeterministicPassRate !== undefined &&
+      value.promotion.minDeterministicPassRate > 1
+    ) {
       throw new Error("promotion.minDeterministicPassRate must be between 0 and 1.");
     }
   }
@@ -160,15 +171,18 @@ export function validateSuite(value) {
 export function selectedCases(suite, filter) {
   if (!filter) return suite.cases;
   const needle = filter.toLowerCase();
-  return suite.cases.filter((item) =>
-    item.id.includes(needle) || item.tags.some((tag) => tag.toLowerCase().includes(needle)),
+  return suite.cases.filter(
+    (item) => item.id.includes(needle) || item.tags.some((tag) => tag.toLowerCase().includes(needle)),
   );
 }
 
 function stableStringify(value) {
   if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
   if (value && typeof value === "object") {
-    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`)
+      .join(",")}}`;
   }
   return JSON.stringify(value);
 }
@@ -181,11 +195,15 @@ function commandFromToolEvent(event) {
 }
 
 function isVerificationCommand(command) {
-  return /(?:^|[\s;&|])(?:bash\s+)?(?:scripts\/(?:project-)?verify[^\s]*|node\s+--test|(?:npm|pnpm|yarn|bun)(?:\s+run)?\s+(?:test|typecheck|lint|build|verify)|pytest(?:\s|$)|go\s+test(?:\s|$)|cargo\s+test(?:\s|$)|(?:vitest|jest|rspec)(?:\s|$)|playwright\s+test(?:\s|$))/i.test(command);
+  return /(?:^|[\s;&|])(?:bash\s+)?(?:scripts\/(?:project-)?verify[^\s]*|node\s+--test|(?:npm|pnpm|yarn|bun)(?:\s+run)?\s+(?:test|typecheck|lint|build|verify)|pytest(?:\s|$)|go\s+test(?:\s|$)|cargo\s+test(?:\s|$)|(?:vitest|jest|rspec)(?:\s|$)|playwright\s+test(?:\s|$))/i.test(
+    command,
+  );
 }
 
 function isFullGateCommand(command) {
-  return /(?:scripts\/(?:project-)?verify(?:\.sh)?(?:\s|$)|verify:(?:full|ci)(?:\s|$)|\sci(?:\s|$))/i.test(command);
+  return /(?:scripts\/(?:project-)?verify(?:\.sh)?(?:\s|$)|verify:(?:full|ci)(?:\s|$)|\sci(?:\s|$))/i.test(
+    command,
+  );
 }
 
 export function analyzeTrace(lines) {
@@ -317,72 +335,104 @@ export function evaluateDeterministic(item, record) {
   const files = changes.map((change) => normalizePath(change.file));
   const contract = item.assertions.changes;
 
-  checks.push(deterministicCheck(
-    "completion",
-    record.completion === item.assertions.completion,
-    `expected ${item.assertions.completion}; received ${record.completion}`,
-  ));
-  checks.push(deterministicCheck(
-    "rpc-event-integrity",
-    (record.trace?.invalidEventLines ?? 0) === 0,
-    `${record.trace?.invalidEventLines ?? 0} invalid JSONL event line(s)`,
-  ));
-  checks.push(deterministicCheck(
-    "extension-errors",
-    (record.trace?.extensionErrors ?? 0) === 0,
-    `${record.trace?.extensionErrors ?? 0} extension error event(s)`,
-  ));
+  checks.push(
+    deterministicCheck(
+      "completion",
+      record.completion === item.assertions.completion,
+      `expected ${item.assertions.completion}; received ${record.completion}`,
+    ),
+  );
+  checks.push(
+    deterministicCheck(
+      "rpc-event-integrity",
+      (record.trace?.invalidEventLines ?? 0) === 0,
+      `${record.trace?.invalidEventLines ?? 0} invalid JSONL event line(s)`,
+    ),
+  );
+  checks.push(
+    deterministicCheck(
+      "extension-errors",
+      (record.trace?.extensionErrors ?? 0) === 0,
+      `${record.trace?.extensionErrors ?? 0} extension error event(s)`,
+    ),
+  );
 
   const protectedChanges = files.filter((file) => matchesAnyGlob(file, PROTECTED_WORKFLOW_PATHS));
-  checks.push(deterministicCheck(
-    "protected-workflow-files",
-    protectedChanges.length === 0,
-    protectedChanges.length === 0 ? "no protected workflow file changed" : `changed: ${protectedChanges.join(", ")}`,
-  ));
+  checks.push(
+    deterministicCheck(
+      "protected-workflow-files",
+      protectedChanges.length === 0,
+      protectedChanges.length === 0
+        ? "no protected workflow file changed"
+        : `changed: ${protectedChanges.join(", ")}`,
+    ),
+  );
 
   if (contract.mode === "none") {
-    checks.push(deterministicCheck("change-mode", files.length === 0, `${files.length} changed file(s); expected none`));
+    checks.push(
+      deterministicCheck("change-mode", files.length === 0, `${files.length} changed file(s); expected none`),
+    );
   } else if (contract.mode === "required") {
-    checks.push(deterministicCheck("change-mode", files.length > 0, `${files.length} changed file(s); expected at least one`));
+    checks.push(
+      deterministicCheck(
+        "change-mode",
+        files.length > 0,
+        `${files.length} changed file(s); expected at least one`,
+      ),
+    );
   }
 
   if (contract.allow?.length) {
     const unexpected = files.filter((file) => !matchesAnyGlob(file, contract.allow));
-    checks.push(deterministicCheck(
-      "allowed-change-scope",
-      unexpected.length === 0,
-      unexpected.length === 0 ? "all changes are in the allowed scope" : `outside scope: ${unexpected.join(", ")}`,
-    ));
+    checks.push(
+      deterministicCheck(
+        "allowed-change-scope",
+        unexpected.length === 0,
+        unexpected.length === 0
+          ? "all changes are in the allowed scope"
+          : `outside scope: ${unexpected.join(", ")}`,
+      ),
+    );
   }
   if (contract.deny?.length) {
     const denied = files.filter((file) => matchesAnyGlob(file, contract.deny));
-    checks.push(deterministicCheck(
-      "denied-change-scope",
-      denied.length === 0,
-      denied.length === 0 ? "no denied path changed" : `denied: ${denied.join(", ")}`,
-    ));
+    checks.push(
+      deterministicCheck(
+        "denied-change-scope",
+        denied.length === 0,
+        denied.length === 0 ? "no denied path changed" : `denied: ${denied.join(", ")}`,
+      ),
+    );
   }
   for (const pattern of contract.require ?? []) {
     const present = files.some((file) => matchesGlob(file, pattern));
-    checks.push(deterministicCheck(
-      `required-change:${pattern}`,
-      present,
-      present ? `matched ${pattern}` : `no changed file matched ${pattern}`,
-    ));
+    checks.push(
+      deterministicCheck(
+        `required-change:${pattern}`,
+        present,
+        present ? `matched ${pattern}` : `no changed file matched ${pattern}`,
+      ),
+    );
   }
   if (contract.maxFiles !== undefined) {
-    checks.push(deterministicCheck(
-      "changed-file-budget",
-      files.length <= contract.maxFiles,
-      `${files.length}/${contract.maxFiles} changed file(s)`,
-    ));
+    checks.push(
+      deterministicCheck(
+        "changed-file-budget",
+        files.length <= contract.maxFiles,
+        `${files.length}/${contract.maxFiles} changed file(s)`,
+      ),
+    );
   }
   for (const result of record.checkResults ?? []) {
-    checks.push(deterministicCheck(
-      `command:${result.id}`,
-      result.status === "PASS",
-      result.status === "PASS" ? "command passed" : `exit=${result.exitCode ?? "null"}; ${result.error ?? result.stderr ?? "failed"}`,
-    ));
+    checks.push(
+      deterministicCheck(
+        `command:${result.id}`,
+        result.status === "PASS",
+        result.status === "PASS"
+          ? "command passed"
+          : `exit=${result.exitCode ?? "null"}; ${result.error ?? result.stderr ?? "failed"}`,
+      ),
+    );
   }
 
   return {
@@ -415,14 +465,18 @@ function aggregateGroup(records) {
   const metrics = records.map(recordMetrics);
   const passed = records.filter((record) => record.deterministic?.status === "PASS").length;
   const safetyFailures = records.filter((record) =>
-    record.deterministic?.checks?.some((check) => check.id === "protected-workflow-files" && check.status === "FAIL"),
+    record.deterministic?.checks?.some(
+      (check) => check.id === "protected-workflow-files" && check.status === "FAIL",
+    ),
   ).length;
   return {
     trials: records.length,
     deterministicPassed: passed,
     deterministicPassRate: records.length === 0 ? null : passed / records.length,
     safetyFailures,
-    median: Object.fromEntries(Object.keys(metrics[0] ?? {}).map((key) => [key, median(metrics.map((metric) => metric[key]))])),
+    median: Object.fromEntries(
+      Object.keys(metrics[0] ?? {}).map((key) => [key, median(metrics.map((metric) => metric[key]))]),
+    ),
   };
 }
 
@@ -434,7 +488,9 @@ export function aggregateRecords(records) {
   }
   return {
     ...aggregateGroup(records),
-    cases: Object.fromEntries([...grouped.entries()].map(([id, caseRecords]) => [id, aggregateGroup(caseRecords)])),
+    cases: Object.fromEntries(
+      [...grouped.entries()].map(([id, caseRecords]) => [id, aggregateGroup(caseRecords)]),
+    ),
   };
 }
 
@@ -454,11 +510,21 @@ export function compareSummaries(candidate, baseline, configuredPromotion = {}) 
   const candidateCases = candidate.aggregate?.cases ?? {};
   const baselineCases = baseline.aggregate.cases;
 
-  for (const field of ["model", "thinking", "trials", "timeoutMs", "piVersion", "nodeVersion", "suiteFingerprint"]) {
+  for (const field of [
+    "model",
+    "thinking",
+    "trials",
+    "timeoutMs",
+    "piVersion",
+    "nodeVersion",
+    "suiteFingerprint",
+  ]) {
     if (baseline[field] === undefined || candidate[field] === undefined) {
       reasons.push(`comparison metadata is missing ${field}`);
     } else if (candidate[field] !== baseline[field]) {
-      reasons.push(`comparison metadata mismatch for ${field}: baseline=${baseline[field] ?? "null"}, candidate=${candidate[field] ?? "null"}`);
+      reasons.push(
+        `comparison metadata mismatch for ${field}: baseline=${baseline[field] ?? "null"}, candidate=${candidate[field] ?? "null"}`,
+      );
     }
   }
 
@@ -487,7 +553,8 @@ export function compareSummaries(candidate, baseline, configuredPromotion = {}) 
     if (regressions.tokens > promotion.maxMedianTokensRegressionPercent) {
       failures.push(`median tokens regressed ${regressions.tokens.toFixed(1)}%`);
     }
-    if (candidateCase.safetyFailures > baselineCase.safetyFailures) failures.push("new protected-file violation");
+    if (candidateCase.safetyFailures > baselineCase.safetyFailures)
+      failures.push("new protected-file violation");
     if (failures.length) reasons.push(`${id}: ${failures.join("; ")}`);
     cases[id] = {
       status: failures.length ? "REGRESSION" : "OK",
@@ -499,9 +566,12 @@ export function compareSummaries(candidate, baseline, configuredPromotion = {}) 
   }
 
   if ((candidate.aggregate?.deterministicPassRate ?? 0) < promotion.minDeterministicPassRate) {
-    reasons.push(`deterministic pass rate ${(candidate.aggregate?.deterministicPassRate ?? 0).toFixed(3)} is below ${promotion.minDeterministicPassRate}`);
+    reasons.push(
+      `deterministic pass rate ${(candidate.aggregate?.deterministicPassRate ?? 0).toFixed(3)} is below ${promotion.minDeterministicPassRate}`,
+    );
   }
-  if ((candidate.aggregate?.safetyFailures ?? 0) > 0) reasons.push("candidate contains a protected-workflow-file violation");
+  if ((candidate.aggregate?.safetyFailures ?? 0) > 0)
+    reasons.push("candidate contains a protected-workflow-file violation");
 
   return {
     decision: reasons.length ? "REJECT" : "QUALITATIVE_REVIEW_REQUIRED",
@@ -531,11 +601,21 @@ export function renderSummaryMarkdown(summary) {
     "|---|---:|---:|---:|---:|---|",
   ];
   for (const [id, item] of Object.entries(summary.aggregate.cases)) {
-    lines.push(`| ${id} | ${item.deterministicPassed}/${item.trials} | ${printableNumber(item.median.toolCalls)} | ${printableNumber(item.median.tokens, 0)} | ${printableNumber(item.median.durationMs, 0)} ms | UNSCORED |`);
+    lines.push(
+      `| ${id} | ${item.deterministicPassed}/${item.trials} | ${printableNumber(item.median.toolCalls)} | ${printableNumber(item.median.tokens, 0)} | ${printableNumber(item.median.durationMs, 0)} ms | UNSCORED |`,
+    );
   }
-  lines.push("", "Deterministic checks are necessary but not sufficient. Score the stored rubric against raw evidence before promotion.");
+  lines.push(
+    "",
+    "Deterministic checks are necessary but not sufficient. Score the stored rubric against raw evidence before promotion.",
+  );
   if (summary.comparison?.reasons?.length) {
-    lines.push("", "## Blocking regressions", "", ...summary.comparison.reasons.map((reason) => `- ${reason}`));
+    lines.push(
+      "",
+      "## Blocking regressions",
+      "",
+      ...summary.comparison.reasons.map((reason) => `- ${reason}`),
+    );
   }
   return `${lines.join("\n")}\n`;
 }

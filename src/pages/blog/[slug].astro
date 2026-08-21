@@ -93,17 +93,43 @@ const readingLabel = `${toFaDigits(readingMinutes(entry.body ?? ""))} دقیقه
   ogType="article"
   ogImageAlt={data.title}
 >
-  <script slot="head" type="application/ld+json" set:html={breadcrumbJsonLd}></script>
-  <script slot="head" type="application/ld+json" set:html={articleJsonLd}></script>
+  <script slot="head" type="application/ld+json" set:html={breadcrumbJsonLd} />
+  <script slot="head" type="application/ld+json" set:html={articleJsonLd} />
 
   <!-- Breadcrumbs: خانه / وبلاگ / عنوان -->
   <nav aria-label="مسیر صفحه" class="border-b border-line">
     <div class="mx-auto max-w-[1200px] px-5 py-3 sm:px-8">
       <ol class="flex flex-wrap items-center gap-1.5 text-meta text-text-faint">
-        <li><a href="/" class="rounded-[2px] transition-colors duration-150 hover:text-text-action">خانه</a></li>
-        <li aria-hidden="true"><svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg></li>
-        <li><a href="/blog/" class="rounded-[2px] transition-colors duration-150 hover:text-text-action">وبلاگ</a></li>
-        <li aria-hidden="true"><svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg></li>
+        <li>
+          <a href="/" class="rounded-[2px] transition-colors duration-150 hover:text-text-action">خانه</a>
+        </li>
+        <li aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            class="h-3.5 w-3.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg
+          >
+        </li>
+        <li>
+          <a href="/blog/" class="rounded-[2px] transition-colors duration-150 hover:text-text-action"
+            >وبلاگ</a
+          >
+        </li>
+        <li aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            class="h-3.5 w-3.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg
+          >
+        </li>
         <li aria-current="page" class="text-text-muted">{data.title}</li>
       </ol>
     </div>
@@ -126,7 +152,11 @@ const readingLabel = `${toFaDigits(readingMinutes(entry.body ?? ""))} دقیقه
       <p class="mt-5 max-w-2xl text-lead text-text-muted">{data.description}</p>
       <p class="mt-6 text-meta text-text-faint">
         نوشتهٔ {data.author}
-        {updatedIso && <span class="text-text-faint"> — آخرین بازبینی: {formatFaDate(data.updated_at as Date)}</span>}
+        {
+          updatedIso && (
+            <span class="text-text-faint"> — آخرین بازبینی: {formatFaDate(data.updated_at as Date)}</span>
+          )
+        }
       </p>
     </div>
   </header>
@@ -145,54 +175,64 @@ const readingLabel = `${toFaDigits(readingMinutes(entry.body ?? ""))} دقیقه
     <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
       <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
         <div class="flex flex-col gap-4 lg:col-span-7">
-          {(older || newer) && (
-            <>
-              <h2 class="text-h3 text-text">ادامهٔ خواندن</h2>
-              <div class="flex flex-col">
-                {older && (
-                  <a
-                    href={`/blog/${older.id}`}
-                    class="group flex flex-col gap-1 border-t border-line py-5 transition-colors duration-150 hover:bg-surface-soft/40 sm:px-3"
-                  >
-                    <span class="text-meta text-text-faint">نوشتهٔ بعدی</span>
-                    <span class="text-h3 text-text transition-colors duration-150 group-hover:text-text-action">{older.data.title}</span>
-                    <span class="text-meta text-text-faint">{formatFaDate(older.data.published_at)}</span>
-                  </a>
-                )}
-                {newer && (
-                  <a
-                    href={`/blog/${newer.id}`}
-                    class="group flex flex-col gap-1 border-t border-line py-5 transition-colors duration-150 hover:bg-surface-soft/40 sm:px-3"
-                  >
-                    <span class="text-meta text-text-faint">نوشتهٔ قبلی</span>
-                    <span class="text-h3 text-text transition-colors duration-150 group-hover:text-text-action">{newer.data.title}</span>
-                    <span class="text-meta text-text-faint">{formatFaDate(newer.data.published_at)}</span>
-                  </a>
-                )}
-              </div>
-            </>
-          )}
+          {
+            (older || newer) && (
+              <>
+                <h2 class="text-h3 text-text">ادامهٔ خواندن</h2>
+                <div class="flex flex-col">
+                  {older && (
+                    <a
+                      href={`/blog/${older.id}`}
+                      class="group flex flex-col gap-1 border-t border-line py-5 transition-colors duration-150 hover:bg-surface-soft/40 sm:px-3"
+                    >
+                      <span class="text-meta text-text-faint">نوشتهٔ قبلی</span>
+                      <span class="text-h3 text-text transition-colors duration-150 group-hover:text-text-action">
+                        {older.data.title}
+                      </span>
+                      <span class="text-meta text-text-faint">{formatFaDate(older.data.published_at)}</span>
+                    </a>
+                  )}
+                  {newer && (
+                    <a
+                      href={`/blog/${newer.id}`}
+                      class="group flex flex-col gap-1 border-t border-line py-5 transition-colors duration-150 hover:bg-surface-soft/40 sm:px-3"
+                    >
+                      <span class="text-meta text-text-faint">نوشتهٔ بعدی</span>
+                      <span class="text-h3 text-text transition-colors duration-150 group-hover:text-text-action">
+                        {newer.data.title}
+                      </span>
+                      <span class="text-meta text-text-faint">{formatFaDate(newer.data.published_at)}</span>
+                    </a>
+                  )}
+                </div>
+              </>
+            )
+          }
         </div>
 
         <div class="flex flex-col gap-4 lg:col-span-5">
-          {related.length > 0 && (
-            <>
-              <h2 class="text-h3 text-text">هم‌موضوع‌ها</h2>
-              <ul class="flex flex-col">
-                {related.map((item) => (
-                  <li class="border-t border-line">
-                    <a
-                      href={`/blog/${item.id}`}
-                      class="group flex flex-col gap-1 py-5 transition-colors duration-150 hover:bg-surface-soft/40 sm:px-3"
-                    >
-                      <span class="text-meta text-text-faint">{item.data.category}</span>
-                      <span class="text-body font-medium text-text transition-colors duration-150 group-hover:text-text-action">{item.data.title}</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
+          {
+            related.length > 0 && (
+              <>
+                <h2 class="text-h3 text-text">هم‌موضوع‌ها</h2>
+                <ul class="flex flex-col">
+                  {related.map((item) => (
+                    <li class="border-t border-line">
+                      <a
+                        href={`/blog/${item.id}`}
+                        class="group flex flex-col gap-1 py-5 transition-colors duration-150 hover:bg-surface-soft/40 sm:px-3"
+                      >
+                        <span class="text-meta text-text-faint">{item.data.category}</span>
+                        <span class="text-body font-medium text-text transition-colors duration-150 group-hover:text-text-action">
+                          {item.data.title}
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )
+          }
 
           <div class="mt-2 flex flex-col gap-3 border-t border-line pt-6">
             <p class="text-ui font-medium text-text">این نوشته به درد کسب‌وکار شما خورد؟</p>
@@ -200,7 +240,13 @@ const readingLabel = `${toFaDigits(readingMinutes(entry.body ?? ""))} دقیقه
               قدم بعدی بررسی مسیر جذب است: چند سؤال کوتاه تا تصویر دقیق‌تری از وضعیت فعلی داشته باشیم.
             </p>
             <div class="flex flex-wrap items-center gap-4">
-              <Button href="/audit" data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"blog-article"}' }}>درخواست بررسی مسیر جذب</Button>
+              <Button
+                href="/audit"
+                data={{
+                  "data-event": "primary_cta_click",
+                  "data-event-payload": '{"section":"blog-article"}',
+                }}>درخواست بررسی مسیر جذب</Button
+              >
               <Button href="/services" variant="secondary">دیدن خدمات</Button>
             </div>
           </div>

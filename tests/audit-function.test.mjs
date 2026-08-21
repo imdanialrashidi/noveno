@@ -27,14 +27,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import {
-  handleAuditRequest,
-  onRequest as auditOnRequest,
-} from "../functions/api/audit.ts";
-import {
-  honeypotTriggered,
-  validateAuditPayload,
-} from "../functions/lib/validate.ts";
+import { handleAuditRequest, onRequest as auditOnRequest } from "../functions/api/audit.ts";
+import { honeypotTriggered, validateAuditPayload } from "../functions/lib/validate.ts";
 import {
   normalizeDigits,
   normalizeEmail,
@@ -159,7 +153,9 @@ test("valid payload passes and phone is normalized to Latin digits", () => {
 });
 
 test("optional fields may be omitted", () => {
-  const result = validateAuditPayload(validPayload({ email: "", business_name: "", website: "", customer_value_range: "" }));
+  const result = validateAuditPayload(
+    validPayload({ email: "", business_name: "", website: "", customer_value_range: "" }),
+  );
   assert.equal(result.ok, true);
 });
 
@@ -205,6 +201,26 @@ test("empty acquisition_channels is rejected", () => {
   if (!result.ok) assert.equal(result.fields.acquisition_channels, "required");
 });
 
+test("all 7 distinct channels is accepted (maxChannels == enum size)", () => {
+  const allChannels = [...ACQUISITION_CHANNELS];
+  assert.equal(allChannels.length, 7);
+  const result = validateAuditPayload(validPayload({ acquisition_channels: allChannels }));
+  assert.equal(result.ok, true, "selecting all channels must be valid");
+});
+
+test("8th injected channel is rejected as too_long (whitelist still binds for invalid ids)", () => {
+  const allChannels = [...ACQUISITION_CHANNELS, "injected_ch"];
+  const result = validateAuditPayload(validPayload({ acquisition_channels: allChannels }));
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.equal(result.fields.acquisition_channels, "too_long");
+  // Pure whitelist check with valid length
+  const invalid = validateAuditPayload(
+    validPayload({ acquisition_channels: ["instagram", "bogus_channel"] }),
+  );
+  assert.equal(invalid.ok, false);
+  if (!invalid.ok) assert.equal(invalid.fields.acquisition_channels, "invalid_enum");
+});
+
 test("over-long name is rejected", () => {
   const result = validateAuditPayload(validPayload({ name: "ن".repeat(100) }));
   assert.equal(result.ok, false);
@@ -232,7 +248,9 @@ test("JS-parseable but non-ISO first_seen_at is rejected (MINOR-1: Postgres time
 
 test("future-dated first_seen_at is dropped, not stored (clock skew tolerance)", () => {
   const result = validateAuditPayload(
-    validPayload({ attribution: { ...validPayload().attribution, first_seen_at: "2099-01-01T00:00:00.000Z" } }),
+    validPayload({
+      attribution: { ...validPayload().attribution, first_seen_at: "2099-01-01T00:00:00.000Z" },
+    }),
   );
   assert.equal(result.ok, true);
   if (result.ok) assert.equal(result.value.attribution.first_seen_at, undefined);
@@ -264,14 +282,18 @@ test("just-now first_seen_at is accepted and kept", () => {
 
 test("ancient first_seen_at is dropped, not stored", () => {
   const result = validateAuditPayload(
-    validPayload({ attribution: { ...validPayload().attribution, first_seen_at: "2020-01-01T00:00:00.000Z" } }),
+    validPayload({
+      attribution: { ...validPayload().attribution, first_seen_at: "2020-01-01T00:00:00.000Z" },
+    }),
   );
   assert.equal(result.ok, true);
   if (result.ok) assert.equal(result.value.attribution.first_seen_at, undefined);
 });
 
 test("duplicate acquisition channels are deduped", () => {
-  const result = validateAuditPayload(validPayload({ acquisition_channels: ["instagram", "instagram", "google"] }));
+  const result = validateAuditPayload(
+    validPayload({ acquisition_channels: ["instagram", "instagram", "google"] }),
+  );
   assert.equal(result.ok, true);
   if (result.ok) assert.deepEqual(result.value.acquisition_channels, ["instagram", "google"]);
 });
@@ -336,7 +358,9 @@ test("turnstile fail outcome carries error codes", async () => {
     remoteIp: null,
     idempotencyKey: "k",
     fetchImpl: async () =>
-      new Response(JSON.stringify({ success: false, "error-codes": ["timeout-or-duplicate"] }), { status: 200 }),
+      new Response(JSON.stringify({ success: false, "error-codes": ["timeout-or-duplicate"] }), {
+        status: 200,
+      }),
   });
   assert.deepEqual(outcome, { status: "fail", errorCodes: ["timeout-or-duplicate"] });
 });
@@ -616,6 +640,8 @@ test("valid submission returns 200 with the validation-success response", async 
   const body = await res.json();
   assert.equal(body.ok, true);
   assert.equal(body.status, "validated", "200 must mean validated — never persisted/inserted/replay");
+  assert.ok(typeof body.validated_at === "string", "validated_at must be present");
+  assert.ok(!Number.isNaN(Date.parse(body.validated_at)), "validated_at must be ISO date");
   // No persistence-era semantics may leak into the response.
   assert.equal("id" in body, false, "no database id in a validate-only response");
   assert.ok(
@@ -647,8 +673,15 @@ test("audit validation receipt is issued when secret provided (plan 021)", async
   const body = await res.json();
   assert.equal(body.status, "validated");
   assert.ok(typeof body.receipt === "string", "receipt must be present");
-  assert.match(body.receipt, /^[0-9a-f-]{36}\.\d{4}-\d{2}-\d{2}T.*\.[0-9a-f]{64}$/, "receipt format: submissionId.issuedAt.hmac");
+  assert.match(
+    body.receipt,
+    /^[0-9a-f-]{36}\.\d{4}-\d{2}-\d{2}T.*\.[0-9a-f]{64}$/,
+    "receipt format: submissionId.issuedAt.hmac",
+  );
   assert.ok(body.receipt.startsWith(submissionId), "receipt must start with submission_id");
+  assert.ok(typeof body.validated_at === "string", "validated_at must be present");
+  assert.ok(!Number.isNaN(Date.parse(body.validated_at)), "validated_at ISO");
+  assert.ok(body.receipt.includes(body.validated_at), "receipt must embed validated_at");
 });
 
 test("audit validation receipt absent without secret (graceful fallback)", async () => {
@@ -658,10 +691,52 @@ test("audit validation receipt absent without secret (graceful fallback)", async
   const body = await res.json();
   assert.equal(body.status, "validated");
   assert.equal("receipt" in body, false, "no receipt without secret");
+  assert.ok(typeof body.validated_at === "string", "validated_at present even without receipt");
+  assert.ok(!Number.isNaN(Date.parse(body.validated_at)), "validated_at ISO");
+});
+
+test("sent path with receipt returns sent + receipt + validated_at", async () => {
+  const submissionId = crypto.randomUUID();
+  const deps = makeDeps({
+    receiptSecret: "test-secret-key-for-hmac",
+    sendEmail: async () => ({ ok: true }),
+  }).deps;
+  const res = await handleAuditRequest(post(validPayload({ submission_id: submissionId })), deps);
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.status, "sent");
+  assert.ok(typeof body.receipt === "string", "receipt must be present on sent path");
+  assert.match(body.receipt, /^[0-9a-f-]{36}\.\d{4}-\d{2}-\d{2}T.*\.[0-9a-f]{64}$/);
+  assert.ok(body.receipt.startsWith(submissionId));
+  assert.ok(typeof body.validated_at === "string", "validated_at must be present on sent path");
+  assert.ok(!Number.isNaN(Date.parse(body.validated_at)), "validated_at ISO");
+  assert.ok(body.receipt.includes(body.validated_at), "receipt must embed validated_at");
+});
+
+test("sent path without receiptSecret still returns validated_at", async () => {
+  const deps = makeDeps({ sendEmail: async () => ({ ok: true }) }).deps;
+  const res = await handleAuditRequest(post(validPayload()), deps);
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.status, "sent");
+  assert.equal("receipt" in body, false, "no receipt without secret");
+  assert.ok(typeof body.validated_at === "string", "validated_at present");
+  assert.ok(!Number.isNaN(Date.parse(body.validated_at)));
+});
+
+test("sent path email failure returns 500", async () => {
+  const deps = makeDeps({ sendEmail: async () => ({ ok: false }) }).deps;
+  const res = await handleAuditRequest(post(validPayload()), deps);
+  assert.equal(res.status, 500);
+  const body = await res.json();
+  assert.equal(body.error.code, "server_error");
 });
 
 test("audit validation receipt not issued on failure responses", async () => {
-  const deps = makeDeps({ receiptSecret: "test-secret", verifyTurnstile: async () => ({ status: "fail", errorCodes: ["invalid"] }) }).deps;
+  const deps = makeDeps({
+    receiptSecret: "test-secret",
+    verifyTurnstile: async () => ({ status: "fail", errorCodes: ["invalid"] }),
+  }).deps;
   const res = await handleAuditRequest(post(validPayload()), deps);
   assert.equal(res.status, 403);
   const body = await res.json();
@@ -715,7 +790,10 @@ test("events endpoint: 405 for GET, 413 for oversized body", async () => {
   const get = await eventsOnRequest({ request: new Request("https://noveno.ir/api/events"), env });
   assert.equal(get.status, 405);
   const big = await eventsOnRequest({
-    request: post({ name: "audit_submitted", payload: { page: "x".repeat(20_000) } }, { origin: "https://noveno.ir", host: "noveno.ir" }) ,
+    request: post(
+      { name: "audit_submitted", payload: { page: "x".repeat(20_000) } },
+      { origin: "https://noveno.ir", host: "noveno.ir" },
+    ),
     env,
   });
   assert.equal(big.status, 413);
@@ -723,7 +801,10 @@ test("events endpoint: 405 for GET, 413 for oversized body", async () => {
 
 test("events endpoint: 501 without the Analytics Engine binding (degraded)", async () => {
   const res = await eventsOnRequest({
-    request: post({ name: "audit_started", payload: { page: "/audit" } }, { origin: "https://noveno.ir", host: "noveno.ir" }),
+    request: post(
+      { name: "audit_started", payload: { page: "/audit" } },
+      { origin: "https://noveno.ir", host: "noveno.ir" },
+    ),
     env: {},
   });
   assert.equal(res.status, 501);
@@ -732,7 +813,10 @@ test("events endpoint: 501 without the Analytics Engine binding (degraded)", asy
 test("events endpoint: writes a data point when the binding exists", async () => {
   const written = [];
   const res = await eventsOnRequest({
-    request: post({ name: "audit_step_completed", payload: { step: "2", page: "/audit" } }, { origin: "https://noveno.ir", host: "noveno.ir" }),
+    request: post(
+      { name: "audit_step_completed", payload: { step: "2", page: "/audit" } },
+      { origin: "https://noveno.ir", host: "noveno.ir" },
+    ),
     env: {
       NOVENO_EVENTS: {
         writeDataPoint: (data) => written.push(data),
@@ -750,7 +834,10 @@ test("events endpoint: writes a data point when the binding exists", async () =>
 test("events endpoint: invalid payload returns 400 without writing", async () => {
   const written = [];
   const res = await eventsOnRequest({
-    request: post({ name: "audit_submitted", payload: { phone: "09353598620" } }, { origin: "https://noveno.ir", host: "noveno.ir" }),
+    request: post(
+      { name: "audit_submitted", payload: { phone: "09353598620" } },
+      { origin: "https://noveno.ir", host: "noveno.ir" },
+    ),
     env: { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } },
   });
   assert.equal(res.status, 400);
@@ -840,10 +927,12 @@ test("events endpoint: text/plain bodies (sendBeacon) still accepted", async () 
   const written = [];
   const env = { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } };
   const res = await eventsOnRequest({
-    request: post(
-      JSON.stringify({ name: "audit_started", payload: { page: "/audit" } }),
-      { "cf-connecting-ip": "test-content-type", "content-type": "text/plain", origin: "https://noveno.ir", host: "noveno.ir" },
-    ),
+    request: post(JSON.stringify({ name: "audit_started", payload: { page: "/audit" } }), {
+      "cf-connecting-ip": "test-content-type",
+      "content-type": "text/plain",
+      origin: "https://noveno.ir",
+      host: "noveno.ir",
+    }),
     env,
   });
   assert.equal(res.status, 204);
@@ -857,10 +946,16 @@ test("events endpoint: floods are rate-limited before any write (MAJOR-2)", asyn
   const written = [];
   const limiter = createRateLimiter({ max: 60, windowMs: 60_000 });
   const request = () =>
-    handleEventRequest(post({ name: "audit_started", payload: { page: "/audit" } }, { origin: "https://noveno.ir", host: "noveno.ir" }), {
-      env: { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } },
-      limiter,
-    });
+    handleEventRequest(
+      post(
+        { name: "audit_started", payload: { page: "/audit" } },
+        { origin: "https://noveno.ir", host: "noveno.ir" },
+      ),
+      {
+        env: { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } },
+        limiter,
+      },
+    );
   const statuses = [];
   for (let i = 0; i < 80; i += 1) {
     statuses.push((await request()).status);
@@ -869,4 +964,60 @@ test("events endpoint: floods are rate-limited before any write (MAJOR-2)", asyn
   assert.equal(first429, 60, "throttling must begin exactly at the limiter max");
   assert.ok(statuses.slice(first429).every((s) => s === 429));
   assert.equal(written.length, 60, "no writes may happen after throttling begins");
+});
+
+test("honeypot triggers on any meaningful value shape, not only non-empty strings", () => {
+  assert.equal(honeypotTriggered({}), false, "absent field not triggered");
+  assert.equal(honeypotTriggered({ company_website: "" }), false);
+  assert.equal(honeypotTriggered({ company_website: "   " }), false);
+  assert.equal(honeypotTriggered({ company_website: "spam" }), true);
+  assert.equal(honeypotTriggered({ company_website: true }), true);
+  assert.equal(honeypotTriggered({ company_website: 42 }), true);
+  assert.equal(honeypotTriggered({ company_website: ["x"] }), true);
+  assert.equal(honeypotTriggered({ company_website: {} }), true);
+  assert.equal(honeypotTriggered({ company_website: null }), false);
+  assert.equal(honeypotTriggered({ company_website: undefined }), false);
+});
+
+test("API responses carry no-store and nosniff headers (audit)", async () => {
+  const { deps } = makeDeps();
+  const res = await handleAuditRequest(post(validPayload({ name: "   " })), deps); // validation 400
+  assert.equal(res.headers.get("cache-control"), "no-store");
+  assert.equal(res.headers.get("x-content-type-options"), "nosniff");
+  assert.equal(res.headers.get("content-type"), "application/json; charset=utf-8");
+});
+
+test("events 204 carries no-store and nosniff", async () => {
+  const written = [];
+  const res = await eventsOnRequest({
+    request: post(
+      { name: "audit_started", payload: { page: "/audit" } },
+      { origin: "https://noveno.ir", host: "noveno.ir" },
+    ),
+    env: { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } },
+  });
+  assert.equal(res.status, 204);
+  assert.equal(res.headers.get("cache-control"), "no-store");
+  assert.equal(res.headers.get("x-content-type-options"), "nosniff");
+});
+
+test("limiter sweeps expired keys beyond the tracking bound", () => {
+  let t = 0;
+  const rl = createRateLimiter({ max: 1, windowMs: 1_000, now: () => t });
+  for (let i = 0; i < 10_001; i++) rl(`ip-${i}`);
+  assert.ok(rl.size > 10_000, "exceeds bound before sweep");
+  // Next call triggers sweep (size > MAX)
+  t = 2_000; // advance beyond window so all old keys are expired
+  rl("ip-new");
+  // After sweep, size should have shrunk dramatically (only keys within window remain)
+  assert.ok(rl.size <= 2, `after sweep size should be small, got ${rl.size}`);
+});
+
+test("limiter size getter reflects tracked keys", () => {
+  const rl = createRateLimiter({ max: 10, windowMs: 60_000, now: () => 0 });
+  assert.equal(rl.size, 0);
+  rl("a");
+  assert.equal(rl.size, 1);
+  rl("b");
+  assert.equal(rl.size, 2);
 });

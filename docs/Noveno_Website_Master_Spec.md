@@ -458,8 +458,8 @@ Do not place technical-stack branding at the center of Noveno.
 After Noveno has sufficient real work and repeatable content:
 
 ```text
-/insights
-└── /insights/{article}
+/insights  [2026-10: renamed وبلاگ at /blog with permanent /insights redirects — see DESIGN §16.]
+└── /insights/{article}  [2026-10: renamed وبلاگ at /blog with permanent /insights redirects — see DESIGN §16.]
 ```
 
 ---
@@ -496,7 +496,7 @@ Recommended:
 - پروژه‌ها
 - فرآیند
 - درباره
-- بینش‌ها *(when launched)*
+- بینش‌ها _(when launched)_
 
 Primary button:
 
@@ -1730,7 +1730,7 @@ Do not create a dead-end generic contact form if the audit form already qualifie
 
 Do not prioritize a blog before proof and sales.
 
-Launch `/insights` after the core website and sales system are working.
+Launch `/insights` after the core website and sales system are working. [2026-10: renamed وبلاگ at /blog with permanent /insights redirects — see DESIGN §16.]
 
 Suggested content pillars:
 

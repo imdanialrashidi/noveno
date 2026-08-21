@@ -89,39 +89,54 @@ const channels: Channel[] = [
   <section class="border-t border-line" aria-label="راه‌های تماس">
     <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
       <ul class="flex flex-col">
-        {channels.map((channel) => (
-          <li class="border-t border-line first:border-t-0">
-            <a
-              href={channel.href}
-              class="group grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 rounded-[4px] py-5 transition-colors duration-150 hover:bg-surface-soft/50 sm:grid-cols-[56px_1fr_auto] sm:gap-x-6 sm:px-3 sm:py-4"
-              {...(channel.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-              {...(channel.event
-                ? {
-                    "data-event": channel.event.name,
-                    "data-event-payload": JSON.stringify(channel.event.payload),
-                  }
-                : {})}
-            >
-              <span
-                class="flex h-12 w-12 items-center justify-center rounded-[4px] border border-line bg-surface text-text-muted transition-colors duration-150 group-hover:border-primary group-hover:bg-primary-soft group-hover:text-accent-strong sm:h-14 sm:w-14"
-                aria-hidden="true"
+        {
+          channels.map((channel) => (
+            <li class="border-t border-line first:border-t-0">
+              <a
+                href={channel.href}
+                class="group grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 rounded-[4px] py-5 transition-colors duration-150 hover:bg-surface-soft/50 sm:grid-cols-[56px_1fr_auto] sm:gap-x-6 sm:px-3 sm:py-4"
+                {...(channel.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                {...(channel.event
+                  ? {
+                      "data-event": channel.event.name,
+                      "data-event-payload": JSON.stringify(channel.event.payload),
+                    }
+                  : {})}
               >
-                <Icon name={channel.icon} class="h-5.5 w-5.5 sm:h-6 sm:w-6" />
-              </span>
-              <span class="flex min-w-0 flex-col gap-0.5">
-                <span class="text-h3 text-text transition-colors duration-150 group-hover:text-text-action">{channel.title}</span>
-                <span class="text-body text-text-muted">{channel.detail}</span>
-              </span>
-              <span class="col-start-2 flex items-center gap-1.5 text-ui font-medium text-accent-strong sm:col-start-auto sm:justify-self-end">
-                <span class={channel.ltr ? "tnum" : ""} dir={channel.ltr ? "ltr" : undefined}>{channel.value}</span>
-                <svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M19 12H5" />
-                  <path d="m12 19-7-7 7-7" />
-                </svg>
-              </span>
-            </a>
-          </li>
-        ))}
+                <span
+                  class="flex h-12 w-12 items-center justify-center rounded-[4px] border border-line bg-surface text-text-muted transition-colors duration-150 group-hover:border-primary group-hover:bg-primary-soft group-hover:text-accent-strong sm:h-14 sm:w-14"
+                  aria-hidden="true"
+                >
+                  <Icon name={channel.icon} class="h-5.5 w-5.5 sm:h-6 sm:w-6" />
+                </span>
+                <span class="flex min-w-0 flex-col gap-0.5">
+                  <span class="text-h3 text-text transition-colors duration-150 group-hover:text-text-action">
+                    {channel.title}
+                  </span>
+                  <span class="text-body text-text-muted">{channel.detail}</span>
+                </span>
+                <span class="col-start-2 flex items-center gap-1.5 text-ui font-medium text-accent-strong sm:col-start-auto sm:justify-self-end">
+                  <span class={channel.ltr ? "tnum" : ""} dir={channel.ltr ? "ltr" : undefined}>
+                    {channel.value}
+                  </span>
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M19 12H5" />
+                    <path d="m12 19-7-7 7-7" />
+                  </svg>
+                </span>
+              </a>
+            </li>
+          ))
+        }
       </ul>
     </div>
   </section>
@@ -133,7 +148,8 @@ const channels: Channel[] = [
         <div class="lg:col-span-5">
           <h2 id="next-title" class="text-h3 text-text">پس از تماس یا درخواست، چه اتفاقی می‌افتد؟</h2>
           <p class="mt-4 text-body text-text-muted measure-prose">
-            گفتگو کوتاه و مشخص است: اول وضعیت فعلی جذب شما فهمیده می‌شود، بعد پیشنهاد. اگر همکاری مناسب نباشد، همان‌جا گفته می‌شود.
+            گفتگو کوتاه و مشخص است: اول وضعیت فعلی جذب شما فهمیده می‌شود، بعد پیشنهاد. اگر همکاری مناسب نباشد،
+            همان‌جا گفته می‌شود.
           </p>
           <div class="mt-6">
             <Button href={CONTACT.phoneHref} size="lg">
@@ -150,9 +166,5 @@ const channels: Channel[] = [
     </div>
   </section>
 
-  <CTASection
-    primaryHref={CONTACT.phoneHref}
-    primaryLabel="تماس تلفنی برای شروع"
-    hideRail
-  />
+  <CTASection primaryHref={CONTACT.phoneHref} primaryLabel="تماس تلفنی برای شروع" hideRail />
 </PageLayout>

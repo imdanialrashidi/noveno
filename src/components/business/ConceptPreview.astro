@@ -23,62 +23,66 @@ const { layout } = Astro.props;
     <span class="h-2 w-2 rounded-full bg-line-strong/60"></span>
     <span class="h-2 w-2 rounded-full bg-line-strong/40"></span>
     <span class="h-2 w-2 rounded-full bg-line-strong/30"></span>
-    <span class="ms-1 h-3.5 w-1/2 max-w-48 rounded-[2px] bg-surface-soft text-[10px] leading-3.5 text-text-faint"></span>
+    <span
+      class="ms-1 h-3.5 w-1/2 max-w-48 rounded-[2px] bg-surface-soft text-[10px] leading-3.5 text-text-faint"
+    ></span>
   </div>
 
-  {layout === "form" ? (
-    <div class="flex h-[91%] items-stretch">
-      <div class="flex flex-1 flex-col justify-center gap-2 px-6 sm:px-8">
-        <span class="h-2.5 w-16 rounded-[1px] bg-primary/80"></span>
-        <span class="h-4 w-4/5 rounded-[2px] bg-text/80"></span>
-        <span class="h-4 w-3/5 rounded-[2px] bg-text/80"></span>
-        <span class="mt-1 h-2 w-4/5 rounded-[1px] bg-text-muted/50"></span>
-        <span class="h-2 w-2/3 rounded-[1px] bg-text-muted/50"></span>
-        <span class="mt-2 inline-flex h-8 w-28 items-center justify-center rounded-[4px] bg-primary text-[11px] font-medium text-on-primary">
-          درخواست بررسی
-        </span>
-      </div>
-      <div class="flex w-2/5 min-w-36 items-center border-s border-line bg-surface p-3 sm:p-4">
-        <div class="flex w-full flex-col gap-2 rounded-[4px] border border-line bg-canvas p-3">
-          <span class="text-[11px] font-semibold text-text">ثبت درخواست</span>
-          <span class="h-6 rounded-[3px] border border-line-strong bg-surface"></span>
-          <span class="h-6 rounded-[3px] border border-line-strong bg-surface"></span>
-          <span class="mt-1 inline-flex h-7 items-center justify-center rounded-[4px] bg-primary text-[11px] font-medium text-on-primary">
-            ارسال درخواست
+  {
+    layout === "form" ? (
+      <div class="flex h-[91%] items-stretch">
+        <div class="flex flex-1 flex-col justify-center gap-2 px-6 sm:px-8">
+          <span class="h-2.5 w-16 rounded-[1px] bg-primary/80" />
+          <span class="h-4 w-4/5 rounded-[2px] bg-text/80" />
+          <span class="h-4 w-3/5 rounded-[2px] bg-text/80" />
+          <span class="mt-1 h-2 w-4/5 rounded-[1px] bg-text-muted/50" />
+          <span class="h-2 w-2/3 rounded-[1px] bg-text-muted/50" />
+          <span class="mt-2 inline-flex h-8 w-28 items-center justify-center rounded-[4px] bg-primary text-[11px] font-medium text-on-primary">
+            درخواست بررسی
           </span>
         </div>
-      </div>
-    </div>
-  ) : (
-    <div class="flex h-[91%] flex-col gap-2 px-6 py-4 sm:px-8">
-      <div class="flex items-center justify-between">
-        <span class="h-3 w-20 rounded-[2px] bg-primary/70"></span>
-        <span class="flex gap-1.5">
-          <span class="h-4 w-10 rounded-[2px] bg-surface-soft"></span>
-          <span class="h-4 w-10 rounded-[2px] bg-surface-soft"></span>
-        </span>
-      </div>
-      <div class="mt-1 flex flex-col gap-2">
-        <span class="h-5 w-3/4 rounded-[2px] bg-text/80"></span>
-        <span class="h-5 w-1/2 rounded-[2px] bg-text/80"></span>
-        <span class="h-2 w-3/5 rounded-[1px] bg-text-muted/50"></span>
-        <span class="h-2 w-2/5 rounded-[1px] bg-text-muted/50"></span>
-      </div>
-      <div class="mt-1 flex items-center gap-3">
-        <span class="inline-flex h-8 w-24 items-center justify-center rounded-[4px] bg-primary text-[11px] font-medium text-on-primary">
-          شروع دوره
-        </span>
-        <span class="h-8 w-24 rounded-[4px] border border-line-strong bg-surface"></span>
-      </div>
-      <div class="mt-2 grid flex-1 grid-cols-3 gap-2">
-        {[0, 1, 2].map((i) => (
-          <div class="flex flex-col gap-1.5 rounded-[4px] border border-line bg-surface p-2.5">
-            <span class="h-3 w-10 rounded-[2px] bg-primary/60"></span>
-            <span class="h-2 w-full rounded-[1px] bg-text-muted/40"></span>
-            <span class="h-2 w-3/4 rounded-[1px] bg-text-muted/40"></span>
+        <div class="flex w-2/5 min-w-36 items-center border-s border-line bg-surface p-3 sm:p-4">
+          <div class="flex w-full flex-col gap-2 rounded-[4px] border border-line bg-canvas p-3">
+            <span class="text-[11px] font-semibold text-text">ثبت درخواست</span>
+            <span class="h-6 rounded-[3px] border border-line-strong bg-surface" />
+            <span class="h-6 rounded-[3px] border border-line-strong bg-surface" />
+            <span class="mt-1 inline-flex h-7 items-center justify-center rounded-[4px] bg-primary text-[11px] font-medium text-on-primary">
+              ارسال درخواست
+            </span>
           </div>
-        ))}
+        </div>
       </div>
-    </div>
-  )}
+    ) : (
+      <div class="flex h-[91%] flex-col gap-2 px-6 py-4 sm:px-8">
+        <div class="flex items-center justify-between">
+          <span class="h-3 w-20 rounded-[2px] bg-primary/70" />
+          <span class="flex gap-1.5">
+            <span class="h-4 w-10 rounded-[2px] bg-surface-soft" />
+            <span class="h-4 w-10 rounded-[2px] bg-surface-soft" />
+          </span>
+        </div>
+        <div class="mt-1 flex flex-col gap-2">
+          <span class="h-5 w-3/4 rounded-[2px] bg-text/80" />
+          <span class="h-5 w-1/2 rounded-[2px] bg-text/80" />
+          <span class="h-2 w-3/5 rounded-[1px] bg-text-muted/50" />
+          <span class="h-2 w-2/5 rounded-[1px] bg-text-muted/50" />
+        </div>
+        <div class="mt-1 flex items-center gap-3">
+          <span class="inline-flex h-8 w-24 items-center justify-center rounded-[4px] bg-primary text-[11px] font-medium text-on-primary">
+            شروع دوره
+          </span>
+          <span class="h-8 w-24 rounded-[4px] border border-line-strong bg-surface" />
+        </div>
+        <div class="mt-2 grid flex-1 grid-cols-3 gap-2">
+          {[0, 1, 2].map((i) => (
+            <div class="flex flex-col gap-1.5 rounded-[4px] border border-line bg-surface p-2.5">
+              <span class="h-3 w-10 rounded-[2px] bg-primary/60" />
+              <span class="h-2 w-full rounded-[1px] bg-text-muted/40" />
+              <span class="h-2 w-3/4 rounded-[1px] bg-text-muted/40" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 </div>

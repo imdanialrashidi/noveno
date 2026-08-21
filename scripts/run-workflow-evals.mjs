@@ -3,6 +3,7 @@
 import { execFileSync, spawn, spawnSync } from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import {
   aggregateRecords,
@@ -51,20 +52,32 @@ function parseArgs(argv) {
 }
 
 function evaluationFiles() {
-  const output = execFileSync(
-    "git",
-    ["ls-files", "-z", "--cached", "--others", "--exclude-standard"],
-    { cwd: repositoryRoot, encoding: "buffer", maxBuffer: 64 * 1024 * 1024 },
-  );
+  const output = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], {
+    cwd: repositoryRoot,
+    encoding: "buffer",
+    maxBuffer: 64 * 1024 * 1024,
+  });
   return output.toString("utf8").split("\0").filter(Boolean);
 }
 
 function assertSafeEvaluationPath(relative) {
   const normalized = relative.split(path.sep).join("/");
-  const sensitiveName = /(^|\/)(?:\.env(?:\.|$)|\.npmrc$|\.pypirc$|\.netrc$|storageState.*\.json$)|\.(?:pem|key|p12|pfx|jks|keystore)$/i;
-  const sensitiveSegment = /(^|\/)(?:docs\/private|playwright\/\.auth|server\/pb_data|\.ssh|\.gnupg|\.aws|\.kube|\.pi\/(?:auth\.json|models\.json|sessions|mcp-oauth))(?:\/|$)/i;
+  const sensitiveName =
+    /(^|\/)(?:\.env(?:\.|$)|\.npmrc$|\.pypirc$|\.netrc$|storageState.*\.json$)|\.(?:pem|key|p12|pfx|jks|keystore)$/i;
+  const sensitiveSegment =
+    /(^|\/)(?:docs\/private|playwright\/\.auth|server\/pb_data|\.ssh|\.gnupg|\.aws|\.kube|\.pi\/(?:auth\.json|models\.json|sessions|mcp-oauth))(?:\/|$)/i;
   const allowedExample = path.posix.basename(normalized) === ".env.example";
-  if (!allowedExample && (sensitiveName.test(normalized) || sensitiveSegment.test(normalized))) {
+  // .npmrc at repository root is allowed when it only pins the registry (no auth token).
+  // The project .npmrc pins registry=https://registry.npmjs.org/ so audit and installs
+  // are reproducible; it carries no secret. Any .npmrc containing auth is still blocked.
+  const isRootNpmrc = normalized === ".npmrc";
+  if (isRootNpmrc) {
+    try {
+      const content = readFileSync(path.join(repositoryRoot, normalized), "utf8");
+      if (!/(_auth|_authToken|password)/i.test(content)) return normalized;
+    } catch {}
+  }
+  if (!allowedExample && (sensitiveName.test(normalized) || sensitiveSegment.test(normalized) || isRootNpmrc)) {
     throw new Error(`Refusing to copy sensitive evaluation input: ${normalized}`);
   }
   return normalized;
@@ -82,7 +95,8 @@ async function copyRepository(destination) {
       const link = await fs.readlink(source);
       if (path.isAbsolute(link)) throw new Error(`Refusing absolute evaluation symlink: ${normalized}`);
       const resolved = path.resolve(path.dirname(source), link);
-      const insideRepository = resolved === repositoryRoot || resolved.startsWith(`${repositoryRoot}${path.sep}`);
+      const insideRepository =
+        resolved === repositoryRoot || resolved.startsWith(`${repositoryRoot}${path.sep}`);
       if (!insideRepository) throw new Error(`Refusing external evaluation symlink: ${normalized}`);
       await fs.symlink(link, target);
     } else if (sourceStat.isFile()) {
@@ -194,9 +208,15 @@ function runRpc({ cwd, prompt, model, thinking, timeoutMs }) {
         consumeLine(line);
       }
     });
-    child.stderr.on("data", (chunk) => { stderr += chunk.toString("utf8"); });
-    child.stdin.on("error", (error) => { stderr += `stdin error: ${error.message}\n`; });
-    child.on("error", (error) => { completion = `spawn-error: ${error.message}`; });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk.toString("utf8");
+    });
+    child.stdin.on("error", (error) => {
+      stderr += `stdin error: ${error.message}\n`;
+    });
+    child.on("error", (error) => {
+      completion = `spawn-error: ${error.message}`;
+    });
     child.on("close", (exitCode, signal) => {
       clearTimeout(timeout);
       clearTimeout(forcedTimer);
@@ -236,24 +256,34 @@ async function main() {
   const cases = selectedCases(suite, options.filter);
   const trials = options.trials ?? suite.defaultTrials;
   if (!Number.isInteger(trials) || trials < 1) throw new Error("trials must be a positive integer.");
-  if (!Number.isFinite(options.timeoutMs) || options.timeoutMs < 1000) throw new Error("timeout-ms must be at least 1000.");
+  if (!Number.isFinite(options.timeoutMs) || options.timeoutMs < 1000)
+    throw new Error("timeout-ms must be at least 1000.");
   if (cases.length === 0) throw new Error("No evaluation cases match the filter.");
 
   const files = evaluationFiles();
   files.forEach(assertSafeEvaluationPath);
   if (options.dryRun) {
     await validateDisposableCopy(files);
-    process.stdout.write(`Valid v2 suite: ${cases.length} selected case(s), ${trials} trial(s) each; ${files.length} safe input file(s).\n`);
+    process.stdout.write(
+      `Valid v2 suite: ${cases.length} selected case(s), ${trials} trial(s) each; ${files.length} safe input file(s).\n`,
+    );
     for (const item of cases) {
-      process.stdout.write(`- ${item.id} [${item.tags.join(", ")}] — ${item.assertions.changes.mode} changes, ${item.rubric.length} rubric item(s)\n`);
+      process.stdout.write(
+        `- ${item.id} [${item.tags.join(", ")}] — ${item.assertions.changes.mode} changes, ${item.rubric.length} rubric item(s)\n`,
+      );
     }
     return;
   }
 
-  if (!options.model) throw new Error("--model is required for paid/external evaluation runs; review provider and data policy first.");
+  if (!options.model)
+    throw new Error(
+      "--model is required for paid/external evaluation runs; review provider and data policy first.",
+    );
   const piProbe = spawnSync("pi", ["--version"], { encoding: "utf8" });
   if (piProbe.error || piProbe.status !== 0) {
-    throw new Error("Pi CLI is unavailable; install the reviewed version and run scripts/pi-doctor.sh first.");
+    throw new Error(
+      "Pi CLI is unavailable; install the reviewed version and run scripts/pi-doctor.sh first.",
+    );
   }
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -262,14 +292,25 @@ async function main() {
   const summary = {
     schemaVersion: 2,
     startedAt: new Date().toISOString(),
-    sourceRevision: execFileSync("git", ["rev-parse", "HEAD"], { cwd: repositoryRoot, encoding: "utf8" }).trim(),
-    sourceStatus: execFileSync("git", ["status", "--short"], { cwd: repositoryRoot, encoding: "utf8" }).trim(),
+    sourceRevision: execFileSync("git", ["rev-parse", "HEAD"], {
+      cwd: repositoryRoot,
+      encoding: "utf8",
+    }).trim(),
+    sourceStatus: execFileSync("git", ["status", "--short"], {
+      cwd: repositoryRoot,
+      encoding: "utf8",
+    }).trim(),
     casesPath: path.relative(repositoryRoot, options.casesPath),
-    suiteFingerprint: crypto.createHash("sha256").update(JSON.stringify({
-      version: suite.version,
-      promotion: suite.promotion ?? null,
-      cases,
-    })).digest("hex"),
+    suiteFingerprint: crypto
+      .createHash("sha256")
+      .update(
+        JSON.stringify({
+          version: suite.version,
+          promotion: suite.promotion ?? null,
+          cases,
+        }),
+      )
+      .digest("hex"),
     selectedCaseIds: cases.map((item) => item.id),
     nodeVersion: process.versions.node,
     piVersion: piProbe.stdout.trim(),
@@ -288,7 +329,13 @@ async function main() {
       await copyRepository(workspace);
       initializeEvaluationRepository(workspace);
       const before = await fileManifest(workspace);
-      const result = await runRpc({ cwd: workspace, prompt: item.prompt, model: options.model, thinking: options.thinking, timeoutMs: options.timeoutMs });
+      const result = await runRpc({
+        cwd: workspace,
+        prompt: item.prompt,
+        model: options.model,
+        thinking: options.thinking,
+        timeoutMs: options.timeoutMs,
+      });
       const afterAgent = await fileManifest(workspace);
       const checkResults = runCaseChecks(workspace, item.checks);
       const afterChecks = await fileManifest(workspace);
@@ -325,7 +372,9 @@ async function main() {
       await fs.writeFile(path.join(trialRoot, "stderr.log"), result.stderr);
       await fs.writeFile(path.join(trialRoot, "result.json"), `${JSON.stringify(record, null, 2)}\n`);
       summary.cases.push(record);
-      process.stdout.write(`${item.id} trial ${trial}: ${record.deterministic.status} / ${record.completion} (${record.durationMs} ms, ${record.trace.toolCalls} tools)\n`);
+      process.stdout.write(
+        `${item.id} trial ${trial}: ${record.deterministic.status} / ${record.completion} (${record.durationMs} ms, ${record.trace.toolCalls} tools)\n`,
+      );
     }
   }
 

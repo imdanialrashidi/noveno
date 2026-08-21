@@ -42,15 +42,17 @@ const readingLabel = (body: string) => `${toFaDigits(readingMinutes(body))} دق
   <section aria-labelledby="blog-title">
     <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
       <p class="text-ui font-medium text-text-faint">نوونو · وبلاگ</p>
-      <h1 id="blog-title" class="mt-4 max-w-3xl text-h1-page text-text">
-        وبلاگ نوونو
-      </h1>
+      <h1 id="blog-title" class="mt-4 max-w-3xl text-h1-page text-text">وبلاگ نوونو</h1>
       <p class="mt-6 max-w-2xl text-lead text-text-muted">
-        نوشته‌هایی دربارهٔ جذب مشتری، پیگیری لید و ثبت درخواست برای کسب‌وکارهای خدماتی —
-        بر اساس تجربهٔ ساختن سیستم‌های جذب واقعی، با مثال و روش؛ بدون وعدهٔ تضمینی.
+        نوشته‌هایی دربارهٔ جذب مشتری، پیگیری لید و ثبت درخواست برای کسب‌وکارهای خدماتی — بر اساس تجربهٔ ساختن
+        سیستم‌های جذب واقعی، با مثال و روش؛ بدون وعدهٔ تضمینی.
       </p>
       <div class="mt-8 flex flex-wrap gap-4">
-        <Button href="/audit" data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"blog-hero"}' }}>بررسی مسیر جذب کسب‌وکارتان</Button>
+        <Button
+          href="/audit"
+          data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"blog-hero"}' }}
+          >بررسی مسیر جذب کسب‌وکارتان</Button
+        >
         <Button href="/services" variant="secondary">دیدن خدمات</Button>
       </div>
     </div>
@@ -60,87 +62,119 @@ const readingLabel = (body: string) => `${toFaDigits(readingMinutes(body))} دق
     <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
       <h2 id="blog-list-title" class="sr-only">نوشته‌ها</h2>
 
-      {published.length === 0 && (
-        <div class="flex flex-col items-start gap-6 border-t border-line py-16">
-          <h3 class="text-h2 text-text">اولین نوشته به‌زودی منتشر می‌شود</h3>
-          <p class="max-w-xl text-body text-text-muted">
-            این وبلاگ تازه راه افتاده است. اولین نوشته دربارهٔ یکی از موضوع‌های جذب و پیگیری
-            مشتری برای کسب‌وکارهای خدماتی منتشر می‌شود — بدون پرکردن صفحه با محتوای کم‌ارزش.
-          </p>
-          <p class="text-meta text-text-faint">
-            اگر موضوعی ذهن شما را مشغول کرده، مستقیم بپرسید؛ پاسخ همین‌جا نوشته می‌شود.
-          </p>
-          <Button href="/contact" variant="secondary">پرسیدن مستقیم</Button>
-        </div>
-      )}
-
-      {featured && (
-        <article class="border-b border-line py-10 lg:py-12">
-          <a href={`/blog/${featured.id}`} class="group block">
-            <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-meta text-text-faint">
-              <span class="inline-flex rounded-[4px] border border-line bg-surface px-2.5 py-1 text-caption text-accent-strong">
-                تازه‌ترین نوشته
-              </span>
-              <span>{featured.data.category}</span>
-              <span aria-hidden="true">—</span>
-              <span>{formatFaDate(featured.data.published_at)}</span>
-              <span aria-hidden="true">·</span>
-              <span>{readingLabel(featured.body ?? "")}</span>
+      {
+        published.length === 0 && (
+          <div class="flex flex-col items-start gap-6 border-t border-line py-16">
+            <h3 class="text-h2 text-text">اولین نوشته به‌زودی منتشر می‌شود</h3>
+            <p class="max-w-xl text-body text-text-muted">
+              این وبلاگ تازه راه افتاده است. اولین نوشته دربارهٔ یکی از موضوع‌های جذب و پیگیری مشتری برای
+              کسب‌وکارهای خدماتی منتشر می‌شود — بدون پرکردن صفحه با محتوای کم‌ارزش.
             </p>
-            <h3 class="mt-4 max-w-2xl text-h2 text-text transition-colors duration-150 group-hover:text-text-action">
-              {featured.data.title}
-            </h3>
-            <p class="mt-4 max-w-2xl text-body text-text-muted measure-prose">
-              {featured.data.description}
+            <p class="text-meta text-text-faint">
+              اگر موضوعی ذهن شما را مشغول کرده، مستقیم بپرسید؛ پاسخ همین‌جا نوشته می‌شود.
             </p>
-            <span class="mt-5 inline-flex min-h-11 items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 group-hover:text-text-action">
-              خواندن نوشته
-              <svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M19 12H5" />
-                <path d="m12 19-7-7 7-7" />
-              </svg>
-            </span>
-          </a>
-        </article>
-      )}
+            <Button href="/contact" variant="secondary">
+              پرسیدن مستقیم
+            </Button>
+          </div>
+        )
+      }
 
-      {rest.length > 0 && (
-        <>
-          <h3 class="pt-10 text-h3 text-text">نوشته‌های دیگر</h3>
-          <ol class="flex flex-col">
-            {rest.map((entry) => (
-              <li class="border-t border-line">
-                <a
-                  href={`/blog/${entry.id}`}
-                  class="group grid gap-3 rounded-[4px] py-8 transition-colors duration-150 hover:bg-surface-soft/40 sm:grid-cols-[minmax(0,7fr)_minmax(0,3fr)] sm:gap-10 sm:px-3"
+      {
+        featured && (
+          <article class="border-b border-line py-10 lg:py-12">
+            <a href={`/blog/${featured.id}`} class="group block">
+              <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-meta text-text-faint">
+                <span class="inline-flex rounded-[4px] border border-line bg-surface px-2.5 py-1 text-caption text-accent-strong">
+                  تازه‌ترین نوشته
+                </span>
+                <span>{featured.data.category}</span>
+                <span aria-hidden="true">—</span>
+                <span>{formatFaDate(featured.data.published_at)}</span>
+                <span aria-hidden="true">·</span>
+                <span>{readingLabel(featured.body ?? "")}</span>
+              </p>
+              <h3 class="mt-4 max-w-2xl text-h2 text-text transition-colors duration-150 group-hover:text-text-action">
+                {featured.data.title}
+              </h3>
+              <p class="mt-4 max-w-2xl text-body text-text-muted measure-prose">
+                {featured.data.description}
+              </p>
+              <span class="mt-5 inline-flex min-h-11 items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 group-hover:text-text-action">
+                خواندن نوشته
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
                 >
-                  <span class="flex min-w-0 flex-col gap-2">
-                    <span class="flex flex-wrap items-center gap-2 text-meta text-text-faint">
-                      <span class="inline-flex rounded-[4px] border border-line bg-surface px-2 py-0.5 text-caption text-text-muted">{entry.data.category}</span>
-                      <span>{formatFaDate(entry.data.published_at)}</span>
-                      <span aria-hidden="true">·</span>
-                      <span>{readingLabel(entry.body ?? "")}</span>
+                  <path d="M19 12H5" />
+                  <path d="m12 19-7-7 7-7" />
+                </svg>
+              </span>
+            </a>
+          </article>
+        )
+      }
+
+      {
+        rest.length > 0 && (
+          <>
+            <h3 class="pt-10 text-h3 text-text">نوشته‌های دیگر</h3>
+            <ol class="flex flex-col">
+              {rest.map((entry) => (
+                <li class="border-t border-line">
+                  <a
+                    href={`/blog/${entry.id}`}
+                    class="group grid gap-3 rounded-[4px] py-8 transition-colors duration-150 hover:bg-surface-soft/40 sm:grid-cols-[minmax(0,7fr)_minmax(0,3fr)] sm:gap-10 sm:px-3"
+                  >
+                    <span class="flex min-w-0 flex-col gap-2">
+                      <span class="flex flex-wrap items-center gap-2 text-meta text-text-faint">
+                        <span class="inline-flex rounded-[4px] border border-line bg-surface px-2 py-0.5 text-caption text-text-muted">
+                          {entry.data.category}
+                        </span>
+                        <span>{formatFaDate(entry.data.published_at)}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>{readingLabel(entry.body ?? "")}</span>
+                      </span>
+                      <span class="text-h3 text-text transition-colors duration-150 group-hover:text-text-action">
+                        {entry.data.title}
+                      </span>
+                      <span class="text-body text-text-muted measure-prose">{entry.data.description}</span>
                     </span>
-                    <span class="text-h3 text-text transition-colors duration-150 group-hover:text-text-action">{entry.data.title}</span>
-                    <span class="text-body text-text-muted measure-prose">{entry.data.description}</span>
-                  </span>
-                  <span class="hidden items-start justify-end sm:flex">
-                    <svg viewBox="0 0 24 24" class="mt-2 h-4 w-4 text-line-strong transition-transform duration-150 group-hover:-translate-x-0.5 group-hover:text-text-action" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M19 12H5" />
-                      <path d="m12 19-7-7 7-7" />
-                    </svg>
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ol>
-        </>
-      )}
+                    <span class="hidden items-start justify-end sm:flex">
+                      <svg
+                        viewBox="0 0 24 24"
+                        class="mt-2 h-4 w-4 text-line-strong transition-transform duration-150 group-hover:-translate-x-0.5 group-hover:text-text-action"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M19 12H5" />
+                        <path d="m12 19-7-7 7-7" />
+                      </svg>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </>
+        )
+      }
 
       <p class="mt-8 text-meta text-text-faint">
-        {published.length > 0
-          ? `${totalLabel} نوشتهٔ منتشرشده — هر نوشته یک مسئلهٔ واقعی از مسیر جذب مشتری را بررسی می‌کند.`
-          : "هنوز نوشته‌ای منتشر نشده است."}
+        {
+          published.length > 0
+            ? `${totalLabel} نوشتهٔ منتشرشده — هر نوشته یک مسئلهٔ واقعی از مسیر جذب مشتری را بررسی می‌کند.`
+            : "هنوز نوشته‌ای منتشر نشده است."
+        }
       </p>
     </div>
   </section>
@@ -160,7 +194,8 @@ const readingLabel = (body: string) => `${toFaDigits(readingMinutes(body))} دق
         <div class="border-t border-line pt-6">
           <h3 class="text-h3 text-text">از کجا شروع کنیم؟</h3>
           <p class="mt-3 text-body text-text-muted measure-prose">
-            چند سؤال کوتاه درباره کسب‌وکارتان؛ بدون وعده فروش تضمینی. اگر همکاری مناسب نباشد، همان‌جا گفته می‌شود.
+            چند سؤال کوتاه درباره کسب‌وکارتان؛ بدون وعده فروش تضمینی. اگر همکاری مناسب نباشد، همان‌جا گفته
+            می‌شود.
           </p>
         </div>
         <div class="flex flex-wrap items-center gap-4">

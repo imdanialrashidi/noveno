@@ -50,7 +50,9 @@ test("verify.sh must not re-run the full ci script after pi-doctor", () => {
   );
   const lines = verify.split("\n");
   const doctorLine = lines.findIndex((l) => l.includes("pi-doctor.sh"));
-  const checkLine = lines.findIndex((l) => l.includes("run_node_script \"check\"") || l.includes("npm run check"));
+  const checkLine = lines.findIndex(
+    (l) => l.includes('run_node_script "check"') || l.includes("npm run check"),
+  );
   assert.notEqual(checkLine, -1, "verify.sh must run npm run check");
   assert.ok(doctorLine < checkLine, "the check must come after the doctor suite");
 });

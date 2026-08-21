@@ -49,7 +49,8 @@ const stages = ["توجه", "درخواست", "ثبت", "پیگیری"];
             href={primaryHref}
             size="lg"
             data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"cta-section"}' }}
-          >{primaryLabel}</Button>
+            >{primaryLabel}</Button
+          >
           <Button
             href={CONTACT.phoneHref}
             variant="secondary"
@@ -61,47 +62,50 @@ const stages = ["توجه", "درخواست", "ثبت", "پیگیری"];
             <span class="text-caption tnum" dir="ltr">{CONTACT.phone}</span>
           </Button>
         </div>
-        <p class="text-meta text-text-faint">
-          بدون وعده فروش تضمینی؛ ابتدا مسیر فعلی کسب‌وکار بررسی می‌شود.
-        </p>
+        <p class="text-meta text-text-faint">بدون وعده فروش تضمینی؛ ابتدا مسیر فعلی کسب‌وکار بررسی می‌شود.</p>
       </div>
 
-      {brand ? (
-        /* Brand finish — typography + logo geometry, quiet on purpose. */
-        <div class="relative overflow-hidden rounded-[8px] border border-line bg-canvas p-8 sm:p-10" aria-hidden="true">
-          <svg
-            viewBox="0 0 438 394"
-            class="pointer-events-none absolute -bottom-16 -start-16 h-64 w-auto opacity-[0.06]"
-            focusable="false"
+      {
+        brand ? (
+          /* Brand finish — typography + logo geometry, quiet on purpose. */
+          <div
+            class="relative overflow-hidden rounded-[8px] border border-line bg-canvas p-8 sm:p-10"
+            aria-hidden="true"
           >
-            <path
-              d="M266.458,392.827L124.074,174.407L63.904,318.218L0.5,317.995L114.581,51.524L265.649,288.586C265.649,288.586 347.798,174.154 371.997,84.837L317.715,62.386L263.782,84.45C263.782,84.45 269.742,147.856 313.528,163.292L284.862,214.638C284.862,214.638 208.851,188.767 199.035,49.522L317.889,0.5L436.986,49.522C436.986,49.522 436.866,152.092 266.458,392.827Z"
-              fill="currentColor"
-            />
-          </svg>
-          <p class="text-meta font-semibold text-text">مسیر مشتری، از توجه تا پیگیری</p>
-          <ul class="mt-6 flex flex-col">
-            {stages.map((stage, i) => (
-              <li class="flex items-center gap-4 border-t border-line py-4">
-                <span class="flex h-7 w-7 flex-none items-center justify-center rounded-[1px] bg-primary-soft text-ui font-semibold text-accent-strong tnum">
-                  {toFaDigits(i + 1)}
-                </span>
-                <span class="text-body font-medium text-text-muted">{stage}</span>
-              </li>
-            ))}
-          </ul>
-          <p class="mt-6 border-t border-line pt-5 text-caption text-text-faint">
-            همین وب‌سایت، اجرای عملی همین اصول است: ثبت درخواست، اندازه‌گیری و پیگیری.
-          </p>
-        </div>
-      ) : (
-        !hideRail && (
-          <div class="panel bg-canvas p-6 sm:p-8 lg:p-10">
-            <p class="mb-5 text-ui font-semibold text-text">پس از درخواست چه اتفاقی می‌افتد؟</p>
-            <NextStepsRail />
+            <svg
+              viewBox="0 0 438 394"
+              class="pointer-events-none absolute -bottom-16 -start-16 h-64 w-auto opacity-[0.06]"
+              focusable="false"
+            >
+              <path
+                d="M266.458,392.827L124.074,174.407L63.904,318.218L0.5,317.995L114.581,51.524L265.649,288.586C265.649,288.586 347.798,174.154 371.997,84.837L317.715,62.386L263.782,84.45C263.782,84.45 269.742,147.856 313.528,163.292L284.862,214.638C284.862,214.638 208.851,188.767 199.035,49.522L317.889,0.5L436.986,49.522C436.986,49.522 436.866,152.092 266.458,392.827Z"
+                fill="currentColor"
+              />
+            </svg>
+            <p class="text-meta font-semibold text-text">مسیر مشتری، از توجه تا پیگیری</p>
+            <ul class="mt-6 flex flex-col">
+              {stages.map((stage, i) => (
+                <li class="flex items-center gap-4 border-t border-line py-4">
+                  <span class="flex h-7 w-7 flex-none items-center justify-center rounded-[1px] bg-primary-soft text-ui font-semibold text-accent-strong tnum">
+                    {toFaDigits(i + 1)}
+                  </span>
+                  <span class="text-body font-medium text-text-muted">{stage}</span>
+                </li>
+              ))}
+            </ul>
+            <p class="mt-6 border-t border-line pt-5 text-caption text-text-faint">
+              همین وب‌سایت، اجرای عملی همین اصول است: ثبت درخواست، اندازه‌گیری و پیگیری.
+            </p>
           </div>
+        ) : (
+          !hideRail && (
+            <div class="panel bg-canvas p-6 sm:p-8 lg:p-10">
+              <p class="mb-5 text-ui font-semibold text-text">پس از درخواست چه اتفاقی می‌افتد؟</p>
+              <NextStepsRail />
+            </div>
+          )
         )
-      )}
+      }
     </div>
   </div>
 </section>

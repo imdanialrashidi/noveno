@@ -5,7 +5,5 @@
  * components previously inlined byte-for-byte.
  */
 export function isCurrent(href: string, pathname: string): boolean {
-  return href === "/"
-    ? pathname === "/"
-    : pathname === href || pathname.startsWith(href + "/");
+  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
 }

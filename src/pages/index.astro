@@ -57,6 +57,7 @@ import {
 } from "../data/site";
 
 const proofEntries = (await getCollection("work"))
+  .filter(({ data }) => !data.draft)
   .filter((entry) => entry.data.featured)
   .sort((a, b) => b.data.published_at.valueOf() - a.data.published_at.valueOf());
 
@@ -111,30 +112,28 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
       <div class="grid items-start gap-12 lg:grid-cols-12 lg:gap-10">
         <!-- Primary side: headline + support + CTAs (right, RTL-first) -->
         <div class="flex flex-col items-start lg:col-span-6">
-          <p class="text-ui font-medium text-text-faint">
-            سیستم جذب مشتری برای کسب‌وکارهای خدماتی
-          </p>
-          <span
-            data-hero-accent
-            class="mt-3 block h-0.5 w-8 rounded-full bg-primary"
-            aria-hidden="true"
+          <p class="text-ui font-medium text-text-faint">سیستم جذب مشتری برای کسب‌وکارهای خدماتی</p>
+          <span data-hero-accent class="mt-3 block h-0.5 w-8 rounded-full bg-primary" aria-hidden="true"
           ></span>
           <h1 id="hero-title" class="mt-4 text-display text-text">{HERO_HEADLINE}</h1>
           <p class="mt-6 text-lead text-text-muted measure-prose">
-            نوونو برای کسب‌وکارهای خدماتی، مسیر مشتری را از دیدن شما تا تماس، ثبت درخواست و پیگیری طراحی و اجرا می‌کند — هر درخواست با منبع، وضعیت و قدم بعدی ثبت می‌شود.
+            نوونو برای کسب‌وکارهای خدماتی، مسیر مشتری را از دیدن شما تا تماس، ثبت درخواست و پیگیری طراحی و
+            اجرا می‌کند — هر درخواست با منبع، وضعیت و قدم بعدی ثبت می‌شود.
           </p>
           <div class="mt-8 flex flex-wrap items-center gap-4">
             <Button
               href={CTA_URL}
               size="lg"
               data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"hero"}' }}
-            >{PRIMARY_CTA_LABEL}</Button>
+              >{PRIMARY_CTA_LABEL}</Button
+            >
             <Button
               href="/work"
               variant="secondary"
               size="lg"
               data={{ "data-event": "secondary_cta_click", "data-event-payload": '{"section":"hero"}' }}
-            >{SECONDARY_CTA_LABEL}</Button>
+              >{SECONDARY_CTA_LABEL}</Button
+            >
           </div>
           <p class="mt-4 text-meta text-text-faint">
             بدون وعده فروش تضمینی؛ ابتدا مسیر فعلی کسب‌وکار بررسی می‌شود.
@@ -150,19 +149,25 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
         <div class="lg:col-span-6">
           <div class="lg:-me-8 lg:mt-14">
             <HeroArtwork />
-            <div class="hero-stages mt-8" data-hero-stages aria-label="چهار گام مسیر: توجه، درخواست، ثبت، پیگیری">
+            <div
+              class="hero-stages mt-8"
+              data-hero-stages
+              aria-label="چهار گام مسیر: توجه، درخواست، ثبت، پیگیری"
+            >
               <span class="sr-only">توجه، درخواست، ثبت، پیگیری</span>
-              {HERO_STAGES.map((stage, i) => (
-                <Fragment>
-                  <span class="hero-stage" aria-hidden="true">
-                    <span class="text-meta font-semibold text-text-action tnum">{faIndex(i)}</span>
-                    <span class="text-ui font-medium text-text-muted">{stage}</span>
-                  </span>
-                  {i < HERO_STAGES.length - 1 && (
-                    <span class="h-1 w-1 flex-none rounded-[1px] bg-line-strong" aria-hidden="true" />
-                  )}
-                </Fragment>
-              ))}
+              {
+                HERO_STAGES.map((stage, i) => (
+                  <Fragment>
+                    <span class="hero-stage" aria-hidden="true">
+                      <span class="text-meta font-semibold text-text-action tnum">{faIndex(i)}</span>
+                      <span class="text-ui font-medium text-text-muted">{stage}</span>
+                    </span>
+                    {i < HERO_STAGES.length - 1 && (
+                      <span class="h-1 w-1 flex-none rounded-[1px] bg-line-strong" aria-hidden="true" />
+                    )}
+                  </Fragment>
+                ))
+              }
             </div>
           </div>
         </div>
@@ -180,17 +185,19 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
           lead="بازدید دارید، اما درخواست گم می‌شود: پیام در دایرکت می‌ماند، تماس ثبت نمی‌شود، پیگیری منظم نیست و هیچ‌کس نمی‌داند کدام کانال نتیجه داده است."
         />
         <ol class="flex w-full flex-col">
-          {[
-            "درخواست‌ها در چند مسیر پراکنده می‌آیند (دایرکت، تماس، پیام، معرفی)",
-            "ثبت منظمی وجود ندارد؛ منبع ورودی معلوم نیست",
-            "پیگیری به حافظه وابسته است و نامنظم می‌شود",
-            "نتیجه نهایی برای هیچ‌کس مشخص نیست",
-          ].map((item, i) => (
-            <li class="grid grid-cols-[auto_1fr] items-baseline gap-4 border-t border-line py-4">
-              <span class="text-xl font-extrabold text-text-action tnum">{faIndex(i)}</span>
-              <span class="text-body font-medium text-text">{item}</span>
-            </li>
-          ))}
+          {
+            [
+              "درخواست‌ها در چند مسیر پراکنده می‌آیند (دایرکت، تماس، پیام، معرفی)",
+              "ثبت منظمی وجود ندارد؛ منبع ورودی معلوم نیست",
+              "پیگیری به حافظه وابسته است و نامنظم می‌شود",
+              "نتیجه نهایی برای هیچ‌کس مشخص نیست",
+            ].map((item, i) => (
+              <li class="grid grid-cols-[auto_1fr] items-baseline gap-4 border-t border-line py-4">
+                <span class="text-xl font-extrabold text-text-action tnum">{faIndex(i)}</span>
+                <span class="text-body font-medium text-text">{item}</span>
+              </li>
+            ))
+          }
         </ol>
       </div>
 
@@ -200,21 +207,32 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
           <p class="text-h3 text-text">امروز</p>
           <p class="mt-2 text-body text-text-muted">درخواست‌ها پراکنده‌اند و جای مشخصی برای ثبت ندارند.</p>
           <ul class="mt-6 flex flex-col">
-            {[
-              ["پراکنده", "هر کانال، حافظهٔ خودش"],
-              ["نامشخص", "منبع ورودی معلوم نیست"],
-              ["وابسته به حافظه", "پیگیری یادم می‌ماند یا نمی‌ماند"],
-            ].map(([word, note]) => (
-              <li class="flex items-start gap-3 border-t border-line py-3.5">
-                <svg viewBox="0 0 24 24" class="mt-1.5 h-4 w-4 flex-none text-text-faint" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-                <span class="flex flex-col gap-0.5">
-                  <span class="text-body font-semibold text-text">{word}</span>
-                  <span class="text-meta text-text-faint">{note}</span>
-                </span>
-              </li>
-            ))}
+            {
+              [
+                ["پراکنده", "هر کانال، حافظهٔ خودش"],
+                ["نامشخص", "منبع ورودی معلوم نیست"],
+                ["وابسته به حافظه", "پیگیری یادم می‌ماند یا نمی‌ماند"],
+              ].map(([word, note]) => (
+                <li class="flex items-start gap-3 border-t border-line py-3.5">
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="mt-1.5 h-4 w-4 flex-none text-text-faint"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                  <span class="flex flex-col gap-0.5">
+                    <span class="text-body font-semibold text-text">{word}</span>
+                    <span class="text-meta text-text-faint">{note}</span>
+                  </span>
+                </li>
+              ))
+            }
           </ul>
         </div>
 
@@ -222,22 +240,33 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
           <p class="text-h3 text-text-action">با نوونو</p>
           <p class="mt-2 text-body text-text-muted">هر درخواست با منبع، وضعیت و قدم بعدی ثبت می‌شود.</p>
           <ul class="mt-6 flex flex-col">
-            {[
-              ["ثبت‌شده", "یک نقطه ثبت واحد برای همه کانال‌ها"],
-              ["دارای منبع", "معلوم است از کجا آمده"],
-              ["دارای وضعیت", "جدید، پاسخ‌داده‌شده، هماهنگ‌شده، برنده، ازدست‌رفته"],
-              ["قابل‌پیگیری", "قدم بعدی و مسئولش مشخص است"],
-            ].map(([word, note]) => (
-              <li class="flex items-start gap-3 border-t border-line py-3.5">
-                <svg viewBox="0 0 24 24" class="mt-1.5 h-4 w-4 flex-none text-success" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M20 6 9 17l-5-5" />
-                </svg>
-                <span class="flex flex-col gap-0.5">
-                  <span class="text-body font-semibold text-text">{word}</span>
-                  <span class="text-meta text-text-faint">{note}</span>
-                </span>
-              </li>
-            ))}
+            {
+              [
+                ["ثبت‌شده", "یک نقطه ثبت واحد برای همه کانال‌ها"],
+                ["دارای منبع", "معلوم است از کجا آمده"],
+                ["دارای وضعیت", "جدید، پاسخ‌داده‌شده، هماهنگ‌شده، برنده، ازدست‌رفته"],
+                ["قابل‌پیگیری", "قدم بعدی و مسئولش مشخص است"],
+              ].map(([word, note]) => (
+                <li class="flex items-start gap-3 border-t border-line py-3.5">
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="mt-1.5 h-4 w-4 flex-none text-success"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  <span class="flex flex-col gap-0.5">
+                    <span class="text-body font-semibold text-text">{word}</span>
+                    <span class="text-meta text-text-faint">{note}</span>
+                  </span>
+                </li>
+              ))
+            }
           </ul>
         </div>
       </div>
@@ -256,13 +285,15 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
 
       <div class="grid gap-12 lg:grid-cols-12 lg:gap-16">
         <ol class="grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:col-span-7" data-reveal-stagger>
-          {SYSTEM_STAGES.map((stage, i) => (
-            <li class="border-t-2 border-line pt-6" data-reveal-item={i}>
-              <span class="editorial-num">{faIndex(i)}</span>
-              <h3 class="mt-3 text-h3 text-text">{stage.label}</h3>
-              <p class="mt-2 text-body text-text-muted">{stage.description}</p>
-            </li>
-          ))}
+          {
+            SYSTEM_STAGES.map((stage, i) => (
+              <li class="border-t-2 border-line pt-6" data-reveal-item={i}>
+                <span class="editorial-num">{faIndex(i)}</span>
+                <h3 class="mt-3 text-h3 text-text">{stage.label}</h3>
+                <p class="mt-2 text-body text-text-muted">{stage.description}</p>
+              </li>
+            ))
+          }
         </ol>
 
         <!-- Real product surface: the audit channel step (real UI) -->
@@ -305,9 +336,15 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
         lead="نه فهرست بلندبالای خدمات؛ سه مسیر مشخص که بسته به وضعیت کسب‌وکار انتخاب می‌شوند."
       />
       <div class="border-b border-line" data-reveal-stagger>
-        {OFFERS.map((offer, index) => (
-          <OfferRow offer={offer} index={index} href={offer.id === "audit" ? CTA_URL : "/services#offers"} />
-        ))}
+        {
+          OFFERS.map((offer, index) => (
+            <OfferRow
+              offer={offer}
+              index={index}
+              href={offer.id === "audit" ? CTA_URL : "/services#offers"}
+            />
+          ))
+        }
       </div>
     </div>
   </section>
@@ -324,25 +361,27 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
         />
       </div>
       <div class="flex flex-col">
-        {proofEntries.map((entry, index) => (
-          <WorkCard
-            kind={entry.data.type}
-            title={entry.data.title}
-            summary={entry.data.summary}
-            meta={`${entry.data.industry} — ${jalali(entry.data.published_at)}`}
-            href={`/work/${entry.id}`}
-            outcome={
-              entry.data.type === "project"
-                ? "نتیجه: در دست اندازه‌گیری"
-                : entry.data.type === "concept"
-                  ? "نمونه نمایشی — بدون داده عملکردی"
-                  : undefined
-            }
-            preview={previewFor(entry.id)}
-            featured={index === 0}
-            flip={index % 2 === 1}
-          />
-        ))}
+        {
+          proofEntries.map((entry, index) => (
+            <WorkCard
+              kind={entry.data.type}
+              title={entry.data.title}
+              summary={entry.data.summary}
+              meta={`${entry.data.industry} — ${jalali(entry.data.published_at)}`}
+              href={`/work/${entry.id}`}
+              outcome={
+                entry.data.type === "project"
+                  ? "نتیجه: در دست اندازه‌گیری"
+                  : entry.data.type === "concept"
+                    ? "نمونه نمایشی — بدون داده عملکردی"
+                    : undefined
+              }
+              preview={previewFor(entry.id)}
+              featured={index === 0}
+              flip={index % 2 === 1}
+            />
+          ))
+        }
         <div class="flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
           <p class="text-body text-text-muted">
             مطالعه موردی واقعی، به محض در دسترس بودن داده قابل انتشار، اضافه می‌شود.
@@ -366,15 +405,20 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
         <Button href="/process" variant="secondary">فرآیند کامل</Button>
       </div>
       <ol class="flex flex-col lg:col-span-7" data-reveal-stagger>
-        {PROCESS_STAGES.map((stage, i) => (
-          <li class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-line py-7 sm:gap-x-10" data-reveal-item={i}>
-            <span class="editorial-num">{faIndex(i)}</span>
-            <div class="flex flex-col gap-2">
-              <h3 class="text-h3 text-text">{stage.label}</h3>
-              <p class="text-body text-text-muted measure-prose">{stage.description}</p>
-            </div>
-          </li>
-        ))}
+        {
+          PROCESS_STAGES.map((stage, i) => (
+            <li
+              class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-line py-7 sm:gap-x-10"
+              data-reveal-item={i}
+            >
+              <span class="editorial-num">{faIndex(i)}</span>
+              <div class="flex flex-col gap-2">
+                <h3 class="text-h3 text-text">{stage.label}</h3>
+                <p class="text-body text-text-muted measure-prose">{stage.description}</p>
+              </div>
+            </li>
+          ))
+        }
       </ol>
     </div>
   </section>
@@ -382,32 +426,59 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
   <!-- ============ Ideal Fit (Spec §23) ============ -->
   <section class="border-t border-line" aria-labelledby="fit-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-28">
-      <SectionHeader id="fit-title" kicker="همکاری" title="Noveno برای همه مناسب نیست." lead="این صراحت به نفع هر دو طرف است؛ همکاری نامناسب برای هیچ‌کس ارزش نمی‌سازد." />
+      <SectionHeader
+        id="fit-title"
+        kicker="همکاری"
+        title="Noveno برای همه مناسب نیست."
+        lead="این صراحت به نفع هر دو طرف است؛ همکاری نامناسب برای هیچ‌کس ارزش نمی‌سازد."
+      />
       <div class="grid gap-6 lg:grid-cols-2 lg:gap-10">
         <div class="panel p-6 sm:p-8 lg:p-10">
           <p class="mb-6 text-h3 text-text">اگر این‌ها شبیه شماست</p>
           <ul class="flex flex-col">
-            {GOOD_FIT.map((item) => (
-              <li class="flex items-start gap-3 border-t border-line py-3 text-body text-text-muted">
-                <svg viewBox="0 0 24 24" class="mt-2 h-4 w-4 flex-none text-success" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M20 6 9 17l-5-5" />
-                </svg>
-                {item}
-              </li>
-            ))}
+            {
+              GOOD_FIT.map((item) => (
+                <li class="flex items-start gap-3 border-t border-line py-3 text-body text-text-muted">
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="mt-2 h-4 w-4 flex-none text-success"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  {item}
+                </li>
+              ))
+            }
           </ul>
         </div>
         <div class="panel p-6 sm:p-8 lg:p-10">
           <p class="mb-6 text-h3 text-text">اگر دنبال این‌ها هستید</p>
           <ul class="flex flex-col">
-            {BAD_FIT.map((item) => (
-              <li class="flex items-start gap-3 border-t border-line py-3 text-body text-text-muted">
-                <svg viewBox="0 0 24 24" class="mt-2 h-4 w-4 flex-none text-text-faint" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-                {item}
-              </li>
-            ))}
+            {
+              BAD_FIT.map((item) => (
+                <li class="flex items-start gap-3 border-t border-line py-3 text-body text-text-muted">
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="mt-2 h-4 w-4 flex-none text-text-faint"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                  {item}
+                </li>
+              ))
+            }
           </ul>
         </div>
       </div>
@@ -417,25 +488,45 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
   <!-- ============ Why Noveno ============ -->
   <section class="border-t border-line" aria-labelledby="why-title">
     <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-28">
-      <SectionHeader id="why-title" kicker="اصول" title="چرا نوونو" lead="اصل‌هایی که جای ادعای بزرگ می‌نشینند." />
+      <SectionHeader
+        id="why-title"
+        kicker="اصول"
+        title="چرا نوونو"
+        lead="اصل‌هایی که جای ادعای بزرگ می‌نشینند."
+      />
       <ol class="grid gap-x-14 sm:grid-cols-2">
-        {[
-          { title: "کسب‌وکار اول", text: "فناوری در خدمت مسئله کسب‌وکار است، نه برعکس." },
-          { title: "سیستم ساده", text: "پیچیدگی غیرضروری هزینه دارد؛ فقط آنچه لازم است ساخته می‌شود." },
-          { title: "ساخته‌شده برای شرایط واقعی ایران", text: "موبایل، اینترنت ناپایدار، ابزارهای در دسترس و قابلیت جایگزینی." },
-          { title: "اندازه‌گیری‌محور", text: "اقدام‌های مهم مشتری تا جایی که عملی باشد قابل ثبت و مقایسه می‌شوند." },
-          { title: "AI کمک می‌کند، انسان تصمیم می‌گیرد", text: "از AI برای تحلیل و سرعت استفاده می‌کنیم؛ خروجی‌های مهم قبل از استفاده بررسی می‌شوند." },
-          { title: "بدون تضمین دروغین", text: "فروش تضمین نمی‌شود؛ نتیجه تا جایی که داده اجازه دهد اندازه‌گیری و گزارش می‌شود." },
-        ].map((item, i) => (
-          <li class="border-t border-line py-6">
-            <span class="text-xl font-extrabold text-text-action tnum">{faIndex(i)}</span>
-            <h3 class="mt-2 text-ui font-semibold text-text">{item.title}</h3>
-            <p class="mt-2 text-body text-text-muted">{item.text}</p>
-          </li>
-        ))}
+        {
+          [
+            { title: "کسب‌وکار اول", text: "فناوری در خدمت مسئله کسب‌وکار است، نه برعکس." },
+            { title: "سیستم ساده", text: "پیچیدگی غیرضروری هزینه دارد؛ فقط آنچه لازم است ساخته می‌شود." },
+            {
+              title: "ساخته‌شده برای شرایط واقعی ایران",
+              text: "موبایل، اینترنت ناپایدار، ابزارهای در دسترس و قابلیت جایگزینی.",
+            },
+            {
+              title: "اندازه‌گیری‌محور",
+              text: "اقدام‌های مهم مشتری تا جایی که عملی باشد قابل ثبت و مقایسه می‌شوند.",
+            },
+            {
+              title: "AI کمک می‌کند، انسان تصمیم می‌گیرد",
+              text: "از AI برای تحلیل و سرعت استفاده می‌کنیم؛ خروجی‌های مهم قبل از استفاده بررسی می‌شوند.",
+            },
+            {
+              title: "بدون تضمین دروغین",
+              text: "فروش تضمین نمی‌شود؛ نتیجه تا جایی که داده اجازه دهد اندازه‌گیری و گزارش می‌شود.",
+            },
+          ].map((item, i) => (
+            <li class="border-t border-line py-6">
+              <span class="text-xl font-extrabold text-text-action tnum">{faIndex(i)}</span>
+              <h3 class="mt-2 text-ui font-semibold text-text">{item.title}</h3>
+              <p class="mt-2 text-body text-text-muted">{item.text}</p>
+            </li>
+          ))
+        }
       </ol>
       <p class="mt-10 border-t border-line pt-6 text-body text-text-muted">
-        <a href="/about" class="text-link">بخوانید چرا نوونو وجود دارد و چگونه کار می‌کند</a> — و این وب‌سایت چطور با همین اصول ساخته شده است.
+        <a href="/about" class="text-link">بخوانید چرا نوونو وجود دارد و چگونه کار می‌کند</a> — و این وب‌سایت چطور
+        با همین اصول ساخته شده است.
       </p>
     </div>
   </section>
@@ -458,49 +549,67 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
       </div>
       <div class="lg:col-span-7">
         <div class="border-t border-line">
-          {homeFaq.map((item) => (
-            <FAQItem question={item.q} answer={item.a} />
-          ))}
+          {homeFaq.map((item) => <FAQItem question={item.q} answer={item.a} />)}
         </div>
       </div>
     </div>
   </section>
 
   <!-- ============ Blog band — latest published article ============ -->
-  {latestArticle && (
-    <section class="border-t border-line" aria-labelledby="blog-teaser-title">
-      <div class="mx-auto grid max-w-[1200px] gap-10 px-5 py-16 sm:px-8 lg:grid-cols-12 lg:gap-16 lg:py-24" data-reveal>
-        <div class="lg:col-span-5">
-          <SectionHeader
-            id="blog-teaser-title"
-            kicker="وبلاگ"
-            title="نوشته‌هایی از جنس مسئله‌های واقعی"
-            lead="دربارهٔ جذب مشتری، پیگیری لید و ثبت درخواست برای کسب‌وکارهای خدماتی — بدون وعده و با روش."
-          />
-          <Button href="/blog" variant="secondary">همه نوشته‌ها</Button>
+  {
+    latestArticle && (
+      <section class="border-t border-line" aria-labelledby="blog-teaser-title">
+        <div
+          class="mx-auto grid max-w-[1200px] gap-10 px-5 py-16 sm:px-8 lg:grid-cols-12 lg:gap-16 lg:py-24"
+          data-reveal
+        >
+          <div class="lg:col-span-5">
+            <SectionHeader
+              id="blog-teaser-title"
+              kicker="وبلاگ"
+              title="نوشته‌هایی از جنس مسئله‌های واقعی"
+              lead="دربارهٔ جذب مشتری، پیگیری لید و ثبت درخواست برای کسب‌وکارهای خدماتی — بدون وعده و با روش."
+            />
+            <Button href="/blog" variant="secondary">
+              همه نوشته‌ها
+            </Button>
+          </div>
+          <div class="flex flex-col justify-center lg:col-span-7">
+            <a
+              href={`/blog/${latestArticle.id}`}
+              class="group flex flex-col gap-3 border-t border-line py-8 transition-colors duration-150 hover:bg-surface-soft/40 sm:px-3"
+            >
+              <span class="flex flex-wrap items-center gap-2 text-meta text-text-faint">
+                <span class="inline-flex rounded-[4px] border border-line bg-surface px-2 py-0.5 text-caption text-text-muted">
+                  {latestArticle.data.category}
+                </span>
+                <span>{formatFaMonth(latestArticle.data.published_at)}</span>
+              </span>
+              <span class="text-h3 text-text transition-colors duration-150 group-hover:text-text-action">
+                {latestArticle.data.title}
+              </span>
+              <span class="inline-flex min-h-11 w-fit items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 group-hover:text-text-action">
+                خواندن نوشته
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M19 12H5" />
+                  <path d="m12 19-7-7 7-7" />
+                </svg>
+              </span>
+            </a>
+          </div>
         </div>
-        <div class="flex flex-col justify-center lg:col-span-7">
-          <a
-            href={`/blog/${latestArticle.id}`}
-            class="group flex flex-col gap-3 border-t border-line py-8 transition-colors duration-150 hover:bg-surface-soft/40 sm:px-3"
-          >
-            <span class="flex flex-wrap items-center gap-2 text-meta text-text-faint">
-              <span class="inline-flex rounded-[4px] border border-line bg-surface px-2 py-0.5 text-caption text-text-muted">{latestArticle.data.category}</span>
-              <span>{formatFaMonth(latestArticle.data.published_at)}</span>
-            </span>
-            <span class="text-h3 text-text transition-colors duration-150 group-hover:text-text-action">{latestArticle.data.title}</span>
-            <span class="inline-flex min-h-11 w-fit items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 group-hover:text-text-action">
-              خواندن نوشته
-              <svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M19 12H5" />
-                <path d="m12 19-7-7 7-7" />
-              </svg>
-            </span>
-          </a>
-        </div>
-      </div>
-    </section>
-  )}
+      </section>
+    )
+  }
 
   <!-- ============ Final CTA — brand-led finish ============ -->
   <CTASection brand />

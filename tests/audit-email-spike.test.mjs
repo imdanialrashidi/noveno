@@ -8,6 +8,7 @@ import assert from "node:assert/strict";
 
 import { handleAuditRequest } from "../functions/api/audit.ts";
 import { AUDIT_OPTIONS } from "../src/data/audit.ts";
+import { AUDIT_OPTIONS as SERVER_LABELS } from "../functions/lib/email.ts";
 
 function validPayload(overrides = {}) {
   return {
@@ -78,7 +79,11 @@ test("validated payload → email sent with Persian labels and safeText (spike)"
   assert.equal(lead.submission_id, payload.submission_id);
   assert.equal(lead.name, "علی رضایی");
   // No Turnstile token or honeypot in lead
-  assert.equal("cf_turnstile_token" in lead, true, "lead retains token for verify but email must not forward it");
+  assert.equal(
+    "cf_turnstile_token" in lead,
+    true,
+    "lead retains token for verify but email must not forward it",
+  );
   // Check email rendering would strip < > via safeText — we test via sendLeadEmail directly below
 });
 
@@ -92,14 +97,16 @@ test("turnstile fail → no email (spike)", async () => {
 });
 
 test("email failure → 500 never success (spike)", async () => {
-  const { deps, calls } = makeDeps({
-    sendEmail: async () => ({ ok: false }),
-  });
+  const { deps, calls } = makeDeps();
+  deps.sendEmail = async (lead) => {
+    calls.email.push(lead);
+    return { ok: false };
+  };
   const res = await handleAuditRequest(post(validPayload()), deps);
   assert.equal(res.status, 500);
   const body = await res.json();
   assert.equal(body.error.code, "server_error");
-  assert.equal(calls.email.length, undefined ?? calls.email.length, "email was attempted");
+  assert.equal(calls.email.length, 1, "email was attempted");
 });
 
 test("missing sendEmail dep → fallback validated (spike flag off)", async () => {
@@ -108,6 +115,10 @@ test("missing sendEmail dep → fallback validated (spike flag off)", async () =
   assert.equal(res.status, 200);
   const body = await res.json();
   assert.equal(body.status, "validated");
+});
+
+test("email label table matches the form's canonical AUDIT_OPTIONS (no drift)", () => {
+  assert.deepEqual(SERVER_LABELS, AUDIT_OPTIONS);
 });
 
 test("sendLeadEmail renders Persian labels and strips markup", async () => {

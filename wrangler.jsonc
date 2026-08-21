@@ -9,12 +9,12 @@
   "compatibility_flags": ["nodejs_compat"],
   "pages_build_output_dir": "./dist",
   "observability": {
-    "enabled": true
+    "enabled": true,
   },
   "analytics_engine_datasets": [
     {
       "binding": "NOVENO_EVENTS",
-      "dataset": "noveno_events"
-    }
-  ]
+      "dataset": "noveno_events",
+    },
+  ],
 }

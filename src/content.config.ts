@@ -41,6 +41,8 @@ const work = defineCollection({
       components: z.array(z.string()).default([]),
       metrics: z.array(metric).default([]),
       limitations: z.array(z.string()).default([]),
+      /** Draft gate — drafts never build, never appear on /work, /, or in the sitemap. */
+      draft: z.boolean().default(false),
       featured: z.boolean().default(false),
     }),
     z.object({
@@ -59,6 +61,8 @@ const work = defineCollection({
       limitations: z.array(z.string()).default([]),
       /** Honest outcome marker: «در دست اندازهگیری» | «نامشخص». */
       outcome: z.enum(["measuring", "unknown"]).default("measuring"),
+      /** Draft gate — drafts never build, never appear on /work, /, or in the sitemap. */
+      draft: z.boolean().default(false),
       featured: z.boolean().default(false),
     }),
     z.object({
@@ -78,6 +82,8 @@ const work = defineCollection({
       /** Proposed KPIs — «KPI پیشنهادی», never measured results. */
       kpis: z.array(z.string()).default([]),
       limitations: z.array(z.string()).default([]),
+      /** Draft gate — drafts never build, never appear on /work, /, or in the sitemap. */
+      draft: z.boolean().default(false),
       featured: z.boolean().default(false),
     }),
   ]),

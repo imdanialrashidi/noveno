@@ -36,13 +36,17 @@ test("the executable regression fixture proves final green and pre-fix red in is
       ["config", "commit.gpgsign", "false"],
       ["add", "--all"],
       ["commit", "--quiet", "-m", "baseline"],
-    ]) execFileSync("git", args, { cwd: temporaryRepository });
+    ])
+      execFileSync("git", args, { cwd: temporaryRepository });
 
     const sourcePath = path.join(targetFixture, "pricing.mjs");
-    fs.writeFileSync(sourcePath, fs.readFileSync(sourcePath, "utf8").replace("quantity > 10", "quantity >= 10"));
+    fs.writeFileSync(
+      sourcePath,
+      fs.readFileSync(sourcePath, "utf8").replace("quantity > 10", "quantity >= 10"),
+    );
     fs.appendFileSync(
       path.join(targetFixture, "pricing.test.mjs"),
-      "\ntest(\"applies the discount at the tier boundary\", () => {\n  assert.equal(orderTotal(10, 10), 90);\n});\n",
+      '\ntest("applies the discount at the tier boundary", () => {\n  assert.equal(orderTotal(10, 10), 90);\n});\n',
     );
     const result = spawnSync(process.execPath, [path.join(targetFixture, "verify-regression.mjs")], {
       cwd: temporaryRepository,
@@ -92,7 +96,12 @@ test("deterministic grading catches scope, required-file, and protected-file vio
 
 test("trace analysis exposes failed verification, repair, duplication, and retry cost", () => {
   const events = [
-    { type: "tool_execution_start", toolCallId: "t1", toolName: "bash", args: { command: "node --test tests/price.test.mjs" } },
+    {
+      type: "tool_execution_start",
+      toolCallId: "t1",
+      toolName: "bash",
+      args: { command: "node --test tests/price.test.mjs" },
+    },
     { type: "tool_execution_end", toolCallId: "t1", toolName: "bash", isError: true },
     { type: "tool_execution_start", toolCallId: "t2", toolName: "edit", args: { path: "src/price.mjs" } },
     { type: "tool_execution_end", toolCallId: "t2", toolName: "edit", isError: false },
@@ -100,7 +109,12 @@ test("trace analysis exposes failed verification, repair, duplication, and retry
     { type: "tool_execution_end", toolCallId: "t3", toolName: "read", isError: false },
     { type: "tool_execution_start", toolCallId: "t4", toolName: "read", args: { path: "src/price.mjs" } },
     { type: "tool_execution_end", toolCallId: "t4", toolName: "read", isError: false },
-    { type: "tool_execution_start", toolCallId: "t5", toolName: "bash", args: { command: "node --test tests/price.test.mjs" } },
+    {
+      type: "tool_execution_start",
+      toolCallId: "t5",
+      toolName: "bash",
+      args: { command: "node --test tests/price.test.mjs" },
+    },
     { type: "tool_execution_end", toolCallId: "t5", toolName: "bash", isError: false },
     { type: "auto_retry_start" },
   ];

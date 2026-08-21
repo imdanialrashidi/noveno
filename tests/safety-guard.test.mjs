@@ -4,10 +4,7 @@ import path from "node:path";
 import test from "node:test";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "..");
-const source = await fs.readFile(
-  path.join(repositoryRoot, ".pi/extensions/safety-guard.js"),
-  "utf8",
-);
+const source = await fs.readFile(path.join(repositoryRoot, ".pi/extensions/safety-guard.js"), "utf8");
 const moduleUrl = `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`;
 
 async function loadHandler(mode, label) {
@@ -44,14 +41,8 @@ test("allows normal reads, artifacts, and temporary writes", async () => {
 });
 
 test("blocks secret files through direct tools and shell", async () => {
-  assert.match(
-    (await guard(autonomousHandler, "read", { path: ".env" })).reason,
-    /Sensitive file/,
-  );
-  assert.match(
-    (await guard(autonomousHandler, "bash", { command: "sed -n '1p' .env" })).reason,
-    /secrets/i,
-  );
+  assert.match((await guard(autonomousHandler, "read", { path: ".env" })).reason, /Sensitive file/);
+  assert.match((await guard(autonomousHandler, "bash", { command: "sed -n '1p' .env" })).reason, /secrets/i);
 });
 
 test("limits direct writes to the repository and OS temporary directory", async () => {
@@ -90,19 +81,12 @@ test("allows routine repository delivery in autonomous mode", async () => {
     "git push -u origin agent/finish-task",
     "gh pr create --draft --fill",
   ]) {
-    assert.equal(
-      await guard(autonomousHandler, "bash", { command }),
-      undefined,
-      command,
-    );
+    assert.equal(await guard(autonomousHandler, "bash", { command }), undefined, command);
   }
 });
 
 test("allows workflow maintenance by default and locks it in strict mode", async () => {
-  assert.equal(
-    await guard(autonomousHandler, "edit", { path: ".pi/settings.json" }),
-    undefined,
-  );
+  assert.equal(await guard(autonomousHandler, "edit", { path: ".pi/settings.json" }), undefined);
   assert.equal(
     await guard(autonomousHandler, "bash", { command: "printf x > .pi/settings.json" }),
     undefined,
@@ -136,18 +120,17 @@ test("autonomous browser mode supports public HTTP(S) QA and page evaluation", a
     }),
     undefined,
   );
-  assert.equal(
-    await guard(autonomousHandler, "mcp", { tool: "browser_evaluate", args: {} }),
-    undefined,
-  );
+  assert.equal(await guard(autonomousHandler, "mcp", { tool: "browser_evaluate", args: {} }), undefined);
 });
 
 test("strict browser mode is local-only and both modes keep exfiltration hazards blocked", async () => {
   assert.match(
-    (await guard(strictHandler, "mcp", {
-      tool: "browser_navigate",
-      args: { url: "https://example.com" },
-    })).reason,
+    (
+      await guard(strictHandler, "mcp", {
+        tool: "browser_navigate",
+        args: { url: "https://example.com" },
+      })
+    ).reason,
     /local-only/,
   );
   assert.equal(
@@ -166,10 +149,12 @@ test("strict browser mode is local-only and both modes keep exfiltration hazards
     /Unsafe MCP/,
   );
   assert.match(
-    (await guard(autonomousHandler, "mcp", {
-      tool: "browser_navigate",
-      args: { url: "file:///etc/passwd" },
-    })).reason,
+    (
+      await guard(autonomousHandler, "mcp", {
+        tool: "browser_navigate",
+        args: { url: "file:///etc/passwd" },
+      })
+    ).reason,
     /HTTP\(S\)/,
   );
 });

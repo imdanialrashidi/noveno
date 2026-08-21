@@ -98,3 +98,13 @@ test("no sales-guarantee or hype language in copy (Spec §52.1)", () => {
     }
   }
 });
+
+test("draft work entries exist as fixture and are gated (parity with blog)", () => {
+  const draft = entries.find((e) => e.file === "draft-sample.md");
+  assert.ok(draft, "draft-sample.md must exist for work draft gate");
+  assert.equal(draft.data.draft, true, "draft-sample must be draft:true");
+  // Honesty rules still apply to drafts (orthogonal)
+  if (draft.data.type === "concept") {
+    assert.ok(!draft.data.metrics || draft.data.metrics.length === 0, "draft concept must have no metrics");
+  }
+});

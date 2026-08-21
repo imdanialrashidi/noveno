@@ -19,10 +19,12 @@ const { value, name, source, limitation } = Astro.props;
   <p class="text-data text-3xl text-text tnum">{value}</p>
   <p class="text-ui font-medium text-text-muted">{name}</p>
   <p class="text-caption text-text-faint">منبع: {source}</p>
-  {limitation && (
-    <p class="flex items-start gap-1.5 text-caption text-text-faint">
-      <span aria-hidden="true" class="mt-1.5 h-1 w-1 flex-none rounded-[1px] bg-line-strong"></span>
-      {limitation}
-    </p>
-  )}
+  {
+    limitation && (
+      <p class="flex items-start gap-1.5 text-caption text-text-faint">
+        <span aria-hidden="true" class="mt-1.5 h-1 w-1 flex-none rounded-[1px] bg-line-strong" />
+        {limitation}
+      </p>
+    )
+  }
 </div>

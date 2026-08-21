@@ -27,12 +27,14 @@ const { offer, href, index } = Astro.props;
     </div>
 
     <ul class="flex flex-col gap-2">
-      {offer.points.map((point) => (
-        <li class="flex items-start gap-2.5 text-body text-text">
-          <span class="mt-2.5 h-1 w-1 flex-none rounded-full bg-line-strong" aria-hidden="true"></span>
-          {point}
-        </li>
-      ))}
+      {
+        offer.points.map((point) => (
+          <li class="flex items-start gap-2.5 text-body text-text">
+            <span class="mt-2.5 h-1 w-1 flex-none rounded-full bg-line-strong" aria-hidden="true" />
+            {point}
+          </li>
+        ))
+      }
     </ul>
 
     <div class="flex flex-col items-start gap-4 lg:pt-1">

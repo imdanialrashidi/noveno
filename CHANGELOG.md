@@ -23,8 +23,17 @@ All notable workflow changes are documented here. This project follows the spiri
 - Deterministic affected-file verification routing with a conservative full-gate fallback.
 - Workflow eval schema v2 with executable assertions, trace metrics, baseline comparison, and a real code/test repair fixture.
 - Primary-source research and audit record in `docs/RESEARCH.md`.
+- **Formatting baseline (2026-08-21):** Prettier + `prettier-plugin-astro` (printWidth 110), `.prettierrc.json` + `.prettierignore` + `format`/`format:check` scripts, one-time tree normalization, and CI enforcement (`npm run format:check` in `quality.yml`). Formatting is mechanical; never hand-fix format-only feedback. `src/layouts/BaseLayout.astro` excluded via `.prettierignore` due to `is:inline` + dynamic attribute parsing limitation (reported).
+- **OG toolchain preflight (2026-08-21):** `requirements-og.txt` pins Pillow 12.3.0, `scripts/check-og-env.sh` fails loudly with exact fixes (python3, Pillow, version pin, raqm warning), and `generate:og` now chains the preflight (`bash check-og-env.sh && python3 generate-og-images.py`). Work draft gate also honored in OG generation (`work_entries` now skips `draft:true`), and the image shot path updated to `assets/images/work/` for the new two-directory layout.
+- **Content and tooling shipped earlier (backfill, 2026-08–2026-10):** RSS feed (`src/pages/rss.xml.ts`, autodiscovery `application/rss+xml` in `BaseLayout` + `public/rss.xml` validated in `tests/blog.test.mjs`), work industry filter (`src/scripts/work-filter.ts` — query-param hydrated, progressive enhancement on `/work`, ~60 LOC), attribution query tooling (`scripts/query-events.mjs` + `scripts/lib/attribution` spike reader for Analytics Engine), and `scripts/slice2-test-server.mjs` modes (`ok`/`web3forms-down`/`turnstile-fail` — real functions + mock Web3Forms for local audit journey testing).
+
+### Security
+
+- **HMAC validation receipt (Mitigation 021):** server issues a short-lived HMAC receipt (`validation_receipt`) on validated responses for inbox echo (`functions/api/audit.ts` + `src/scripts/audit/delivery.ts`), with `validated_at` explicit timestamp (no receipt slicing) and client acceptance of both `validated` and `sent` during D-01 transition (see `docs/ops/setup-checklist.md` advisory note).
 
 ### Changed
+
+- **Build pipeline (2026-08-21):** CI now caches npm (`actions/setup-node` `cache: npm`) and raises the ceiling to 15 min; `.npmrc` pins the official registry so `npm audit` and installs never pollute `resolved` URLs with `registry.npmmirror.com` (lockfile relocked, 0 mirror entries, `npm audit` green); image pipeline now keeps logical sources in `assets/images/` and materializes only content-hashed copies into `public/images/` (no double-shipped logical files), with updated writers (`optimize-work-previews.py`, `refresh-portfolio-previews.sh`) and docs (`README.md`, `docs/IMAGERY.md`), and a manifest guard that asserts `public/images` holds only hashed files.
 
 - **Contact facts (2026-08-15):** Telegram handle switched from the phone link (`t.me/+989353598620`) to the username `t.me/noveno_ir`; Instagram handle `@noveno.ir` → `@noveno_ir` (`src/data/site.ts` + schema.org `sameAs`). Web3Forms access key wired into the audit client via `PUBLIC_WEB3FORMS_ACCESS_KEY` (build env, public by design; real value stays in Cloudflare Pages project settings / local gitignored `.env`).
 

@@ -38,10 +38,12 @@ function str(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-/** Honeypot check: any non-empty value for the hidden field → bot. */
+/** Honeypot check: any present, meaningful value for the hidden field → bot. Legit clients submit an empty hidden input → "". Anything else present (non-empty string, number, array, object) marks automation. */
 export function honeypotTriggered(body: Record<string, unknown>): boolean {
   const value = body[HONEYPOT_FIELD];
-  return typeof value === "string" && value.trim() !== "";
+  if (value === undefined || value === null) return false;
+  if (typeof value === "string") return value.trim() !== "";
+  return true;
 }
 
 /**
@@ -131,7 +133,8 @@ export function validateAuditPayload(raw: unknown): ValidationResult {
   let customerValueRange: string | undefined;
   if (has(raw.customer_value_range)) {
     customerValueRange = normalizePlain(raw.customer_value_range as string);
-    if (!CUSTOMER_VALUE_RANGES.includes(customerValueRange as never)) fail("customer_value_range", "invalid_enum");
+    if (!CUSTOMER_VALUE_RANGES.includes(customerValueRange as never))
+      fail("customer_value_range", "invalid_enum");
   }
 
   /* cf_turnstile_token — required, non-empty */

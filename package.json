@@ -12,10 +12,12 @@
     "start": "astro dev",
     "prebuild": "node scripts/build-image-manifest.mjs && node scripts/validate-og-assets.mjs && node scripts/generate-sitemap.mjs",
     "build": "astro build",
-    "generate:og": "python3 scripts/generate-og-images.py",
+    "generate:og": "bash scripts/check-og-env.sh && python3 scripts/generate-og-images.py",
     "build:with-og": "npm run generate:og && npm run build",
     "preview": "astro preview",
     "check": "astro check",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "node --test tests/*.test.mjs",
     "ci": "npm run check && npm run build && npm run test"
   },
@@ -29,6 +31,8 @@
     "@fontsource-variable/estedad": "5.3.0",
     "@fontsource-variable/vazirmatn": "5.3.0",
     "@tailwindcss/vite": "4.3.3",
+    "prettier": "^3.9.6",
+    "prettier-plugin-astro": "^0.14.1",
     "tailwindcss": "4.3.3",
     "typescript": "^5.9.0",
     "wrangler": "^4.120.1"

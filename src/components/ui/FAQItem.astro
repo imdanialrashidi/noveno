@@ -38,7 +38,7 @@ const buttonId = `${id}-trigger`;
         data-accordion-icon
         aria-hidden="true"
       >
-        <path d="m6 9 6 6 6-6" />
+        <path d="m6 9 6 6 6-6"></path>
       </svg>
     </button>
   </h3>
@@ -81,7 +81,9 @@ const buttonId = `${id}-trigger`;
   .accordion-panel {
     display: grid;
     grid-template-rows: 0fr;
-    transition: grid-template-rows 250ms var(--ease-standard), opacity 250ms var(--ease-standard);
+    transition:
+      grid-template-rows 250ms var(--ease-standard),
+      opacity 250ms var(--ease-standard);
     opacity: 0;
   }
   .accordion-panel.is-open {

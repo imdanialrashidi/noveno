@@ -251,9 +251,10 @@ export const AUDIT_STEPS: readonly AuditStep[] = [
  * progress rail can never drift from the form (previously duplicated
  * in src/data/site.ts).
  */
-export const AUDIT_STATIONS: readonly { id: string; label: string }[] = AUDIT_STEPS.map(
-  ({ id, label }) => ({ id, label }),
-);
+export const AUDIT_STATIONS: readonly { id: string; label: string }[] = AUDIT_STEPS.map(({ id, label }) => ({
+  id,
+  label,
+}));
 
 /* ------------------------------------------------------------------ */
 /* UX validation rules (client-side only — server is authoritative)    */

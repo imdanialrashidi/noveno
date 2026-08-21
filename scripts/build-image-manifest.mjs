@@ -2,10 +2,14 @@
 /**
  * Build the image version manifest (content-addressed image URLs).
  *
- * Walks `public/images/**` and maps every logical image path to a
- * content-hashed URL, materializing a hashed copy next to the logical
- * file:  `public/images/photography/hero-1600.avif` →
+ * Walks `assets/images/**` (logical sources) and materializes
+ * content-hashed copies into `public/images/**`:
+ * `assets/images/photography/hero-1600.avif` →
  * `public/images/photography/hero-1600.<sha256-8>.avif`.
+ *
+ * Only hashed URLs are ever referenced; the logical copies never enter
+ * `public/` and never deploy. This keeps the deployment free of dead
+ * weight while preserving `immutable` caching correctness.
  *
  * Why: `public/_headers` serves `/images/*` with `immutable` caching.
  * That is only correct when the URL changes whenever the bytes change —
@@ -40,6 +44,7 @@ import {
 import { join, resolve } from "node:path";
 
 const ROOT = new URL("..", import.meta.url).pathname;
+const SOURCES_DIR = join(ROOT, "assets", "images");
 const IMAGES_DIR = join(ROOT, "public", "images");
 const OUT = join(ROOT, "src", "generated", "image-manifest.ts");
 
@@ -71,10 +76,21 @@ function shortHash(file) {
  * (bounded accumulation) rather than risking a wrong deletion.
  */
 export function collectPrunableCandidates(allFiles, logicalFiles) {
+  // Extract the suffix after "/images/" so that assets/images and
+  // public/images are compared by relative subdirectory, not absolute
+  // prefix. This keeps the single-dir fixture tests green while also
+  // supporting the two-directory production layout.
+  function dirKey(file) {
+    const normalized = file.replaceAll("\\", "/");
+    const marker = "/images/";
+    const idx = normalized.indexOf(marker);
+    if (idx !== -1) return normalized.slice(idx + marker.length, normalized.lastIndexOf("/") + 1);
+    return normalized.slice(0, normalized.lastIndexOf("/") + 1);
+  }
   const logicalBasesByDir = new Map();
   for (const raw of logicalFiles) {
     const file = raw.replaceAll("\\", "/");
-    const dir = file.slice(0, file.lastIndexOf("/") + 1);
+    const dir = dirKey(file);
     const base = file.slice(file.lastIndexOf("/") + 1).replace(/\.[^.]+$/, "");
     if (!logicalBasesByDir.has(dir)) logicalBasesByDir.set(dir, new Set());
     logicalBasesByDir.get(dir).add(base);
@@ -83,7 +99,7 @@ export function collectPrunableCandidates(allFiles, logicalFiles) {
     const file = raw.replaceAll("\\", "/");
     if (!HASHED_RE.test(file)) return false;
     const slash = file.lastIndexOf("/");
-    const dir = file.slice(0, slash + 1);
+    const dir = dirKey(file);
     const name = file.slice(slash + 1);
     const base = name.replace(HASHED_RE, "");
     return logicalBasesByDir.get(dir)?.has(base) === true;
@@ -92,29 +108,36 @@ export function collectPrunableCandidates(allFiles, logicalFiles) {
 
 const invokedPath = process.argv[1] ? resolve(process.argv[1]) : null;
 if (invokedPath === resolve(import.meta.filename)) {
-  /* Logical files = image files that are NOT already hashed copies. */
-  const allFiles = walk(IMAGES_DIR).filter((f) => EXTS.has(f.slice(f.lastIndexOf("."))));
-  const logical = allFiles.filter((f) => !HASHED_RE.test(f));
-  logical.sort();
+  /* Logical files live under assets/images; hashed outputs under public/images. */
+  const logical = existsSync(SOURCES_DIR)
+    ? walk(SOURCES_DIR)
+        .filter((f) => EXTS.has(f.slice(f.lastIndexOf("."))))
+        .filter((f) => !HASHED_RE.test(f))
+        .sort()
+    : [];
+  const existingHashed = existsSync(IMAGES_DIR)
+    ? walk(IMAGES_DIR).filter((f) => EXTS.has(f.slice(f.lastIndexOf("."))))
+    : [];
 
   const entries = [];
   const liveHashed = new Set();
   for (const file of logical) {
-    const logicalPath = file.slice(IMAGES_DIR.length + 1).replaceAll("\\", "/");
+    const logicalPath = file.slice(SOURCES_DIR.length + 1).replaceAll("\\", "/");
     const ext = logicalPath.slice(logicalPath.lastIndexOf("."));
     const base = logicalPath.slice(0, -ext.length);
     const hashedName = `${base.slice(base.lastIndexOf("/") + 1)}.${shortHash(file)}${ext}`;
     const hashedRel = `${base.slice(0, base.lastIndexOf("/") + 1)}${hashedName}`;
     const hashedFile = join(IMAGES_DIR, ...hashedRel.split("/"));
-    if (file !== hashedFile) {
-      copyFileSync(file, hashedFile); // idempotent: same bytes → same name
-    }
+    mkdirSync(join(IMAGES_DIR, ...hashedRel.split("/").slice(0, -1)), { recursive: true });
+    copyFileSync(file, hashedFile); // idempotent: same bytes → same name
     liveHashed.add(hashedFile);
     entries.push([logicalPath, hashedRel]);
   }
 
   /* Prune stale hashed copies — conservatively (see collectPrunableCandidates). */
-  for (const file of collectPrunableCandidates(allFiles, logical)) {
+  // allFiles for pruning are those currently in public/images
+  const allHashedForPrune = existingHashed;
+  for (const file of collectPrunableCandidates(allHashedForPrune, logical)) {
     if (!liveHashed.has(file)) {
       rmSync(file);
       console.log(`pruned stale variant: ${file.slice(IMAGES_DIR.length + 1)}`);
@@ -129,12 +152,15 @@ if (invokedPath === resolve(import.meta.filename)) {
     "// replacements (see docs/IMAGERY.md §replacement).",
     "",
     "export const imageManifest: Readonly<Record<string, string>> = {",
-    ...entries.map(([logicalPath, hashedRel]) => `  ${JSON.stringify(logicalPath)}: ${JSON.stringify(`/images/${hashedRel}`)},`),
+    ...entries.map(
+      ([logicalPath, hashedRel]) =>
+        `  ${JSON.stringify(logicalPath)}: ${JSON.stringify(`/images/${hashedRel}`)},`,
+    ),
     "};",
     "",
     "/**",
     " * Resolve a logical image path (relative to public/images/, WITH",
-    " * extension, e.g. \"photography/hero-1600.avif\") to its hashed URL.",
+    ' * extension, e.g. "photography/hero-1600.avif") to its hashed URL.',
     " * Unknown keys fall back to the plain path so dev environments and",
     " * new assets never 404 — but built sites always use the manifest.",
     " */",

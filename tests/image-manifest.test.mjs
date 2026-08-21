@@ -127,3 +127,47 @@ test("dot-named founder file with no matching logical base in the same dir is ne
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("production public/images contains only hashed files (no logical copies deployed)", () => {
+  const imagesDir = path.resolve(import.meta.dirname, "..", "public", "images");
+  if (!fs.existsSync(imagesDir)) return;
+  function walk(dir) {
+    const out = [];
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, entry.name);
+      if (entry.isDirectory()) out.push(...walk(p));
+      else out.push(p);
+    }
+    return out;
+  }
+  const EXTS = new Set([".avif", ".webp", ".png", ".jpg", ".jpeg"]);
+  const files = walk(imagesDir).filter((f) => EXTS.has(path.extname(f)));
+  for (const file of files) {
+    assert.ok(HASHED_RE.test(file), `unhashed file deployed: ${path.relative(imagesDir, file)}`);
+  }
+  assert.ok(files.length > 0, "at least one hashed image should exist");
+});
+
+test("two-directory layout: logical sources in assets/images do not appear in public/images", () => {
+  const sourcesDir = path.resolve(import.meta.dirname, "..", "assets", "images");
+  const imagesDir = path.resolve(import.meta.dirname, "..", "public", "images");
+  if (!fs.existsSync(sourcesDir) || !fs.existsSync(imagesDir)) return;
+  function walk(dir) {
+    const out = [];
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, entry.name);
+      if (entry.isDirectory()) out.push(...walk(p));
+      else out.push(p);
+    }
+    return out;
+  }
+  const sources = new Set(walk(sourcesDir).map((p) => path.basename(p)));
+  const hashedInPublic = walk(imagesDir).map((p) => path.basename(p));
+  // Every logical source basename should NOT appear verbatim in public (only hashed variants)
+  for (const src of sources) {
+    if (src.includes(".") && !HASHED_RE.test(path.join(imagesDir, src))) {
+      // src is logical like "hero.webp" — ensure no identical file in public
+      assert.ok(!hashedInPublic.includes(src), `logical file ${src} must not be in public/images`);
+    }
+  }
+});

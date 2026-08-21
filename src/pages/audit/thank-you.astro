@@ -35,11 +35,17 @@ const pointer = realWork[0] ?? null;
     <!-- Direct visitors (no submission in this session) get an honest note.
          The head script sets data-audit-done before first paint, so the
          guard is hidden by CSS with zero layout shift on the submit path. -->
-    <div id="thankyou-guard" class="mt-6 flex flex-col items-start gap-3 rounded-[4px] border border-line bg-surface-soft p-4">
+    <div
+      id="thankyou-guard"
+      class="mt-6 flex flex-col items-start gap-3 rounded-[4px] border border-line bg-surface-soft p-4"
+    >
       <p class="text-body text-text-muted">
         اگر در این نشست درخواستی ارسال نکرده‌اید، می‌توانید بررسی را از ابتدا شروع کنید.
       </p>
-      <a href="/audit" class="inline-flex min-h-11 items-center rounded-[4px] bg-primary px-5 text-ui font-medium text-on-primary transition-colors duration-150 hover:bg-primary-hover">
+      <a
+        href="/audit"
+        class="inline-flex min-h-11 items-center rounded-[4px] bg-primary px-5 text-ui font-medium text-on-primary transition-colors duration-150 hover:bg-primary-hover"
+      >
         شروع بررسی مسیر جذب
       </a>
     </div>
@@ -52,8 +58,8 @@ const pointer = realWork[0] ?? null;
         <div class="lg:col-span-5">
           <h2 id="next-title" class="text-h3 text-text">حالا چه اتفاقی می‌افتد؟</h2>
           <p class="mt-4 text-body text-text-muted measure-prose">
-            مسیر کوتاه و مشخص است: درخواست بررسی می‌شود و اگر همکاری مناسب باشد،
-            گفت‌وگو شروع می‌شود. هیچ وعده فروش تضمینی‌ای در کار نیست.
+            مسیر کوتاه و مشخص است: درخواست بررسی می‌شود و اگر همکاری مناسب باشد، گفت‌وگو شروع می‌شود. هیچ وعده
+            فروش تضمینی‌ای در کار نیست.
           </p>
           <div class="mt-6 flex flex-col gap-3 border-t border-line pt-6">
             <p class="text-ui font-medium text-text">سؤال فوری دارید؟</p>
@@ -83,18 +89,34 @@ const pointer = realWork[0] ?? null;
             </div>
           </div>
 
-          {pointer && (
-            <div class="mt-6 flex flex-col gap-3 border-t border-line pt-6">
-              <p class="text-ui font-medium text-text">نمونه‌ای واقعی از کار نوونو</p>
-              <a href={`/work/${pointer.id}`} class="group inline-flex min-h-11 w-fit items-center gap-2 text-ui font-medium text-accent-strong hover:text-text-action" data-event="project_opened" data-event-payload={`{"slug":"${pointer.id}"}`}>
-                {pointer.data.title}
-                <svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M19 12H5" />
-                  <path d="m12 19-7-7 7-7" />
-                </svg>
-              </a>
-            </div>
-          )}
+          {
+            pointer && (
+              <div class="mt-6 flex flex-col gap-3 border-t border-line pt-6">
+                <p class="text-ui font-medium text-text">نمونه‌ای واقعی از کار نوونو</p>
+                <a
+                  href={`/work/${pointer.id}`}
+                  class="group inline-flex min-h-11 w-fit items-center gap-2 text-ui font-medium text-accent-strong hover:text-text-action"
+                  data-event="project_opened"
+                  data-event-payload={`{"slug":"${pointer.id}"}`}
+                >
+                  {pointer.data.title}
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M19 12H5" />
+                    <path d="m12 19-7-7 7-7" />
+                  </svg>
+                </a>
+              </div>
+            )
+          }
         </div>
         <div class="lg:col-span-7">
           <p class="mb-4 text-ui font-medium text-text-muted">چهار قدم بعدی</p>

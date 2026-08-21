@@ -31,6 +31,11 @@ const config: Record<ProofKind, { label: string; classes: string }> = {
 const c = config[Astro.props.kind];
 ---
 
-<span class:list={["inline-flex items-center rounded-[4px] border bg-surface px-2.5 py-1 text-caption", c.classes]}>
+<span
+  class:list={[
+    "inline-flex items-center rounded-[4px] border bg-surface px-2.5 py-1 text-caption",
+    c.classes,
+  ]}
+>
   {c.label}
 </span>

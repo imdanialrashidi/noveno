@@ -23,15 +23,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import {
-  captureAttribution,
-  readAttribution,
-  track,
-  initAnalytics,
-} from "../src/scripts/analytics.ts";
+import { captureAttribution, readAttribution, track, initAnalytics } from "../src/scripts/analytics.ts";
 import { initThemeToggle } from "../src/scripts/theme.ts";
 import { initMobileMenu } from "../src/scripts/menu.ts";
 import { initReveal, initHeroParallax } from "../src/scripts/motion.ts";
+import { TurnstileBridge } from "../src/scripts/audit/turnstile.ts";
 import { EVENT_NAMES, EVENT_PAYLOAD_KEYS } from "../functions/lib/contract.ts";
 
 /* ------------------------------------------------------------------ */
@@ -48,7 +44,9 @@ function matchesSelector(el, selector) {
         parts.push({ attr: m[1], value: m[2] ?? null });
       }
       if (parts.length === 0) continue;
-      if (parts.every((p) => (p.value === null ? el.hasAttribute(p.attr) : el.getAttribute(p.attr) === p.value))) {
+      if (
+        parts.every((p) => (p.value === null ? el.hasAttribute(p.attr) : el.getAttribute(p.attr) === p.value))
+      ) {
         return true;
       }
     } else if (/^[a-z][\w-]*$/i.test(part)) {
@@ -164,7 +162,12 @@ class FakeEl {
 /* Global stubs (reset per test via installClientGlobals)              */
 /* ------------------------------------------------------------------ */
 
-function makeMatchMedia({ reducedMotion = false, dark = false, finePointer = true, minWidth1024 = true } = {}) {
+function makeMatchMedia({
+  reducedMotion = false,
+  dark = false,
+  finePointer = true,
+  minWidth1024 = true,
+} = {}) {
   const stubs = [];
   const impl = (query) => {
     const matches =
@@ -333,7 +336,11 @@ test("analytics: UTM + landing page + referrer + first_seen_at are captured", ()
   captureAttribution();
   const attribution = readAttribution();
   assert.ok(attribution, "capture must exist");
-  assert.equal(attribution.landing_page, "/audit?utm_source=ig&utm_medium=post&utm_campaign=launch", "landing_page is pathname + search");
+  assert.equal(
+    attribution.landing_page,
+    "/audit?utm_source=ig&utm_medium=post&utm_campaign=launch",
+    "landing_page is pathname + search",
+  );
   assert.equal(attribution.utm_source, "ig");
   assert.equal(attribution.utm_medium, "post");
   assert.equal(attribution.utm_campaign, "launch");
@@ -416,7 +423,11 @@ test("analytics: PII-free payload contract — beacon keys stay within the white
   }
   assert.ok(events.length >= 4, "every tracked event must be delivered");
   for (const event of events) {
-    assert.deepEqual(Object.keys(event).sort(), ["name", "payload"], "beacon bodies are exactly { name, payload }");
+    assert.deepEqual(
+      Object.keys(event).sort(),
+      ["name", "payload"],
+      "beacon bodies are exactly { name, payload }",
+    );
     assert.ok(EVENT_NAMES.includes(event.name), `event name ${event.name} must be a known event`);
     for (const key of Object.keys(event.payload)) {
       assert.ok(
@@ -545,7 +556,12 @@ test("menu: open sets state; Escape closes and returns focus to the trigger", ()
   assert.equal(firstFocusable.focused, true, "focus moves into the panel");
 
   let prevented = false;
-  globalThis.document.dispatchEvent("keydown", { key: "Escape", preventDefault: () => { prevented = true; } });
+  globalThis.document.dispatchEvent("keydown", {
+    key: "Escape",
+    preventDefault: () => {
+      prevented = true;
+    },
+  });
   assert.equal(prevented, true, "Escape must preventDefault");
   assert.equal(trigger.getAttribute("aria-expanded"), "false", "Escape closes the panel");
   assert.equal(panel.classList.contains("menu-open"), false);
@@ -577,7 +593,11 @@ test("menu: bounded timeout fallback hides the panel when transitionend never fi
   menuEnv.unsubscribe();
   assert.equal(menuEnv.closeCount(), 1, "unsubscribe invokes the close callback");
   menuEnv.trigger.dispatchEvent("click");
-  assert.equal(menuEnv.trigger.getAttribute("aria-expanded"), "true", "aria-expanded stays as-is after unsubscribe");
+  assert.equal(
+    menuEnv.trigger.getAttribute("aria-expanded"),
+    "true",
+    "aria-expanded stays as-is after unsubscribe",
+  );
   assert.equal(menuEnv.panel.hidden, false, "the panel no longer reacts after unsubscribe");
 });
 
@@ -590,7 +610,11 @@ test("motion: initReveal creates no IntersectionObserver under prefers-reduced-m
   const root = new FakeEl("div", {}, [new FakeEl("section", { "data-reveal": "" })]);
   initReveal(root);
   assert.equal(IntersectionObserverSpy.instances.length, 0, "reduced motion must skip the observer entirely");
-  assert.equal(root.children[0].classList.contains("reveal-init"), false, "no hidden starting state under reduced motion");
+  assert.equal(
+    root.children[0].classList.contains("reveal-init"),
+    false,
+    "no hidden starting state under reduced motion",
+  );
 });
 
 test("motion: initReveal observes below-fold targets and reveals above-fold ones immediately", () => {
@@ -607,16 +631,177 @@ test("motion: initReveal observes below-fold targets and reveals above-fold ones
 
   assert.equal(IntersectionObserverSpy.instances.length, 1, "exactly one shared observer");
   const observer = IntersectionObserverSpy.instances[0];
-  assert.deepEqual(observer.options, { rootMargin: "0px 0px -8% 0px", threshold: 0.01 }, "observer options are pinned");
+  assert.deepEqual(
+    observer.options,
+    { rootMargin: "0px 0px -8% 0px", threshold: 0.01 },
+    "observer options are pinned",
+  );
   assert.deepEqual(
     observer.observed.map((el) => el.tagName),
     ["SECTION", "SECTION"],
     "the below-fold [data-reveal] and [data-reveal-stagger] targets are observed",
   );
-  assert.equal(belowA.classList.contains("reveal-init"), true, "below-fold targets get the hidden starting state");
+  assert.equal(
+    belowA.classList.contains("reveal-init"),
+    true,
+    "below-fold targets get the hidden starting state",
+  );
   assert.equal(belowStagger.classList.contains("reveal-init"), true);
-  assert.equal(above.classList.contains("reveal-in"), true, "already-visible targets render in their final state");
+  assert.equal(
+    above.classList.contains("reveal-in"),
+    true,
+    "already-visible targets render in their final state",
+  );
   assert.equal(above.classList.contains("reveal-init"), false);
+});
+
+/* ================================================================== */
+/* TurnstileBridge lifecycle (plan 005)                                 */
+/* ================================================================== */
+
+function makeTurnstileMock() {
+  const mock = {
+    renders: 0,
+    resets: 0,
+    removes: 0,
+    widgetId: "w-bridge",
+    options: null,
+    render(_container, options) {
+      this.renders += 1;
+      this.options = options;
+      return this.widgetId;
+    },
+    reset() {
+      this.resets += 1;
+    },
+    remove() {
+      this.removes += 1;
+    },
+    emitToken(value) {
+      this.options.callback(value);
+    },
+    expire() {
+      this.options["expired-callback"]();
+    },
+    fail() {
+      this.options["error-callback"]();
+    },
+  };
+  return mock;
+}
+
+function installBridgeGlobals({ theme = "light", turnstile } = {}) {
+  const container = new FakeEl("div");
+  const head = new FakeEl("head");
+  const docEl = new FakeEl("html", { "data-theme": theme });
+  const doc = {
+    createElement: (tag) => new FakeEl(tag),
+    head,
+    documentElement: docEl,
+    getElementById: () => null,
+  };
+  globalThis.document = doc;
+  globalThis.window = globalThis;
+  globalThis.window.turnstile = turnstile;
+  globalThis.matchMedia = (query) => ({
+    matches: query === "(prefers-color-scheme: dark)" ? theme === "dark" : false,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  });
+  // Make effectiveTheme() see the attribute
+  docEl.getAttribute = (k) => (k === "data-theme" ? theme : null);
+  return { container, docEl };
+}
+
+test("turnstile: happy token reuse without reset", async () => {
+  const mock = makeTurnstileMock();
+  const { container } = installBridgeGlobals({ turnstile: mock, theme: "light" });
+  const bridge = new TurnstileBridge("test-key", container);
+  await bridge.ensureRendered();
+  assert.equal(mock.renders, 1);
+  mock.emitToken("t1");
+  const token = await bridge.getToken();
+  assert.equal(token, "t1");
+  assert.equal(mock.resets, 0, "fresh token must not reset widget");
+});
+
+test("turnstile: stale token beyond TTL triggers reset and waits for fresh", async () => {
+  const mock = makeTurnstileMock();
+  const { container } = installBridgeGlobals({ turnstile: mock, theme: "light" });
+  const bridge = new TurnstileBridge("test-key", container);
+  await bridge.ensureRendered();
+  mock.emitToken("t1");
+  // Fresh within TTL
+  let token = await bridge.getToken();
+  assert.equal(token, "t1");
+  assert.equal(mock.resets, 0);
+  // Make token stale by moving its timestamp back beyond TTL
+  bridge["tokenAt"] = Date.now() - 5 * 60_000;
+  const pending = bridge.getToken();
+  // Allow the async reset to run before asserting
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(mock.resets, 1, "stale token must trigger reset");
+  setTimeout(() => mock.emitToken("t2"), 10);
+  token = await pending;
+  assert.equal(token, "t2");
+});
+
+test("turnstile: expired-callback clears token and notifies waiters with null", async () => {
+  const mock = makeTurnstileMock();
+  const { container } = installBridgeGlobals({ turnstile: mock, theme: "light" });
+  const bridge = new TurnstileBridge("test-key", container);
+  await bridge.ensureRendered();
+  // Start getToken with no token — it will reset and wait
+  const pending = bridge.getToken();
+  // Allow the async waiter registration to complete before firing expiry
+  await new Promise((r) => setTimeout(r, 0));
+  mock.expire();
+  const token = await pending;
+  assert.equal(token, null, "expiry should resolve with null");
+});
+
+test("turnstile: invalidate clears token; retry clears scriptFailed", async () => {
+  const mock = makeTurnstileMock();
+  const { container } = installBridgeGlobals({ turnstile: mock, theme: "light" });
+  const bridge = new TurnstileBridge("test-key", container);
+  await bridge.ensureRendered();
+  mock.emitToken("t1");
+  assert.equal(await bridge.getToken(), "t1");
+  bridge.invalidate();
+  // After invalidate, getToken should reset
+  const pending = bridge.getToken();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(mock.resets, 1, "invalidate must force reset on next getToken");
+  // Resolve the pending wait with a fresh token
+  setTimeout(() => mock.emitToken("t2"), 0);
+  assert.equal(await pending, "t2");
+  // Retry clears scriptFailed flag (verify by forcing a failure then retry)
+  bridge["scriptFailed"] = true;
+  bridge.retry();
+  assert.equal(bridge["scriptFailed"], false, "retry must clear scriptFailed");
+  assert.equal(bridge["token"], null, "retry must clear token");
+});
+
+test("turnstile: syncTheme re-renders with other theme", async () => {
+  const mock = makeTurnstileMock();
+  const { container, docEl } = installBridgeGlobals({ turnstile: mock, theme: "light" });
+  // Override effectiveTheme behavior by toggling attribute and mock
+  const bridge = new TurnstileBridge("test-key", container);
+  await bridge.ensureRendered();
+  mock.emitToken("t1");
+  assert.equal(mock.renders, 1);
+  // Switch theme to dark
+  docEl.setAttribute("data-theme", "dark");
+  globalThis.matchMedia = (q) => ({
+    matches: q === "(prefers-color-scheme: dark)" ? true : false,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  });
+  bridge.syncTheme();
+  // Allow ensureRendered microtask to run
+  await new Promise((r) => setTimeout(r, 10));
+  assert.equal(mock.removes, 1, "syncTheme must remove old widget");
+  assert.equal(mock.renders, 2, "syncTheme must re-render with new theme");
 });
 
 test("motion: hero parallax is gated on reduced motion and fine pointer", () => {
@@ -630,7 +815,9 @@ test("motion: hero parallax is gated on reduced motion and fine pointer", () => 
   initHeroParallax(new FakeEl("div", {}, [hero2]));
   assert.equal(hero2._handlers.pointermove, undefined, "non-fine pointers (touch) must skip parallax wiring");
 
-  const env3 = installClientGlobals({ matchMedia: { reducedMotion: false, finePointer: true, minWidth1024: true } });
+  const env3 = installClientGlobals({
+    matchMedia: { reducedMotion: false, finePointer: true, minWidth1024: true },
+  });
   const hero3 = new FakeEl("div", { "data-hero-parallax": "" });
   hero3._rect = { left: 0, top: 0, width: 100, height: 100 };
   initHeroParallax(new FakeEl("div", {}, [hero3]));

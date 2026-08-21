@@ -19,7 +19,7 @@ as email via **Web3Forms** — the only lead-delivery destination.
 
 ## 2. Web3Forms (lead email delivery — the sole lead destination)
 
-> **Security note (plan 021):** `PUBLIC_WEB3FORMS_ACCESS_KEY` is public by design (client-side posting). An attacker who extracts it can POST directly to Web3Forms, bypassing honeypot/rate-limit/Turnstile. Mitigation: `/api/audit` issues a short-lived HMAC receipt (`validation_receipt`) that the client echoes to Web3Forms — validated leads carry a receipt, direct POSTs show `validation_receipt: none` in the inbox. `TURNSTILE_SECRET_KEY` is the HMAC key — rotate it if exposed (outstanding receipts ≤10 min). `D-01` (server-side email) will remove this vector entirely.
+> **Security note (plan 021):** `PUBLIC_WEB3FORMS_ACCESS_KEY` is public by design (client-side posting). An attacker who extracts it can POST directly to Web3Forms, bypassing honeypot/rate-limit/Turnstile. Mitigation: `/api/audit` issues a short-lived HMAC receipt (`validation_receipt`) that the client echoes to Web3Forms — validated leads carry a receipt, direct POSTs show `validation_receipt: none` in the inbox. `TURNSTILE_SECRET_KEY` is the HMAC key — rotate it if exposed. The receipt is advisory until the D‑01 cutover (no automated verifier yet); treat `validation_receipt != none` as a hint, not proof. `D-01` (server-side email) will remove this vector entirely.
 
 1. Create an access key at <https://web3forms.com> (free; email to the
    founder inbox). Web3Forms posts happen **client-side** after `/api/audit`
@@ -50,6 +50,7 @@ as email via **Web3Forms** — the only lead-delivery destination.
    `.node-version` / `.nvmrc` at the repo root, so the build uses 22.23.2
    instead of the image default (22.16.0 on v2). Do not set a `NODE_VERSION`
    project variable that contradicts it.
+
 2. Production branch: `main`. **Compatibility flag `nodejs_compat` is
    already committed in `wrangler.jsonc`** — confirm it shows in the project
    settings (Settings → Functions → Compatibility flags).

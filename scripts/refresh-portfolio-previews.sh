@@ -9,7 +9,7 @@
 # new previews in the browser (docs/IMAGERY.md §work).
 set -euo pipefail
 
-out_dir="public/images/work"
+out_dir="assets/images/work"
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 

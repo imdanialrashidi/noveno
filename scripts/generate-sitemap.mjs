@@ -4,7 +4,7 @@
  *
  * The sitemap must always reflect what the build actually publishes:
  *  - static public routes (fixed list — matches src/pages);
- *  - every work entry (the work collection has no draft gate);
+ *  - every PUBLISHED work entry (draft: true skipped — same gate as pages);
  *  - every PUBLISHED blog article (draft: true is skipped — the
  *    same gate the page build applies, so drafts can never leak here).
  *
@@ -24,9 +24,10 @@
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import YAML from "yaml";
+import { FALLBACK_SITE_ORIGIN } from "./lib/site-origin.mjs";
 
 const ROOT = new URL("..", import.meta.url).pathname;
-const SITE = process.env.PUBLIC_APP_URL ?? "https://noveno.ir";
+const SITE = process.env.PUBLIC_APP_URL ?? FALLBACK_SITE_ORIGIN;
 const OUT = join(ROOT, "public", "sitemap.xml");
 
 /** Static routes (must match src/pages): path → { changefreq, priority, lastmod }. */
@@ -70,12 +71,14 @@ function isoDate(value) {
 }
 
 function main() {
-  const work = contentEntries("work").map(({ slug, data }) => ({
-    path: `/work/${slug}`,
-    changefreq: "yearly",
-    priority: data.type === "concept" ? "0.4" : "0.6",
-    lastmod: isoDate(data.published_at),
-  }));
+  const work = contentEntries("work")
+    .filter(({ data }) => !data.draft)
+    .map(({ slug, data }) => ({
+      path: `/work/${slug}`,
+      changefreq: "yearly",
+      priority: data.type === "concept" ? "0.4" : "0.6",
+      lastmod: isoDate(data.published_at),
+    }));
 
   const blog = contentEntries("blog")
     .filter(({ data }) => !data.draft) // drafts never reach the sitemap
@@ -86,11 +89,7 @@ function main() {
       lastmod: isoDate(data.updated_at ?? data.published_at),
     }));
 
-  const urls = [
-    ...STATIC_ROUTES.map((r) => ({ ...r, lastmod: STATIC_LASTMOD })),
-    ...work,
-    ...blog,
-  ];
+  const urls = [...STATIC_ROUTES.map((r) => ({ ...r, lastmod: STATIC_LASTMOD })), ...work, ...blog];
 
   const lines = [
     '<?xml version="1.0" encoding="UTF-8"?>',

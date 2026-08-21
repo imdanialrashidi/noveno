@@ -37,7 +37,12 @@ test("sitemap covers every indexable built page and nothing stale", () => {
       const html = fs.readFileSync(f, "utf8");
       return !/name="robots"[^>]*noindex/.test(html);
     })
-    .map((f) => path.relative(dist, f).replace(/index\.html$/, "").replace(/\.html$/, ""))
+    .map((f) =>
+      path
+        .relative(dist, f)
+        .replace(/index\.html$/, "")
+        .replace(/\.html$/, ""),
+    )
     .map((rel) => `${site}/${rel}`.replace(/\/$/, ""));
   const expected = new Set(pages);
   const listed = new Set(locs.map((l) => l.replace(/\/$/, "")));
@@ -77,7 +82,11 @@ test("every built page carries Organization + WebSite structured data", () => {
   const pages = walk(dist).filter((f) => f.endsWith(".html"));
   for (const file of pages) {
     const html = fs.readFileSync(file, "utf8");
-    assert.match(html, /"@type":"Organization"/, `${path.relative(dist, file)}: missing Organization JSON-LD`);
+    assert.match(
+      html,
+      /"@type":"Organization"/,
+      `${path.relative(dist, file)}: missing Organization JSON-LD`,
+    );
     assert.match(html, /"@type":"WebSite"/, `${path.relative(dist, file)}: missing WebSite JSON-LD`);
   }
 });
@@ -132,11 +141,18 @@ test("per-page social cards exist and are referenced with correct metadata", () 
 
 test("insights → blog migration: permanent redirects and no duplicate indexable routes", () => {
   const redirects = fs.readFileSync(path.join(root, "public", "_redirects"), "utf8");
-  assert.match(redirects, /^\/insights\/\*\s+\/blog\/:splat\s+301$/m, "article slug redirect must be 301 and 1:1");
+  assert.match(
+    redirects,
+    /^\/insights\/\*\s+\/blog\/:splat\s+301$/m,
+    "article slug redirect must be 301 and 1:1",
+  );
   assert.match(redirects, /^\/insights\s+\/blog\s+301$/m, "index redirect must be 301");
   // canonical article path is /blog/[slug]; nothing indexable may remain under /insights
   assert.ok(!fs.existsSync(path.join(dist, "insights")), "no /insights pages may be built");
-  assert.ok(fs.existsSync(path.join(dist, "blog", "instagram-lead-tracking", "index.html")), "/blog/[slug] must be built");
+  assert.ok(
+    fs.existsSync(path.join(dist, "blog", "instagram-lead-tracking", "index.html")),
+    "/blog/[slug] must be built",
+  );
 });
 
 test("draft blog articles never build and never enter the sitemap", () => {
@@ -147,12 +163,23 @@ test("draft blog articles never build and never enter the sitemap", () => {
   assert.ok(!sitemap.includes("/insights/"), "sitemap must not list any old /insights URL");
 });
 
+test("draft work entries never build and never enter the sitemap (parity with blog)", () => {
+  const draftHtml = path.join(dist, "work", "draft-sample", "index.html");
+  assert.ok(!fs.existsSync(draftHtml), "draft work must not be built");
+  const sitemap = fs.readFileSync(path.join(root, "public", "sitemap.xml"), "utf8");
+  assert.ok(!sitemap.includes("/work/draft-sample"), "draft work must not be in the sitemap");
+});
+
 test("published blog article ships Article schema, breadcrumbs, canonical and fa-IR", () => {
   const html = fs.readFileSync(path.join(dist, "blog", "instagram-lead-tracking", "index.html"), "utf8");
   assert.match(html, /"@type":"Article"/, "article page must carry Article JSON-LD");
   assert.match(html, /"datePublished"/, "article schema must carry the publication date");
   assert.match(html, /"@type":"BreadcrumbList"/, "article page must carry breadcrumbs");
-  assert.match(html, /rel="canonical" href="https:\/\/noveno\.ir\/blog\/instagram-lead-tracking"/, "article canonical must be exact /blog URL");
+  assert.match(
+    html,
+    /rel="canonical" href="https:\/\/noveno\.ir\/blog\/instagram-lead-tracking"/,
+    "article canonical must be exact /blog URL",
+  );
   assert.match(html, /property="og:type" content="article"/, "article og:type must be article");
   assert.match(html, /<html[^>]*lang="fa"[^>]*dir="rtl"/, "article page must be fa + rtl");
   assert.ok(html.includes("وبلاگ"), "article page must use blog terminology");
@@ -186,8 +213,5 @@ test("thank-you page ships the pre-paint guard script (reviewer MAJOR)", () => {
     /noveno:audit:done/,
     "thank-you must contain the data-audit-done head script (guard regression guard)",
   );
-  assert.ok(
-    html.includes("data-audit-done"),
-    "the head script must set the data-audit-done attribute",
-  );
+  assert.ok(html.includes("data-audit-done"), "the head script must set the data-audit-done attribute");
 });

@@ -3,7 +3,12 @@
   "routes": [
     {
       "id": "workflow-evals",
-      "include": ["scripts/run-workflow-evals.mjs", "scripts/lib/workflow-evals.mjs", "evals/**", "tests/workflow-evals.test.mjs"],
+      "include": [
+        "scripts/run-workflow-evals.mjs",
+        "scripts/lib/workflow-evals.mjs",
+        "evals/**",
+        "tests/workflow-evals.test.mjs"
+      ],
       "commands": [
         ["node", "--test", "tests/workflow-evals.test.mjs"],
         ["node", "scripts/run-workflow-evals.mjs", "--dry-run"]
@@ -12,23 +17,22 @@
     {
       "id": "verification-router",
       "include": ["scripts/verify-affected.mjs", "tests/verify-affected.test.mjs", ".pi/verification.json"],
-      "commands": [
-        ["node", "--test", "tests/verify-affected.test.mjs"]
-      ]
+      "commands": [["node", "--test", "tests/verify-affected.test.mjs"]]
     },
     {
       "id": "safety-guard",
-      "include": [".pi/extensions/safety-guard.js", ".mcp.json", "scripts/pi-sandbox.sh", "tests/safety-guard.test.mjs"],
-      "commands": [
-        ["node", "--test", "tests/safety-guard.test.mjs"]
-      ]
+      "include": [
+        ".pi/extensions/safety-guard.js",
+        ".mcp.json",
+        "scripts/pi-sandbox.sh",
+        "tests/safety-guard.test.mjs"
+      ],
+      "commands": [["node", "--test", "tests/safety-guard.test.mjs"]]
     },
     {
       "id": "launcher",
       "include": ["p", "scripts/pi-sandbox.sh", "tests/launcher.test.mjs"],
-      "commands": [
-        ["node", "--test", "tests/launcher.test.mjs"]
-      ]
+      "commands": [["node", "--test", "tests/launcher.test.mjs"]]
     },
     {
       "id": "project-contract",
@@ -54,15 +58,54 @@
     },
     {
       "id": "workflow-contract",
-      "include": ["AGENTS.md", ".mcp.json", ".pi/**", ".github/**", "p", "package.json", "*.md", "docs/**", "scripts/*.sh", "scripts/verify-package-integrity.mjs", "Dockerfile.pi", ".dockerignore", "tests/gate-order.test.mjs"],
+      "include": [
+        "AGENTS.md",
+        ".mcp.json",
+        ".pi/**",
+        ".github/**",
+        "p",
+        "package.json",
+        "*.md",
+        "docs/**",
+        "scripts/*.sh",
+        "scripts/verify-package-integrity.mjs",
+        "Dockerfile.pi",
+        ".dockerignore",
+        "tests/gate-order.test.mjs",
+        "tests/lane-coverage.test.mjs"
+      ],
       "commands": [
         ["bash", "scripts/pi-doctor.sh", "--ci", "--static"],
-        ["node", "--test", "tests/gate-order.test.mjs"]
+        ["node", "--test", "tests/gate-order.test.mjs"],
+        ["node", "--test", "tests/lane-coverage.test.mjs"]
       ]
     },
     {
       "id": "app",
-      "include": ["src/**", "package.json", "package-lock.json", "astro.config.mjs", "tsconfig.json", "wrangler.jsonc", "public/**", "scripts/build-image-manifest.mjs", "scripts/generate-sitemap.mjs", "scripts/validate-og-assets.mjs", "tests/structural.test.mjs", "tests/seo-contract.test.mjs", "tests/content.test.mjs", "tests/audit-retry.test.mjs", "tests/blog.test.mjs", "tests/og-assets.test.mjs", "tests/site-data.test.mjs", "tests/client-modules.test.mjs", "tests/validation-equivalence.test.mjs", "tests/image-manifest.test.mjs", "tests/sitemap-parser.test.mjs"],
+      "include": [
+        "src/**",
+        "package.json",
+        "package-lock.json",
+        "astro.config.mjs",
+        "tsconfig.json",
+        "wrangler.jsonc",
+        "public/**",
+        "scripts/build-image-manifest.mjs",
+        "scripts/generate-sitemap.mjs",
+        "scripts/validate-og-assets.mjs",
+        "tests/structural.test.mjs",
+        "tests/seo-contract.test.mjs",
+        "tests/content.test.mjs",
+        "tests/audit-retry.test.mjs",
+        "tests/blog.test.mjs",
+        "tests/og-assets.test.mjs",
+        "tests/site-data.test.mjs",
+        "tests/client-modules.test.mjs",
+        "tests/validation-equivalence.test.mjs",
+        "tests/image-manifest.test.mjs",
+        "tests/sitemap-parser.test.mjs",
+        "tests/work-filter.test.mjs"
+      ],
       "commands": [
         ["npm", "run", "check"],
         ["npm", "run", "build"],
@@ -76,20 +119,20 @@
         ["node", "--test", "tests/client-modules.test.mjs"],
         ["node", "--test", "tests/validation-equivalence.test.mjs"],
         ["node", "--test", "tests/image-manifest.test.mjs"],
-        ["node", "--test", "tests/sitemap-parser.test.mjs"]
+        ["node", "--test", "tests/sitemap-parser.test.mjs"],
+        ["node", "--test", "tests/work-filter.test.mjs"]
       ]
     },
     {
       "id": "functions",
-      "include": ["functions/**", "tests/audit-function.test.mjs"],
+      "include": ["functions/**", "tests/audit-function.test.mjs", "tests/audit-email-spike.test.mjs"],
       "commands": [
         ["npm", "run", "check"],
         ["node", "--test", "tests/audit-function.test.mjs"],
+        ["node", "--test", "tests/audit-email-spike.test.mjs"],
         ["npm", "run", "build"]
       ]
     }
   ],
-  "fallback": [
-    ["bash", "scripts/verify.sh"]
-  ]
+  "fallback": [["bash", "scripts/verify.sh"]]
 }
