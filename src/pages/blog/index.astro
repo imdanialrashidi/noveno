@@ -35,6 +35,9 @@ const readingLabel = (body: string) => `${toFaDigits(readingMinutes(body))} دق
   ogImage="/og/blog.png"
   ogImageAlt="وبلاگ نوونو — نوشته‌هایی درباره جذب و پیگیری مشتری"
 >
+  <Fragment slot="head">
+    <link rel="alternate" type="application/rss+xml" title="وبلاگ نوونو" href="/rss.xml" />
+  </Fragment>
   <!-- Page head — simple and direct -->
   <section aria-labelledby="blog-title">
     <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">

@@ -16,6 +16,8 @@ const entries = (await getCollection("work")).sort((a, b) => {
   return b.data.published_at.valueOf() - a.data.published_at.valueOf();
 });
 
+const industries = [...new Set(entries.map((e) => e.data.industry))].sort((a, b) => a.localeCompare(b, "fa"));
+
 const jalali = (date: Date) =>
   new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "long" }).format(date);
 ---
@@ -54,10 +56,20 @@ const jalali = (date: Date) =>
   <section class="border-t border-line" aria-labelledby="work-list-title">
     <div class="mx-auto max-w-[1200px] px-5 py-10 sm:px-8 lg:py-16">
       <h2 id="work-list-title" class="sr-only">فهرست کارها</h2>
+      {industries.length > 1 && (
+        <div data-work-filter role="group" aria-label="پالایش بر اساس حوزه" class="mb-8 flex flex-wrap items-center gap-2 border-b border-line pb-6">
+          <span class="text-meta text-text-faint">پالایش:</span>
+          <button data-industry-filter="all" aria-pressed="true" class="rounded-[4px] border border-line bg-surface px-3 py-1.5 text-ui font-medium text-text transition-colors hover:border-primary hover:text-text-action aria-[pressed=true]:border-primary aria-[pressed=true]:bg-primary-soft aria-[pressed=true]:text-text-action">همه</button>
+          {industries.map((ind) => (
+            <button data-industry-filter={ind} aria-pressed="false" class="rounded-[4px] border border-line bg-surface px-3 py-1.5 text-ui font-medium text-text transition-colors hover:border-primary hover:text-text-action aria-[pressed=true]:border-primary aria-[pressed=true]:bg-primary-soft aria-[pressed=true]:text-text-action">{ind}</button>
+          ))}
+        </div>
+      )}
       {entries.length > 0 ? (
         <div class="flex flex-col">
           {entries.map((entry, index) => (
-            <WorkCard
+            <div data-industry={entry.data.industry}>
+              <WorkCard
               kind={entry.data.type}
               title={entry.data.title}
               summary={entry.data.summary}
@@ -73,7 +85,8 @@ const jalali = (date: Date) =>
               preview={previewFor(entry.id)}
               featured={entry.data.featured}
               flip={index % 2 === 1}
-            />
+              />
+            </div>
           ))}
         </div>
       ) : (
@@ -83,6 +96,12 @@ const jalali = (date: Date) =>
           </p>
         </div>
       )}
+      <div id="work-empty" hidden class="border-t border-line py-16">
+        <p class="text-body text-text-muted">هنوز نمونه‌ای در این حوزه منتشر نشده است</p>
+        <div class="mt-4">
+          <Button href="/contact" variant="secondary">تماس مستقیم</Button>
+        </div>
+      </div>
 
       <div class="mt-6 flex flex-col gap-3 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
         <p class="text-meta text-text-faint">معیار انتشار: واقعی بودن، شواهد قابل ارجاع، و برچسب صادقانه — به این ترتیب.</p>
@@ -93,3 +112,9 @@ const jalali = (date: Date) =>
 
   <CTASection />
 </PageLayout>
+
+<script>
+  import { initWorkFilter } from "../../scripts/work-filter";
+  const root = document.querySelector<HTMLElement>("[data-work-filter]");
+  if (root) initWorkFilter(root);
+</script>

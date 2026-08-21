@@ -213,6 +213,7 @@ test("every /images/ reference in built pages is content-hashed and exists on di
 });
 
 test("interactive JS ≤ 15 KB gzip and no client framework runtime", () => {
+  // Baselines 2026-08-21 post-email-only (plan 026): audit 21.6K raw → 7269 gzip, total 10147 gzip (budget 15360); fonts 165KB raw (budget 200KB)
   const jsFiles = walk(path.join(dist, "_astro")).filter((f) => f.endsWith(".js"));
   // Astro inlines small page-scoped modules; measure them too.
   const inlineModules = [];
@@ -226,6 +227,14 @@ test("interactive JS ≤ 15 KB gzip and no client framework runtime", () => {
     jsFiles.reduce((sum, f) => sum + gzipSync(fs.readFileSync(f)).length, 0) +
     gzipSync(inlineModules.join("\n")).length;
   assert.ok(total <= 15 * 1024, `interactive JS ${total} bytes gzip exceeds 15 KB`);
+  // Diagnostic: per-file gzip breakdown (useful when the next feature adds JS)
+  if (process.env.VERBOSE || process.env.CI) {
+    for (const f of jsFiles) {
+      console.log(`  ${path.basename(f)}: ${gzipSync(fs.readFileSync(f)).length} gzip`);
+    }
+    console.log(`  inline modules: ${gzipSync(inlineModules.join("\n")).length} gzip`);
+    console.log(`  total: ${total} gzip (budget ${15 * 1024})`);
+  }
   const all = jsFiles.map((f) => fs.readFileSync(f, "utf8")).join("") + inlineModules.join("\n");
   for (const marker of ["__fragment_registry__", "React.createElement", "createApp("]) {
     assert.ok(!all.includes(marker), `client framework marker found: ${marker}`);
@@ -304,6 +313,14 @@ test("security headers include HSTS and upgrade-insecure-requests", () => {
   const headers = fs.readFileSync(path.join(root, "public", "_headers"), "utf8");
   assert.match(headers, /Strict-Transport-Security: max-age=31536000; includeSubDomains/);
   assert.match(headers, /upgrade-insecure-requests/);
+});
+
+test("CSP connect-src includes the Web3Forms origin (plan 024)", () => {
+  const headers = fs.readFileSync(path.join(root, "public", "_headers"), "utf8");
+  const fallback = "https://api.web3forms.com";
+  const envOrigin = process.env.PUBLIC_WEB3FORMS_URL ? new URL(process.env.PUBLIC_WEB3FORMS_URL).origin : fallback;
+  assert.ok(headers.includes(envOrigin), `public/_headers connect-src must include ${envOrigin}`);
+  assert.ok(!headers.includes("connect-src *") && !headers.includes("connect-src https:"), "connect-src must not contain wildcards");
 });
 
 // Convenience: run the canonical build from the test (used by verify.sh flow).

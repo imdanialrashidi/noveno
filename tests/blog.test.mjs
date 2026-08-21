@@ -105,3 +105,30 @@ test("frontmatter parser handles YAML arrays and quoted colons", () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 });
+
+test("rss feed exists, is valid RSS 2.0, and excludes drafts (plan 029)", () => {
+  const distRss = path.resolve(import.meta.dirname, "..", "dist", "rss.xml");
+  if (!fs.existsSync(distRss)) {
+    // Allow test to be skipped when dist not built (e.g. verify-affected without full gate)
+    // but in full gate it must exist.
+    if (process.env.CI || fs.existsSync(path.resolve(import.meta.dirname, "..", "dist", "blog", "index.html"))) {
+      assert.fail("dist/rss.xml missing — run npm run build");
+    }
+    return;
+  }
+  const feed = fs.readFileSync(distRss, "utf8");
+  assert.match(feed, /<rss[^>]*version="2.0"/, "must be RSS 2.0");
+  assert.match(feed, /<language>fa<\/language>/, "must have fa language");
+  for (const p of published) {
+    const slug = p.file.replace(/\.md$/, "");
+    assert.ok(feed.includes(`/blog/${slug}/`), `published ${slug} must be in feed`);
+  }
+  const drafts = entries.filter((e) => e.data.draft);
+  for (const d of drafts) {
+    const slug = d.file.replace(/\.md$/, "");
+    assert.ok(!feed.includes(`/blog/${slug}/`), `draft ${slug} must not be in feed`);
+  }
+  // discovery link
+  const blogHtml = fs.readFileSync(path.resolve(import.meta.dirname, "..", "dist", "blog", "index.html"), "utf8");
+  assert.ok(blogHtml.includes('href="/rss.xml"') && blogHtml.includes('application/rss+xml'), "blog must expose RSS discovery link");
+});

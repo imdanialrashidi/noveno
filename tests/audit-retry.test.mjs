@@ -1129,3 +1129,163 @@ test("draft restore: a saved draft renders at its step with values applied and k
     "the counter follows the resumed journey",
   );
 });
+
+test("audit validation receipt is echoed in Web3Forms body (plan 021)", async () => {
+  await sleep(900);
+  const turnstile = makeTurnstileMock();
+  const receipt = "11111111-1111-1111-1111-111111111111.2026-08-21T10:00:00.000Z." + "a".repeat(64);
+  const env = installGlobals({
+    turnstile,
+    fetchImpl: [() => ({ ok: true, status: 200, json: async () => ({ ok: true, status: "validated", receipt }) })],
+  });
+  const dom = buildAuditDom();
+  globalThis.document = dom.document;
+  initAudit({ turnstileSiteKey: "test-site-key", web3formsKey: "wf-test-key", web3formsUrl: "https://api.web3forms.com/submit" });
+  await walkToContactStep(dom);
+  dom.getElementById("audit-next").dispatchEvent("click");
+  await tick();
+  turnstile.emitToken("token-1");
+  await tick();
+  await sleep(50);
+  assert.equal(web3Posts(env).length, 1, "one delivery with receipt");
+  const body = JSON.parse(web3Posts(env)[0].body);
+  assert.equal(body.validation_receipt, receipt, "receipt echoed");
+  assert.ok(body.validated_at, "validated_at present");
+  assert.equal(body.delivery_attempt, "1", "first attempt marker");
+});
+
+test("delivery without server receipt sends validation_receipt none (bypass guard)", async () => {
+  await sleep(900);
+  const turnstile = makeTurnstileMock();
+  const env = installGlobals({
+    turnstile,
+    fetchImpl: [okResponse],
+  });
+  const dom = buildAuditDom();
+  globalThis.document = dom.document;
+  initAudit({ turnstileSiteKey: "test-site-key", web3formsKey: "wf-test-key", web3formsUrl: "https://api.web3forms.com/submit" });
+  await walkToContactStep(dom);
+  dom.getElementById("audit-next").dispatchEvent("click");
+  await tick();
+  turnstile.emitToken("token-1");
+  await tick();
+  await sleep(50);
+  const body = JSON.parse(web3Posts(env)[0].body);
+  assert.equal(body.validation_receipt, "none", "missing receipt falls back to none");
+});
+
+test("Web3Forms success: delivery_attempt is 1 and submission_id stable (plan 025)", async () => {
+  await sleep(900);
+  const turnstile = makeTurnstileMock();
+  const env = installGlobals({ turnstile, fetchImpl: [okResponse] });
+  const dom = buildAuditDom();
+  globalThis.document = dom.document;
+  initAudit({ turnstileSiteKey: "test-site-key", web3formsKey: "wf-test-key", web3formsUrl: "https://api.web3forms.com/submit" });
+  await walkToContactStep(dom);
+  dom.getElementById("audit-next").dispatchEvent("click");
+  await tick();
+  turnstile.emitToken("token-1");
+  await tick();
+  await sleep(50);
+  const posts = web3Posts(env);
+  assert.equal(posts.length, 1);
+  const body = JSON.parse(posts[0].body);
+  assert.equal(body.delivery_attempt, "1");
+  assert.equal(body.submission_id, env.auditCalls[0].submission_id);
+  assert.equal(body.delivery_attempt, "1");
+});
+
+test("Web3Forms bounded retry: second attempt has delivery_attempt 2", async () => {
+  await sleep(900);
+  const turnstile = makeTurnstileMock();
+  const env = installGlobals({ turnstile, fetchImpl: [okResponse], web3formsMode: "throw" });
+  const dom = buildAuditDom();
+  globalThis.document = dom.document;
+  initAudit({ turnstileSiteKey: "test-site-key", web3formsKey: "wf-test-key", web3formsUrl: "https://api.web3forms.com/submit" });
+  await walkToContactStep(dom);
+  dom.getElementById("audit-next").dispatchEvent("click");
+  await tick();
+  turnstile.emitToken("token-1");
+  await tick();
+  await sleep(50);
+  assert.equal(web3Posts(env).length, 2, "two attempts");
+  const second = JSON.parse(web3Posts(env)[1].body);
+  assert.equal(second.delivery_attempt, "2");
+});
+
+test("rapid double-click does not double-deliver (plan 025 submitting guard)", async () => {
+  await sleep(900);
+  const turnstile = makeTurnstileMock();
+  let resolveAudit;
+  const env = installGlobals({
+    turnstile,
+    fetchImpl: [() => new Promise((resolve) => { resolveAudit = () => resolve(okResponse()); })],
+  });
+  const dom = buildAuditDom();
+  globalThis.document = dom.document;
+  initAudit({ turnstileSiteKey: "test-site-key", web3formsKey: "wf-test-key", web3formsUrl: "https://api.web3forms.com/submit" });
+  await walkToContactStep(dom);
+  dom.getElementById("audit-next").dispatchEvent("click");
+  await tick();
+  turnstile.emitToken("token-1");
+  await tick();
+  // While audit fetch is still pending (submitting = true), click again
+  dom.getElementById("audit-next").dispatchEvent("click");
+  await tick();
+  // Now resolve the first audit call
+  resolveAudit();
+  await tick();
+  await sleep(50);
+  assert.equal(env.auditCalls.length, 1, "guard holds — only one /api/audit request");
+  assert.equal(web3Posts(env).length, 1, "only one Web3Forms delivery");
+});
+
+test("createDraft falls back when crypto.randomUUID is unavailable (getRandomValues path)", async () => {
+  await sleep(900);
+  const orig = globalThis.crypto.randomUUID;
+  try {
+    Object.defineProperty(globalThis.crypto, "randomUUID", { value: undefined, configurable: true, writable: true });
+    const turnstile = makeTurnstileMock();
+    const env = installGlobals({ turnstile, fetchImpl: [okResponse] });
+    const dom = buildAuditDom();
+    globalThis.document = dom.document;
+    initAudit({ turnstileSiteKey: "test-site-key", web3formsKey: "wf-test-key", web3formsUrl: "https://api.web3forms.com/submit" });
+    await walkToContactStep(dom);
+    dom.getElementById("audit-next").dispatchEvent("click");
+    await tick();
+    turnstile.emitToken("token-fallback");
+    await tick();
+    await sleep(50);
+    const sid = env.auditCalls[0].submission_id;
+    assert.match(sid, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "fallback UUID must match pattern");
+    assert.match(sid, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i, "v4 variant");
+  } finally {
+    Object.defineProperty(globalThis.crypto, "randomUUID", { value: orig, configurable: true, writable: true });
+  }
+});
+
+test("createDraft falls back to Math.random when getRandomValues unavailable", async () => {
+  await sleep(900);
+  const origRandom = globalThis.crypto.randomUUID;
+  const origGetRandom = globalThis.crypto.getRandomValues;
+  try {
+    Object.defineProperty(globalThis.crypto, "randomUUID", { value: undefined, configurable: true, writable: true });
+    Object.defineProperty(globalThis.crypto, "getRandomValues", { value: undefined, configurable: true, writable: true });
+    const turnstile = makeTurnstileMock();
+    const env = installGlobals({ turnstile, fetchImpl: [okResponse] });
+    const dom = buildAuditDom();
+    globalThis.document = dom.document;
+    initAudit({ turnstileSiteKey: "test-site-key", web3formsKey: "wf-test-key", web3formsUrl: "https://api.web3forms.com/submit" });
+    await walkToContactStep(dom);
+    dom.getElementById("audit-next").dispatchEvent("click");
+    await tick();
+    turnstile.emitToken("token-math");
+    await tick();
+    await sleep(50);
+    const sid = env.auditCalls[0].submission_id;
+    assert.match(sid, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "Math.random fallback must be UUID-shaped");
+  } finally {
+    Object.defineProperty(globalThis.crypto, "randomUUID", { value: origRandom, configurable: true, writable: true });
+    Object.defineProperty(globalThis.crypto, "getRandomValues", { value: origGetRandom, configurable: true, writable: true });
+  }
+});

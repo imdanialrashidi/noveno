@@ -230,12 +230,27 @@ test("JS-parseable but non-ISO first_seen_at is rejected (MINOR-1: Postgres time
   }
 });
 
-test("future-dated first_seen_at is rejected (client clocks may not lie forward)", () => {
+test("future-dated first_seen_at is dropped, not stored (clock skew tolerance)", () => {
   const result = validateAuditPayload(
     validPayload({ attribution: { ...validPayload().attribution, first_seen_at: "2099-01-01T00:00:00.000Z" } }),
   );
-  assert.equal(result.ok, false);
-  if (!result.ok) assert.equal(result.fields["attribution.first_seen_at"], "invalid_date");
+  assert.equal(result.ok, true);
+  if (result.ok) assert.equal(result.value.attribution.first_seen_at, undefined);
+});
+
+test("first_seen_at within 4min skew is kept, beyond 6min is dropped (soft-drop window)", () => {
+  const within = new Date(Date.now() + 4 * 60_000).toISOString();
+  const beyond = new Date(Date.now() + 6 * 60_000).toISOString();
+  const kept = validateAuditPayload(
+    validPayload({ attribution: { ...validPayload().attribution, first_seen_at: within } }),
+  );
+  assert.equal(kept.ok, true);
+  if (kept.ok) assert.equal(kept.value.attribution.first_seen_at, within);
+  const dropped = validateAuditPayload(
+    validPayload({ attribution: { ...validPayload().attribution, first_seen_at: beyond } }),
+  );
+  assert.equal(dropped.ok, true);
+  if (dropped.ok) assert.equal(dropped.value.attribution.first_seen_at, undefined);
 });
 
 test("just-now first_seen_at is accepted and kept", () => {
@@ -624,6 +639,35 @@ test("duplicate submission_id still validates — no replay/dedupe machinery (em
   assert.equal((await second.json()).status, "validated");
 });
 
+test("audit validation receipt is issued when secret provided (plan 021)", async () => {
+  const submissionId = crypto.randomUUID();
+  const deps = makeDeps({ receiptSecret: "test-secret-key-for-hmac" }).deps;
+  const res = await handleAuditRequest(post(validPayload({ submission_id: submissionId })), deps);
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.status, "validated");
+  assert.ok(typeof body.receipt === "string", "receipt must be present");
+  assert.match(body.receipt, /^[0-9a-f-]{36}\.\d{4}-\d{2}-\d{2}T.*\.[0-9a-f]{64}$/, "receipt format: submissionId.issuedAt.hmac");
+  assert.ok(body.receipt.startsWith(submissionId), "receipt must start with submission_id");
+});
+
+test("audit validation receipt absent without secret (graceful fallback)", async () => {
+  const deps = makeDeps().deps;
+  const res = await handleAuditRequest(post(validPayload()), deps);
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.status, "validated");
+  assert.equal("receipt" in body, false, "no receipt without secret");
+});
+
+test("audit validation receipt not issued on failure responses", async () => {
+  const deps = makeDeps({ receiptSecret: "test-secret", verifyTurnstile: async () => ({ status: "fail", errorCodes: ["invalid"] }) }).deps;
+  const res = await handleAuditRequest(post(validPayload()), deps);
+  assert.equal(res.status, 403);
+  const body = await res.json();
+  assert.equal("receipt" in body, false, "no receipt on turnstile failure");
+});
+
 test("client option ids are exactly the server enum whitelists (no drift)", () => {
   const pairs = [
     [AUDIT_OPTIONS.industry.map((o) => o.id), INDUSTRIES],
@@ -671,7 +715,7 @@ test("events endpoint: 405 for GET, 413 for oversized body", async () => {
   const get = await eventsOnRequest({ request: new Request("https://noveno.ir/api/events"), env });
   assert.equal(get.status, 405);
   const big = await eventsOnRequest({
-    request: post({ name: "audit_submitted", payload: { page: "x".repeat(20_000) } }, {}) ,
+    request: post({ name: "audit_submitted", payload: { page: "x".repeat(20_000) } }, { origin: "https://noveno.ir", host: "noveno.ir" }) ,
     env,
   });
   assert.equal(big.status, 413);
@@ -679,7 +723,7 @@ test("events endpoint: 405 for GET, 413 for oversized body", async () => {
 
 test("events endpoint: 501 without the Analytics Engine binding (degraded)", async () => {
   const res = await eventsOnRequest({
-    request: post({ name: "audit_started", payload: { page: "/audit" } }),
+    request: post({ name: "audit_started", payload: { page: "/audit" } }, { origin: "https://noveno.ir", host: "noveno.ir" }),
     env: {},
   });
   assert.equal(res.status, 501);
@@ -688,7 +732,7 @@ test("events endpoint: 501 without the Analytics Engine binding (degraded)", asy
 test("events endpoint: writes a data point when the binding exists", async () => {
   const written = [];
   const res = await eventsOnRequest({
-    request: post({ name: "audit_step_completed", payload: { step: "2", page: "/audit" } }),
+    request: post({ name: "audit_step_completed", payload: { step: "2", page: "/audit" } }, { origin: "https://noveno.ir", host: "noveno.ir" }),
     env: {
       NOVENO_EVENTS: {
         writeDataPoint: (data) => written.push(data),
@@ -706,7 +750,7 @@ test("events endpoint: writes a data point when the binding exists", async () =>
 test("events endpoint: invalid payload returns 400 without writing", async () => {
   const written = [];
   const res = await eventsOnRequest({
-    request: post({ name: "audit_submitted", payload: { phone: "09353598620" } }),
+    request: post({ name: "audit_submitted", payload: { phone: "09353598620" } }, { origin: "https://noveno.ir", host: "noveno.ir" }),
     env: { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } },
   });
   assert.equal(res.status, 400);
@@ -723,7 +767,7 @@ test("events endpoint: enum payload values are whitelisted (step/service/channel
     eventsOnRequest({
       request: post(
         { name: "audit_submitted", payload },
-        { "cf-connecting-ip": "test-enum-values" },
+        { "cf-connecting-ip": "test-enum-values", origin: "https://noveno.ir", host: "noveno.ir" },
       ),
       env,
     });
@@ -743,7 +787,7 @@ test("events endpoint: pattern payload values are enforced (page/slug/section)",
     eventsOnRequest({
       request: post(
         { name: "audit_submitted", payload },
-        { "cf-connecting-ip": "test-pattern-values" },
+        { "cf-connecting-ip": "test-pattern-values", origin: "https://noveno.ir", host: "noveno.ir" },
       ),
       env,
     });
@@ -772,9 +816,21 @@ test("events endpoint: cross-site Origin is rejected, same-site passes (beacon g
     });
   assert.equal((await postTo({ origin: "https://evil.example", host: "noveno.ir" })).status, 400);
   assert.equal((await postTo({ origin: "https://noveno.ir", host: "noveno.ir" })).status, 204);
-  assert.equal((await postTo()).status, 204); // no Origin → same as today
+  assert.equal((await postTo({ referer: "https://noveno.ir/audit", host: "noveno.ir" })).status, 204); // no Origin but valid Referer → 204
+  assert.equal((await postTo()).status, 400); // no Origin and no Referer → 400 (curl)
   assert.equal((await postTo({ origin: "null", host: "noveno.ir" })).status, 400); // opaque origin
   assert.equal(written.length, 2);
+});
+
+test("events endpoint: no-Origin without Referer is rejected (curl guard)", async () => {
+  const written = [];
+  const env = { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } };
+  const res = await eventsOnRequest({
+    request: post({ name: "audit_started", payload: { page: "/audit" } }),
+    env: { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } },
+  });
+  assert.equal(res.status, 400);
+  assert.equal(written.length, 0);
 });
 
 test("events endpoint: text/plain bodies (sendBeacon) still accepted", async () => {
@@ -786,7 +842,7 @@ test("events endpoint: text/plain bodies (sendBeacon) still accepted", async () 
   const res = await eventsOnRequest({
     request: post(
       JSON.stringify({ name: "audit_started", payload: { page: "/audit" } }),
-      { "cf-connecting-ip": "test-content-type", "content-type": "text/plain" },
+      { "cf-connecting-ip": "test-content-type", "content-type": "text/plain", origin: "https://noveno.ir", host: "noveno.ir" },
     ),
     env,
   });
@@ -801,7 +857,7 @@ test("events endpoint: floods are rate-limited before any write (MAJOR-2)", asyn
   const written = [];
   const limiter = createRateLimiter({ max: 60, windowMs: 60_000 });
   const request = () =>
-    handleEventRequest(post({ name: "audit_started", payload: { page: "/audit" } }), {
+    handleEventRequest(post({ name: "audit_started", payload: { page: "/audit" } }, { origin: "https://noveno.ir", host: "noveno.ir" }), {
       env: { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } },
       limiter,
     });

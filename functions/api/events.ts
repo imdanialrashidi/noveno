@@ -96,20 +96,31 @@ export async function handleEventRequest(
     return errorResponse("method_not_allowed", 405);
   }
 
-  // Cross-site guard: a foreign page can send no-cors beacons that look
-  // like our own events. Browsers attach Origin to cross-site POSTs; a
-  // non-null Origin whose host differs from the request Host is rejected.
+  // Origin guard (plan 022): browsers attach Origin to POST/beacon; curl
+  // and other non-browser probers often omit it. Require either:
+  //  - a valid same-host Origin, or
+  //  - a same-host Referer when Origin is absent (covers older sendBeacon
+  //    edge cases). Otherwise reject — the metered Analytics Engine path
+  //    must not be writable by bare curl.
   const origin = request.headers.get("origin");
+  const referer = request.headers.get("referer") ?? request.headers.get("referrer") ?? "";
   const host = request.headers.get("host") ?? "";
   if (origin && !origin.startsWith("https://") && !origin.startsWith("http://")) {
-    // opaque origin ("null") from sandboxed pages — reject: our own pages
-    // never send an opaque Origin for same-origin fetch/beacon.
     return errorResponse("validation", 400);
   }
   if (origin) {
     try {
       const originHost = new URL(origin).host;
       if (originHost !== host) return errorResponse("validation", 400);
+    } catch {
+      return errorResponse("validation", 400);
+    }
+  } else {
+    // No Origin — require same-host Referer as fallback; bare curl has neither.
+    if (!referer) return errorResponse("validation", 400);
+    try {
+      const refHost = new URL(referer).host;
+      if (refHost !== host) return errorResponse("validation", 400);
     } catch {
       return errorResponse("validation", 400);
     }

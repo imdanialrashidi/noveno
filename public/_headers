@@ -51,4 +51,5 @@
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains
+  # CSP connect-src must include the PUBLIC_WEB3FORMS_URL origin (plan 024) — update this when the env changes. Default: https://api.web3forms.com
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://static.cloudflareinsights.com; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com https://api.web3forms.com https://cloudflareinsights.com https://static.cloudflareinsights.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests

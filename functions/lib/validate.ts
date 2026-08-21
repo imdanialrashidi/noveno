@@ -168,7 +168,9 @@ export function validateAuditPayload(raw: unknown): ValidationResult {
           if (!ISO_DATE_PATTERN.test(firstSeen) || Number.isNaN(parsed)) {
             fail("attribution.first_seen_at", "invalid_date");
           } else if (parsed > Date.now() + FIRST_SEEN_MAX_SKEW_MS) {
-            fail("attribution.first_seen_at", "invalid_date");
+            // Future-dated beyond skew tolerance — drop the field, never
+            // reject the submission (client clocks drift; attribution is
+            // self-reported). Mirrors the ancient-timestamp branch below.
           } else if (parsed >= Date.now() - FIRST_SEEN_MAX_AGE_MS) {
             attribution.first_seen_at = firstSeen;
           }

@@ -1,6 +1,10 @@
 /**
  * In-memory sliding-window rate limiter (plan §5.5).
  *
+ * Isolate-local by design: each Cloudflare isolate keeps its own Map.
+ * Distributed floods (many IPs or many isolates) still get per-IP, per-isolate
+ * throttling; global throttling requires a durable binding (KV/D1) — see D-04.
+ *
  * Isolate-local by design: a Cloudflare isolate keeps this Map alive only
  * for its own lifetime, so this is a coarse secondary gate — Turnstile is
  * the primary abuse control. Documented limitation, not a bug.

@@ -19,6 +19,8 @@ as email via **Web3Forms** — the only lead-delivery destination.
 
 ## 2. Web3Forms (lead email delivery — the sole lead destination)
 
+> **Security note (plan 021):** `PUBLIC_WEB3FORMS_ACCESS_KEY` is public by design (client-side posting). An attacker who extracts it can POST directly to Web3Forms, bypassing honeypot/rate-limit/Turnstile. Mitigation: `/api/audit` issues a short-lived HMAC receipt (`validation_receipt`) that the client echoes to Web3Forms — validated leads carry a receipt, direct POSTs show `validation_receipt: none` in the inbox. `TURNSTILE_SECRET_KEY` is the HMAC key — rotate it if exposed (outstanding receipts ≤10 min). `D-01` (server-side email) will remove this vector entirely.
+
 1. Create an access key at <https://web3forms.com> (free; email to the
    founder inbox). Web3Forms posts happen **client-side** after `/api/audit`
    returns `validated` (the official API recommends browser-side submission;
@@ -32,6 +34,10 @@ as email via **Web3Forms** — the only lead-delivery destination.
    after Web3Forms confirms `{ success: true }`. A delivery failure shows a
    truthful retry banner (values preserved) — the lead is never silently lost
    or falsely confirmed.
+
+## 2a. Server-side email (DRAFT — spike D-01, not live)
+
+> **DRAFT (spike):** if D-01 is approved, Web3Forms client code will be removed. Provision Resend: dashboard → API Keys → Create key → copy → `RESEND_API_KEY` (Pages secret), verify `noveno.ir` domain (Resend → Domains → TXT SPF/DKIM at Cloudflare DNS), set `LEAD_TO_EMAIL` (founder inbox) and `EMAIL_FROM` (e.g. `Noveno <noreply@noveno.ir>`). Spike prototype: `functions/lib/email.ts` uses `fetch https://api.resend.com/emails` with `Authorization: Bearer <key>`; no new npm dep. Cutover: deploy preview with `RESEND_API_KEY`, verify inbox, then revoke Web3Forms key and remove `connect-src https://api.web3forms.com` (plan 024). Rollback: unset `RESEND_API_KEY` → fallback `validated`. See `docs/exec-plans/active/server-side-email-spike.md`.
 
 ## 3. Cloudflare Pages (hosting + functions + analytics)
 
@@ -72,6 +78,7 @@ npm run dev                   # UI at http://localhost:4321
 - Full local journey: `node scripts/slice2-test-server.mjs [--mode ok|web3forms-down|turnstile-fail]`
   serves the built site + real functions with a mock Web3Forms endpoint
   (build first with `PUBLIC_WEB3FORMS_URL=http://127.0.0.1:8788/api/web3forms-mock`).
+- Changing `PUBLIC_WEB3FORMS_URL` requires a rebuild — CSP `connect-src` is pinned at build time (plan 024).
 
 ## 5. Pre-launch verification
 

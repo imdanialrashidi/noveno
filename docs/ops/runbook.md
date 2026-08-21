@@ -53,6 +53,10 @@ the response was lost) can produce a second email with the same
 `submission_id`. Deduplicate by eye in the inbox; do not rebuild a database
 to solve this.
 
+### Duplicate emails (plan 025) — inbox triage
+
+Search the inbox for `submission_id: <uuid>` — if multiple messages share the same ID, keep the last `delivery_attempt`. `delivery_attempt: 1` is the first delivery, `2` is the automatic bounded retry, `3`+ is a manual «تلاش دوباره». The lead is the same `submission_id` with stable field values. Retire manual dedupe after `D-01` (server-side email).
+
 ## Rollback
 
 - **Site:** Cloudflare Pages → Deployments → roll back to the previous

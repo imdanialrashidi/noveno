@@ -98,7 +98,8 @@ edits. Publishing a new article takes about five minutes and one command.
 | Step | What runs |
 |---|---|
 | `prebuild` | image manifest (hashed URLs), **validation of the committed social cards** (`scripts/validate-og-assets.mjs` — every published article must have a 1200×630 PNG card; drafts are excluded), **sitemap** (`scripts/generate-sitemap.mjs` — drafts excluded). Cards themselves are **not** rendered on Cloudflare — see the note above. |
-| `astro build` | static pages; drafts are never generated |
+| `astro build` | static pages; drafts are never generated; RSS feed `/rss.xml` rebuilt |
+| Feed | `https://noveno.ir/rss.xml` — rebuilt with `npm run build`; draft articles excluded |
 | article page | canonical `/blog/[slug]`, `og:type=article`, Article JSON-LD (title, dates, author, publisher), breadcrumbs (خانه / وبلاگ / عنوان), related-by-category + previous/next navigation, contextual audit CTA |
 | `/blog` | newest article featured first; chronological list; index updates automatically |
 

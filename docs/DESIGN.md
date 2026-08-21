@@ -274,7 +274,7 @@ Rules: transform/opacity only; no blur, no filters, no continuous loops, no raw-
 ## 14. Quality budgets (design constraints, unchanged)
 
 - **Accessibility:** WCAG 2.2 AA — all token pairs verified ≥4.5:1 text / ≥3:1 large + non-text; keyboard + visible focus everywhere; labels on every input; errors linked to fields; reduced-motion honored; no color-only meaning; reflow at 320px; usable at 200% zoom; tap targets ≥44px.
-- **Performance:** fonts ≤ 200KB (≈165KB measured); interactive JS ≤ 15KB gzip; images AVIF/WebP + `srcset` + lazy below fold; third-party = Cloudflare Web Analytics only; self-hosted fonts/scripts. CWV targets: LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1 (p75), lab budget accepted at build (QUALITY).
+- **Performance:** fonts ≤ 200KB (≈165KB measured); interactive JS ≤ 15KB gzip (measured 2026-08-21 post-email-only: 10147 bytes gzip — `tests/structural.test.mjs` baseline, audit 7269 gzip, total 27119 raw); images AVIF/WebP + `srcset` + lazy below fold; third-party = Cloudflare Web Analytics only; self-hosted fonts/scripts. CWV targets: LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1 (p75), lab budget accepted at build (QUALITY).
 - **Themes:** fully token-driven; theme switch ≤150ms, no flash, persisted explicit override only.
 
 ## 15. Screen-level acceptance — what build/review must prove
@@ -314,6 +314,7 @@ Post-photography hero/proof expectations: the homepage hero shows the **real aud
 | 2026-08-11 | Motion: state feedback only; hero photograph needs no entrance animation; reduced-motion = static | Spec §58; QUALITY gates | — |
 | 2026-08-11 | Implementation decisions: 404 route grammar, JourneyLine as CSS flex, dual-SVG diagrams, header CTA variants — **all superseded by the 2026-08-14 override** | — | — |
 | 2026-08-14 | Slice-2 form decisions: FormField/Select/MultiSelect; client-driven progress states; validation/error copy; Turnstile explicit render; thank-you direct-visitor guard `[data-audit-done]` (retained) | Browser evidence; trust-boundary tests | — |
+| 2026-08-21 | Work filter: client-side industry filter (query-param hydrated, progressive enhancement, ~60 LOC) — editorial rhythm preserved, URL shareable. | Plan 030 spike (Options A vs B/C), 6 work entries distinct `industry` values | When `industry` becomes enum, replace distinct-set with enum |
 | 2026-06 | Light/dark color anchors; Persian-first RTL; system color-scheme default; no theme flash | Accepted bootstrap | — |
 
 ## 17. Decisions intentionally deferred (genuinely)
