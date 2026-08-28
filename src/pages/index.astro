@@ -107,9 +107,9 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
        the text block; the scatter zone sits nearest the headline.
        Mobile: the artwork is recomposed as a wide strip below the
        CTAs (never a shrunk desktop SVG). -->
-  <section aria-labelledby="hero-title" class="border-b border-line" data-hero-parallax>
-    <div class="mx-auto max-w-[1200px] px-5 pb-16 pt-14 sm:px-8 lg:pb-20 lg:pt-20">
-      <div class="grid items-start gap-12 lg:grid-cols-12 lg:gap-10">
+  <section aria-labelledby="hero-title" data-hero-parallax>
+    <div class="mx-auto max-w-[1200px] px-5 pb-14 pt-14 sm:px-8 sm:pb-16 lg:pb-16 lg:pt-20">
+      <div class="grid items-start gap-10 lg:grid-cols-12 lg:gap-8">
         <!-- Primary side: headline + support + CTAs (right, RTL-first) -->
         <div class="flex flex-col items-start lg:col-span-6">
           <p class="text-ui font-medium text-text-faint">سیستم جذب مشتری برای کسب‌وکارهای خدماتی</p>
@@ -147,10 +147,10 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
              4-stage strip beneath is typography + small squares, not
              a diagram (motion §12.2). -->
         <div class="lg:col-span-6">
-          <div class="lg:-me-8 lg:mt-14">
+          <div class="lg:-me-6 lg:mt-10">
             <HeroArtwork />
             <div
-              class="hero-stages mt-8"
+              class="hero-stages mt-6"
               data-hero-stages
               aria-label="چهار گام مسیر: توجه، درخواست، ثبت، پیگیری"
             >
