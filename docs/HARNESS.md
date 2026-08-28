@@ -1,12 +1,12 @@
 # Agent Harness Operating Playbook
 
-This document contains the detailed operating model for non-trivial Pi coding sessions. `AGENTS.md` should remain a short map and point here instead of duplicating these rules.
+This document contains the detailed operating model for non-trivial OMP coding sessions. `AGENTS.md` should remain a short map and point here instead of duplicating these rules.
 
 ## Design principles
 
-1. **Intent steers; the agent finishes.** Convert the request into observable acceptance criteria, then execute reversible implementation and delivery decisions without intermediate approval loops.
+1. **Intent steers; the agent finishes.** Convert the request into observable acceptance criteria, then execute reversible implementation and evidence gathering without intermediate approval loops.
 2. **Repository knowledge is the system of record.** Durable product, architecture, quality, decision, and execution state belongs in versioned repository artifacts rather than chat memory.
-3. **Progressive disclosure beats giant prompts.** Keep always-loaded instructions small and retrieve code, docs, skills, and external facts just in time.
+3. **Progressive disclosure beats giant prompts.** Keep always-loaded instructions small and retrieve code, docs, skills, and external facts just in time. Domain skills are conditional; do not load all four for every task.
 4. **The interface is part of intelligence.** High-quality tools, focused outputs, browser evidence, diagnostics, and deterministic verification materially affect coding-agent performance.
 5. **Prefer mechanical constraints over repeated prose.** If an invariant can be linted, tested, typed, validated, or blocked by tooling, encode it there.
 6. **Evaluation needs a contract.** Independent review is most useful when it judges explicit observable criteria, not vague taste.
@@ -19,8 +19,10 @@ This document contains the detailed operating model for non-trivial Pi coding se
 
 Use the task classes in `AGENTS.md`.
 
-- Localized: no ceremony.
-- Standard: compact acceptance contract and one evaluator pass.
+- Localized: use OMP's native direct workflow—one focused patch, one targeted proof and scoped diff review. Do not add a project quick-fix wrapper.
+- Context readiness: before product/UI work, run `node scripts/validate-project-context.mjs --static`; after `/wf-bootstrap`, require `--require-ready` so empty contract prompts cannot silently become invented requirements.
+- Domain routing: load `accessibility-audit`, `web-performance`, `technical-seo`, or `rtl-i18n` only when the accepted scope contains that domain. They provide evidence contracts over native OMP/browser/build tools; they do not install duplicate frameworks.
+- Standard: compact acceptance contract, focused implementation, and material self-review; add an independent evaluator only when its evidence justifies the cost.
 - Complex: planning plus persistent execution state when continuity is needed.
 - High risk: threat-boundary analysis, independent review, negative-path proof, full gate.
 
@@ -56,6 +58,10 @@ The agent derives the contract from available evidence. It asks a question only 
 
 Start from identifiers, not bulk context.
 
+Use OMP's native `read`, `grep`, `glob`, `edit`, `write`, and `bash` for focused work. OMP owns lazy tool discovery: read `xd://` and then `xd://<tool>` for a missing schema; write the documented JSON arguments to that device. Do not install a second tool loader or assume a mounted tool is unavailable. Keep native hashline edits and re-read stale anchors instead of inventing replacements.
+
+Native structural reads and output artifacts bound context; explicit selectors retrieve exact evidence. A summary is not a full source read. Keep native defaults unless a measured task justifies a change; do not restore the old 96 KiB wrapper.
+
 Preferred order:
 
 1. repository map and relevant project docs;
@@ -63,10 +69,10 @@ Preferred order:
 3. focused source ranges and affected tests;
 4. LSP definitions/references/diagnostics;
 5. installed types and local dependency source;
-6. `doc_search_*` for version-sensitive official docs;
+6. native `web_search`, `read` URL support, or native `github` file reads for version-matched primary documentation;
 7. web search for current upstream issues, advisories, regressions, or release notes.
 
-Use `scout` when the relevant surface or cross-module flow is genuinely unclear. Do not delegate the same discovery twice.
+If subagents are available, use `scout` only when the relevant surface or cross-module flow is genuinely unclear. Otherwise investigate directly. Do not delegate the same discovery twice.
 
 ### 4. Implement one coherent vertical slice
 
@@ -76,7 +82,7 @@ During implementation:
 
 - use the narrowest reliable verification after meaningful edits;
 - map the affected symbols/contracts/dependencies and nearest tests before editing;
-- when tests change, use `test-design` and require defect sensitivity where practical;
+- when tests change, use `test-design` and pass its Test Value Gate: distinct failure model, evidence gap, independent oracle, cheapest faithful layer, and defect sensitivity where practical; `no new test` is valid when existing evidence is already sufficient;
 - preserve existing architectural boundaries;
 - avoid speculative abstractions;
 - keep data validation at boundaries;
@@ -87,11 +93,11 @@ During implementation:
 
 After the slice is functionally complete and targeted checks pass, evaluate against the acceptance contract and `docs/QUALITY.md`.
 
-Use an independent `reviewer` for non-trivial user-facing, cross-module, production-bug, or material-regression work. Use `security-auditor` for High-risk work.
+Use OMP's bundled `reviewer` for non-trivial user-facing, cross-module, production-bug, or material-regression work only when independent context adds value. Use bundled `security-reviewer` for High-risk work under the same condition; otherwise perform a separate evidence-focused pass directly. Provide the accepted contract, scoped diff and real verification output—not your verdict. Bundled `scout` covers bounded discovery. Bundled `designer`, `sonic` or `task` may own one implementation slice, but the parent must stop editing until that writer finishes. Default concurrency is two children, recursion one, with no child auto-apply or branch merge. The project does not shadow bundled agents.
 
-For browser-visible behavior, use the real application through the `browser-qa` workflow. Accessibility snapshots and interaction evidence come before screenshots. Screenshots are captured as reproducible artifacts; only make appearance claims that the active primary model can actually verify, otherwise mark appearance-dependent criteria `UNPROVEN`.
+For browser-visible behavior, use the real application through `browser-qa`'s pixel-inspection loop. Accessibility snapshots and interaction evidence come before screenshots. For material appearance changes, inspect supplied references and the rendered baseline, then actually receive and inspect current desktop/mobile images. The runtime reports configured image capability and returned image blocks; neither proves perception. Use focused crops for detail, deterministic measurements for exact claims, and re-capture after repairs. If pixels cannot be inspected, mark appearance-dependent criteria `UNPROVEN`.
 
-For visually significant work, load `frontend-design` and evaluate in two passes. The product pass proves journey, states, accessibility, responsiveness, and measurable budgets. The studio pass compares rendered evidence with `docs/DESIGN.md`, runs the anti-template review, and scores visual craft where the evidence is actually inspectable. Novelty never cancels a hard-gate failure.
+For visually significant work, read `docs/VISUAL_REVIEW.md`, use the bundled `designer` when a separate specialist pass adds value, and evaluate in two passes. The product pass proves journey, states, accessibility, responsiveness and measurable budgets. The studio pass compares rendered evidence with `docs/DESIGN.md`, runs the anti-template review and scores visual craft where the evidence is actually inspectable. Novelty never cancels a hard-gate failure.
 
 The evaluator should answer:
 
@@ -115,11 +121,9 @@ Never convert these into the same status:
 - blocked by prerequisite;
 - not executed.
 
-### 7. Finish through reversible delivery
+### 7. Deliver the scoped pull request
 
-Do not stop after producing a patch when the accepted outcome includes repository delivery. If credentials and a configured remote are available, create or reuse a task branch, commit only the scoped diff, push it, and create or update the PR without requesting another confirmation.
-
-Direct protected-branch mutation, merging, releasing, deploying, production/data mutation, or real-money action still requires explicit scope because those cross a shared or difficult-to-reverse boundary. A missing publishing credential does not block local implementation and verification: finish those first and leave exact continuation state.
+For implementation, follow `docs/GIT_POLICY.md`: prepare the persistent `ai-changes` branch before editing, finish accepted verification, then run the scoped PR helper with explicit file paths and exact evidence. It commits/pushes and creates the PR or updates the same related PR. Do not create per-task branches, mix unrelated work into an open PR, write to `main`, or merge automatically. Read-only/local-only tasks and evals do not deliver. A missing credential blocks delivery, not safe local implementation; report both states accurately.
 
 ## Failure-recovery ladder
 
@@ -131,8 +135,10 @@ Repeated blind retries are a harness failure. When the same check or approach fa
 4. Choose the cheapest discriminating observation for each hypothesis.
 5. Use semantic/local evidence first; use official/current external sources only when needed.
 6. Revert only the agent's own failed local experiment when a safe targeted reversal exists; never overwrite unrelated user work.
-7. If the task is still unclear, delegate one focused read-only investigation rather than another broad implementation attempt.
+7. If the task is still unclear and subagents are available, delegate one focused read-only investigation rather than another broad implementation attempt; otherwise run that focused investigation directly.
 8. If the context has become noisy, the goal changed materially, or progress must survive a fresh session, use the handoff protocol.
+
+OMP's native repeated-tool detector supplies corrective steering at three consecutive identical single-tool turns. It is not the old failure-only hard block, does not cover every batched call, and does not prove a retry became useful. The workflow rule above still stops an unchanged failed approach after two attempts. Do not claim those mechanisms are identical. Evaluate recovery behavior with real traces before changing the threshold.
 
 A failure that recurs across different tasks should become a harness improvement: a regression test, clearer tool, structural check, documented invariant, or safety rule. Do not merely add another paragraph to the system prompt.
 
@@ -164,6 +170,8 @@ Handoff note
 
 Keep it concise and update facts, decisions, evidence, and next steps—not a transcript of every tool call.
 
+Use OMP's native sessions, todos, compaction, and handoff rather than a parallel continuity capsule. The current working tree and durable ExecPlan remain authoritative. Re-run stale proof after edits and reopen visual evidence after context loss. A native session summary is a navigation aid, not proof of a passing test or current UI.
+
 ## Handoff and context reset
 
 Compaction is useful for a continuing coherent task, but a clean context can be better when the task has accumulated stale hypotheses or is crossing sessions.
@@ -176,7 +184,7 @@ Before a clean restart:
 4. record unresolved hypotheses and the next discriminating action;
 5. record relevant changed files and user-owned work that must be preserved.
 
-Then start a fresh Pi session and use `/resume <plan-path>`.
+Then use native `/handoff [focus]` and start or select the next session with native `/resume`. Mention the relevant ExecPlan path in the resumed prompt when durable project state exists.
 
 Do not use a handoff to hide an unresolved failure or to mark unfinished criteria complete.
 

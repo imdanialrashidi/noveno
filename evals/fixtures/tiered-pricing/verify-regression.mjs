@@ -1,4 +1,4 @@
-import { execFileSync, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -6,8 +6,8 @@ const fixtureRoot = import.meta.dirname;
 const repositoryRoot = path.resolve(fixtureRoot, "../../..");
 const sourceRelative = "evals/fixtures/tiered-pricing/pricing.mjs";
 const sourcePath = path.join(repositoryRoot, sourceRelative);
-const testFiles = fs
-  .readdirSync(fixtureRoot)
+const baselinePath = path.join(fixtureRoot, "pricing.baseline.mjs");
+const testFiles = fs.readdirSync(fixtureRoot)
   .filter((file) => file.endsWith(".test.mjs"))
   .map((file) => path.join(fixtureRoot, file));
 
@@ -32,18 +32,13 @@ if (finalRun.status !== 0) {
   throw new Error("Final regression tests do not pass.");
 }
 
-const baselineSource = execFileSync("git", ["show", `HEAD:${sourceRelative}`], {
-  cwd: repositoryRoot,
-  encoding: "buffer",
-});
+const baselineSource = fs.readFileSync(baselinePath);
 
 try {
   fs.writeFileSync(sourcePath, baselineSource);
   const baselineRun = runTests();
   if (baselineRun.status === 0) {
-    throw new Error(
-      `Regression tests still pass against the pre-fix implementation.\n${baselineRun.stdout ?? ""}\n${baselineRun.stderr ?? ""}`,
-    );
+    throw new Error(`Regression tests still pass against the pre-fix implementation.\n${baselineRun.stdout ?? ""}\n${baselineRun.stderr ?? ""}`);
   }
 } finally {
   fs.writeFileSync(sourcePath, finalSource);

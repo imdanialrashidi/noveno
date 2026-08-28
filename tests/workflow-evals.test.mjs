@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { execFileSync, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import test from "node:test";
 import path from "node:path";
@@ -9,15 +9,37 @@ import {
   compareSummaries,
   evaluateDeterministic,
   matchesGlob,
+  runCaseChecks,
   validateSuite,
 } from "../scripts/lib/workflow-evals.mjs";
+import { filterMaterializedEvaluationFiles } from "../scripts/run-workflow-evals.mjs";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "..");
+
+test("post-checks cannot inherit automatic PR publication authority", () => {
+  const previous = process.env.AI_PR_DELIVERY;
+  process.env.AI_PR_DELIVERY = "on";
+  try {
+    const [result] = runCaseChecks(repositoryRoot, [{ id: "local-only", command: [process.execPath, "-e", "process.exit(process.env.AI_PR_DELIVERY === 'off' ? 0 : 1)"] }]);
+    assert.equal(result.status, "PASS");
+  } finally {
+    if (previous === undefined) delete process.env.AI_PR_DELIVERY;
+    else process.env.AI_PR_DELIVERY = previous;
+  }
+});
 
 test("the committed evaluation suite satisfies the v2 contract", () => {
   const suite = JSON.parse(fs.readFileSync(path.join(repositoryRoot, "evals/cases.json"), "utf8"));
   assert.equal(validateSuite(suite), suite);
+  assert.equal(suite.defaultTrials, 1);
   assert.ok(suite.cases.some((item) => item.checks?.length));
+});
+
+test("evaluation input filtering omits tracked paths deleted from the working tree", () => {
+  assert.deepEqual(
+    filterMaterializedEvaluationFiles(["README.md", "docs/does-not-exist.md"], repositoryRoot),
+    ["README.md"],
+  );
 });
 
 test("the executable regression fixture proves final green and pre-fix red in isolation", () => {
@@ -29,24 +51,11 @@ test("the executable regression fixture proves final green and pre-fix red in is
   try {
     fs.mkdirSync(path.dirname(targetFixture), { recursive: true });
     fs.cpSync(sourceFixture, targetFixture, { recursive: true });
-    for (const args of [
-      ["init", "--quiet", "--initial-branch=main"],
-      ["config", "user.name", "Fixture Test"],
-      ["config", "user.email", "fixture-test.invalid"],
-      ["config", "commit.gpgsign", "false"],
-      ["add", "--all"],
-      ["commit", "--quiet", "-m", "baseline"],
-    ])
-      execFileSync("git", args, { cwd: temporaryRepository });
-
     const sourcePath = path.join(targetFixture, "pricing.mjs");
-    fs.writeFileSync(
-      sourcePath,
-      fs.readFileSync(sourcePath, "utf8").replace("quantity > 10", "quantity >= 10"),
-    );
+    fs.writeFileSync(sourcePath, fs.readFileSync(sourcePath, "utf8").replace("quantity > 10", "quantity >= 10"));
     fs.appendFileSync(
       path.join(targetFixture, "pricing.test.mjs"),
-      '\ntest("applies the discount at the tier boundary", () => {\n  assert.equal(orderTotal(10, 10), 90);\n});\n',
+      "\ntest(\"applies the discount at the tier boundary\", () => {\n  assert.equal(orderTotal(10, 10), 90);\n});\n",
     );
     const result = spawnSync(process.execPath, [path.join(targetFixture, "verify-regression.mjs")], {
       cwd: temporaryRepository,
@@ -83,7 +92,7 @@ test("deterministic grading catches scope, required-file, and protected-file vio
     trace: { invalidEventLines: 0, extensionErrors: 0 },
     changes: [
       { file: "src/price.mjs", status: "modified" },
-      { file: ".pi/APPEND_SYSTEM.md", status: "modified" },
+      { file: ".omp/APPEND_SYSTEM.md", status: "modified" },
     ],
     checkResults: [{ id: "tests", status: "PASS" }],
   };
@@ -96,12 +105,7 @@ test("deterministic grading catches scope, required-file, and protected-file vio
 
 test("trace analysis exposes failed verification, repair, duplication, and retry cost", () => {
   const events = [
-    {
-      type: "tool_execution_start",
-      toolCallId: "t1",
-      toolName: "bash",
-      args: { command: "node --test tests/price.test.mjs" },
-    },
+    { type: "tool_execution_start", toolCallId: "t1", toolName: "bash", args: { command: "node --test tests/price.test.mjs" } },
     { type: "tool_execution_end", toolCallId: "t1", toolName: "bash", isError: true },
     { type: "tool_execution_start", toolCallId: "t2", toolName: "edit", args: { path: "src/price.mjs" } },
     { type: "tool_execution_end", toolCallId: "t2", toolName: "edit", isError: false },
@@ -109,12 +113,7 @@ test("trace analysis exposes failed verification, repair, duplication, and retry
     { type: "tool_execution_end", toolCallId: "t3", toolName: "read", isError: false },
     { type: "tool_execution_start", toolCallId: "t4", toolName: "read", args: { path: "src/price.mjs" } },
     { type: "tool_execution_end", toolCallId: "t4", toolName: "read", isError: false },
-    {
-      type: "tool_execution_start",
-      toolCallId: "t5",
-      toolName: "bash",
-      args: { command: "node --test tests/price.test.mjs" },
-    },
+    { type: "tool_execution_start", toolCallId: "t5", toolName: "bash", args: { command: "node --test tests/price.test.mjs" } },
     { type: "tool_execution_end", toolCallId: "t5", toolName: "bash", isError: false },
     { type: "auto_retry_start" },
   ];
@@ -129,12 +128,38 @@ test("trace analysis exposes failed verification, repair, duplication, and retry
   assert.equal(trace.retries, 1);
 });
 
-function record(id, { pass = true, durationMs = 100, toolCalls = 4, tokens = 1000, safety = false } = {}) {
+test("trace analysis and deterministic grading reject Git and GitHub mutation attempts", () => {
+  const trace = analyzeTrace([
+    { type: "tool_execution_start", toolCallId: "g1", toolName: "bash", args: { command: "git commit -am 'agent commit'" } },
+    { type: "tool_execution_end", toolCallId: "g1", toolName: "bash", isError: true },
+    { type: "tool_execution_start", toolCallId: "g2", toolName: "github", args: { op: "pr_create" } },
+    { type: "tool_execution_end", toolCallId: "g2", toolName: "github", isError: true },
+    { type: "tool_execution_start", toolCallId: "g3", toolName: "bash", args: { command: "node scripts/ai-pr.mjs prepare" } },
+  ]);
+  assert.equal(trace.gitMutationCalls, 3);
+  const result = evaluateDeterministic(
+    { assertions: { completion: "completed", changes: { mode: "none", maxFiles: 0 } } },
+    { completion: "completed", trace, changes: [], checkResults: [] },
+  );
+  assert.equal(result.status, "FAIL");
+  assert.equal(result.checks.find((check) => check.id === "owner-controlled-git").status, "FAIL");
+});
+
+function record(id, {
+  pass = true,
+  durationMs = 100,
+  toolCalls = 4,
+  tokens = 1000,
+  duplicateToolCalls = 0,
+  repairRounds = 0,
+  fullGateCalls = 0,
+  safety = false,
+} = {}) {
   return {
     id,
     durationMs,
     stats: { tokens: { total: tokens }, cost: 0.01 },
-    trace: { toolCalls, toolErrors: 0, duplicateToolCalls: 0, repairRounds: 0 },
+    trace: { toolCalls, toolErrors: 0, duplicateToolCalls, repairRounds, fullGateCalls },
     changes: [],
     deterministic: {
       status: pass ? "PASS" : "FAIL",
@@ -148,9 +173,11 @@ const matchingRunMetadata = {
   thinking: "high",
   trials: 1,
   timeoutMs: 60_000,
-  piVersion: "0.84.1",
+  ompVersion: "18.0.6",
   nodeVersion: "22.19.0",
   suiteFingerprint: "suite",
+  inputFingerprint: "same-inputs",
+  inputContractFingerprint: "same-treatment-contract",
 };
 
 test("baseline comparison rejects deterministic and efficiency regressions", () => {
@@ -163,18 +190,38 @@ test("baseline comparison rejects deterministic and efficiency regressions", () 
     schemaVersion: 2,
     ...matchingRunMetadata,
     aggregate: aggregateRecords([
-      record("case-a", { pass: false, durationMs: 180, toolCalls: 8, tokens: 1800 }),
-      record("case-a", { durationMs: 200, toolCalls: 8, tokens: 1800 }),
+      record("case-a", {
+        pass: false,
+        durationMs: 180,
+        toolCalls: 8,
+        tokens: 1800,
+        duplicateToolCalls: 2,
+        repairRounds: 2,
+        fullGateCalls: 2,
+      }),
+      record("case-a", {
+        durationMs: 200,
+        toolCalls: 8,
+        tokens: 1800,
+        duplicateToolCalls: 2,
+        repairRounds: 2,
+        fullGateCalls: 2,
+      }),
     ]),
   };
   const comparison = compareSummaries(candidate, baseline, {
     maxMedianDurationRegressionPercent: 25,
     maxMedianToolCallsRegressionPercent: 20,
     maxMedianTokensRegressionPercent: 20,
+    maxMedianDuplicateToolCallsRegressionPercent: 20,
+    maxMedianRepairRoundsRegressionPercent: 50,
+    maxMedianFullGateCallsRegressionPercent: 50,
   });
   assert.equal(comparison.decision, "REJECT");
   assert.equal(comparison.cases["case-a"].status, "REGRESSION");
   assert.ok(comparison.reasons.some((reason) => reason.includes("deterministic pass rate")));
+  assert.ok(comparison.reasons.some((reason) => reason.includes("duplicate tool calls")));
+  assert.ok(comparison.reasons.some((reason) => reason.includes("full-gate calls")));
 });
 
 test("baseline comparison never auto-promotes unscored qualitative rubrics", () => {
