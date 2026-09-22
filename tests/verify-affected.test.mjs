@@ -10,7 +10,7 @@ import {
 const repositoryRoot = path.resolve(import.meta.dirname, "..");
 
 test("the committed verification routing config is valid", () => {
-  const config = JSON.parse(fs.readFileSync(path.join(repositoryRoot, ".omp/verification.json"), "utf8"));
+  const config = JSON.parse(fs.readFileSync(path.join(repositoryRoot, ".pi/verification.json"), "utf8"));
   assert.equal(validateVerificationConfig(config), config);
 });
 

@@ -21,7 +21,7 @@ fi
 # removed as "redundant" while structural tests run inside pi-doctor's test
 # suite.
 
-bash scripts/omp-doctor.sh --static
+bash scripts/pi-doctor.sh --ci
 
 # Run project-verify as a normal script (NOT exec): the npm run check step
 # below is part of the single lane, and exec would replace this shell and
@@ -82,7 +82,7 @@ fi
 
 if [[ "$ran" -eq 0 ]]; then
   if grep -Fxq -- '- Primary users:' docs/PRODUCT.md; then
-    printf '\nTemplate-only verification passed. Run /wf-bootstrap after adding product source.\n'
+    printf '\nTemplate-only verification passed. Run /bootstrap after adding product source.\n'
     exit 0
   fi
   cat >&2 <<'MSG'

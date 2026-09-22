@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import crypto from "node:crypto";
 import { lstatSync } from "node:fs";
 import fs from "node:fs/promises";
@@ -17,8 +17,7 @@ import {
   validateSuite,
 } from "./lib/workflow-evals.mjs";
 
-import { runOmpRpc as runRpc } from "./lib/omp-rpc.mjs";
-import { benchmarkInputSnapshot } from "./lib/eval-isolation.mjs";
+import { isolatedGitEnvironment, benchmarkInputSnapshot } from "./lib/eval-isolation.mjs";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "..");
 
@@ -56,58 +55,22 @@ function parseArgs(argv) {
 }
 
 function evaluationFiles() {
-  const output = execFileSync(
-    "git",
-    ["ls-files", "-z", "--cached", "--others", "--exclude-standard"],
-    { cwd: repositoryRoot, encoding: "buffer", maxBuffer: 64 * 1024 * 1024 },
+  const output = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], {
+    cwd: repositoryRoot,
+    encoding: "buffer",
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  return filterMaterializedEvaluationFiles(output.toString("utf8").split("\0").filter(Boolean)).filter(
+    // The tracked root .npmrc pins the public registry URL (no credentials)
+    // and is irrelevant to trials. Excluding it here keeps the per-file
+    // sensitive-path refusal below a true positive; the file is never copied,
+    // so no secret can leak through it.
+    (relative) => relative !== ".npmrc",
   );
-  return filterMaterializedEvaluationFiles(output.toString("utf8").split("\0").filter(Boolean));
-}
-
-const PRODUCT_REPOSITORY_EVAL_EXCLUDES = [
-  ".artifacts/",
-  "node_modules/",
-  ".omp/npm/",
-];
-
-function isSensitiveProductEvalInput(normalized) {
-  const base = path.posix.basename(normalized);
-
-  // .env.example is intentionally public/template input; other env files are
-  // not evaluation material even when accidentally tracked.
-  if (/^\.env(?:\.|$)/i.test(base) && base !== ".env.example") return true;
-
-  // Package-manager / transport credential files.
-  if (/^(?:\.npmrc|\.pypirc|\.netrc)$/i.test(base)) return true;
-
-  // Private keys, signing stores and certificate containers.
-  if (/\.(?:pem|key|p12|pfx|jks|keystore)$/i.test(base)) return true;
-
-  // Browser/provider/runtime credential stores and private project data.
-  if (
-    /(^|\/)(?:docs\/private|playwright\/\.auth|server\/pb_data|\.ssh|\.gnupg|\.aws|\.kube)(?:\/|$)/i.test(normalized)
-  ) return true;
-
-  if (
-    /(^|\/)\.omp\/(?:agent\.db(?:-wal|-shm)?|config\.local\.ya?ml|models\.(?:json|ya?ml)|auth\.json|sessions|state|mcp-oauth)(?:\/|$)/i.test(normalized)
-  ) return true;
-
-  // Playwright storage-state files commonly contain live cookies/tokens.
-  if (/storageState.*\.json$/i.test(base)) return true;
-
-  return false;
 }
 
 export function filterMaterializedEvaluationFiles(files, root = repositoryRoot) {
   return files.filter((relative) => {
-    const normalized = relative.split(path.sep).join("/");
-    if (
-      PRODUCT_REPOSITORY_EVAL_EXCLUDES.some(
-        (prefix) => normalized === prefix.slice(0, -1) || normalized.startsWith(prefix),
-      )
-    ) return false;
-    if (/^(?:migrate-pi-to-omp|universal-pi-to-omp).*\.sh$/.test(normalized)) return false;
-    if (isSensitiveProductEvalInput(normalized)) return false;
     try {
       lstatSync(path.join(root, relative));
       return true;
@@ -120,8 +83,10 @@ export function filterMaterializedEvaluationFiles(files, root = repositoryRoot) 
 
 function assertSafeEvaluationPath(relative) {
   const normalized = relative.split(path.sep).join("/");
-  const sensitiveName = /(^|\/)(?:\.env(?:\.|$)|\.npmrc$|\.pypirc$|\.netrc$|storageState.*\.json$)|\.(?:pem|key|p12|pfx|jks|keystore)$/i;
-  const sensitiveSegment = /(^|\/)(?:docs\/private|playwright\/\.auth|server\/pb_data|\.ssh|\.gnupg|\.aws|\.kube|\.omp\/(?:agent\.db(?:-wal|-shm)?|config\.local\.ya?ml|models\.(?:json|ya?ml)|auth\.json|sessions|state|mcp-oauth))(?:\/|$)/i;
+  const sensitiveName =
+    /(^|\/)(?:\.env(?:\.|$)|\.npmrc$|\.pypirc$|\.netrc$|storageState.*\.json$)|\.(?:pem|key|p12|pfx|jks|keystore)$/i;
+  const sensitiveSegment =
+    /(^|\/)(?:docs\/private|playwright\/\.auth|server\/pb_data|\.ssh|\.gnupg|\.aws|\.kube|\.pi\/(?:auth\.json|models\.json|sessions|mcp-oauth))(?:\/|$)/i;
   const allowedExample = path.posix.basename(normalized) === ".env.example";
   if (!allowedExample && (sensitiveName.test(normalized) || sensitiveSegment.test(normalized))) {
     throw new Error(`Refusing to copy sensitive evaluation input: ${normalized}`);
@@ -141,7 +106,8 @@ async function copyRepository(destination, files = evaluationFiles()) {
       const link = await fs.readlink(source);
       if (path.isAbsolute(link)) throw new Error(`Refusing absolute evaluation symlink: ${normalized}`);
       const resolved = path.resolve(path.dirname(source), link);
-      const insideRepository = resolved === repositoryRoot || resolved.startsWith(`${repositoryRoot}${path.sep}`);
+      const insideRepository =
+        resolved === repositoryRoot || resolved.startsWith(`${repositoryRoot}${path.sep}`);
       if (!insideRepository) throw new Error(`Refusing external evaluation symlink: ${normalized}`);
       await fs.symlink(link, target);
     } else if (sourceStat.isFile()) {
@@ -153,7 +119,7 @@ async function copyRepository(destination, files = evaluationFiles()) {
 
 export async function fileManifest(root) {
   const manifest = new Map();
-  const excluded = new Set([".git", ".artifacts", "node_modules", ".omp/npm"]);
+  const excluded = new Set([".git", ".artifacts", "node_modules", ".pi/npm"]);
 
   async function walk(directory) {
     const entries = await fs.readdir(directory, { withFileTypes: true });
@@ -164,11 +130,25 @@ export async function fileManifest(root) {
       if ([...excluded].some((value) => relative === value || relative.startsWith(`${value}/`))) continue;
       if (entry.isDirectory()) await walk(absolute);
       else if (entry.isSymbolicLink()) {
-        manifest.set(relative, crypto.createHash("sha256").update(JSON.stringify({ type: "symlink", target: await fs.readlink(absolute) })).digest("hex"));
+        manifest.set(
+          relative,
+          crypto
+            .createHash("sha256")
+            .update(JSON.stringify({ type: "symlink", target: await fs.readlink(absolute) }))
+            .digest("hex"),
+        );
       } else if (entry.isFile()) {
         const content = await fs.readFile(absolute);
         const mode = (await fs.stat(absolute)).mode & 0o777;
-        manifest.set(relative, crypto.createHash("sha256").update(JSON.stringify({ type: "file", mode })).update("\0").update(content).digest("hex"));
+        manifest.set(
+          relative,
+          crypto
+            .createHash("sha256")
+            .update(JSON.stringify({ type: "file", mode }))
+            .update("\0")
+            .update(content)
+            .digest("hex"),
+        );
       }
     }
   }
@@ -189,6 +169,103 @@ export function manifestDiff(before, after) {
   return changed.sort((left, right) => left.file.localeCompare(right.file));
 }
 
+function runRpc({ cwd, prompt, model, thinking, timeoutMs }) {
+  return new Promise((resolve) => {
+    const args = ["--mode", "rpc", "--no-session", "--approve"];
+    if (model) args.push("--model", model);
+    if (thinking) args.push("--thinking", thinking);
+
+    const child = spawn("pi", args, {
+      cwd,
+      env: {
+        ...isolatedGitEnvironment(cwd),
+        PI_TELEMETRY: "0",
+        PI_SKIP_VERSION_CHECK: "1",
+        PI_GUARD_MODE: "autonomous",
+        PI_GUARD_FILE_SCOPE: "repository",
+        PI_GIT_MUTATION: "deny",
+        AI_PR_DELIVERY: "off",
+        PI_GUARD_EXTERNAL_MUTATION: "deny",
+        PI_PROJECT_ROOT: cwd,
+      },
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    const startedAt = Date.now();
+    const eventLines = [];
+    let stderr = "";
+    let stdoutBuffer = "";
+    let stats;
+    let completion = "process-exited";
+    let statsRequested = false;
+    let forcedTimer;
+
+    const timeout = setTimeout(() => {
+      completion = "timeout";
+      child.kill("SIGTERM");
+      forcedTimer = setTimeout(() => child.kill("SIGKILL"), 1000);
+    }, timeoutMs);
+
+    function requestStats() {
+      if (statsRequested) return;
+      statsRequested = true;
+      child.stdin.write(`${JSON.stringify({ id: "eval-stats", type: "get_session_stats" })}\n`);
+    }
+
+    function consumeLine(line) {
+      if (!line) return;
+      eventLines.push(line);
+      try {
+        const event = JSON.parse(line);
+        if (event.type === "agent_settled") requestStats();
+        if (event.type === "response" && event.id === "eval-stats") {
+          stats = event.data;
+          completion = event.success ? "completed" : "stats-failed";
+          child.stdin.end();
+          forcedTimer = setTimeout(() => child.kill("SIGTERM"), 1000);
+        }
+      } catch {
+        completion = "invalid-jsonl";
+      }
+    }
+
+    child.stdout.on("data", (chunk) => {
+      stdoutBuffer += chunk.toString("utf8");
+      let newlineIndex;
+      while ((newlineIndex = stdoutBuffer.indexOf("\n")) >= 0) {
+        const line = stdoutBuffer.slice(0, newlineIndex).replace(/\r$/, "");
+        stdoutBuffer = stdoutBuffer.slice(newlineIndex + 1);
+        consumeLine(line);
+      }
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk.toString("utf8");
+    });
+    child.stdin.on("error", (error) => {
+      stderr += `stdin error: ${error.message}\n`;
+    });
+    child.on("error", (error) => {
+      completion = `spawn-error: ${error.message}`;
+    });
+    child.on("close", (exitCode, signal) => {
+      clearTimeout(timeout);
+      clearTimeout(forcedTimer);
+      consumeLine(stdoutBuffer.replace(/\r$/, ""));
+      resolve({
+        completion,
+        durationMs: Date.now() - startedAt,
+        exitCode,
+        signal,
+        stats,
+        stderr,
+        events: eventLines,
+      });
+    });
+    child.stdin.write(
+      `${JSON.stringify({ id: "eval-prompt", type: "prompt", message: "This is an isolated local-only evaluation. Do not commit, push, open/update a PR, or invoke the PR delivery helper.\n\n" + prompt })}\n`,
+    );
+  });
+}
+
 async function validateDisposableCopy(files) {
   const dryRunRoot = path.join(repositoryRoot, ".artifacts");
   await fs.mkdir(dryRunRoot, { recursive: true });
@@ -196,7 +273,9 @@ async function validateDisposableCopy(files) {
   try {
     await copyRepository(workspace, files);
     const copied = await fileManifest(workspace);
-    const missing = files.filter((file) => !copied.has(file) && !lstatSync(path.join(workspace, file)).isSymbolicLink());
+    const missing = files.filter(
+      (file) => !copied.has(file) && !lstatSync(path.join(workspace, file)).isSymbolicLink(),
+    );
     if (missing.length) throw new Error(`Disposable evaluation copy is incomplete: ${missing.join(", ")}`);
   } finally {
     await fs.rm(workspace, { recursive: true, force: true });
@@ -208,30 +287,37 @@ async function main() {
   const options = parseArgs(process.argv.slice(2));
   const suite = validateSuite(JSON.parse(await fs.readFile(options.casesPath, "utf8")));
   const cases = selectedCases(suite, options.filter);
+  benchmarkInputSnapshot(new Map(), suite.harnessTreatmentPaths);
   const trials = options.trials ?? suite.defaultTrials;
   if (!Number.isInteger(trials) || trials < 1) throw new Error("trials must be a positive integer.");
-  if (!Number.isFinite(options.timeoutMs) || options.timeoutMs < 1000) throw new Error("timeout-ms must be at least 1000.");
+  if (!Number.isFinite(options.timeoutMs) || options.timeoutMs < 1000)
+    throw new Error("timeout-ms must be at least 1000.");
   if (cases.length === 0) throw new Error("No evaluation cases match the filter.");
 
   const files = evaluationFiles();
   files.forEach(assertSafeEvaluationPath);
   if (options.dryRun) {
     await validateDisposableCopy(files);
-    process.stdout.write(`Valid v2 suite: ${cases.length} selected case(s), ${trials} trial(s) each; ${files.length} safe input file(s).\n`);
+    process.stdout.write(
+      `Valid v2 suite: ${cases.length} selected case(s), ${trials} trial(s) each; ${files.length} safe input file(s).\n`,
+    );
     for (const item of cases) {
-      process.stdout.write(`- ${item.id} [${item.tags.join(", ")}] — ${item.assertions.changes.mode} changes, ${item.rubric.length} rubric item(s)\n`);
+      process.stdout.write(
+        `- ${item.id} [${item.tags.join(", ")}] — ${item.assertions.changes.mode} changes, ${item.rubric.length} rubric item(s)\n`,
+      );
     }
     return;
   }
 
-  if (!options.model) throw new Error("--model is required for paid/external evaluation runs; review provider and data policy first.");
-  const ompProbe = spawnSync("omp", ["--version"], { encoding: "utf8" });
-  if (ompProbe.error || ompProbe.status !== 0) {
-    throw new Error("OMP CLI is unavailable; install the reviewed version and run scripts/omp-doctor.sh first.");
-  }
-  const compatibility = JSON.parse(await fs.readFile(path.join(repositoryRoot, ".omp/compatibility.json"), "utf8"));
-  if (ompProbe.stdout.match(/\b\d+\.\d+\.\d+\b/)?.[0] !== compatibility.omp.version) {
-    throw new Error(`Eval compatibility requires OMP ${compatibility.omp.version}; review and update the pin before comparing another runtime.`);
+  if (!options.model)
+    throw new Error(
+      "--model is required for paid/external evaluation runs; review provider and data policy first.",
+    );
+  const piProbe = spawnSync("pi", ["--version"], { encoding: "utf8" });
+  if (piProbe.error || piProbe.status !== 0) {
+    throw new Error(
+      "Pi CLI is unavailable; install the reviewed version and run scripts/pi-doctor.sh first.",
+    );
   }
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -240,17 +326,28 @@ async function main() {
   const summary = {
     schemaVersion: 2,
     startedAt: new Date().toISOString(),
-    sourceRevision: execFileSync("git", ["rev-parse", "HEAD"], { cwd: repositoryRoot, encoding: "utf8" }).trim(),
-    sourceStatus: execFileSync("git", ["status", "--short"], { cwd: repositoryRoot, encoding: "utf8" }).trim(),
+    sourceRevision: execFileSync("git", ["rev-parse", "HEAD"], {
+      cwd: repositoryRoot,
+      encoding: "utf8",
+    }).trim(),
+    sourceStatus: execFileSync("git", ["status", "--short"], {
+      cwd: repositoryRoot,
+      encoding: "utf8",
+    }).trim(),
     casesPath: path.relative(repositoryRoot, options.casesPath),
-    suiteFingerprint: crypto.createHash("sha256").update(JSON.stringify({
-      version: suite.version,
-      promotion: suite.promotion ?? null,
-      cases,
-    })).digest("hex"),
+    suiteFingerprint: crypto
+      .createHash("sha256")
+      .update(
+        JSON.stringify({
+          version: suite.version,
+          promotion: suite.promotion ?? null,
+          cases,
+        }),
+      )
+      .digest("hex"),
     selectedCaseIds: cases.map((item) => item.id),
     nodeVersion: process.versions.node,
-    ompVersion: ompProbe.stdout.trim(),
+    piVersion: piProbe.stdout.trim(),
     model: options.model,
     thinking: options.thinking ?? null,
     trials,
@@ -258,7 +355,6 @@ async function main() {
     cases: [],
   };
 
-  const inputContract = JSON.parse(await fs.readFile(path.join(repositoryRoot, ".omp/eval-inputs.json"), "utf8"));
   for (const item of cases) {
     for (let trial = 1; trial <= trials; trial += 1) {
       const trialRoot = path.join(outputRoot, `${item.id}--${trial}`);
@@ -266,11 +362,25 @@ async function main() {
       await fs.mkdir(trialRoot, { recursive: true });
       await copyRepository(workspace, files);
       const before = await fileManifest(workspace);
-      const snapshot = benchmarkInputSnapshot(before, inputContract.harnessTreatmentPaths);
-      if (summary.inputFingerprint && summary.inputFingerprint !== snapshot.inputFingerprint) throw new Error("Benchmark input state changed between trials.");
-      Object.assign(summary, { inputFingerprint: snapshot.inputFingerprint, inputContractFingerprint: snapshot.inputContractFingerprint });
-      await fs.writeFile(path.join(trialRoot, "input-manifest.json"), JSON.stringify(snapshot, null, 2) + "\n");
-      const result = await runRpc({ cwd: workspace, prompt: item.prompt, model: options.model, thinking: options.thinking, timeoutMs: options.timeoutMs });
+      const snapshot = benchmarkInputSnapshot(before, suite.harnessTreatmentPaths);
+      if (summary.inputFingerprint && summary.inputFingerprint !== snapshot.inputFingerprint) {
+        throw new Error("Benchmark input state changed between trials.");
+      }
+      Object.assign(summary, {
+        inputFingerprint: snapshot.inputFingerprint,
+        inputContractFingerprint: snapshot.inputContractFingerprint,
+      });
+      await fs.writeFile(
+        path.join(trialRoot, "input-manifest.json"),
+        JSON.stringify(snapshot, null, 2) + "\n",
+      );
+      const result = await runRpc({
+        cwd: workspace,
+        prompt: item.prompt,
+        model: options.model,
+        thinking: options.thinking,
+        timeoutMs: options.timeoutMs,
+      });
       const afterAgent = await fileManifest(workspace);
       const checkResults = runCaseChecks(workspace, item.checks);
       const afterChecks = await fileManifest(workspace);
@@ -307,7 +417,9 @@ async function main() {
       await fs.writeFile(path.join(trialRoot, "stderr.log"), result.stderr);
       await fs.writeFile(path.join(trialRoot, "result.json"), `${JSON.stringify(record, null, 2)}\n`);
       summary.cases.push(record);
-      process.stdout.write(`${item.id} trial ${trial}: ${record.deterministic.status} / ${record.completion} (${record.durationMs} ms, ${record.trace.toolCalls} tools)\n`);
+      process.stdout.write(
+        `${item.id} trial ${trial}: ${record.deterministic.status} / ${record.completion} (${record.durationMs} ms, ${record.trace.toolCalls} tools)\n`,
+      );
     }
   }
 

@@ -1,12 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { analyzeDocument, analyzeProjectContext, contextDocuments } from "../scripts/validate-project-context.mjs";
+import {
+  analyzeDocument,
+  analyzeProjectContext,
+  contextDocuments,
+} from "../scripts/validate-project-context.mjs";
 
 test("an untouched template-shaped context is explicitly not ready for product work", () => {
   const documents = Object.fromEntries(
     contextDocuments.map(({ path }) => [
       path,
-      "# Template contract\\n\\n- Primary users:\\n\\nKeep this document short after /wf-bootstrap.\\n",
+      "# Template contract\\n\\n- Primary users:\\n\\nKeep this document short after /bootstrap.\\n",
     ]),
   );
   const report = analyzeProjectContext(documents);
@@ -17,10 +21,12 @@ test("an untouched template-shaped context is explicitly not ready for product w
 });
 
 test("filled contracts, including explicit unknowns, satisfy the readiness gate", () => {
-  const documents = Object.fromEntries(contextDocuments.map(({ path }) => [
-    path,
-    `# Confirmed contract\n\nOwner: team\nStatus: UNKNOWN until measured\nDecision: confirmed for this slice\n`,
-  ]));
+  const documents = Object.fromEntries(
+    contextDocuments.map(({ path }) => [
+      path,
+      `# Confirmed contract\n\nOwner: team\nStatus: UNKNOWN until measured\nDecision: confirmed for this slice\n`,
+    ]),
+  );
   const report = analyzeProjectContext(documents);
   assert.equal(report.ready, true);
   assert.deepEqual(report.blockedDocuments, []);

@@ -1,16 +1,17 @@
+import { isolatedGitEnvironment } from "./eval-isolation.mjs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
-import { isGitMutationCommand, isGitMutationTool, isNativeGitMutation, canonicalToolCall } from "../../.omp/extensions/safety-guard.js";
-import { isolatedGitEnvironment } from "./eval-isolation.mjs";
+import { isGitMutationCommand, isGitMutationTool } from "../../.pi/extensions/safety-guard.js";
 
 const PROTECTED_WORKFLOW_PATHS = [
   "AGENTS.md",
   ".mcp.json",
   ".github/**",
-  ".omp/**",
+  ".pi/**",
+  "p",
   "docs/HARNESS.md",
-  "scripts/omp-sandbox.sh",
-  "scripts/omp-doctor.sh",
+  "scripts/pi-sandbox.sh",
+  "scripts/pi-doctor.sh",
 ];
 
 const DEFAULT_PROMOTION = {
@@ -178,10 +179,6 @@ function stableStringify(value) {
 }
 
 function commandFromToolEvent(event) {
-  try {
-    const canonical = canonicalToolCall(event.toolName, event.args ?? {});
-    event = { ...event, toolName: canonical.toolName, args: canonical.input };
-  } catch { return null; }
   if (event.toolName !== "bash") return null;
   const command = event.args?.command ?? event.args?.cmd;
   if (Array.isArray(command)) return command.join(" ");
@@ -193,9 +190,10 @@ function gitMutationFromToolEvent(event) {
   if (command && isGitMutationCommand(command)) {
     return { toolName: event.toolName, command };
   }
-  try {
-    if (isNativeGitMutation(event.toolName, event.args ?? {})) return { toolName: event.toolName, native: true };
-  } catch { return { toolName: event.toolName, malformedNativeDispatch: true }; }
+  const proxiedTool = event.args?.tool ?? event.args?.input?.tool ?? event.args?.name;
+  if (event.toolName === "mcp" && isGitMutationTool(proxiedTool)) {
+    return { toolName: event.toolName, proxiedTool };
+  }
   if (isGitMutationTool(event.toolName)) return { toolName: event.toolName };
   return null;
 }
@@ -240,7 +238,6 @@ export function analyzeTrace(lines) {
   let retries = 0;
   let extensionErrors = 0;
   let gitMutationCalls = 0;
-  let userInterventions = 0;
   const gitMutations = [];
 
   for (const event of events) {
@@ -275,14 +272,12 @@ export function analyzeTrace(lines) {
         failedVerificationCalls += 1;
         waitingForRepair = true;
       }
-    } else if (event.type === "compaction_start" || event.type === "auto_compaction_start") {
+    } else if (event.type === "compaction_start") {
       compactions += 1;
     } else if (event.type === "auto_retry_start" || event.type === "summarization_retry_attempt_start") {
       retries += 1;
     } else if (event.type === "extension_error") {
       extensionErrors += 1;
-    } else if (event.type === "extension_ui_request" && ["select", "confirm", "input", "editor"].includes(event.method)) {
-      userInterventions += 1;
     }
   }
 
@@ -302,7 +297,7 @@ export function analyzeTrace(lines) {
     invalidEventLines,
     gitMutationCalls,
     gitMutations,
-    userInterventions,
+    userInterventions: 0,
   };
 }
 
@@ -323,7 +318,7 @@ export function runCaseChecks(workspace, checks = []) {
       cwd,
       encoding: "utf8",
       timeout: check.timeoutMs ?? 120_000,
-      env: { ...isolatedGitEnvironment(workspace), OMP_EVAL_CHECK: "1", AI_PR_DELIVERY: "off" },
+      env: { ...isolatedGitEnvironment(workspace), PI_EVAL_CHECK: "1", AI_PR_DELIVERY: "off" },
       maxBuffer: 16 * 1024 * 1024,
     });
     return {
@@ -496,7 +491,7 @@ export function compareSummaries(candidate, baseline, configuredPromotion = {}) 
   const candidateCases = candidate.aggregate?.cases ?? {};
   const baselineCases = baseline.aggregate.cases;
 
-  for (const field of ["model", "thinking", "trials", "timeoutMs", "ompVersion", "nodeVersion", "suiteFingerprint", "inputFingerprint", "inputContractFingerprint"]) {
+  for (const field of ["model", "thinking", "trials", "timeoutMs", "piVersion", "nodeVersion", "suiteFingerprint", "inputFingerprint", "inputContractFingerprint"]) {
     if (baseline[field] === undefined || candidate[field] === undefined) {
       reasons.push(`comparison metadata is missing ${field}`);
     } else if (candidate[field] !== baseline[field]) {

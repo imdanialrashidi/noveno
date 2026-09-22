@@ -110,7 +110,7 @@ function refExists(reference) {
 }
 
 function defaultBaseReference() {
-  if (process.env.OMP_VERIFY_BASE) return process.env.OMP_VERIFY_BASE;
+  if (process.env.PI_VERIFY_BASE) return process.env.PI_VERIFY_BASE;
   for (const candidate of ["origin/main", "origin/master", "main", "master", "HEAD^"]) {
     if (refExists(candidate)) return candidate;
   }
@@ -139,7 +139,7 @@ function requiredValue(argv, index, option) {
 
 function parseArgs(argv) {
   const options = {
-    configPath: path.join(repositoryRoot, ".omp/verification.json"),
+    configPath: path.join(repositoryRoot, ".pi/verification.json"),
     base: undefined,
     files: [],
     planOnly: false,
@@ -162,8 +162,8 @@ function displayCommand(command) {
 function runPlan(plan, base) {
   const environment = {
     ...process.env,
-    OMP_VERIFY_BASE: base ?? "",
-    OMP_CHANGED_FILES_JSON: JSON.stringify(plan.files),
+    PI_VERIFY_BASE: base ?? "",
+    PI_CHANGED_FILES_JSON: JSON.stringify(plan.files),
   };
   for (const item of plan.commands) {
     process.stdout.write(`RUN   ${displayCommand(item.command)} [${item.sources.join(", ")}]\n`);
@@ -179,7 +179,7 @@ function runPlan(plan, base) {
 function main() {
   const options = parseArgs(process.argv.slice(2));
   if (!fs.existsSync(options.configPath)) {
-    throw new Error(`Missing verification routing config: ${options.configPath}. Run /wf-bootstrap or use scripts/verify.sh.`);
+    throw new Error(`Missing verification routing config: ${options.configPath}. Run /bootstrap or use scripts/verify.sh.`);
   }
   const config = validateVerificationConfig(JSON.parse(fs.readFileSync(options.configPath, "utf8")));
   const discovered = options.files.length > 0

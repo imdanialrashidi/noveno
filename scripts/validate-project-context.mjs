@@ -7,7 +7,7 @@ import { pathToFileURL } from "node:url";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "..");
 
-// These are the four durable contracts that /wf-bootstrap is expected to
+// These are the four durable contracts that /bootstrap is expected to
 // specialize. The validator is deliberately conservative: explicit unknowns
 // are valid project context, while empty template fields are not.
 export const contextDocuments = [
@@ -23,7 +23,7 @@ const emptyChecklist = /^\s*-\s*\[\s*\]\s*$/gm;
 const emptyTableRow = /^\|\s*(?:\|\s*)+$/gm;
 const templateSentinels = [
   /replace template prompts with accepted decisions/i,
-  /keep it project-specific after `?\/wf-bootstrap/i,
+  /keep it project-specific after `?\/bootstrap/i,
   /do not turn this into a generic checklist dump/i,
   /keep this document (?:short|specific)/i,
 ];
@@ -39,8 +39,12 @@ export function analyzeDocument(text, documentPath = "document") {
   const emptyOrderedItems = matches(text, emptyOrderedItem);
   const emptyChecklists = matches(text, emptyChecklist);
   // Separator rows contain dashes, so they are not classified as empty rows.
-  const emptyTableRows = matches(text, emptyTableRow).filter((row) => !row.replace(/[|\s]/g, "").match(/^-+$/));
-  const sentinelMatches = templateSentinels.filter((pattern) => pattern.test(text)).map((pattern) => pattern.source);
+  const emptyTableRows = matches(text, emptyTableRow).filter(
+    (row) => !row.replace(/[|\s]/g, "").match(/^-+$/),
+  );
+  const sentinelMatches = templateSentinels
+    .filter((pattern) => pattern.test(text))
+    .map((pattern) => pattern.source);
 
   if (emptyFields.length) signals.push("empty labeled fields");
   if (emptyOrderedItems.length) signals.push("empty ordered items");
@@ -87,7 +91,15 @@ export function analyzeProjectContext(source = undefined) {
       return { ...analyzeDocument(text, documentPath), label, missing: false };
     } catch (error) {
       if (error?.code !== "ENOENT") throw error;
-      return { path: documentPath, label, bytes: 0, ready: false, missing: true, signals: ["missing document"], counts: {} };
+      return {
+        path: documentPath,
+        label,
+        bytes: 0,
+        ready: false,
+        missing: true,
+        signals: ["missing document"],
+        counts: {},
+      };
     }
   });
   return {
@@ -100,9 +112,13 @@ export function analyzeProjectContext(source = undefined) {
 
 export function formatReport(report) {
   const status = report.ready ? "READY" : "NOT READY";
-  const lines = [`${status} project context: ${report.readyDocuments.length}/${report.documents.length} durable contracts filled`];
+  const lines = [
+    `${status} project context: ${report.readyDocuments.length}/${report.documents.length} durable contracts filled`,
+  ];
   for (const document of report.documents) {
-    lines.push(`- ${document.path}: ${document.ready ? "READY" : document.missing ? "MISSING" : "TEMPLATE"}${document.signals?.length ? ` (${document.signals.join(", ")})` : ""}`);
+    lines.push(
+      `- ${document.path}: ${document.ready ? "READY" : document.missing ? "MISSING" : "TEMPLATE"}${document.signals?.length ? ` (${document.signals.join(", ")})` : ""}`,
+    );
   }
   return lines.join("\n");
 }
@@ -124,7 +140,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     console.log(formatReport(report));
     if (options.requireReady && !report.ready) process.exitCode = 1;
     // --static is intentionally informational for an unbootstrapped template;
-    // use --require-ready after /wf-bootstrap to turn it into a gate.
+    // use --require-ready after /bootstrap to turn it into a gate.
   } catch (error) {
     console.error(`FAIL project-context validation: ${error.message}`);
     process.exitCode = 1;

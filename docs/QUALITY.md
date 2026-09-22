@@ -1,6 +1,6 @@
 # Quality Contract
 
-This file defines the evaluator-facing quality bar for meaningful changes. Keep it project-specific after `/wf-bootstrap`; do not turn it into a generic checklist dump.
+This file defines the evaluator-facing quality bar for meaningful changes. Keep it project-specific after `/bootstrap`; do not turn it into a generic checklist dump.
 
 ## Release rule
 
@@ -28,9 +28,26 @@ For accepted scope:
 - A new regression test should demonstrably fail on pre-fix behavior (or a safe focused mutation/equivalent independent characterization) when practical, then pass after the fix.
 - Generated tests must build, pass reliably, add a distinct behavioral signal, and isolate relevant state; line coverage alone is not acceptance evidence.
 
+### Test Value Gate
+
+A new or materially changed test is retained only when it identifies:
+
+1. an observable contract or invariant;
+2. a plausible failure it can detect;
+3. a gap not already covered by an existing test, type, schema, or deterministic check;
+4. the cheapest faithful layer;
+5. an oracle independent from the implementation under test; and
+6. red-before-green, a controlled focused mutation, or equivalent defect-sensitivity evidence when practical.
+
+If no distinct failure model or evidence gap exists, extend an existing case or add no test. `No new test` is an acceptable professional outcome for behavior-neutral changes or behavior already proved by the suite. Coverage, assertion count, and test count are diagnostic signals—not acceptance goals.
+
+Select one representative per equivalence class and exact material boundaries. Use decision tables, pairwise cases, or properties for meaningful interactions instead of Cartesian enumeration. Prefer the lowest-cost layer that preserves the real contract; use full end-to-end tests only for failures lower layers cannot represent.
+
+Do not compute expected values with the implementation's own logic, mock the subject/authority, verify private calls unless contractual, test framework or third-party behavior, use broad incidental snapshots, blind-update snapshots, sleep/retry away nondeterminism, or duplicate cases that add no distinct behavioral signal. Mocks are reserved for owned boundaries that are expensive, nondeterministic, or unsafe. Browser tests use user-visible behavior and accessible roles/labels, keep independent state, and exercise only the journey that requires a browser.
+
 ## Security and data integrity
 
-For trust-boundary changes, require an independent risk/security review using OMP's bundled `security-reviewer` when relevant.
+For trust-boundary changes, require the `risk-review` workflow.
 
 At minimum:
 
@@ -61,7 +78,7 @@ Default accessibility baseline when the product has not chosen a stricter target
 
 ### Visual excellence
 
-For a new interface, redesign, launch surface, or explicitly high-aesthetic task, use OMP's bundled `designer` and evaluate the rendered result against `docs/VISUAL_REVIEW.md`.
+For a new interface, redesign, launch surface, or explicitly high-aesthetic task, load `frontend-design` and evaluate the rendered result using its visual-quality rubric.
 
 Require:
 
@@ -131,7 +148,7 @@ Confirmed rules for this project (source: `docs/PRODUCT.md`, `docs/ARCHITECTURE.
 2. **Static by default; no client UI framework.** No React/Vue/Svelte; interactivity only via Astro components and framework-free TS modules; no SSR. Mechanical check once the app exists: `package.json` dependency assertion + build output inspection.
 3. **No fabricated proof.** Case studies/projects must be real; results evidence-backed (Spec §19, §21.7); demo/concept content must be visibly labeled; no fake testimonials/logos; no sales guarantees in copy. Check: content review step in `/review` plus copy fixtures in tests when content lands.
 4. **Audit form is business-critical.** Server-side validation, abuse mitigation, no silent failure, no false success, attribution preserved; every accepted submission is delivered as **email via Web3Forms**, and the visitor sees success only after Web3Forms confirms acceptance (no database — 2026-10 email-only architecture, Spec §61–62 adapted). Check: function-level tests at implementation (defect-sensitive: must fail on pre-fix behavior) + client journey tests proving thank-you requires confirmed delivery.
-5. **Secrets stay out of the repository.** `.env*` ignored except `.env.example` (names only, never values); credentials only in Cloudflare Pages secrets. Check: `scripts/omp-doctor.sh` secret scan (exists) + `.env.example` value scan in `scripts/check-project-contract.mjs` (exists, run via `scripts/project-verify.sh`).
+5. **Secrets stay out of the repository.** `.env*` ignored except `.env.example` (names only, never values); credentials only in Cloudflare Pages secrets. Check: `scripts/pi-doctor.sh` secret scan (exists) + `.env.example` value scan in `scripts/check-project-contract.mjs` (exists, run via `scripts/project-verify.sh`).
 6. **Light/dark themes with system default, persisted override, no incorrect-theme flash; tokens from the accepted anchors in `docs/DESIGN.md`.** Check: browser theme-flash/contrast evidence per `browser-qa` at design/build.
 7. **Accessibility baseline WCAG 2.2 AA** (keyboard, focus, labels, contrast 4.5:1/3:1, reduced motion, no color-only meaning) and **mobile-first** (320px reflow, tap targets, click-to-call). Check: browser QA gates.
 8. **Performance is a product requirement**: static rendering, minimal JS, optimized self-hosted assets; CWV `good` targets pending an accepted lab budget. Check: lab measurement at build, RUM via Cloudflare Web Analytics after launch.
@@ -139,9 +156,9 @@ Confirmed rules for this project (source: `docs/PRODUCT.md`, `docs/ARCHITECTURE.
 
 Canonical commands:
 
-- Full canonical gate: `bash scripts/verify.sh` (builds the project so structural tests run against a fresh `dist/`, then runs `scripts/omp-doctor.sh --static` + `scripts/project-verify.sh`; CI mirrors this in `.github/workflows/quality.yml`).
+- Full canonical gate: `bash scripts/verify.sh` (builds the project so structural tests run against a fresh `dist/`, then runs `scripts/pi-doctor.sh --ci` + `scripts/project-verify.sh`; CI mirrors this in `.github/workflows/quality.yml`).
 - Project doc/branding/contract checks: `bash scripts/project-verify.sh` (fast, static).
-- Affected-change routing: `node scripts/verify-affected.mjs --file <path> [--plan]` (routes in `.omp/verification.json`; unmatched files fall back to the full gate).
+- Affected-change routing: `node scripts/verify-affected.mjs --file <path> [--plan]` (routes in `.pi/verification.json`; unmatched files fall back to the full gate).
 - Harness/workflow tests: `node --test tests/*.test.mjs`.
 - Install (harness): `./p` installs pinned Pi packages; app install (`npm install` or `pnpm install`) arrives with the Astro scaffolding.
 - Browser QA: lazy Playwright MCP (`/mcp status`), screenshots under `.artifacts/playwright/`; deterministic browser tests separate from MCP exploration.

@@ -305,6 +305,7 @@ Then look at `/work`, `/work/<slug>`, and the homepage proof section in the brow
 
 ## Verification lanes
 
+- **Tiny low-risk fix:** `/skill:quick-fix` — inspect → change → targeted check → diff review; no plan, todo, subagent, or broad gate.
 - **Targeted/affected:** `node scripts/verify-affected.mjs --file <path>` — routes in `.pi/verification.json`; unmatched files fall back to the canonical full gate.
 - **Feature:** once after a bounded change: project contract + relevant tests + build.
 - **Full:** `bash scripts/verify.sh` — builds the project (fresh `dist/` for structural tests), then runs `scripts/pi-doctor.sh --ci` (harness integrity, security scan, context budgets) and `scripts/project-verify.sh` (Noveno doc/branding/env contract). CI mirrors this in `.github/workflows/quality.yml`.

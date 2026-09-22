@@ -45,7 +45,7 @@ Product-level path from idea to production. Task-level, multi-session execution 
 
 - Scope: one deployable end-to-end path: static site shell on Cloudflare Pages + audit validation function + Web3Forms email delivery, with analytics tags.
 - Exit evidence: canonical install/start/test path works (`npm install`/`npm run dev`/`npm run build`/`npm run test`), `scripts/verify.sh` green, function exercised in a real browser with a test lead (staging — pending founder provisioning, `docs/ops/setup-checklist.md`), rollback = redeploy previous commit.
-- Verification: `.omp/verification.json` has an `app` route covering `src/**` and a `functions` route covering `functions/**`.
+- Verification: `.pi/verification.json` has a `product-site` route covering `src/**` and `functions/**`.
 
 ### 3. Vertical MVP ✔ DONE (shipped; live-provider evidence pending launch)
 

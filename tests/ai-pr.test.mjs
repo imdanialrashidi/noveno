@@ -9,7 +9,7 @@ const root = path.resolve(import.meta.dirname, "..");
 const repository = "test-owner/workflow";
 const testEnv = { ...process.env, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null", AI_PR_DELIVERY: "on" };
 delete testEnv.NODE_TEST_CONTEXT;
-delete testEnv.OMP_GUARD_MODE;
+delete testEnv.PI_GUARD_MODE;
 
 function fixture(t, { branch = true } = {}) {
   const artifacts = path.join(root, ".artifacts");
@@ -194,7 +194,7 @@ test("missing branch, divergent push URL, opt-out, and missing authorization fai
     f.state[flag] = false;
   }
   assert.throws(() => f.invoke(f.deliverArgs(), { ...testEnv, AI_PR_DELIVERY: "off" }), /disabled/);
-  assert.throws(() => f.invoke(f.deliverArgs(), { ...testEnv, OMP_GUARD_MODE: "strict" }), /disabled/);
+  assert.throws(() => f.invoke(f.deliverArgs(), { ...testEnv, PI_GUARD_MODE: "strict" }), /disabled/);
   assert.equal(f.git("rev-parse", "HEAD"), before);
   assert.equal(f.remoteSha(), before);
   assert.equal(f.state.creates, 0);
@@ -282,7 +282,7 @@ test("a failed branch-create response preserves state and the next prepare reuse
 test("missing branch does not bypass local-only, strict, auth, or related-PR boundaries", (t) => {
   const f = fixture(t, { branch: false });
   assert.throws(() => f.invoke(["prepare"], { ...testEnv, AI_PR_DELIVERY: "off" }), /disabled/);
-  assert.throws(() => f.invoke(["prepare"], { ...testEnv, OMP_GUARD_MODE: "strict" }), /disabled/);
+  assert.throws(() => f.invoke(["prepare"], { ...testEnv, PI_GUARD_MODE: "strict" }), /disabled/);
   f.state.authFailure = true;
   assert.throws(() => f.invoke(["prepare"]), /gh api failed/);
   f.state.authFailure = false;
