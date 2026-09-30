@@ -26,9 +26,15 @@ const { offer, href, index, ctaLabel, showPrice = true } = Astro.props;
 const label = ctaLabel ?? (offer.id === "landing" ? "شروع با یک صفحه" : "جزئیات این بسته");
 ---
 
+<!-- Registration layer (DESIGN §12): the row's opening rule is drawn in
+     from the inline start; the recommended tier keeps its 2px primary
+     rule. The `--sweep-weight` is presentation-only — the rule itself is
+     plain markup. -->
 <article
   class:list={["group border-t border-line py-8 lg:py-10", offer.recommended && "border-t-2 border-primary"]}
+  style={offer.recommended ? "--sweep-weight: 2px" : undefined}
   data-reveal-item={index}
+  data-sweep
 >
   <div class="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,4fr)_minmax(0,3fr)] lg:gap-10">
     <div class="flex flex-col gap-3">

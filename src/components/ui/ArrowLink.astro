@@ -2,10 +2,11 @@
 /**
  * ArrowLink — the "read more" arrow anchor (2026-08-14 redesign link
  * family), the single place the arrow glyph + hover direction live.
- * Call sites supply the leading layout class (e.g. `mt-3` in WorkCard)
- * and any analytics data attributes; the base class string and arrow
- * markup come verbatim from the two sites that previously hand-rolled
- * this block (WorkCard, OfferRow) so rendered output stays byte-identical.
+ * The `arrow-link` class is the registration layer's underline device
+ * (DESIGN §12, device 5b): on the link's OWN hover/focus-visible the
+ * underline grows from the inline start and the glyph nudges 4px — so
+ * the feedback works outside a `.group` too, and keyboard users get
+ * exactly what pointer users get.
  */
 
 interface Props {
@@ -21,7 +22,7 @@ const { href, label, data = {} } = Astro.props;
 const className = Astro.props["class"] ?? "";
 
 const base =
-  "inline-flex min-h-11 items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-text-action";
+  "arrow-link inline-flex min-h-11 items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-text-action";
 
 const classes = className ? `${className} ${base}` : base;
 ---

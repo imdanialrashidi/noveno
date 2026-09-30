@@ -93,6 +93,19 @@ const buttonId = `${id}-trigger`;
   .accordion-panel > p {
     overflow: hidden;
     min-height: 0;
+    /* Registration layer (DESIGN §12, device 5b): the answer registers
+       6px into place as its panel opens. The panel is 0fr when closed,
+       so this never hides content that should be readable. */
+    opacity: 0;
+    transform: translateY(-6px);
+    transition:
+      opacity var(--dur-2) var(--ease-standard),
+      transform var(--dur-2) var(--ease-standard);
+  }
+  .accordion-panel.is-open > p {
+    opacity: 1;
+    transform: none;
+    transition-delay: 60ms;
   }
   [aria-expanded="true"] [data-accordion-icon] {
     transform: rotate(180deg);

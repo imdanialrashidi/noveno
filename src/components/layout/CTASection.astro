@@ -83,9 +83,9 @@ const stages = ["توجه", "درخواست", "ثبت", "پیگیری"];
               />
             </svg>
             <p class="text-meta font-semibold text-text">مسیر مشتری، از توجه تا پیگیری</p>
-            <ul class="mt-6 flex flex-col">
+            <ul class="mt-6 flex flex-col" style="--sweep-cover: var(--surface-soft)" data-reveal-stagger>
               {stages.map((stage, i) => (
-                <li class="flex items-center gap-4 border-t border-line py-4">
+                <li class="flex items-center gap-4 border-t border-line py-4" data-reveal-item={i} data-sweep>
                   <span class="flex h-7 w-7 flex-none items-center justify-center rounded-[1px] bg-primary-soft text-ui font-semibold text-accent-strong tnum">
                     {toFaDigits(i + 1)}
                   </span>

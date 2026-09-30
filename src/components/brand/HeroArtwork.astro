@@ -22,6 +22,10 @@
  *  - a handful of transition marks quietly settle into alignment;
  *  - the plate surface materializes once, and one registered square
  *    blinks an acknowledgment after load;
+ *  - the registration sweep: after the settle, one hairline scan with
+ *    a small `primary` lead square crosses the plate once (right → left,
+ *    1150ms) and the acknowledgment follows it (registration layer,
+ *    §12 device 4). Both variants get their own recomposed sweep;
  *  - tiny pointer parallax (two layers, ≤6px) on fine-pointer desktop
  *    only; prefers-reduced-motion renders the fully settled frame.
  *
@@ -63,6 +67,9 @@ const MOTIF_PATH =
     <mask id="hp-mask">
       <rect x="0" y="0" width="600" height="600" fill="url(#hp-fade)"></rect>
     </mask>
+    <clipPath id="hp-plate-clip">
+      <rect x="40" y="310" width="280" height="280"></rect>
+    </clipPath>
   </defs>
 
   <!-- 1. The field — faint 60px grid, present where structure exists -->
@@ -383,6 +390,23 @@ const MOTIF_PATH =
       style="--dx: -24px; --dy: -16px; --dr: 0deg; --d: 750ms"></circle>
   </g>
 
+  <!-- 4b. The registration sweep — one scan crosses the plate after the
+       settle, leading with a small primary square (RTL: right → left).
+       Clipped to the plate so the line never escapes the system. -->
+  <g clip-path="url(#hp-plate-clip)">
+    <g class="hero-art-sweep">
+      <path d="M310 310V590" stroke="var(--line-strong)" stroke-width="1.5" opacity="0.6"></path>
+      <rect
+        class="hero-art-sweep-lead text-primary"
+        fill="currentColor"
+        x="305"
+        y="326"
+        width="10"
+        height="10"
+        rx="1"></rect>
+    </g>
+  </g>
+
   <!-- 5. The acknowledgment — one registered square blinks twice -->
   <rect
     fill="currentColor"
@@ -414,6 +438,9 @@ const MOTIF_PATH =
     <mask id="hp-m-mask">
       <rect x="0" y="0" width="600" height="210" fill="url(#hp-m-fade)"></rect>
     </mask>
+    <clipPath id="hp-m-shelf-clip">
+      <rect x="24" y="66" width="306" height="80"></rect>
+    </clipPath>
   </defs>
 
   <!-- faint field, structure side only -->
@@ -481,6 +508,22 @@ const MOTIF_PATH =
       height="14"
       opacity="0.65"
       style="--dx: -16px; --dy: -14px; --dr: 4deg; --d: 300ms"></rect>
+  </g>
+
+  <!-- registration sweep (mobile recomposition): a shorter scan across
+       the shelf, fewer marks, same grammar -->
+  <g clip-path="url(#hp-m-shelf-clip)">
+    <g class="hero-art-sweep" style="--sweep-travel: 290px">
+      <path d="M320 66V146" stroke="var(--line-strong)" stroke-width="2" opacity="0.6"></path>
+      <rect
+        class="hero-art-sweep-lead text-primary"
+        fill="currentColor"
+        x="313"
+        y="86"
+        width="14"
+        height="14"
+        rx="1"></rect>
+    </g>
   </g>
 
   <!-- scatter: incoming attention, larger marks for small screens -->
@@ -573,11 +616,35 @@ const MOTIF_PATH =
     }
   }
 
-  /* One acknowledgment blink after load — two slow pulses, then quiet. */
+  /* The registration sweep — one hairline scan with a small primary
+     lead square crosses the plate once after the marks have settled
+     (1150ms, 900ms), then releases: the scan fades out at the end of
+     its travel, so the settled artwork is exactly the composition
+     above. `--sweep-travel` is the variant's own distance. */
+  .hero-art-sweep {
+    animation: hero-sweep 900ms var(--ease-standard) 1150ms both;
+  }
+  @keyframes hero-sweep {
+    0% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    80% {
+      transform: translateX(calc(-0.8 * var(--sweep-travel, 268px)));
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(calc(-1 * var(--sweep-travel, 268px)));
+      opacity: 0;
+    }
+  }
+
+  /* One acknowledgment blink after the sweep lands — two slow pulses,
+     then quiet. */
   .hero-art-ack {
     transform-box: fill-box;
     transform-origin: center;
-    animation: hero-ack 700ms ease-in-out 1500ms 2 both;
+    animation: hero-ack 700ms ease-in-out 2100ms 2 both;
   }
   @keyframes hero-ack {
     0%,

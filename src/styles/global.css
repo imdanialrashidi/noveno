@@ -629,6 +629,186 @@
     transition: transform 300ms var(--ease-standard);
   }
 
+  /* ---------------------------------------------------------------- */
+  /* Registration layer (DESIGN §12 «Registration layer», 2026-10)      */
+  /* The site's own idea — scattered signals registering into a         */
+  /* structured system — applied to the section grid, the editorial     */
+  /* numerals, the media frames, the previews and the mobile header.    */
+  /* ZERO new JavaScript: every device below rides on the existing       */
+  /* `.reveal-init` → `.reveal-in` class swap from motion.ts, and the   */
+  /* settled state is the natural CSS state (no-JS / reduced-motion     */
+  /* render it instantly). Transform + opacity only.                    */
+  /* ---------------------------------------------------------------- */
+
+  /* 1. Rule draw — the opening hairline of a section or sequence row
+        is uncovered from the inline start (right, in RTL) as its group
+        registers. The rule itself never moves or changes color; a
+        canvas-colored 1–2px strip retracts over it. The strip only
+        exists while JS is managing the group, so a group the observer
+        never touches keeps its plain hairline. */
+  [data-sweep] {
+    position: relative;
+  }
+  :where(.reveal-init, .reveal-in) [data-sweep]::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: calc(-1 * var(--sweep-weight, 1px));
+    height: var(--sweep-weight, 1px);
+    background-color: var(--sweep-cover, var(--canvas));
+    transform: scaleX(0);
+    transform-origin: right;
+    pointer-events: none;
+  }
+  :where(.reveal-init, .reveal-in) [data-sweep="bottom"]::after {
+    top: auto;
+    bottom: calc(-1 * var(--sweep-weight, 1px));
+  }
+  .reveal-init [data-sweep]::after {
+    transform: scaleX(1);
+    transition: transform 520ms var(--ease-standard) 90ms;
+  }
+  .reveal-in [data-sweep]::after {
+    transform: scaleX(0);
+    transition: transform 520ms var(--ease-standard) 90ms;
+  }
+
+  /* 2. Editorial numeral lock — a 2px primary bar draws under the
+        numeral, then releases. The settled frame is unchanged, so no
+        route gains a permanent underline. */
+  [data-reveal-item] .editorial-num {
+    position: relative;
+  }
+  [data-reveal-item] .editorial-num::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -0.25rem;
+    height: 2px;
+    background-color: var(--primary);
+    transform: scaleX(0);
+    transform-origin: right;
+    opacity: 0;
+  }
+  .reveal-in [data-reveal-item] .editorial-num::after {
+    /* A keyframe, not a transition: the bar must DRAW, hold, then
+       RELEASE, and a transition would settle on its target value. */
+    animation: num-lock 900ms var(--ease-standard) both;
+  }
+  @keyframes num-lock {
+    0% {
+      transform: scaleX(0);
+      opacity: 0;
+    }
+    14% {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+    62% {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scaleX(1);
+      opacity: 0;
+    }
+  }
+
+  /* 3. Frame resolve — a real proof surface settles from scale(1.02)
+        instead of sliding as a flat block (transform only). The frame
+        itself moves, so the existing hover/preview transitions on the
+        image are untouched. */
+  :is(.media-frame, .preview-stage) {
+    transition: transform 520ms var(--ease-standard);
+  }
+  .reveal-init :is(.media-frame, .preview-stage) {
+    transform: scale(1.02);
+  }
+
+  /* 5a. Preview registration line — a 1px primary hairline draws
+        across the frame's leading edge on hover AND keyboard focus
+        (`:focus-within`), pointer devices only so touch never sticks. */
+  @media (hover: hover) {
+    .preview-stage::after {
+      content: "";
+      position: absolute;
+      inset-inline: 0;
+      top: 0;
+      height: 1px;
+      background-color: var(--primary);
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform var(--dur-2) var(--ease-standard);
+      pointer-events: none;
+    }
+    .group:hover .preview-stage::after,
+    .group:focus-within .preview-stage::after {
+      transform: scaleX(1);
+    }
+  }
+
+  /* 5b. ArrowLink — underline grows from the inline start and the
+        glyph nudges 4px, on the link's own hover/focus (not only
+        inside a `.group`). */
+  .arrow-link {
+    position: relative;
+  }
+  .arrow-link::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -2px;
+    height: 1px;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform var(--dur-2) var(--ease-standard);
+  }
+  .arrow-link:hover::after,
+  .arrow-link:focus-visible::after {
+    transform: scaleX(1);
+  }
+  .arrow-link:hover svg,
+  .arrow-link:focus-visible svg {
+    transform: translateX(-4px);
+  }
+
+  /* 6. Registration line on the mobile sticky header — scroll-driven,
+        off the main thread, no listener, no JS. Desktop is excluded
+        because the desktop header is `static` (DESIGN §8), and reduced
+        motion opts out entirely; unsupported engines keep the plain
+        hairline (the element stays collapsed). */
+  .header-registration {
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 2px;
+    background-color: var(--primary);
+    transform: scaleX(0);
+    transform-origin: right;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+      .header-registration {
+        /* Longhands, deliberately: a scroll timeline needs
+           `animation-duration: auto`, and the `animation` shorthand
+           normalizes to `0s` in some toolchains — an instant animation
+           would sit frozen at progress 0 (an invisible line). */
+        animation-name: header-registration;
+        animation-duration: auto;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: scroll(root block);
+      }
+    }
+  }
+  @keyframes header-registration {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
   /* The reduced-motion guard at the bottom of this file zeroes every
      duration, so all of the above render directly in their final state. */
 
