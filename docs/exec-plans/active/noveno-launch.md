@@ -96,7 +96,7 @@ Updated: 2026-10
 - `docs/ARCHITECTURE.md` — invariants, trust boundaries, chosen patterns table.
 - `docs/QUALITY.md` — project invariants (RTL, no client framework, no fabricated proof, business-critical form, secrets, themes, a11y, performance, no speculative infra) + evidence hierarchy.
 - Master Spec — §8.1 IA, §10 homepage sequence, §18–19 proof policy, §21 case-study template, §23 qualification, §24 process, §31–33 audit form + attribution + post-submission, §35 lead model, §36 event model, §39 pricing framing, §43 SEO, §50–51 performance/a11y, §57 component list, §61–63 reliability/security/privacy, §64 Iran resilience, §65–66 content/metrics models, §73–74 launch scope/acceptance.
-- Repository workflow: `.pi/verification.json`, `scripts/verify-affected.mjs`, `scripts/verify.sh`, `scripts/check-project-contract.mjs` (markers `#679e86`, `#619881`, "Astro", "Cloudflare Pages", "Web3Forms", "static", "RTL", "WCAG 2.2 AA" must stay intact), `tests/*.test.mjs` conventions (node:test), browser-qa/verification-routing/test-design/frontend-design/risk-review skills.
+- Repository workflow: `.pi/verification.json`, `scripts/verify-affected.mjs`, `scripts/verify.sh`, `scripts/check-project-contract.mjs` (markers `#679e86`, `#619881`, "Astro", "Cloudflare Pages", "Web3Forms", "static", "RTL", "WCAG 2.2 AA" must stay intact), `tests/*.test.mjs` conventions (node:test), browser-qa/verification-routing/test-design/frontend-design skills + focused risk review in `docs/QUALITY.md`.
 
 ## 5. Smallest viable architecture (resolved decisions)
 
@@ -252,7 +252,7 @@ Invariants: 200 `validated` never means delivery. Thank-you ⇔ Web3Forms confir
 4. Client submit flow + Web3Forms notification + thank-you page. — stop: full journey in real browser incl. simulated network failure (values preserved), offline banner, notification-failure simulation (lead intact — A4-iii evidence), success state (matrix screens 8–9).
 5. Analytics: events module + `/api/events` + Analytics Engine + beacon; event-firing network evidence; degradation checks. — stop: A6 attribution evidence (UTM → lead row); events observed on /api/events without PII.
 6. SEO/production completion: sitemap, robots, structured data, metadata audit, `_headers`, Pages checklist + runbook, `.env.example`. — stop: sitemap/robots validate; secret scan + project-verify green.
-7. Hardening + gates: `risk-review` + `security-auditor` on the trust boundary (unresolved BLOCKER/MAJOR blocks completion); lab CWV measurement on throttled profile; full browser matrix (8–9 + regression retest of 1–7, 10–12); full gate green; final reviewer pass. — stop: all acceptance criteria A1–A7 evidence collected; full gate green.
+7. Hardening + gates: focused risk review in `docs/QUALITY.md` + `security-auditor` on the trust boundary (unresolved BLOCKER/MAJOR blocks completion); lab CWV measurement on throttled profile; full browser matrix (8–9 + regression retest of 1–7, 10–12); full gate green; final reviewer pass. — stop: all acceptance criteria A1–A7 evidence collected; full gate green.
 
 ## 8. Dependencies between the slices
 
@@ -280,7 +280,7 @@ Invariants: 200 `validated` never means delivery. Thank-you ⇔ Web3Forms confir
 - Structural tests (node:test, repo convention): every built HTML page has `lang="fa" dir="rtl"` and no LTR leakage; `package.json` dependency assertion (no react/vue/svelte); font budget ≤ 200 KB; token values from DESIGN §6 present in built CSS; content schema rejects fabricated-metric shapes (metrics require `source` + `verified`).
 - Function tests: pure-module unit tests with defect sensitivity (fail on pre-fix behavior — e.g., Persian-digit normalization, whitelist bypass, missing Turnstile, validate-only response contract); Turnstile official test keys (always-pass/always-fail/duplicate) in test env only.
 - Browser QA (`browser-qa` skill, lazy Playwright MCP): accessibility snapshots and DOM/console/network evidence first; screenshots under `.artifacts/playwright/` with state provenance (route, viewport 1440/390/320, theme, fa-RTL); reduced-motion check; theme no-flash test; keyboard + aria snapshot of the audit flow; network panel evidence for events.
-- Evaluators: `reviewer` at each slice exit; `frontend-design` flagship gates on Slice 1 (avg ≥ 3.25, no dimension < 3, signature ≥ 3/4 on specificity/execution — per DESIGN §15); `security-auditor` + `risk-review` on the Slice 2 trust boundary (unresolved BLOCKER/MAJOR blocks completion). Max two evidence-driven repair rounds per gate.
+- Evaluators: `reviewer` at each slice exit; `frontend-design` flagship gates on Slice 1 (avg ≥ 3.25, no dimension < 3, signature ≥ 3/4 on specificity/execution — per DESIGN §15); `security-auditor` + focused risk review in `docs/QUALITY.md` on the Slice 2 trust boundary (unresolved BLOCKER/MAJOR blocks completion). Max two evidence-driven repair rounds per gate.
 - Gates per slice: targeted during work → feature once per vertical step → full (`bash scripts/verify.sh`) at slice exit and final delivery. Lab CWV (throttled) in Slice 2 with the recorded baseline; field data comes later via Web Analytics RUM — lab results are not presented as field proof.
 
 ## 11. Decisions intentionally deferred (founder-owned; isolated so they never block build)

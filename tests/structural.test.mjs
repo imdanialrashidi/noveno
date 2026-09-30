@@ -40,10 +40,6 @@ const REQUIRED_TOKENS = [
   "#06130d", // on-primary ink (dark ink on green)
 ];
 
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 function walk(dir) {
   const out = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {

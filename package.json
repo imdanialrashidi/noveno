@@ -18,8 +18,9 @@
     "check": "astro check",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "ci": "npm run check && npm run build && npm run test",
     "test": "node --test tests/*.test.mjs",
-    "ci": "npm run check && npm run build && npm run test"
+    "test:full": "RUN_NETWORK_TESTS=1 node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",

@@ -35,7 +35,8 @@ export function validateVerificationConfig(config) {
     if (ids.has(route.id)) throw new Error(`Duplicate verification route: ${route.id}`);
     ids.add(route.id);
     assertStringArray(route.include, `${route.id}.include`);
-    if (route.exclude !== undefined) assertStringArray(route.exclude, `${route.id}.exclude`, { allowEmpty: true });
+    if (route.exclude !== undefined)
+      assertStringArray(route.exclude, `${route.id}.exclude`, { allowEmpty: true });
     validateCommands(route.commands, `${route.id}.commands`);
   }
   validateCommands(config.fallback, "fallback");
@@ -123,11 +124,19 @@ export function discoverChangedFiles(baseReference) {
   if (base) {
     if (!refExists(base)) throw new Error(`Verification base ref does not exist: ${base}`);
     const mergeBase = git(["merge-base", "HEAD", base], { encoding: "utf8" }).trim();
-    for (const file of parseNullSeparated(git(["diff", "--name-only", "-z", "--diff-filter=ACMRD", mergeBase, "HEAD"]))) files.add(file);
+    for (const file of parseNullSeparated(
+      git(["diff", "--name-only", "-z", "--diff-filter=ACMRD", mergeBase, "HEAD"]),
+    ))
+      files.add(file);
   }
-  for (const file of parseNullSeparated(git(["diff", "--name-only", "-z", "--diff-filter=ACMRD"]))) files.add(file);
-  for (const file of parseNullSeparated(git(["diff", "--cached", "--name-only", "-z", "--diff-filter=ACMRD"]))) files.add(file);
-  for (const file of parseNullSeparated(git(["ls-files", "--others", "--exclude-standard", "-z"]))) files.add(file);
+  for (const file of parseNullSeparated(git(["diff", "--name-only", "-z", "--diff-filter=ACMRD"])))
+    files.add(file);
+  for (const file of parseNullSeparated(
+    git(["diff", "--cached", "--name-only", "-z", "--diff-filter=ACMRD"]),
+  ))
+    files.add(file);
+  for (const file of parseNullSeparated(git(["ls-files", "--others", "--exclude-standard", "-z"])))
+    files.add(file);
   return { base, files: [...files].sort() };
 }
 
@@ -171,7 +180,9 @@ function runPlan(plan, base) {
     const result = spawnSync(command, args, { cwd: repositoryRoot, env: environment, stdio: "inherit" });
     if (result.error) throw result.error;
     if (result.status !== 0) {
-      throw new Error(`Verification command failed with exit ${result.status}: ${displayCommand(item.command)}`);
+      throw new Error(
+        `Verification command failed with exit ${result.status}: ${displayCommand(item.command)}`,
+      );
     }
   }
 }
@@ -179,12 +190,15 @@ function runPlan(plan, base) {
 function main() {
   const options = parseArgs(process.argv.slice(2));
   if (!fs.existsSync(options.configPath)) {
-    throw new Error(`Missing verification routing config: ${options.configPath}. Run /bootstrap or use scripts/verify.sh.`);
+    throw new Error(
+      `Missing verification routing config: ${options.configPath}. Run /bootstrap or use scripts/verify.sh.`,
+    );
   }
   const config = validateVerificationConfig(JSON.parse(fs.readFileSync(options.configPath, "utf8")));
-  const discovered = options.files.length > 0
-    ? { base: options.base ?? null, files: options.files }
-    : discoverChangedFiles(options.base);
+  const discovered =
+    options.files.length > 0
+      ? { base: options.base ?? null, files: options.files }
+      : discoverChangedFiles(options.base);
   const plan = selectVerificationPlan(config, discovered.files);
 
   if (options.planOnly) {
@@ -195,7 +209,9 @@ function main() {
     process.stdout.write("No changed files; no affected verification command selected.\n");
     return;
   }
-  process.stdout.write(`Affected verification: ${plan.files.length} changed file(s), ${plan.routes.length} route(s), ${plan.commands.length} command(s).\n`);
+  process.stdout.write(
+    `Affected verification: ${plan.files.length} changed file(s), ${plan.routes.length} route(s), ${plan.commands.length} command(s).\n`,
+  );
   if (plan.unmatchedFiles.length) {
     process.stdout.write(`Conservative fallback for: ${plan.unmatchedFiles.join(", ")}\n`);
   }

@@ -67,7 +67,7 @@ Product-level path from idea to production. Task-level, multi-session execution 
 
 ### 6. Release candidate
 
-- Scope: frozen launch scope; security review of the form boundary (`risk-review` + `security-auditor`); performance lab budget; accessibility pass; `/ship` READY.
+- Scope: frozen launch scope; security review of the form boundary (focused risk review in `docs/QUALITY.md` + `security-auditor`); performance lab budget; accessibility pass; `/ship` READY.
 - Exit evidence: no unresolved BLOCKER/MAJOR; recovery/rollback and runbook proven.
 - Sign-off owners: founder.
 

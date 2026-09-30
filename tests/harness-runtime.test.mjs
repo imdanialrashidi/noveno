@@ -4,10 +4,7 @@ import path from "node:path";
 import test from "node:test";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "..");
-const source = await fs.readFile(
-  path.join(repositoryRoot, ".pi/extensions/harness-runtime.js"),
-  "utf8",
-);
+const source = await fs.readFile(path.join(repositoryRoot, ".pi/extensions/harness-runtime.js"), "utf8");
 const typeboxShim = `const Type = {
   String(options = {}) { return { type: "string", ...options }; },
   Array(items, options = {}) { return { type: "array", items, ...options }; },
@@ -34,8 +31,7 @@ function createRuntime({ entries = [], branch = entries, extraTools = [] } = {})
   const appended = [];
   let registeredTool;
   let activeTools = [...CORE_TOOLS, ...extraTools];
-  const allTools = [...new Set([...CORE_TOOLS, ...specialistTools, ...extraTools])]
-    .map((name) => ({ name }));
+  const allTools = [...new Set([...CORE_TOOLS, ...specialistTools, ...extraTools])].map((name) => ({ name }));
   const pi = {
     appendEntry(customType, data) {
       appended.push({ type: "custom", customType, data });
@@ -75,15 +71,18 @@ async function emitTool(runtime, toolName, input, isError, id) {
   const call = { type: "tool_call", toolCallId: id, toolName, input };
   const blocked = await runtime.handlers.get("tool_call")(call, runtime.ctx);
   if (blocked?.block) return { blocked };
-  const result = await runtime.handlers.get("tool_result")({
-    type: "tool_result",
-    toolCallId: id,
-    toolName,
-    input: call.input,
-    content: [{ type: "text", text: isError ? "failed" : "ok" }],
-    details: {},
-    isError,
-  }, runtime.ctx);
+  const result = await runtime.handlers.get("tool_result")(
+    {
+      type: "tool_result",
+      toolCallId: id,
+      toolName,
+      input: call.input,
+      content: [{ type: "text", text: isError ? "failed" : "ok" }],
+      details: {},
+      isError,
+    },
+    runtime.ctx,
+  );
   return { call, result };
 }
 
@@ -91,10 +90,7 @@ test("specialist capability groups load additively and reset without dropping un
   const runtime = createRuntime({ extraTools: ["local_custom"] });
   const tool = runtime.tool();
   assert.equal(tool.name, "harness_tools");
-  assert.deepEqual(
-    tool.parameters.properties.capabilities.items.enum,
-    Object.keys(CAPABILITY_TOOL_GROUPS),
-  );
+  assert.deepEqual(tool.parameters.properties.capabilities.items.enum, Object.keys(CAPABILITY_TOOL_GROUPS));
   assert.deepEqual(tool.prepareArguments({ capabilities: '["browser","web"]' }), {
     capabilities: ["browser", "web"],
   });
@@ -111,7 +107,10 @@ test("specialist capability groups load additively and reset without dropping un
   const reset = await tool.execute("loader-3", { capabilities: [] });
   assert.deepEqual(new Set(reset.details.removed), new Set(["mcp", "web_search", "web_fetch"]));
   assert.ok(runtime.activeTools().includes("local_custom"));
-  assert.equal(runtime.activeTools().some((name) => specialistTools.includes(name)), false);
+  assert.equal(
+    runtime.activeTools().some((name) => specialistTools.includes(name)),
+    false,
+  );
 });
 
 test("browser activation reports the active model's image input without guessing by model name", async () => {
@@ -122,7 +121,9 @@ test("browser activation reports the active model's image input without guessing
     [{ id: "vision-pro" }, "unknown"],
   ]) {
     runtime.ctx.model = model;
-    const result = await runtime.tool().execute("browser", { capabilities: ["browser"] }, undefined, undefined, runtime.ctx);
+    const result = await runtime
+      .tool()
+      .execute("browser", { capabilities: ["browser"] }, undefined, undefined, runtime.ctx);
     assert.equal(result.details.harnessVision.imageInput, expected);
     assert.match(result.content[0].text, /image input/);
   }
@@ -136,7 +137,10 @@ test("visual guidance is task-scoped, rechecks the model, and does not survive a
   const event = { systemPrompt: "Existing policy", images: [] };
   runtime.ctx.model = { input: ["text", "image"] };
   assert.equal(await start(event, runtime.ctx), undefined);
-  const attached = await start({ ...event, images: [{ type: "image", data: "fixture", mimeType: "image/png" }] }, runtime.ctx);
+  const attached = await start(
+    { ...event, images: [{ type: "image", data: "fixture", mimeType: "image/png" }] },
+    runtime.ctx,
+  );
   assert.ok(attached.systemPrompt.startsWith("Existing policy\n"));
   assert.match(attached.systemPrompt, /image input=supported/);
   assert.match(attached.systemPrompt, /UNPROVEN/);
@@ -151,32 +155,58 @@ test("image evidence preserves native blocks and never equates tool output with 
   const runtime = createRuntime();
   runtime.ctx.model = { input: ["text", "image"] };
   const image = { type: "image", data: "fixture-image-bytes", mimeType: "image/png" };
-  const event = { toolName: "mcp", toolCallId: "shot", input: { tool: "browser_take_screenshot", args: {} },
-    content: [{ type: "text", text: "Saved screenshot" }, image], details: { original: true }, isError: false };
+  const event = {
+    toolName: "mcp",
+    toolCallId: "shot",
+    input: { tool: "browser_take_screenshot", args: {} },
+    content: [{ type: "text", text: "Saved screenshot" }, image],
+    details: { original: true },
+    isError: false,
+  };
   const result = await runtime.handlers.get("tool_result")(event, runtime.ctx);
   assert.ok(result, "screenshot evidence annotation is missing");
   assert.equal(result.content[1], image, "native image blocks must not be stringified or removed");
   assert.equal(result.details.original, true);
-  assert.deepEqual(result.details.harnessVision, { imageInput: "supported", imageBlocks: 1, toolError: false });
+  assert.deepEqual(result.details.harnessVision, {
+    imageInput: "supported",
+    imageBlocks: 1,
+    toolError: false,
+  });
   assert.match(result.content.at(-1).text, /not proof/);
   assert.match(result.content.at(-1).text, /disabled/);
 
-  const pathOnly = await runtime.handlers.get("tool_result")({ ...event, content: [event.content[0]] }, runtime.ctx);
+  const pathOnly = await runtime.handlers.get("tool_result")(
+    { ...event, content: [event.content[0]] },
+    runtime.ctx,
+  );
   assert.equal(pathOnly.details.harnessVision.imageBlocks, 0);
   assert.match(pathOnly.content.at(-1).text, /read/);
   assert.match(pathOnly.content.at(-1).text, /UNPROVEN/);
 
   runtime.ctx.model = { input: ["text"] };
-  const textOnly = await runtime.handlers.get("tool_result")({ ...event, toolName: "read", input: { path: "shot.png" } }, runtime.ctx);
+  const textOnly = await runtime.handlers.get("tool_result")(
+    { ...event, toolName: "read", input: { path: "shot.png" } },
+    runtime.ctx,
+  );
   assert.equal(textOnly.content[1], image, "leave Pi's configured image filtering authoritative");
   assert.equal(textOnly.details.harnessVision.imageInput, "unsupported");
   assert.match(textOnly.content.at(-1).text, /UNPROVEN/);
   const failed = await runtime.handlers.get("tool_result")({ ...event, isError: true }, runtime.ctx);
   assert.equal(failed.details.harnessVision.toolError, true);
   assert.match(failed.content.at(-1).text, /failed/);
-  assert.equal(await runtime.handlers.get("tool_result")({ ...event, input: { tool: "browser_snapshot" }, content: [event.content[0]] }, runtime.ctx), undefined);
+  assert.equal(
+    await runtime.handlers.get("tool_result")(
+      { ...event, input: { tool: "browser_snapshot" }, content: [event.content[0]] },
+      runtime.ctx,
+    ),
+    undefined,
+  );
   await runtime.handlers.get("agent_settled")();
-  assert.equal(JSON.stringify(runtime.appended).includes(image.data), false, "do not copy image bytes into continuity state");
+  assert.equal(
+    JSON.stringify(runtime.appended).includes(image.data),
+    false,
+    "do not copy image bytes into continuity state",
+  );
 });
 
 test("smart read bounds only large implicit non-sensitive reads and annotates the result", async (t) => {
@@ -199,24 +229,32 @@ test("smart read bounds only large implicit non-sensitive reads and annotates th
     assert.deepEqual(large.result.details.harnessRuntime, { smartRead: true, limit: 400 });
 
     // A binary result has no line range, even when its file size triggered focusing.
-    const imageCall = { type: "tool_call", toolCallId: "read-image", toolName: "read", input: { path: largeFile } };
+    const imageCall = {
+      type: "tool_call",
+      toolCallId: "read-image",
+      toolName: "read",
+      input: { path: largeFile },
+    };
     await runtime.handlers.get("tool_call")(imageCall, runtime.ctx);
-    const imageResult = await runtime.handlers.get("tool_result")({
-      ...imageCall, type: "tool_result", isError: false, details: {},
-      content: [{ type: "image", data: "fixture", mimeType: "image/png" }],
-    }, runtime.ctx);
+    const imageResult = await runtime.handlers.get("tool_result")(
+      {
+        ...imageCall,
+        type: "tool_result",
+        isError: false,
+        details: {},
+        content: [{ type: "image", data: "fixture", mimeType: "image/png" }],
+      },
+      runtime.ctx,
+    );
     assert.equal(imageResult.details.harnessRuntime, undefined);
-    assert.equal(imageResult.content.some(block => block.text?.includes("offset=")), false);
+    assert.equal(
+      imageResult.content.some((block) => block.text?.includes("offset=")),
+      false,
+    );
     await runtime.handlers.get("agent_settled")();
     assert.equal(runtime.appended.at(-1).data.smartReads, 1);
 
-    const explicit = await emitTool(
-      runtime,
-      "read",
-      { path: largeFile, offset: 50 },
-      false,
-      "read-explicit",
-    );
+    const explicit = await emitTool(runtime, "read", { path: largeFile, offset: 50 }, false, "read-explicit");
     assert.equal(explicit.call.input.limit, undefined);
     assert.equal(explicit.result, undefined);
 
@@ -236,22 +274,28 @@ test("a third identical failed call is blocked until a different successful evid
   await emitTool(runtime, "bash", { ...input }, true, "failed-1");
   await emitTool(runtime, "bash", { ...input }, true, "failed-2");
 
-  const third = await runtime.handlers.get("tool_call")({
-    type: "tool_call",
-    toolCallId: "failed-3",
-    toolName: "bash",
-    input: { ...input },
-  }, runtime.ctx);
+  const third = await runtime.handlers.get("tool_call")(
+    {
+      type: "tool_call",
+      toolCallId: "failed-3",
+      toolName: "bash",
+      input: { ...input },
+    },
+    runtime.ctx,
+  );
   assert.equal(third.block, true);
   assert.match(third.reason, /new hypothesis|discriminating evidence/i);
 
   await emitTool(runtime, "grep", { pattern: "example", path: "tests" }, false, "evidence");
-  const allowed = await runtime.handlers.get("tool_call")({
-    type: "tool_call",
-    toolCallId: "retry-after-evidence",
-    toolName: "bash",
-    input: { ...input },
-  }, runtime.ctx);
+  const allowed = await runtime.handlers.get("tool_call")(
+    {
+      type: "tool_call",
+      toolCallId: "retry-after-evidence",
+      toolName: "bash",
+      input: { ...input },
+    },
+    runtime.ctx,
+  );
   assert.equal(allowed, undefined);
 });
 
@@ -268,10 +312,12 @@ test("continuity snapshots persist bounded state and inject once after resume or
   assert.equal(entry.customType, SNAPSHOT_TYPE);
   assert.deepEqual(entry.data.capabilities, ["browser"]);
   assert.deepEqual(entry.data.modifiedFiles, ["src/app.js"]);
-  assert.deepEqual(entry.data.checks, [{
-    label: "node --test tests/app.test.mjs",
-    status: "process-ok",
-  }]);
+  assert.deepEqual(entry.data.checks, [
+    {
+      label: "node --test tests/app.test.mjs",
+      status: "process-ok",
+    },
+  ]);
   assert.equal(entry.data.failures.length, 1);
 
   const resumed = createRuntime({ entries: [entry] });
@@ -341,10 +387,7 @@ test("continuity and retry opt-outs do not restore or accumulate hidden state", 
     const runtime = createRuntime({ entries: [snapshot] });
     await runtime.handlers.get("session_start")({ type: "session_start", reason: "resume" }, runtime.ctx);
     assert.equal(runtime.activeTools().includes("mcp"), false);
-    assert.equal(
-      await runtime.handlers.get("context")({ type: "context", messages: [] }),
-      undefined,
-    );
+    assert.equal(await runtime.handlers.get("context")({ type: "context", messages: [] }), undefined);
     await emitTool(runtime, "read", { path: "missing.txt" }, true, "disabled-failure");
     await runtime.handlers.get("agent_settled")();
     assert.deepEqual(runtime.appended, []);
@@ -359,41 +402,52 @@ test("continuity and retry opt-outs do not restore or accumulate hidden state", 
 test("continuity never promotes shell control flow or historical process success to test proof", async () => {
   const runtime = createRuntime();
   for (const [i, command] of [
-    'node --test missing.test.mjs || true',
-    'false && node --test missing.test.mjs; true',
-    'node --test missing.test.mjs | cat',
+    "node --test missing.test.mjs || true",
+    "false && node --test missing.test.mjs; true",
+    "node --test missing.test.mjs | cat",
   ].entries()) {
-    await emitTool(runtime, 'bash', { command }, false, `ambiguous-${i}`);
+    await emitTool(runtime, "bash", { command }, false, `ambiguous-${i}`);
   }
-  await emitTool(runtime, 'bash', { command: 'node --test tests/app.test.mjs' }, false, 'direct');
-  await runtime.handlers.get('agent_settled')();
-  assert.deepEqual(runtime.appended.at(-1).data.checks.map(check => check.status),
-    ['unproven', 'unproven', 'unproven', 'process-ok']);
+  await emitTool(runtime, "bash", { command: "node --test tests/app.test.mjs" }, false, "direct");
+  await runtime.handlers.get("agent_settled")();
+  assert.deepEqual(
+    runtime.appended.at(-1).data.checks.map((check) => check.status),
+    ["unproven", "unproven", "unproven", "process-ok"],
+  );
   const capsule = formatContinuityCapsule(runtime.appended.at(-1).data);
   assert.match(capsule, /not acceptance proof/i);
-  const legacy = formatContinuityCapsule({ version: 1, checks: [{ label: 'npm test', status: 'passed' }] });
+  const legacy = formatContinuityCapsule({ version: 1, checks: [{ label: "npm test", status: "passed" }] });
   assert.match(legacy, /unproven/);
 });
 
 test("resume and tree navigation restore only current-branch evidence and clear pending calls", async () => {
-  const entry = (file, capabilities) => ({ type: 'custom', customType: SNAPSHOT_TYPE,
-    data: { version: 1, modifiedFiles: [file], capabilities } });
-  const current = entry('src/current.js', ['web']);
-  const sibling = entry('src/sibling.js', ['browser']);
+  const entry = (file, capabilities) => ({
+    type: "custom",
+    customType: SNAPSHOT_TYPE,
+    data: { version: 1, modifiedFiles: [file], capabilities },
+  });
+  const current = entry("src/current.js", ["web"]);
+  const sibling = entry("src/sibling.js", ["browser"]);
   const runtime = createRuntime({ entries: [current, sibling], branch: [current] });
-  await runtime.handlers.get('session_start')({}, runtime.ctx);
-  assert.equal(runtime.activeTools().includes('mcp'), false);
-  assert.equal(runtime.activeTools().includes('web_search'), true);
-  const restored = await runtime.handlers.get('context')({ messages: [] });
+  await runtime.handlers.get("session_start")({}, runtime.ctx);
+  assert.equal(runtime.activeTools().includes("mcp"), false);
+  assert.equal(runtime.activeTools().includes("web_search"), true);
+  const restored = await runtime.handlers.get("context")({ messages: [] });
   assert.match(restored.messages.at(-1).content, /current.js/);
   assert.doesNotMatch(restored.messages.at(-1).content, /sibling.js/);
-  await runtime.handlers.get('tool_call')({toolName: 'read', input: {path: 'missing'}, toolCallId: 'old'}, runtime.ctx);
+  await runtime.handlers.get("tool_call")(
+    { toolName: "read", input: { path: "missing" }, toolCallId: "old" },
+    runtime.ctx,
+  );
   runtime.ctx.sessionManager.getBranch = () => [];
-  assert.equal(typeof runtime.handlers.get('session_tree'), 'function');
-  await runtime.handlers.get('session_tree')({}, runtime.ctx);
-  assert.equal(runtime.activeTools().includes('web_search'), false);
-  assert.equal(await runtime.handlers.get('context')({messages: []}), undefined);
-  await runtime.handlers.get('tool_result')({toolName: 'read', input: {path: 'missing'}, toolCallId: 'old', content: [], isError: true}, runtime.ctx);
-  await runtime.handlers.get('agent_settled')();
+  assert.equal(typeof runtime.handlers.get("session_tree"), "function");
+  await runtime.handlers.get("session_tree")({}, runtime.ctx);
+  assert.equal(runtime.activeTools().includes("web_search"), false);
+  assert.equal(await runtime.handlers.get("context")({ messages: [] }), undefined);
+  await runtime.handlers.get("tool_result")(
+    { toolName: "read", input: { path: "missing" }, toolCallId: "old", content: [], isError: true },
+    runtime.ctx,
+  );
+  await runtime.handlers.get("agent_settled")();
   assert.equal(runtime.appended.length, 0);
 });

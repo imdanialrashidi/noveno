@@ -39,7 +39,9 @@ A new or materially changed test is retained only when it identifies:
 5. an oracle independent from the implementation under test; and
 6. red-before-green, a controlled focused mutation, or equivalent defect-sensitivity evidence when practical.
 
-If no distinct failure model or evidence gap exists, extend an existing case or add no test. `No new test` is an acceptable professional outcome for behavior-neutral changes or behavior already proved by the suite. Coverage, assertion count, and test count are diagnostic signals—not acceptance goals.
+Extend an existing case only to close a distinct evidence gap; otherwise add no test. `No new test` is an acceptable professional outcome for behavior-neutral changes or behavior already proved by the suite. Coverage, assertion count, and test count are diagnostic signals—not acceptance goals.
+
+A test must justify what could break, why existing evidence misses it, and how it would detect that failure. Keep this explanation proportional; do not create a separate test-plan document for a small edit. Never substitute mocked unit tests for a real integration risk, or use prose/source-text matching as proof that an agent follows instructions. Preserve explicit machine-format and architecture checks where those are the contract.
 
 Select one representative per equivalence class and exact material boundaries. Use decision tables, pairwise cases, or properties for meaningful interactions instead of Cartesian enumeration. Prefer the lowest-cost layer that preserves the real contract; use full end-to-end tests only for failures lower layers cannot represent.
 
@@ -47,7 +49,7 @@ Do not compute expected values with the implementation's own logic, mock the sub
 
 ## Security and data integrity
 
-For trust-boundary changes, require the `risk-review` workflow.
+For trust-boundary changes, apply the focused risk review below.
 
 At minimum:
 
@@ -56,6 +58,21 @@ At minimum:
 - secrets and sensitive data do not enter source, logs, screenshots, fixtures, prompts, or public artifacts;
 - money/callback/state-transition operations are verified, idempotent, replay-aware, and auditable where applicable;
 - schema/data changes have compatibility, rollback/recovery, and failure-path reasoning.
+
+### Focused risk review
+
+Review only the accepted scope and actual diff. Trace changed trust boundaries, input-to-sink data flows, state transitions, public contracts, dependencies, and operational behavior; check the actual controls and tests before reporting a finding.
+
+Check only relevant failure paths: authorization/tenant isolation, injection and unsafe files/URLs, credential/session handling, payment/replay/idempotency, races and partial writes, timeout/cancellation/recovery, unbounded work, inaccessible/error states, dependency/CI mismatch, and migration rollback. The correctness, security, UX, and reliability sections define the underlying contracts.
+
+For each evidence-backed finding give severity, `file:line` or symbol, a concrete failure/attack scenario, why the current control is insufficient, the smallest safe fix, and a proof test. Prefer a few actionable findings over speculative checklist output.
+
+- **BLOCKER:** exploitable security, data loss/corruption, money/access violation, migration/deployment breakage, or a broken critical flow.
+- **MAJOR:** likely user-visible correctness/reliability failure or substantial security/performance regression.
+- **MINOR:** bounded defect or maintenance risk.
+- **NIT:** optional clarity/style improvement; never a release blocker.
+
+Return the acceptance evidence and one verdict: `PASS`, `PASS WITH FIXES`, or `BLOCK`. `PASS` requires proven required criteria and no unresolved BLOCKER/MAJOR. Use `/review` for the complete review procedure.
 
 ## User-facing quality
 

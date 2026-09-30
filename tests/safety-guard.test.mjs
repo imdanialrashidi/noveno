@@ -4,13 +4,9 @@ import path from "node:path";
 import test from "node:test";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "..");
-const source = await fs.readFile(
-  path.join(repositoryRoot, ".pi/extensions/safety-guard.js"),
-  "utf8",
-);
+const source = await fs.readFile(path.join(repositoryRoot, ".pi/extensions/safety-guard.js"), "utf8");
 const moduleUrl = `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`;
-const { default: registerGuard, isGitMutationCommand, isGitMutationTool } =
-  await import(moduleUrl);
+const { default: registerGuard, isGitMutationCommand, isGitMutationTool } = await import(moduleUrl);
 
 let handler;
 registerGuard({
@@ -57,18 +53,12 @@ test("full-scope mode allows ordinary repository, temporary, and external writes
   assert.equal(await guard("read", { path: "README.md" }), undefined);
   assert.equal(await guard("write", { path: ".artifacts/report.json" }), undefined);
   assert.equal(await guard("write", { path: "/tmp/pi-guard-test.txt" }), undefined);
-  assert.equal(
-    await guard("write", { path: path.resolve(repositoryRoot, "..", "outside.txt") }),
-    undefined,
-  );
+  assert.equal(await guard("write", { path: path.resolve(repositoryRoot, "..", "outside.txt") }), undefined);
 });
 
 test("repository and strict file scopes block external writes", async () => {
   const outside = path.resolve(repositoryRoot, "..", "outside.txt");
-  for (const overrides of [
-    { PI_GUARD_FILE_SCOPE: "repository" },
-    { PI_GUARD_MODE: "strict" },
-  ]) {
+  for (const overrides of [{ PI_GUARD_FILE_SCOPE: "repository" }, { PI_GUARD_MODE: "strict" }]) {
     const result = await guard("write", { path: outside }, overrides);
     assert.equal(result.block, true);
     assert.match(result.reason, /outside the repository/i);
@@ -77,10 +67,7 @@ test("repository and strict file scopes block external writes", async () => {
 
 test("secret files are blocked through direct tools and shell", async () => {
   assert.match((await guard("read", { path: ".env" })).reason, /Sensitive file/);
-  assert.match(
-    (await guard("bash", { command: "sed -n '1p' .env" })).reason,
-    /secrets/i,
-  );
+  assert.match((await guard("bash", { command: "sed -n '1p' .env" })).reason, /secrets/i);
   assert.equal(await guard("read", { path: ".env.example" }), undefined);
 });
 
@@ -118,7 +105,7 @@ test("owner-controlled mode blocks Git and GitHub mutations by default", async (
     "git rebase main",
     "git tag v1.0.0",
     "git status --short && git commit -m hidden",
-    "bash -lc \"git commit -m nested\"",
+    'bash -lc "git commit -m nested"',
     "printf '%s\\n' \"$(git commit -m substituted)\"",
     "gh pr create --draft --fill",
     "gh --repo owner/repo pr edit 12 --title changed",
@@ -142,11 +129,7 @@ test("explicit Git override permits only non-destructive authorized forms", asyn
     "git push -u origin agent/fix-boundary",
     "gh pr create --draft --fill",
   ]) {
-    assert.equal(
-      await guard("bash", { command }, { PI_GIT_MUTATION: "allow" }),
-      undefined,
-      command,
-    );
+    assert.equal(await guard("bash", { command }, { PI_GIT_MUTATION: "allow" }), undefined, command);
   }
 });
 
@@ -189,31 +172,26 @@ test("GitHub mutation through MCP is owner-controlled", async () => {
 
 test("workflow maintenance is allowed normally and locked in strict mode", async () => {
   assert.equal(await guard("edit", { path: ".pi/settings.json" }), undefined);
-  assert.equal(
-    await guard("bash", { command: "printf x > .pi/settings.json" }),
-    undefined,
-  );
+  assert.equal(await guard("bash", { command: "printf x > .pi/settings.json" }), undefined);
   assert.match(
     (await guard("edit", { path: ".pi/settings.json" }, { PI_GUARD_MODE: "strict" })).reason,
     /strict guard mode/,
   );
   assert.match(
-    (await guard(
-      "bash",
-      { command: "printf x > .pi/settings.json" },
-      { PI_GUARD_MODE: "strict" },
-    )).reason,
+    (await guard("bash", { command: "printf x > .pi/settings.json" }, { PI_GUARD_MODE: "strict" })).reason,
     /strict guard mode/,
   );
 });
 
 test("strict mode blocks Git mutation even with an override", async () => {
   assert.match(
-    (await guard(
-      "bash",
-      { command: "git commit -m test" },
-      { PI_GUARD_MODE: "strict", PI_GIT_MUTATION: "allow" },
-    )).reason,
+    (
+      await guard(
+        "bash",
+        { command: "git commit -m test" },
+        { PI_GUARD_MODE: "strict", PI_GIT_MUTATION: "allow" },
+      )
+    ).reason,
     /strict guard mode/,
   );
 });
@@ -226,7 +204,10 @@ test("external publication needs its separate explicit override", async () => {
     "terraform apply",
     "vercel deploy",
   ]) {
-    assert.match((await guard("bash", { command })).reason, /external|publication|deployment|cluster|infrastructure/i);
+    assert.match(
+      (await guard("bash", { command })).reason,
+      /external|publication|deployment|cluster|infrastructure/i,
+    );
     assert.equal(
       await guard("bash", { command }, { PI_GUARD_EXTERNAL_MUTATION: "allow" }),
       undefined,
@@ -245,22 +226,23 @@ test("browser mode supports public QA while strict mode narrows it", async () =>
   );
   assert.equal(await guard("mcp", { tool: "browser_evaluate", args: {} }), undefined);
   assert.match(
-    (await guard(
-      "mcp",
-      { tool: "browser_navigate", args: { url: "https://example.com" } },
-      { PI_GUARD_MODE: "strict" },
-    )).reason,
+    (
+      await guard(
+        "mcp",
+        { tool: "browser_navigate", args: { url: "https://example.com" } },
+        { PI_GUARD_MODE: "strict" },
+      )
+    ).reason,
     /local-only/,
   );
+  assert.match((await guard("mcp", { tool: "browser_file_upload", args: {} })).reason, /Unsafe MCP/);
   assert.match(
-    (await guard("mcp", { tool: "browser_file_upload", args: {} })).reason,
-    /Unsafe MCP/,
-  );
-  assert.match(
-    (await guard("mcp", {
-      tool: "browser_navigate",
-      args: { url: "file:///etc/passwd" },
-    })).reason,
+    (
+      await guard("mcp", {
+        tool: "browser_navigate",
+        args: { url: "file:///etc/passwd" },
+      })
+    ).reason,
     /HTTP\(S\)/,
   );
 });

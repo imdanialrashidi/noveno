@@ -43,8 +43,8 @@ for (const entry of manifest.packages) {
 const configured = (settings.packages ?? []).map((entry) =>
   typeof entry === "string" ? entry : entry?.source,
 );
-const playwrightSpec = (mcp.mcpServers?.playwright?.args ?? []).find((value) =>
-  typeof value === "string" && value.startsWith("@playwright/mcp@"),
+const playwrightSpec = (mcp.mcpServers?.playwright?.args ?? []).find(
+  (value) => typeof value === "string" && value.startsWith("@playwright/mcp@"),
 );
 if (!playwrightSpec) throw new Error("Playwright MCP pin is missing");
 configured.push(`npm:${playwrightSpec}`);

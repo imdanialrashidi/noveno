@@ -50,7 +50,7 @@ In Analytics Engine SQL, `doubles` map to `timestamp`, `indexes` to `index1`, `b
 **A — Keep email + weekly AE SQL** (cheapest, no new binding). Founder runs `node scripts/query-events.mjs --range 7` weekly, pastes funnel into evidence ledger. No new plan unless volume warrants.
 
 - **B — Enrich events with attribution** would add `utm_source`/`landing_page` to `track("audit_submitted", { service, utm_source })` — requires `EVENT_PAYLOAD_KEYS` + `EVENT_VALUE_PATTERNS.page` update (plan 022 gates) and low PII risk, but not needed until channel segmentation proven via email scan.
-- **C — Minimal /admin reader** (`GET /api/events/summary` behind CF Access/basic-auth) returns 7d funnel — needs `risk-review` for auth; deferred until `N/week > threshold` in `docs/PLAN.md` stage 6.
+- **C — Minimal /admin reader** (`GET /api/events/summary` behind CF Access/basic-auth) returns 7d funnel — needs focused risk review in `docs/QUALITY.md` for auth; deferred until `N/week > threshold` in `docs/PLAN.md` stage 6.
 
 **Verdict:** **A** now; revisit B when email shows channel variance, C only after launch data proves weekly SQL is too manual. Next step: keep `scripts/query-events.mjs` as founder tool; open plan 032 only if B approved.
 

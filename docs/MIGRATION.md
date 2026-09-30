@@ -27,32 +27,32 @@ former wrapper disappeared.
 
 ## Component decisions
 
-| Previous component | Decision | OMP-native replacement / retained gap |
-|---|---|---|
-| Ordinary build and quick-fix wrappers | Remove project command/skill | OMP default implementation workflow; bundled `sonic` or `task` when delegation adds value |
-| Discovery wrapper | Remove project command | Bundled `scout` |
-| Review and risk wrappers | Remove project command/skill/agent | Bundled `reviewer` and `security-reviewer`; project quality contract remains |
-| UI build/design-review wrappers and frontend skill | Remove | Bundled `designer` plus native `browser`; retain `docs/VISUAL_REVIEW.md` as an acceptance rubric, not a tool |
-| Plan, handoff and resume wrappers | Remove | Native `/plan`, `/handoff`, `/resume`, sessions and `todo` |
-| `p` launcher and model overlay example | Remove | Run `omp` directly; use native `/model`, `/setup`, `/settings` and CLI overlays |
-| `pi-sub-agent` | Remove package | Native `task` and bundled specialist roles |
-| `rpiv-todo` | Remove package | Native `todo` and plan mode |
-| `pi-lsp-adapter` | Remove package | Native LSP, diagnostics, semantic/AST tools |
-| `pi-web-search` | Remove package | Native web search/provider routing |
-| `pi-doc-search` | Remove default dependency | Installed types/source + primary URL/GitHub reads; optional native MCP only for a demonstrated gap |
-| `pi-mcp-adapter` | Remove package | Native MCP lifecycle and `xd://` discovery |
-| Playwright MCP server | Remove | Native browser; keep project Playwright tests when appropriate |
-| `harness_tools` dynamic loader | Remove | Native lazy devices/catalog |
-| Smart Read wrapper | Remove | Native structural reads and output artifacts; exact selectors for evidence |
-| Continuity capsule | Remove | Native session/compaction plus explicit ExecPlans |
-| Failure-only third-call block | Native adaptation | Native repeated-call steering + unchanged two-failure workflow stop rule |
-| Runtime Vision metadata | Remove | Native image blocks and explicit inspect/re-capture discipline |
-| `models.env`, Pi CLI flags | Remove | Native model roles and optional CLI config overlay |
-| Pi package integrity list | Replace | Reviewed OMP version/source/schema pin; no obsolete package list |
-| Safety guard | Port and extend | Repo policy not supplied by native approvals; covers native GitHub and `xd://` |
-| PR helper | Preserve | Native `github pr_push/pr_create` do not provide its scoped fixed-lane/CAS/receipt contract |
-| Affected router and project gates | Preserve | OMP executing a command is not dependency-aware verification selection |
-| RPC eval runner | Port | Terminal `agent_end`, not Pi `agent_settled`; preserve slash expansion |
+| Previous component                                 | Decision                           | OMP-native replacement / retained gap                                                                        |
+| -------------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Ordinary build and quick-fix wrappers              | Remove project command/skill       | OMP default implementation workflow; bundled `sonic` or `task` when delegation adds value                    |
+| Discovery wrapper                                  | Remove project command             | Bundled `scout`                                                                                              |
+| Review and risk wrappers                           | Remove project command/skill/agent | Bundled `reviewer` and `security-reviewer`; project quality contract remains                                 |
+| UI build/design-review wrappers and frontend skill | Remove                             | Bundled `designer` plus native `browser`; retain `docs/VISUAL_REVIEW.md` as an acceptance rubric, not a tool |
+| Plan, handoff and resume wrappers                  | Remove                             | Native `/plan`, `/handoff`, `/resume`, sessions and `todo`                                                   |
+| `p` launcher and model overlay example             | Remove                             | Run `omp` directly; use native `/model`, `/setup`, `/settings` and CLI overlays                              |
+| `pi-sub-agent`                                     | Remove package                     | Native `task` and bundled specialist roles                                                                   |
+| `rpiv-todo`                                        | Remove package                     | Native `todo` and plan mode                                                                                  |
+| `pi-lsp-adapter`                                   | Remove package                     | Native LSP, diagnostics, semantic/AST tools                                                                  |
+| `pi-web-search`                                    | Remove package                     | Native web search/provider routing                                                                           |
+| `pi-doc-search`                                    | Remove default dependency          | Installed types/source + primary URL/GitHub reads; optional native MCP only for a demonstrated gap           |
+| `pi-mcp-adapter`                                   | Remove package                     | Native MCP lifecycle and `xd://` discovery                                                                   |
+| Playwright MCP server                              | Remove                             | Native browser; keep project Playwright tests when appropriate                                               |
+| `harness_tools` dynamic loader                     | Remove                             | Native lazy devices/catalog                                                                                  |
+| Smart Read wrapper                                 | Remove                             | Native structural reads and output artifacts; exact selectors for evidence                                   |
+| Continuity capsule                                 | Remove                             | Native session/compaction plus explicit ExecPlans                                                            |
+| Failure-only third-call block                      | Native adaptation                  | Native repeated-call steering + unchanged two-failure workflow stop rule                                     |
+| Runtime Vision metadata                            | Remove                             | Native image blocks and explicit inspect/re-capture discipline                                               |
+| `models.env`, Pi CLI flags                         | Remove                             | Native model roles and optional CLI config overlay                                                           |
+| Pi package integrity list                          | Replace                            | Reviewed OMP version/source/schema pin; no obsolete package list                                             |
+| Safety guard                                       | Port and extend                    | Repo policy not supplied by native approvals; covers native GitHub and `xd://`                               |
+| PR helper                                          | Preserve                           | Native `github pr_push/pr_create` do not provide its scoped fixed-lane/CAS/receipt contract                  |
+| Affected router and project gates                  | Preserve                           | OMP executing a command is not dependency-aware verification selection                                       |
+| RPC eval runner                                    | Port                               | Terminal `agent_end`, not Pi `agent_settled`; preserve slash expansion                                       |
 
 ## Deliberate non-equivalences
 

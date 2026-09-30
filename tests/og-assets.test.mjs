@@ -8,6 +8,12 @@
  * gate is defect-sensitive: a missing or invalid required card must fail
  * the validator with a clear message, drafts must never require a card,
  * and the pinned `.node-version` must satisfy the package engine.
+ *
+ * Working-tree safety: these tests deliberately corrupt committed card
+ * files. Every mutation restores the original bytes in `finally`, and an
+ * `after()` hook re-checks the tree so a crashed assertion can never leave
+ * a corrupt card behind (that failure mode once broke `npm run build` and
+ * every deploy — see docs/HYGIENE.md).
  */
 
 import { test, after } from "node:test";
@@ -87,6 +93,32 @@ function withTempCard(rel, bytes, fn) {
 
 /** Bytes of a real committed card (valid PNG, exactly 1200×630). */
 const validCardBytes = () => fs.readFileSync(path.join(root, "public", "og", "blog.png"));
+
+/**
+ * Every committed card this suite may mutate, with its HEAD-safe original
+ * bytes captured at import time. The after() guard restores any file a
+ * crashed assertion left behind, so the working tree (and the prebuild OG
+ * gate that every deploy depends on) can never be poisoned by this suite.
+ */
+const mutatedCards = new Map();
+for (const rel of ["og/work/mobile-khorsandi.png", "og/work/isbatab.png", "og/blog/tmp-relative.png"]) {
+  const abs = path.join(root, rel);
+  if (fs.existsSync(abs)) mutatedCards.set(abs, fs.readFileSync(abs));
+}
+after(() => {
+  for (const [abs, bytes] of mutatedCards) {
+    try {
+      if (fs.readFileSync(abs).equals(bytes)) continue;
+    } catch {
+      // file missing or unreadable — restore unconditionally
+    }
+    fs.writeFileSync(abs, bytes);
+  }
+  // A leftover temp card (crash between write and withTempCard's finally)
+  // must not linger either.
+  const tempCard = path.join(root, "og", "blog", "tmp-relative.png");
+  if (!mutatedCards.has(tempCard) && fs.existsSync(tempCard)) fs.rmSync(tempCard, { force: true });
+});
 
 test("validator passes on the committed asset set (drafts need no card)", () => {
   // draft-sample is a draft: it must NOT have a card and the validator

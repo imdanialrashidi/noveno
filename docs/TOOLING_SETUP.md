@@ -17,14 +17,14 @@ The project MCP configuration pins `@playwright/mcp@0.0.79` and exposes a restri
 
 The packages remain installed and their commands remain available, but their model-call schemas are deferred. `./p` starts with seven repository tools plus `harness_tools`:
 
-| `harness_tools` capability | Activated schemas |
-|---|---|
-| `planning` | `todo` |
-| `delegation` | `subagent` |
-| `browser` | `mcp` |
-| `code_intelligence` | `lsp_diagnostics`, `lsp_definition`, `lsp_references`, `lsp_workspace_symbols`, `lsp_more` |
-| `docs` | `doc_search_resolve_library_id`, `doc_search_get_library_docs` |
-| `web` | `web_search`, `web_fetch` |
+| `harness_tools` capability | Activated schemas                                                                          |
+| -------------------------- | ------------------------------------------------------------------------------------------ |
+| `planning`                 | `todo`                                                                                     |
+| `delegation`               | `subagent`                                                                                 |
+| `browser`                  | `mcp`                                                                                      |
+| `code_intelligence`        | `lsp_diagnostics`, `lsp_definition`, `lsp_references`, `lsp_workspace_symbols`, `lsp_more` |
+| `docs`                     | `doc_search_resolve_library_id`, `doc_search_get_library_docs`                             |
+| `web`                      | `web_search`, `web_fetch`                                                                  |
 
 Ask the agent to activate all required groups together. Passing an empty capability list unloads the managed specialist schemas without removing unrelated custom tools. A restored session reactivates the groups in its latest continuity snapshot.
 
@@ -38,14 +38,14 @@ The repository launcher passes Pi's official `--approve` trust override, so it l
 
 For the reviewed Pi `0.84.2` pin, the launcher defaults to:
 
-| Variable | Default | Effect / opt-out |
-|---|---:|---|
-| `PI_EXPERIMENTAL` | `1` | Enables capability-gated strict-prefer JSON-schema sampling for supported built-ins plus Pi's official first-run setup; set `0` to compare legacy sampling. |
-| `PI_SMART_READ` | `1` | Bounds implicit reads of regular files at least 96 KiB; set `0` to disable. |
-| `PI_SMART_READ_BYTES` | `98304` | Size threshold in bytes. |
-| `PI_SMART_READ_LINES` | `400` | Injected limit for a qualifying read; explicit ranges are unchanged. |
-| `PI_BLIND_RETRY_LIMIT` | `2` | Blocks the next identical tool call after this many errored executions; set `0` to disable. |
-| `PI_CONTINUITY` | `1` | Persists/injects the bounded mechanical continuity capsule; set `0` to disable. |
+| Variable               | Default | Effect / opt-out                                                                                                                                            |
+| ---------------------- | ------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PI_EXPERIMENTAL`      |     `1` | Enables capability-gated strict-prefer JSON-schema sampling for supported built-ins plus Pi's official first-run setup; set `0` to compare legacy sampling. |
+| `PI_SMART_READ`        |     `1` | Bounds implicit reads of regular files at least 96 KiB; set `0` to disable.                                                                                 |
+| `PI_SMART_READ_BYTES`  | `98304` | Size threshold in bytes.                                                                                                                                    |
+| `PI_SMART_READ_LINES`  |   `400` | Injected limit for a qualifying read; explicit ranges are unchanged.                                                                                        |
+| `PI_BLIND_RETRY_LIMIT` |     `2` | Blocks the next identical tool call after this many errored executions; set `0` to disable.                                                                 |
+| `PI_CONTINUITY`        |     `1` | Persists/injects the bounded mechanical continuity capsule; set `0` to disable.                                                                             |
 
 These controls are model/provider neutral. Review them with every Pi upgrade because `PI_EXPERIMENTAL` is intentionally tied to the exact tested pin.
 

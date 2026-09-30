@@ -21,8 +21,14 @@ test("quick-fix has valid Pi skill metadata and multilingual triggers", async ()
 test("quick-fix stays low-ceremony and escalates risky or expanding work", async () => {
   const source = await readFile(skillPath, "utf8");
 
-  assert.match(source, /Do not create a formal acceptance matrix, plan, ExecPlan, todo list, or subagent task/);
-  assert.match(source, /Do not run broad suites, builds, browser matrices, or the full repository gate unless/);
+  assert.match(
+    source,
+    /Do not create a formal acceptance matrix, plan, ExecPlan, todo list, or subagent task/,
+  );
+  assert.match(
+    source,
+    /Do not run broad suites, builds, browser matrices, or the full repository gate unless/,
+  );
   assert.match(source, /run `git diff --check`/);
   assert.match(source, /switch to the Standard `\/build` path/);
   for (const boundary of ["auth/access", "money", "public contract", "dependency", "deployment"]) {

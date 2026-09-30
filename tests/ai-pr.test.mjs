@@ -7,7 +7,12 @@ import { githubRepository, parseOptions, runDelivery } from "../scripts/ai-pr.mj
 
 const root = path.resolve(import.meta.dirname, "..");
 const repository = "test-owner/workflow";
-const testEnv = { ...process.env, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null", AI_PR_DELIVERY: "on" };
+const testEnv = {
+  ...process.env,
+  GIT_CONFIG_NOSYSTEM: "1",
+  GIT_CONFIG_GLOBAL: "/dev/null",
+  AI_PR_DELIVERY: "on",
+};
 delete testEnv.NODE_TEST_CONTEXT;
 delete testEnv.PI_GUARD_MODE;
 
@@ -19,7 +24,14 @@ function fixture(t, { branch = true } = {}) {
   const cwd = path.join(directory, "work");
   const remote = path.join(directory, "origin.git");
   mkdirSync(cwd);
-  function git(...args) { return execFileSync("git", args, { cwd, env: testEnv, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim(); }
+  function git(...args) {
+    return execFileSync("git", args, {
+      cwd,
+      env: testEnv,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    }).trim();
+  }
   git("init", "--bare", "--initial-branch=main", remote);
   git("init", "--initial-branch=main");
   git("config", "user.name", "Workflow Test");
@@ -34,10 +46,30 @@ function fixture(t, { branch = true } = {}) {
   git("push", "origin", "main", ...(branch ? ["ai-changes"] : []));
   if (branch) git("switch", "ai-changes");
   mkdirSync(path.join(cwd, ".artifacts"), { recursive: true });
-  writeFileSync(path.join(cwd, ".artifacts/evidence.md"), "Result: accepted change.\nVerified: focused fixture assertion passed.\nRisks: none in fixture.\n");
-  const state = { prs: [], comments: [], creates: 0, branchCreates: 0, patches: 0, failPush: false, loseCreateResponse: false, missingBranch: false, authFailure: false, wrongPushUrl: false, remoteReads: 0, race: false, requests: [] };
+  writeFileSync(
+    path.join(cwd, ".artifacts/evidence.md"),
+    "Result: accepted change.\nVerified: focused fixture assertion passed.\nRisks: none in fixture.\n",
+  );
+  const state = {
+    prs: [],
+    comments: [],
+    creates: 0,
+    branchCreates: 0,
+    patches: 0,
+    failPush: false,
+    loseCreateResponse: false,
+    missingBranch: false,
+    authFailure: false,
+    wrongPushUrl: false,
+    remoteReads: 0,
+    race: false,
+    requests: [],
+  };
   const remoteSha = () => git("--git-dir=" + remote, "rev-parse", "refs/heads/ai-changes");
-  const materialize = (pr) => ({ ...pr, head: { ...pr.head, sha: pr.state === "open" ? remoteSha() : pr.head.sha } });
+  const materialize = (pr) => ({
+    ...pr,
+    head: { ...pr.head, sha: pr.state === "open" ? remoteSha() : pr.head.sha },
+  });
   function run(program, args, options) {
     if (program === "git") {
       if (args[0] === "remote" && args[1] === "get-url") {
@@ -47,7 +79,8 @@ function fixture(t, { branch = true } = {}) {
       if (args[0] === "ls-remote") {
         state.remoteReads++;
         if (state.missingBranch) return { status: 0, stdout: "" };
-        if (state.race && state.remoteReads >= 2) return { status: 0, stdout: "a".repeat(40) + "\trefs/heads/ai-changes\n" };
+        if (state.race && state.remoteReads >= 2)
+          return { status: 0, stdout: "a".repeat(40) + "\trefs/heads/ai-changes\n" };
       }
       if (args[0] === "push" && state.beforePush) state.beforePush();
       if (args[0] === "push" && state.failPush) return { status: 1, stderr: "simulated network failure" };
@@ -60,20 +93,28 @@ function fixture(t, { branch = true } = {}) {
     state.requests.push({ method, endpoint });
     if (state.authFailure) return { status: 1, stderr: "simulated auth failure" };
     let data;
-    if (endpoint === "repos/" + repository) data = { full_name: repository, default_branch: "main", delete_branch_on_merge: Boolean(state.autoDelete) };
+    if (endpoint === "repos/" + repository)
+      data = {
+        full_name: repository,
+        default_branch: "main",
+        delete_branch_on_merge: Boolean(state.autoDelete),
+      };
     else if (endpoint === "repos/" + repository + "/git/refs" && method === "POST") {
       const body = JSON.parse(options.input);
       assert.equal(body.ref, "refs/heads/ai-changes");
       if (state.beforeRefCreate) state.beforeRefCreate();
       if (state.failRefCreate) return { status: 1, stderr: "simulated create failure" };
       // Model the create-only API with a real Git compare-and-swap, not a ref overwrite.
-      const created = spawnSync("git", ["--git-dir=" + remote, "update-ref", body.ref, body.sha, "0".repeat(40)], options);
+      const created = spawnSync(
+        "git",
+        ["--git-dir=" + remote, "update-ref", body.ref, body.sha, "0".repeat(40)],
+        options,
+      );
       if (created.status !== 0) return created;
       state.branchCreates++;
       if (state.loseRefResponse) return { status: 1, stderr: "response lost after branch creation" };
       data = { ref: body.ref, object: { type: "commit", sha: body.sha } };
-    }
-    else if (endpoint.includes("/pulls?")) {
+    } else if (endpoint.includes("/pulls?")) {
       const selected = endpoint.includes("state=closed") ? "closed" : "open";
       data = state.prs.filter((pr) => pr.state === selected).map(materialize);
     } else if (endpoint === "repos/" + repository + "/pulls" && method === "POST") {
@@ -81,10 +122,16 @@ function fixture(t, { branch = true } = {}) {
       assert.equal(body.head, "ai-changes");
       assert.equal(body.base, "main");
       assert.equal(body.draft, false);
-      const pr = { ...body, number: state.prs.length + 1, state: "open", merged: false, merged_at: null,
+      const pr = {
+        ...body,
+        number: state.prs.length + 1,
+        state: "open",
+        merged: false,
+        merged_at: null,
         head: { ref: "ai-changes", sha: remoteSha(), repo: { full_name: repository } },
         base: { ref: "main", repo: { full_name: repository } },
-        html_url: "https://github.com/" + repository + "/pull/" + (state.prs.length + 1) };
+        html_url: "https://github.com/" + repository + "/pull/" + (state.prs.length + 1),
+      };
       state.prs.push(pr);
       state.creates++;
       if (state.loseCreateResponse) return { status: 1, stderr: "response lost" };
@@ -95,7 +142,8 @@ function fixture(t, { branch = true } = {}) {
     } else if (endpoint.includes("/issues/")) {
       const number = Number(endpoint.match(/\/issues\/(\d+)\/comments/)[1]);
       if (method === "POST") {
-        if (state.concurrentOwnerNote) state.prs.find((pr) => pr.number === number).body += "\nConcurrent owner note.\n";
+        if (state.concurrentOwnerNote)
+          state.prs.find((pr) => pr.number === number).body += "\nConcurrent owner note.\n";
         data = { ...JSON.parse(options.input), id: state.comments.length + 1, number };
         data.html_url = "https://github.com/" + repository + "/pull/" + number + "#issuecomment-" + data.id;
         state.comments.push(data);
@@ -107,15 +155,35 @@ function fixture(t, { branch = true } = {}) {
       assert(pr, "Unexpected API endpoint: " + endpoint);
       if (method === "PATCH") {
         if (state.concurrentOwnerNote) pr.body += "\nConcurrent owner note.\n";
-        Object.assign(pr, JSON.parse(options.input)); state.patches++;
+        Object.assign(pr, JSON.parse(options.input));
+        state.patches++;
       }
       data = materialize(pr);
     }
     return { status: 0, stdout: JSON.stringify(data) };
   }
-  const deliverArgs = (extra = []) => ["deliver", "--message", "fix: accepted outcome", "--title", "Accepted outcome", "--body-file", ".artifacts/evidence.md", "--file", "owned.txt", ...extra];
-  return { cwd, remote, git, state, remoteSha, deliverArgs, invoke: (args, env = testEnv) => runDelivery(args, { cwd, env, run }),
-    write: (file, content) => writeFileSync(path.join(cwd, file), content) };
+  const deliverArgs = (extra = []) => [
+    "deliver",
+    "--message",
+    "fix: accepted outcome",
+    "--title",
+    "Accepted outcome",
+    "--body-file",
+    ".artifacts/evidence.md",
+    "--file",
+    "owned.txt",
+    ...extra,
+  ];
+  return {
+    cwd,
+    remote,
+    git,
+    state,
+    remoteSha,
+    deliverArgs,
+    invoke: (args, env = testEnv) => runDelivery(args, { cwd, env, run }),
+    write: (file, content) => writeFileSync(path.join(cwd, file), content),
+  };
 }
 
 test("delivery commits only explicit task files, preserves user work, and leaves main unchanged", (t) => {
@@ -188,7 +256,11 @@ test("missing branch, divergent push URL, opt-out, and missing authorization fai
   const f = fixture(t);
   const before = f.remoteSha();
   f.write("owned.txt", "change\n");
-  for (const [flag, message] of [["missingBranch", /branch is missing/], ["wrongPushUrl", /repositories differ/], ["authFailure", /gh api failed/]]) {
+  for (const [flag, message] of [
+    ["missingBranch", /branch is missing/],
+    ["wrongPushUrl", /repositories differ/],
+    ["authFailure", /gh api failed/],
+  ]) {
     f.state[flag] = true;
     assert.throws(() => f.invoke(f.deliverArgs()), message);
     f.state[flag] = false;
@@ -218,7 +290,10 @@ test("prepare creates a missing ai-changes from remote main exactly once, never 
   assert.equal(f.invoke(["prepare"]).commit, main);
   assert.equal(f.state.branchCreates, 1);
   assert.equal(f.state.creates, 0);
-  assert.deepEqual(f.git("--git-dir=" + f.remote, "for-each-ref", "--format=%(refname)", "refs/heads").split("\n"), ["refs/heads/ai-changes", "refs/heads/main"]);
+  assert.deepEqual(
+    f.git("--git-dir=" + f.remote, "for-each-ref", "--format=%(refname)", "refs/heads").split("\n"),
+    ["refs/heads/ai-changes", "refs/heads/main"],
+  );
 });
 
 test("prepare restores an idle deleted branch even when automatic head deletion is enabled", (t) => {
@@ -253,7 +328,14 @@ test("missing-branch preparation preserves dirty work and unpublished branch com
 test("a concurrent branch creator is never overwritten or retried as a ref update", (t) => {
   const f = fixture(t, { branch: false });
   const main = f.git("rev-parse", "main");
-  const concurrent = f.git("commit-tree", f.git("rev-parse", "main^{tree}"), "-p", main, "-m", "concurrent owner work");
+  const concurrent = f.git(
+    "commit-tree",
+    f.git("rev-parse", "main^{tree}"),
+    "-p",
+    main,
+    "-m",
+    "concurrent owner work",
+  );
   f.state.beforeRefCreate = () => f.git("push", "origin", concurrent + ":refs/heads/ai-changes");
   assert.throws(() => f.invoke(["prepare"]), /gh api failed/);
   assert.equal(f.remoteSha(), concurrent);
@@ -311,7 +393,15 @@ test("a failed push preserves one local commit and exact-SHA resume does not dup
   assert.equal(f.remoteSha(), before);
   assert.equal(f.state.creates, 0);
   f.state.failPush = false;
-  const result = f.invoke(["deliver", "--resume", commit, "--title", "Accepted outcome", "--body-file", ".artifacts/evidence.md"]);
+  const result = f.invoke([
+    "deliver",
+    "--resume",
+    commit,
+    "--title",
+    "Accepted outcome",
+    "--body-file",
+    ".artifacts/evidence.md",
+  ]);
   assert.equal(result.commit, commit);
   assert.equal(f.remoteSha(), commit);
   assert.equal(f.git("rev-list", "--count", before + "..HEAD"), "1");
@@ -361,17 +451,27 @@ test("prepare reuses the same branch after an owner squash-merge, without rewrit
   assert.equal(f.git("--git-dir=" + f.remote, "rev-parse", "main"), main);
   f.write("owned.txt", "second task\n");
   assert.equal(f.invoke(f.deliverArgs()).pr, 2);
-  assert.deepEqual(f.git("--git-dir=" + f.remote, "for-each-ref", "--format=%(refname)", "refs/heads").split("\n"), ["refs/heads/ai-changes", "refs/heads/main"]);
+  assert.deepEqual(
+    f.git("--git-dir=" + f.remote, "for-each-ref", "--format=%(refname)", "refs/heads").split("\n"),
+    ["refs/heads/ai-changes", "refs/heads/main"],
+  );
 });
 
 test("CLI cannot change the fixed target and repository parsing rejects credential-bearing or alternate hosts", () => {
   assert.equal(githubRepository("git@github.com:owner/project.git"), "owner/project");
   assert.equal(githubRepository("https://github.com/owner/project.git"), "owner/project");
-  for (const url of ["https://token@github.com/owner/project", "https://other.example/owner/project", "https://github.com/owner/project?x=1"]) {
+  for (const url of [
+    "https://token@github.com/owner/project",
+    "https://other.example/owner/project",
+    "https://github.com/owner/project?x=1",
+  ]) {
     assert.throws(() => githubRepository(url), /credential-free/);
   }
   assert.throws(() => parseOptions(["prepare", "--branch", "main"]), /Unknown/);
-  assert.throws(() => parseOptions(["deliver", "--title", "x", "--body-file", "body.md", "--resume", "abc"]), /exact previously verified SHA/);
+  assert.throws(
+    () => parseOptions(["deliver", "--title", "x", "--body-file", "body.md", "--resume", "abc"]),
+    /exact previously verified SHA/,
+  );
 });
 
 test("resume cannot publish an arbitrary unpublished commit without a matching helper receipt", (t) => {
@@ -381,7 +481,19 @@ test("resume cannot publish an arbitrary unpublished commit without a matching h
   f.git("add", "-f", ".env");
   f.git("commit", "-m", "unrelated owner commit");
   const commit = f.git("rev-parse", "HEAD");
-  assert.throws(() => f.invoke(["deliver", "--resume", commit, "--title", "Outcome", "--body-file", ".artifacts/evidence.md"]), /receipt|Sensitive/);
+  assert.throws(
+    () =>
+      f.invoke([
+        "deliver",
+        "--resume",
+        commit,
+        "--title",
+        "Outcome",
+        "--body-file",
+        ".artifacts/evidence.md",
+      ]),
+    /receipt|Sensitive/,
+  );
   assert.equal(f.remoteSha(), before);
   assert.equal(f.state.creates, 0);
 });
@@ -443,9 +555,17 @@ test("the remote update rejects deletion or advancement after the final prefligh
     let concurrent;
     f.write("owned.txt", "verified change\n");
     f.state.beforePush = () => {
-      if (change === "delete") f.git("--git-dir=" + f.remote, "update-ref", "-d", "refs/heads/ai-changes", before);
+      if (change === "delete")
+        f.git("--git-dir=" + f.remote, "update-ref", "-d", "refs/heads/ai-changes", before);
       else {
-        concurrent = f.git("commit-tree", f.git("rev-parse", "main^{tree}"), "-p", before, "-m", "concurrent remote writer");
+        concurrent = f.git(
+          "commit-tree",
+          f.git("rev-parse", "main^{tree}"),
+          "-p",
+          before,
+          "-m",
+          "concurrent remote writer",
+        );
         f.git("push", "origin", concurrent + ":refs/heads/ai-changes");
       }
     };

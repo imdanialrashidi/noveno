@@ -573,7 +573,7 @@ test("menu: open sets state; Escape closes and returns focus to the trigger", ()
 });
 
 test("menu: bounded timeout fallback hides the panel when transitionend never fires; unsubscribe stops toggling", async () => {
-  const { trigger, panel, closeCount } = makeMenuEnv();
+  const { trigger, panel, closeCount: _closeCount } = makeMenuEnv();
   trigger.dispatchEvent("click");
   assert.equal(panel.hidden, false);
 
@@ -606,7 +606,7 @@ test("menu: bounded timeout fallback hides the panel when transitionend never fi
 /* ------------------------------------------------------------------ */
 
 test("motion: initReveal creates no IntersectionObserver under prefers-reduced-motion", () => {
-  const env = installClientGlobals({ matchMedia: { reducedMotion: true } });
+  installClientGlobals({ matchMedia: { reducedMotion: true } });
   const root = new FakeEl("div", {}, [new FakeEl("section", { "data-reveal": "" })]);
   initReveal(root);
   assert.equal(IntersectionObserverSpy.instances.length, 0, "reduced motion must skip the observer entirely");

@@ -101,6 +101,8 @@ Model calls can incur cost and may transmit copied repository content to the sel
 
 RPC reference: [Pi RPC mode](https://pi.dev/docs/latest/rpc).
 
+The test-economy cases cover three different decisions: `copy-edit-without-test-churn` requires the exact requested documentation correction and rejects extra files; `already-covered-behavior` requires an unchanged tree and runs the existing below-tier test; `tiered-pricing-regression` still requires a new defect-sensitive boundary regression. Review traces to judge whether the agent itself selected and executed proportionate evidence: grader checks run after the agent and do not prove its reasoning or tool use. Static phrase checks on instructions are not a substitute for these model trials.
+
 The executable `tiered-pricing-regression` fixture validates test usefulness rather than test existence: the final test must pass, the same test must fail when the disposable workspace temporarily restores the immutable fixture baseline source, and the final source is restored in a `finally` block. This proof does not create or read a Git commit.
 
 ## Comparable inputs and isolated Git
