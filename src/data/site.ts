@@ -17,13 +17,24 @@
 export const CTA_URL = "/audit";
 
 /**
- * Hero headline — approved candidate A (Spec §11.2). Single-line swap;
- * both candidates are verified to fit the display treatment (§5.2).
+ * Hero headline — the founder's positioning line (2026-10 focus pass,
+ * docs/DESIGN.md §0). It replaces the abstract former headline: it
+ * states the business outcome, not the mechanism.
  */
-export const HERO_HEADLINE = "بازدید را به یک مسیر قابل‌پیگیری برای جذب مشتری تبدیل کنید.";
+export const HERO_HEADLINE = "سایت شما باید مشتری واقعی بیاورد، نه فقط بازدید.";
+
+/** Hero kicker — one line that names the category and the audience. */
+export const HERO_KICKER = "سیستم جذب مشتری برای کسب‌وکارهای خدماتی";
+
+/** Hero support — two clauses, no paragraph. */
+export const HERO_LEAD =
+  "نوونو برای کسب‌وکارهای خدماتی، مسیر جذب را می‌سازد: از بازدید تا ثبت درخواست و پیگیری.";
+
+/** Hero microcopy — what happens if they click, stated honestly. */
+export const HERO_MICROCOPY = "بررسی اولیه رایگان است و حدود دو دقیقه وقت می‌گیرد. فروش تضمین نمی‌شود.";
 
 export const PRIMARY_CTA_LABEL = "درخواست بررسی مسیر جذب";
-export const SECONDARY_CTA_LABEL = "دیدن پروژه‌ها";
+export const SECONDARY_CTA_LABEL = "دیدن نمونه‌کارها";
 
 /* ------------------------------------------------------------------ */
 /* Contact facts (Spec §64.1 — redundancy is a requirement)            */
@@ -44,10 +55,18 @@ export const CONTACT = {
 /* Navigation                                                          */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Primary navigation (2026-10 focus pass): five links plus one action.
+ * `/services` and `/work` keep their URLs — only the labels changed to
+ * the founder's product language (راهکارها / نمونه‌کار). Supporting
+ * pages (`/process`, `/blog`, `/contact`, legal) stay reachable through
+ * the footer and in-context links; no route is deleted for simplicity.
+ */
 export const NAV_LINKS = [
-  { href: "/services", label: "خدمات" },
-  { href: "/work", label: "پروژه‌ها" },
-  { href: "/blog", label: "وبلاگ" },
+  { href: "/", label: "خانه" },
+  { href: "/services", label: "راهکارها" },
+  { href: "/work", label: "نمونه‌کار" },
+  { href: "/pricing", label: "قیمت" },
   { href: "/about", label: "درباره" },
 ] as const;
 
@@ -69,6 +88,27 @@ export const SYSTEM_STAGES = [
   { label: "یادگیری", description: "بازدید، تبدیل، کیفیت لید و گلوگاه‌ها بررسی می‌شوند" },
 ] as const;
 
+/**
+ * How the system works — the three steps the homepage explains
+ * (2026-10 focus pass). The full six-stage model stays on /services
+ * and the five-stage delivery process on /process; repeating them on
+ * the homepage was the copy bloat this pass removed.
+ */
+export const HOW_IT_WORKS = [
+  {
+    title: "بررسی",
+    text: "پنج سؤال کوتاه و یک گفت‌وگوی کم‌حرف: مشتری الان از کجا می‌آید و درخواست کجا گم می‌شود.",
+  },
+  {
+    title: "ساخت",
+    text: "صفحه، پیام، فرم و تماس یک مسیر می‌سازند؛ هر بازدید می‌داند قدم بعدی چیست.",
+  },
+  {
+    title: "سنجش و بهبود",
+    text: "هر درخواست با منبع و وضعیت ثبت می‌شود؛ تغییر بعدی بر اساس داده انتخاب می‌شود، نه حدس.",
+  },
+] as const;
+
 /** Five-stage delivery process (Spec §24) — cycle, rendered as a    */
 /** numbered editorial sequence.                                        */
 export const PROCESS_STAGES = [
@@ -86,49 +126,136 @@ export const PROCESS_STAGES = [
 export interface Offer {
   id: string;
   name: string;
+  /** Public starting price in تومان (docs/DESIGN.md §0). Never USD/FX. */
+  price: string;
+  /** One line: what this starting price actually covers. */
+  priceNote: string;
   summary: string;
   points: readonly string[];
   framing: string;
+  /** Quiet typographic recommendation label — no scarcity, no dark pattern. */
+  recommended?: boolean;
 }
 
+/**
+ * Three core offers (2026-10 focus pass). Scopes stay inside what the
+ * business can actually deliver today: no CRM product, no invented
+ * dashboards, no guaranteed results. The middle tier is the default
+ * recommendation for service businesses.
+ */
 export const OFFERS: readonly Offer[] = [
   {
-    id: "audit",
-    name: "بررسی مسیر جذب",
-    summary: "نقطه ورود کم‌اصطکاک برای تشخیص: مسیر فعلی کسب‌وکار شما کجا درخواست را گم می‌کند.",
+    id: "landing",
+    name: "صفحه جذب",
+    price: "از ۲۴.۹ میلیون تومان",
+    priceNote: "متن و ساختار صفحه، فرم ثبت درخواست، اندازه‌گیری پایه.",
+    summary: "یک صفحه برای یک خدمت مشخص؛ کاری نمی‌کند جز اینکه بازدید را به درخواست تبدیل کند.",
     points: [
-      "پیام‌رسانی، سایت یا صفحه فرود و CTA",
-      "مسیر تلفن و پیام (واتساپ/دایرکت)",
-      "ثبت لید و دیده‌شدن منبع ورودی",
-      "پیگیری و پاسخ‌گویی",
+      "متن و ساختار صفحه برای یک خدمت مشخص",
+      "فرم ثبت درخواست و مسیر تماس",
+      "ثبت رویدادهای اصلی در تحلیل",
     ],
-    framing: "خروجی: تحلیل وضعیت فعلی، مسائل اولویت‌دار، مسیر مشتری پیشنهادی و برنامه اجرا.",
+    framing: "مناسب کسب‌وکاری که یک خدمت روشن دارد و یک مسیر تبدیل لازم دارد.",
   },
   {
     id: "system",
-    name: "طراحی و اجرای سیستم جذب",
-    summary: "هسته همکاری: از توجه پراکنده تا ثبت، پیگیری و اندازه‌گیری — به اندازه نیاز کسب‌وکار.",
+    name: "سیستم جذب",
+    price: "از ۴۴.۹ میلیون تومان",
+    priceNote: "صفحه‌های اصلی، فرم و تماس، اندازه‌گیری، ثبت لید با منبع مشخص و پیگیری وضعیت درخواست‌ها.",
+    summary: "مسیر کامل از بازدید تا درخواست قابل پیگیری: صفحه‌ها، فرم، تماس، ثبت و پیگیری.",
     points: [
-      "لندینگ یا سایت خدماتی و ساختار پیام",
-      "CTA، فرم و مسیر تلفن/پیام",
-      "ثبت لید، منبع ورودی و وضعیت پیگیری",
-      "تحلیل و گزارش‌دهی",
+      "صفحه‌های اصلی کسب‌وکار و تجربهٔ لندینگ",
+      "CTA، فرم ثبت درخواست و مسیر تماس",
+      "اندازه‌گیری و ثبت منبع هر لید",
+      "پیگیری وضعیت درخواست‌ها و گزارش دوره‌ای",
     ],
-    framing: "سیستم بر اساس مشکل واقعی کسب‌وکار Scope می‌شود؛ نه همه اجزا برای همه.",
+    framing: "پیشنهاد نوونو برای بیشتر کسب‌وکارهای خدماتی.",
+    recommended: true,
   },
   {
     id: "growth",
-    name: "بهبود و همراهی ماهانه",
-    summary: "ارزش تکرارشونده پس از اجرا: اندازه‌گیری، بهبود و نگهداری در محدوده مشخص.",
+    name: "سیستم رشد",
+    price: "از ۶۴.۹ میلیون تومان",
+    priceNote: "مسیرهای جذب بیشتر، صفحات تکمیلی، گزارش دوره‌ای و کار مستمر روی تبدیل.",
+    summary: "برای کسب‌وکاری که ورودی دارد و مسئله‌اش تبدیل و پیگیری است، نه جذب.",
     points: [
-      "بررسی تحلیلها و گزارش ماهانه",
-      "بهبود کپی و CTA در محدوده تعریف‌شده",
-      "بررسی قیف و بهینه‌سازی محدود",
-      "QA و تغییرهای کوچک",
+      "تکمیل مسیر جذب و صفحات بیشتر",
+      "گزارش دوره‌ای عملکرد مسیر",
+      "اندازه‌گیری دقیق‌تر نقاط تماس و تبدیل",
+      "بهبود مستمر بر اساس داده",
     ],
-    framing: "همراهی ماهانه؛ نه پشتیبانی بی‌پایان.",
+    framing: "برای کسب‌وکارهایی که ورودی قابل‌توجه دارند و دنبال رشد مرحله‌ای‌اند.",
   },
 ];
+
+/** Public pricing policy — one sentence, shown wherever a price appears. */
+export const PRICING_NOTE =
+  "قیمت‌های فوق نقطه شروع هستند و بر اساس دامنه و پیچیدگی پروژه تعیین می‌شوند. پیشنهاد رسمی هر پروژه ۷ روز اعتبار دارد.";
+
+/** Recurring support — productized monthly options, differentiated by work. */
+export const RECURRING_PLANS = [
+  {
+    id: "care",
+    name: "Care",
+    price: "از ۴.۹ میلیون تومان / ماه",
+    scope: "نگهداری سایت، به‌روزرسانی امنیتی، پشتیبان‌گیری و اصلاحات کوچک.",
+  },
+  {
+    id: "growth",
+    name: "Growth",
+    price: "از ۹.۹ میلیون تومان / ماه",
+    scope: "همه موارد Care، به‌علاوهٔ گزارش ماهانه و تغییرات محدود در صفحه‌ها.",
+  },
+  {
+    id: "active-growth",
+    name: "Active Growth",
+    price: "از ۱۶.۹ میلیون تومان / ماه",
+    scope: "همه موارد Growth، به‌علاوهٔ جلسهٔ ماهانهٔ بهبود تبدیل و اولویت‌بندی کارها بر اساس داده.",
+  },
+] as const;
+
+/**
+ * E-commerce stays a secondary, custom-scoped project line — it is not a
+ * flagship offer (docs/DESIGN.md §0). No fabricated store results.
+ */
+export const ECOMMERCE_OFFER = {
+  name: "پروژه‌های فروشگاهی",
+  price: "از ۵۹.۹ میلیون تومان، پس از بررسی",
+  note: "فروشگاه اینترنتی پروژه‌ای جداگانه است و جزو بسته‌های اصلی نیست؛ دامنه‌اش بعد از بررسی مسیر خرید مشخص می‌شود.",
+} as const;
+
+/**
+ * Priority segments (2026-10). These describe the *problem each segment
+ * brings*, not a specialization claim, a client list, or a result: no
+ * niche is presented as proven traction (docs/DESIGN.md §0).
+ */
+export const PRIORITY_SEGMENTS = [
+  {
+    id: "clinic",
+    name: "کلینیک‌ها و مراکز درمانی",
+    problem: "نوبت‌دهی بین تلفن و پیام‌رسان پخش است و معلوم نیست کدام مسیر مراجعه می‌سازد.",
+    approach: "یک مسیر رزرو روشن، با ثبت منبع هر تماس و پیگیری وضعیت.",
+  },
+  {
+    id: "education",
+    name: "آموزشگاه‌ها و مراکز آموزشی",
+    problem: "ثبت‌نام بین دایرکت و تماس گم می‌شود و ظرفیت دوره‌ها دیده نمی‌شود.",
+    approach: "صفحهٔ دوره با ثبت‌نام مشخص و پیگیری هر متقاضی تا تصمیم.",
+  },
+  {
+    id: "services-b2b",
+    name: "کسب‌وکارهای خدماتی و B2B",
+    problem: "سرنخ‌ها در چند کانال پخش‌اند و هیچ‌کس نمی‌داند کدام کانال مشتری می‌آورد.",
+    approach: "فرم و تماس در یک نقطهٔ ثبت، با منبع و وضعیت مشخص برای هر سرنخ.",
+  },
+] as const;
+
+/** Founder — verified identity only; no invented experience or counts. */
+export const FOUNDER = {
+  name: "دانیال رشیدی",
+  role: "بنیان‌گذار نوونو",
+  bio: "نوونو را تک‌نفره اداره می‌کند و روی همین مسیر کار می‌کند: تبدیل توجه پراکندهٔ کسب‌وکارهای خدماتی به درخواست‌هایی که ثبت و پیگیری می‌شوند.",
+} as const;
 
 /** System component building blocks (Spec §22) — not isolated products. */
 export const SYSTEM_COMPONENTS = [
@@ -172,6 +299,34 @@ export const BAD_FIT = [
 /* FAQ (Spec §28 — genuine purchase objections only)                   */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Homepage FAQ — the five objections a qualified lead actually has.
+ * Short answers, no repeated explanations, no promises.
+ */
+export const HOME_FAQ = [
+  {
+    q: "قیمت‌ها دقیق است؟",
+    a: PRICING_NOTE,
+  },
+  {
+    q: "پروژه چقدر طول می‌کشد؟",
+    a: "به دامنه بستگی دارد: صفحه جذب معمولاً کوتاه‌تر است و سیستم جذب به تعداد صفحه‌ها و مسیر تماس. عدد دقیق بعد از بررسی گفته می‌شود، نه قبل از آن.",
+  },
+  {
+    q: "فروش را تضمین می‌کنید؟",
+    a: "نه. هیچ‌کس نمی‌تواند فروش را تضمین کند و ما هم چنین وعده‌ای نمی‌دهیم. کار ما درست‌کردن مسیر جذب است؛ نتیجه هرجا داده اجازه بدهد گزارش می‌شود.",
+  },
+  {
+    q: "قبلاً سایت یا پیج داریم، چه می‌شود؟",
+    a: "بررسی روی وضعیت فعلی انجام می‌شود. سایت موجود می‌تواند نقطهٔ شروع باشد؛ بدون دلیل دور ریخته نمی‌شود.",
+  },
+  {
+    q: "بعد از تحویل چه اتفاقی می‌افتد؟",
+    a: "سه گزینهٔ همراهی ماهانه با دامنه و قیمت مشخص داریم: Care، Growth و Active Growth. یا پروژه همان‌جا تمام می‌شود و سایت دست خودتان است.",
+  },
+] as const;
+
+/** Full FAQ — the long-form set kept for the pages that own it. */
 export const FAQ_ITEMS = [
   {
     q: "آیا Noveno فروش را تضمین می‌کند؟",
@@ -191,7 +346,7 @@ export const FAQ_ITEMS = [
   },
   {
     q: "آیا بعد از تحویل پشتیبانی وجود دارد؟",
-    a: "بله؛ در قالب «بهبود و همراهی ماهانه». نگهداری فنی، بررسی تحلیلها و بهبودهای کوچک در محدوده تعریف‌شده انجام می‌شود.",
+    a: "بله، اما اختیاری و با دامنه مشخص: سه گزینه همراهی ماهانه داریم — Care برای نگهداری و امنیت، Growth با گزارش ماهانه و تغییرات محدود، و Active Growth با جلسه ماهانه بهبود تبدیل. بدون قرارداد بلندمدت.",
   },
   {
     q: "آیا تبلیغات هم انجام می‌دهید؟",
@@ -203,7 +358,11 @@ export const FAQ_ITEMS = [
   },
   {
     q: "هزینه پروژه چگونه تعیین می‌شود؟",
-    a: "پس از بررسی مسیر جذب و بر اساس مشکل واقعی، Scope و هزینه مشخص می‌شود. بدون بررسی، قیمت معنا ندارد.",
+    a: "قیمت شروع هر بسته در صفحه قیمت آمده است. عدد نهایی بعد از دیدن وضعیت کسب‌وکار شما تعیین می‌شود و پیشنهاد رسمی هر پروژه ۷ روز اعتبار دارد.",
+  },
+  {
+    q: "بررسی اولیه رایگان است؟",
+    a: "بله. همان فرم کوتاهی که در سایت می‌بینید رایگان است و فقط برای فهمیدن وضعیت فعلی لازم است؛ اگر همکاری مناسب نباشد همان‌جا گفته می‌شود.",
   },
   {
     q: "آیا می‌توان همکاری را با بررسی مسیر فعلی شروع کرد؟",

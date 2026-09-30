@@ -52,28 +52,13 @@ const pathname = Astro.url.pathname;
           </li>
         ))
       }
-      {
-        /* فرآیند is a supporting page: not in the primary desktop nav, but
-          stays reachable here and in the footer. */
-      }
-      <li class="border-t border-line">
-        <a
-          href="/process"
-          class:list={[
-            "flex min-h-13 items-center gap-3 py-3 text-lg font-medium transition-colors duration-150",
-            isCurrent("/process", pathname) ? "text-text-action" : "text-text hover:text-text-action",
-          ]}
-        >
-          <span
-            class:list={[
-              "h-2 w-2 flex-none rounded-[1px]",
-              isCurrent("/process", pathname) ? "bg-primary" : "border border-line-strong",
-            ]}
-            aria-hidden="true"></span>
-          فرآیند
-        </a>
-      </li>
     </ul>
+
+    {
+      /* Supporting pages (/process, /blog, /contact) stay out of the
+        primary navigation — they remain reachable from the footer and
+        from in-context links on the page that owns them. */
+    }
 
     <p class="mt-6 mb-2 text-meta text-text-faint">تماس مستقیم</p>
     <div class="flex flex-col gap-2 border-t border-line pt-3">

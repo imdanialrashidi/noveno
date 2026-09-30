@@ -86,9 +86,10 @@ export function validateAuditPayload(raw: unknown): ValidationResult {
     else if (!EMAIL_PATTERN.test(email)) fail("email", "invalid");
   }
 
-  /* preferred_contact */
+  /* preferred_contact — optional (first-contact form does not ask) */
   const preferredContact = str(raw.preferred_contact) ?? "";
-  if (!PREFERRED_CONTACTS.includes(preferredContact as never)) fail("preferred_contact", "invalid_enum");
+  if (preferredContact !== "" && !PREFERRED_CONTACTS.includes(preferredContact as never))
+    fail("preferred_contact", "invalid_enum");
 
   /* business_name — optional */
   let businessName: string | undefined;
@@ -108,26 +109,34 @@ export function validateAuditPayload(raw: unknown): ValidationResult {
     if (website.length > LIMITS.website) fail("website", "too_long");
   }
 
-  /* acquisition_channels — non-empty, whitelisted, deduped */
-  if (!Array.isArray(raw.acquisition_channels)) {
-    fail("acquisition_channels", "required");
-  } else {
-    const channels = [...new Set(raw.acquisition_channels)];
-    if (channels.length === 0) fail("acquisition_channels", "required");
-    else if (channels.length > LIMITS.maxChannels) fail("acquisition_channels", "too_long");
-    else if (channels.some((c) => !ACQUISITION_CHANNELS.includes(c as never))) {
-      fail("acquisition_channels", "invalid_enum");
+  /* acquisition_channels — optional: the first-contact form does not ask
+     for channels (the qualification continues in conversation). When the
+     client does send them they are still whitelisted, deduped and capped;
+     a payload that supplies an unknown channel id is still rejected. */
+  let acquisitionChannels: string[] | undefined;
+  if (raw.acquisition_channels !== undefined && raw.acquisition_channels !== null) {
+    if (!Array.isArray(raw.acquisition_channels)) {
+      fail("acquisition_channels", "invalid");
     } else {
-      raw.acquisition_channels = channels;
+      const channels = [...new Set(raw.acquisition_channels)];
+      if (channels.length > LIMITS.maxChannels) fail("acquisition_channels", "too_long");
+      else if (channels.some((c) => !ACQUISITION_CHANNELS.includes(c as never))) {
+        fail("acquisition_channels", "invalid_enum");
+      } else if (channels.length > 0) {
+        acquisitionChannels = channels;
+        raw.acquisition_channels = channels;
+      }
     }
   }
 
-  /* primary_problem / requested_service */
+  /* primary_problem — required (the one qualifying question the form asks) */
   const primaryProblem = str(raw.primary_problem) ?? "";
   if (!PRIMARY_PROBLEMS.includes(primaryProblem as never)) fail("primary_problem", "invalid_enum");
 
+  /* requested_service — optional, whitelisted when present */
   const requestedService = str(raw.requested_service) ?? "";
-  if (!REQUESTED_SERVICES.includes(requestedService as never)) fail("requested_service", "invalid_enum");
+  if (requestedService !== "" && !REQUESTED_SERVICES.includes(requestedService as never))
+    fail("requested_service", "invalid_enum");
 
   /* customer_value_range — optional enum */
   let customerValueRange: string | undefined;
@@ -192,13 +201,13 @@ export function validateAuditPayload(raw: unknown): ValidationResult {
       name,
       phone,
       ...(email !== undefined ? { email } : {}),
-      preferred_contact: preferredContact,
+      ...(preferredContact ? { preferred_contact: preferredContact } : {}),
       ...(businessName !== undefined ? { business_name: businessName } : {}),
       industry,
       ...(website !== undefined ? { website } : {}),
-      acquisition_channels: [...new Set(raw.acquisition_channels as string[])],
+      ...(acquisitionChannels ? { acquisition_channels: acquisitionChannels } : {}),
       primary_problem: primaryProblem,
-      requested_service: requestedService,
+      ...(requestedService ? { requested_service: requestedService } : {}),
       ...(customerValueRange !== undefined ? { customer_value_range: customerValueRange } : {}),
       cf_turnstile_token: turnstileToken,
       attribution,

@@ -33,10 +33,10 @@ export function previewFor(id: string): WorkPreview {
       type: "image",
       src: imageUrl("work/noveno-website-hero.webp"),
       srcset: webpSrcset("noveno-website-hero"),
-      alt: "صفحهٔ نخست وب‌سایت نوونو — مسیر جذب با درخواست بررسی",
+      alt: "صفحهٔ نخست وب‌سایت نوونو — عنوان جذب مشتری و دکمهٔ درخواست بررسی",
       detailSrc: imageUrl("work/noveno-website-audit.webp"),
       detailSrcset: webpSrcset("noveno-website-audit"),
-      detailAlt: "فرم بررسی مسیر جذب در وب‌سایت نوونو — شش مرحلهٔ کوتاه",
+      detailAlt: "فرم درخواست بررسی در وب‌سایت نوونو — یک صفحه با پنج سؤال کوتاه",
     };
   }
 

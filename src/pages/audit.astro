@@ -1,15 +1,20 @@
 ---
 /**
- * Audit page (Spec §30–32, DESIGN §11 — matrix screens 8) — the primary
- * conversion surface. Six steps, framework-free; the state machine
- * lives in src/scripts/audit.ts and this page is its static shell:
- * - two-column desktop (right: step content; left: explainer + progress),
- *   single-column mobile (progress above the card),
+ * First-contact form (2026-10 focus pass — one screen instead of six
+ * steps; docs/DESIGN.md §3.7). The state machine is unchanged
+ * (src/scripts/audit.ts) and still drives this markup through
+ * `[data-step-section]`, so the delivery semantics are identical:
+ *
+ * - ONE card, five questions: name, phone, business type,
+ *   site-or-instagram, one problem field,
+ * - a real submit path: POST /api/audit (server validation + Turnstile)
+ *   and only a confirmed Web3Forms delivery completes the journey —
+ *   no step counter, no back button, no fabricated answers,
+ * - error banners (role=alert) for network / delivery / offline /
+ *   turnstile / rate / validation / unconfigured, with retry and an
+ *   always-reachable direct-contact fallback,
  * - form card: surface panel, 8px radius, 560px measure, line-strong
  *   field borders, one shadow (light theme) per DESIGN §6.3,
- * - error banner (role=alert) with DESIGN §11 copy + retry, offline
- *   variant with emphasized contact fallback,
- * - Turnstile explicit render inside the contact station,
  * - no-JS: submit disabled + noscript contact fallback (Turnstile and
  *   the journey require JavaScript by design).
  */
@@ -17,87 +22,38 @@
 import PageLayout from "../layouts/PageLayout.astro";
 import PageHero from "../components/layout/PageHero.astro";
 import ChannelLink from "../components/ui/ChannelLink.astro";
-import StepperLine from "../components/business/StepperLine.astro";
 import FormField from "../components/ui/FormField.astro";
 import Select from "../components/ui/Select.astro";
-import MultiSelect from "../components/ui/MultiSelect.astro";
-import { AUDIT_STEPS, AUDIT_STATIONS } from "../data/audit";
+import NextStepsRail from "../components/business/NextStepsRail.astro";
+import { AUDIT_STEPS } from "../data/audit";
 import { CONTACT } from "../data/site";
 
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
 const web3formsKey = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY ?? "";
 const web3formsUrl = import.meta.env.PUBLIC_WEB3FORMS_URL ?? "https://api.web3forms.com/submit";
 const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
+
+const [step] = AUDIT_STEPS;
 ---
 
 <PageLayout
-  title="بررسی مسیر جذب | نوونو"
-  description="چند سؤال کوتاه درباره کسب‌وکارتان تا مسیر فعلی جذب مشتری بررسی شود؛ بدون وعده فروش تضمینی. ثبت درخواست چند دقیقه وقت می‌گیرد."
+  title="درخواست بررسی مسیر جذب | نوونو"
+  description="پنج سؤال کوتاه درباره کسب‌وکارتان تا مسیر فعلی جذب مشتری بررسی شود. بررسی اولیه رایگان است و فروش تضمین نمی‌شود."
   path="/audit"
 >
   <PageHero
     id="audit-title"
     title="بررسی مسیر جذب"
-    lead="شش مرحلهٔ کوتاه؛ هر چه دقیق‌تر پاسخ دهید، گفت‌وگوی اول کوتاه‌تر می‌شود. بدون وعده فروش تضمینی؛ ابتدا مسیر فعلی کسب‌وکار بررسی می‌شود."
+    lead="پنج سؤال کوتاه، حدود دو دقیقه وقت. اول وضعیت فعلی شما را می‌بینیم، بعد درباره مسیر و هزینه حرف می‌زنیم."
   />
 
-  <section class="border-t border-line" aria-labelledby="audit-journey-title">
+  <section class="border-t border-line" aria-labelledby="audit-form-title">
     <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
       <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
-        <!-- Left column (desktop) — explainer + progress; above the card on mobile -->
-        <aside class="lg:order-2 lg:col-span-5" aria-label="راهنمای بررسی">
-          <div class="flex flex-col gap-8">
-            <div>
-              <h2 id="audit-journey-title" class="text-h3 text-text">مراحل بررسی</h2>
-              <p class="mt-3 text-body text-text-muted measure-prose">
-                حدود دو دقیقه وقت می‌گیرد؛ هر مرحله یک سؤال کوتاه است. پاسخ‌ها پیش‌نویس می‌شوند و اگر وسط کار
-                بگذارید، از همان‌جا ادامه می‌دهید.
-              </p>
-            </div>
-
-            <div class="hidden lg:block">
-              <StepperLine steps={AUDIT_STATIONS} current={1} />
-              <p class="mt-3 text-caption text-text-faint">
-                پاسخ هر مرحله چند ثانیه وقت می‌گیرد؛ نیازی به آماده‌سازی نیست.
-              </p>
-            </div>
-
-            <div class="flex flex-col gap-3 border-t border-line pt-6">
-              <p class="text-ui font-medium text-text">ترجیح می‌دهید مستقیم صحبت کنید؟</p>
-              <div class="flex flex-wrap gap-x-5 gap-y-1">
-                <ChannelLink
-                  icon="phone"
-                  label={CONTACT.phone}
-                  value="تماس"
-                  href={CONTACT.phoneHref}
-                  event={{ name: "phone_click", payload: { section: "audit-rail" } }}
-                />
-                <ChannelLink
-                  icon="whatsapp"
-                  label="واتساپ"
-                  href={CONTACT.whatsappHref}
-                  external
-                  event={{ name: "messaging_click", payload: { section: "audit-rail", channel: "whatsapp" } }}
-                />
-                <ChannelLink
-                  icon="telegram"
-                  label="تلگرام"
-                  href={CONTACT.telegramHref}
-                  external
-                  event={{ name: "messaging_click", payload: { section: "audit-rail", channel: "telegram" } }}
-                />
-              </div>
-              <p class="text-caption text-text-faint">
-                اگر همکاری مناسب نباشد، همان‌جا گفته می‌شود؛ بدون پیگیری اذیت‌کننده.
-              </p>
-            </div>
-          </div>
-        </aside>
-
         <!-- Form card (right on desktop, first interaction surface) -->
         <div class="lg:col-span-7">
           <div
-            class="mx-auto w-full max-w-[560px] rounded-[8px] border border-line bg-surface p-6 shadow-panel sm:p-8"
+            class="w-full max-w-[560px] rounded-[8px] border border-line bg-surface p-6 shadow-panel sm:p-8"
             data-audit-config={JSON.stringify(auditConfig)}
           >
             <p class="sr-only" id="step-announce" aria-live="polite"></p>
@@ -362,20 +318,6 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
             </div>
 
             <form id="audit-form" class="mt-6" novalidate>
-              <!-- Compact progress inside the card — mobile keeps comprehension
-                   while scrolled (desktop has the rail in the sidebar). -->
-              <div class="mb-6 lg:hidden">
-                <p class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                  <span class="text-ui font-semibold text-text">
-                    <span data-stepper-counter-mobile>مرحله ۱ از ۶</span>
-                  </span>
-                  <span class="text-caption text-text-faint" data-stepper-current-mobile>کسب‌وکار</span>
-                </p>
-                <span class="progress-track mt-2.5" aria-hidden="true">
-                  <span class="progress-fill" data-stepper-bar-mobile style="width: 0%"></span>
-                </span>
-              </div>
-
               <!-- Honeypot: visually-hidden trap for form-scraping bots.
                    Humans never see or fill it; the audit script echoes its
                    (normally empty) value with the payload so the server
@@ -391,12 +333,8 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
               />
               <div class="flex flex-col gap-8">
                 {
-                  AUDIT_STEPS.map((step, index) => (
-                    <section
-                      data-step-section={step.id}
-                      aria-labelledby={`step-${step.id}-title`}
-                      hidden={index !== 0}
-                    >
+                  (
+                    <section data-step-section={step.id} aria-labelledby={`step-${step.id}-title`}>
                       <h2 id={`step-${step.id}-title`} tabindex="-1" class="text-h3 text-text">
                         {step.question}
                       </h2>
@@ -412,26 +350,11 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
                               optional={field.optional}
                               hint={field.hint}
                             />
-                          ) : field.kind === "multiselect" ? (
-                            <MultiSelect
-                              id={field.id}
-                              label={field.label}
-                              options={field.options ?? []}
-                              hint={field.hint}
-                            />
                           ) : (
                             <FormField
                               id={field.id}
                               label={field.label}
-                              type={
-                                field.id === "phone"
-                                  ? "tel"
-                                  : field.id === "email"
-                                    ? "email"
-                                    : field.id === "website"
-                                      ? "url"
-                                      : "text"
-                              }
+                              type={field.id === "phone" ? "tel" : field.id === "website" ? "url" : "text"}
                               placeholder={field.placeholder}
                               hint={field.hint}
                               optional={field.optional}
@@ -443,60 +366,26 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
                         )}
                       </div>
                     </section>
-                  ))
+                  )
                 }
               </div>
 
-              <!-- Turnstile renders here when the contact station is reached -->
+              <!-- Turnstile renders here, immediately before submit -->
               <div id="turnstile-container" class="mt-6"></div>
 
-              <!-- Review summary — shown on the last step so submitting feels
-                   deliberate, not rushed. Filled by the audit script from the
-                   draft; rows with no answer stay hidden. -->
-              <div id="audit-summary" hidden class="mt-8 border-t border-line pt-6">
-                <p class="text-ui font-semibold text-text">مرور پاسخ‌ها</p>
-                <dl class="mt-4 flex flex-col gap-3">
-                  <div class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1" data-summary-row="industry">
-                    <dt class="text-meta text-text-faint">حوزه فعالیت</dt>
-                    <dd class="text-body text-text" data-summary-industry></dd>
-                  </div>
-                  <div class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1" data-summary-row="channels">
-                    <dt class="text-meta text-text-faint">کانال‌های ورود</dt>
-                    <dd class="text-body text-text" data-summary-channels></dd>
-                  </div>
-                  <div class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1" data-summary-row="problem">
-                    <dt class="text-meta text-text-faint">مشکل اصلی</dt>
-                    <dd class="text-body text-text" data-summary-problem></dd>
-                  </div>
-                  <div class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1" data-summary-row="need">
-                    <dt class="text-meta text-text-faint">نیاز</dt>
-                    <dd class="text-body text-text" data-summary-need></dd>
-                  </div>
-                </dl>
-                <p class="mt-4 text-caption text-text-faint">برای تغییر هر پاسخ، «قبلی» را بزنید.</p>
-              </div>
-
-              <div class="mt-8 flex items-center justify-between gap-4">
-                <button
-                  type="button"
-                  id="audit-back"
-                  hidden
-                  class="inline-flex min-h-12 items-center justify-center rounded-[4px] border border-line-strong bg-transparent px-6 font-display text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-                >
-                  قبلی
-                </button>
+              <div class="mt-8">
                 <button
                   type="button"
                   id="audit-next"
                   disabled
-                  class="ms-auto inline-flex min-h-12 items-center justify-center gap-2 rounded-[4px] bg-primary px-6 font-display text-ui font-medium text-on-primary transition-colors duration-150 hover:bg-primary-hover active:bg-primary-active disabled:cursor-not-allowed disabled:opacity-45"
+                  class="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[4px] bg-primary px-6 font-display text-ui font-medium text-on-primary transition-colors duration-150 hover:bg-primary-hover active:bg-primary-active disabled:cursor-not-allowed disabled:opacity-45"
                 >
-                  بعدی
+                  ثبت درخواست بررسی
                 </button>
               </div>
 
               <p class="mt-6 text-caption text-text-faint">
-                پاسخ‌ها فقط برای بررسی درخواست استفاده می‌شود.{" "}
+                بررسی اولیه رایگان است. اطلاعات شما فقط برای همین بررسی استفاده می‌شود.{" "}
                 <a href="/privacy" class="text-link">سیاست حفظ حریم خصوصی</a>
               </p>
             </form>
@@ -516,6 +405,47 @@ const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
             </noscript>
           </div>
         </div>
+
+        <!-- Quiet sidebar — what happens next + direct contact redundancy -->
+        <aside class="lg:col-span-5" aria-label="راهنمای بررسی">
+          <div class="flex flex-col gap-8">
+            <div>
+              <h2 id="audit-form-title" class="text-h3 text-text">بعد از ثبت چه اتفاقی می‌افتد؟</h2>
+              <p class="mt-3 text-body text-text-muted measure-prose">
+                درخواست شما با همین پاسخ‌ها ثبت می‌شود. اولین گفت‌وگو کوتاه است و فقط برای فهمیدن وضعیت فعلی؛
+                اگر همکاری مناسب نباشد همان‌جا گفته می‌شود.
+              </p>
+            </div>
+            <NextStepsRail />
+
+            <div class="flex flex-col gap-3 border-t border-line pt-6">
+              <p class="text-ui font-medium text-text">ترجیح می‌دهید مستقیم صحبت کنید؟</p>
+              <div class="flex flex-wrap gap-x-5 gap-y-1">
+                <ChannelLink
+                  icon="phone"
+                  label={CONTACT.phone}
+                  value="تماس"
+                  href={CONTACT.phoneHref}
+                  event={{ name: "phone_click", payload: { section: "audit-rail" } }}
+                />
+                <ChannelLink
+                  icon="whatsapp"
+                  label="واتساپ"
+                  href={CONTACT.whatsappHref}
+                  external
+                  event={{ name: "messaging_click", payload: { section: "audit-rail", channel: "whatsapp" } }}
+                />
+                <ChannelLink
+                  icon="telegram"
+                  label="تلگرام"
+                  href={CONTACT.telegramHref}
+                  external
+                  event={{ name: "messaging_click", payload: { section: "audit-rail", channel: "telegram" } }}
+                />
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   </section>

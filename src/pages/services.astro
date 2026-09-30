@@ -1,10 +1,9 @@
 ---
 /**
- * Services page (Spec §38 architecture): Hero → Problems We Solve →
- * Audit → Lead System → Growth → Possible Components → Typical
- * Engagement → Pricing Philosophy → FAQ → CTA.
- * Offers are editorial numbered rows (DESIGN §8), never cards; pricing
- * stays scoped-after-audit with no numbers (Spec §39, plan §11).
+ * Services page — now «راهکارها» (the 2026-10 focus pass kept the
+ * `/services` URL and moved public prices to `/pricing`). The six-stage
+ * system model and the engagement steps live here, so the homepage can
+ * stay short. Offers render through the shared OfferRow (with prices).
  */
 
 import PageLayout from "../layouts/PageLayout.astro";
@@ -14,61 +13,59 @@ import SectionHeader from "../components/layout/SectionHeader.astro";
 import CTASection from "../components/layout/CTASection.astro";
 import OfferRow from "../components/business/OfferRow.astro";
 import FAQItem from "../components/ui/FAQItem.astro";
-import { getCollection } from "astro:content";
-import { isPublished, sortByDate } from "../data/blog";
 import {
   toFaDigits,
   OFFERS,
   SYSTEM_COMPONENTS,
+  SYSTEM_STAGES,
   GOOD_FIT,
   BAD_FIT,
   CTA_URL,
-  PRIMARY_CTA_LABEL,
   FAQ_ITEMS,
+  PRICING_NOTE,
 } from "../data/site";
-
-const latestArticle = sortByDate((await getCollection("blog")).filter(isPublished))[0] ?? null;
 ---
 
 <PageLayout
-  title="خدمات نوونو — بررسی مسیر جذب و سیستم جذب مشتری"
-  description="سه شکل همکاری نوونو: بررسی مسیر جذب، طراحی و اجرای سیستم جذب، بهبود و همراهی ماهانه. پروژه‌ها پس از بررسی مسیر، Scope می‌شوند."
+  title="راهکارهای نوونو — سیستم جذب برای کسب‌وکار خدماتی"
+  description="سه بسته همکاری نوونو، اجزای یک سیستم جذب، و اینکه هر همکاری چطور پیش می‌رود. قیمت شروع هر بسته در صفحه قیمت."
   path="/services"
 >
   <!-- Hero -->
   <PageHero
     id="services-hero-title"
-    eyebrow="خدمات نوونو"
-    title="نه فهرست خدمات؛ سه مسیر مشخص بر اساس مشکل واقعی شما"
+    eyebrow="راهکارها"
+    title="یک سیستم جذب، نه فهرست بلند خدمات"
     lead="هر همکاری با یک بررسی شروع می‌شود: مسیر فعلی جذب شما کجاست، کجا درخواست گم می‌شود، و کدام اجزا واقعاً لازم‌اند."
   >
     <div class="mt-8 flex flex-wrap gap-4">
-      <Button href={CTA_URL} size="lg">{PRIMARY_CTA_LABEL}</Button>
-      <Button href="/work" variant="secondary" size="lg">دیدن پروژه‌ها</Button>
+      <Button href={CTA_URL} size="lg">درخواست بررسی مسیر جذب</Button>
+      <Button href="/pricing" variant="secondary" size="lg">دیدن قیمت‌ها</Button>
     </div>
   </PageHero>
 
   <!-- Three offers as route rows -->
   <section class="border-t border-line" id="offers" aria-labelledby="offers-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
-      <SectionHeader id="offers-title" title="سه شکل همکاری" />
+    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
+      <SectionHeader
+        id="offers-title"
+        title="سه بسته، با قیمت شروع مشخص"
+        lead="از یک صفحه تا یک سیستم کامل جذب و رشد. جزئیات هر بسته در صفحه قیمت هم هست."
+      />
       <div class="border-b border-line">
         {
           OFFERS.map((offer, index) => (
-            <OfferRow
-              offer={offer}
-              index={index}
-              href={offer.id === "audit" ? CTA_URL : "/services#offers"}
-            />
+            <OfferRow offer={offer} index={index} href={offer.id === "landing" ? CTA_URL : "/pricing"} />
           ))
         }
       </div>
+      <p class="mt-6 max-w-3xl text-meta text-text-faint">{PRICING_NOTE}</p>
     </div>
   </section>
 
   <!-- Possible components -->
   <section class="border-t border-line" aria-labelledby="components-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
       <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
         <div class="lg:col-span-5">
           <SectionHeader
@@ -100,7 +97,7 @@ const latestArticle = sortByDate((await getCollection("blog")).filter(isPublishe
 
   <!-- Typical engagement -->
   <section class="border-t border-line" aria-labelledby="engagement-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
       <SectionHeader
         id="engagement-title"
         title="همکاری معمولاً چگونه پیش می‌رود؟"
@@ -114,10 +111,13 @@ const latestArticle = sortByDate((await getCollection("blog")).filter(isPublishe
               text: "چند سؤال کوتاه + گفتگو؛ تصویر دقیق از وضعیت فعلی، گلوگاه‌ها و اولویت‌ها.",
             },
             {
-              title: "Scope و پیشنهاد",
-              text: "بر اساس مشکل واقعی، اجزا و محدوده مشخص می‌شود؛ پیشنهاد شفاف با خروجی‌های روشن.",
+              title: "پیشنهاد و قیمت",
+              text: "بر اساس مشکل واقعی، اجزا و محدوده مشخص می‌شود؛ پیشنهاد رسمی ۷ روز اعتبار دارد.",
             },
-            { title: "اجرا", text: "فقط آنچه در Scope است ساخته می‌شود؛ با نقاط بازبینی در طول مسیر." },
+            {
+              title: "اجرا",
+              text: "فقط آنچه در محدوده توافق شده ساخته می‌شود؛ با نقاط بازبینی در طول مسیر.",
+            },
             {
               title: "اندازه‌گیری و بهبود",
               text: "شاخص‌های توافق‌شده اندازه‌گیری می‌شوند و بهبودها بر اساس داده اولویت می‌گیرند.",
@@ -136,45 +136,34 @@ const latestArticle = sortByDate((await getCollection("blog")).filter(isPublishe
     </div>
   </section>
 
-  <!-- Pricing philosophy -->
-  <section class="border-t border-line" aria-labelledby="pricing-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
-      <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
-        <div class="lg:col-span-5">
-          <SectionHeader
-            id="pricing-title"
-            title="هزینه چگونه تعیین می‌شود؟"
-            lead="پروژه‌ها پس از بررسی مسیر جذب Scope می‌شوند؛ قیمت قبل از شناخت مسئله، حدس است."
-          />
-        </div>
-        <div class="flex flex-col gap-6 lg:col-span-7">
-          <p class="text-body text-text-muted measure-prose">
-            دلیل این روش ساده است: دو کسب‌وکار با «سایت می‌خواهم» ممکن است دو مشکل کاملاً متفاوت داشته باشند.
-            یکی به یک فرم ساده نیاز دارد، دیگری به بازطراحی کل مسیر پیام. قیمت منصفانه فقط بعد از مشخص‌شدن
-            Scope معنا دارد.
-          </p>
-          <ul class="flex flex-col gap-3">
-            {
-              [
-                "بررسی مسیر جذب: نقطه شروع هر همکاری — با خروجی مشخص",
-                "سیستم جذب: بر اساس اجزای Scope‌شده قیمت‌گذاری می‌شود",
-                "بهبود ماهانه: محدوده و محتوای مشخص، بدون پشتیبانی بی‌پایان",
-              ].map((item) => (
-                <li class="flex items-start gap-2.5 text-body text-text-muted">
-                  <span class="mt-2.5 h-1.5 w-1.5 flex-none rounded-full bg-primary" aria-hidden="true" />
-                  {item}
-                </li>
-              ))
-            }
-          </ul>
-        </div>
-      </div>
+  <!-- The six-stage acquisition model (owns what the homepage dropped) -->
+  <section class="border-t border-line" aria-labelledby="system-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
+      <SectionHeader
+        id="system-title"
+        kicker="مدل کار"
+        title="شش مرحله‌ای که هر کانال از آن عبور می‌کند"
+        lead="از توجه تا یادگیری. هر درخواستی که وارد می‌شود باید منبع، وضعیت و قدم بعدی داشته باشد."
+      />
+      <ol class="grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          SYSTEM_STAGES.map((stage, i) => (
+            <li class="border-t-2 border-line pt-5">
+              <span class="text-xl font-extrabold text-text-action tnum">
+                {toFaDigits(String(i + 1).padStart(2, "0"))}
+              </span>
+              <h3 class="mt-2 text-h3 text-text">{stage.label}</h3>
+              <p class="mt-2 text-body text-text-muted">{stage.description}</p>
+            </li>
+          ))
+        }
+      </ol>
     </div>
   </section>
 
   <!-- Qualification -->
   <section class="border-t border-line" aria-labelledby="fit-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
       <SectionHeader
         id="fit-title"
         title="Noveno برای همه مناسب نیست."
@@ -235,10 +224,11 @@ const latestArticle = sortByDate((await getCollection("blog")).filter(isPublishe
 
   <!-- FAQ -->
   <section class="border-t border-line" aria-labelledby="faq-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-24">
+    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
       <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
         <div class="lg:col-span-5">
           <SectionHeader id="faq-title" title="سؤال‌های رایج" />
+          <Button href="/pricing" variant="secondary">دیدن قیمت‌ها</Button>
         </div>
         <div class="lg:col-span-7">
           <div class="border-t border-line">
@@ -248,54 +238,6 @@ const latestArticle = sortByDate((await getCollection("blog")).filter(isPublishe
       </div>
     </div>
   </section>
-
-  <!-- Editorial route into Blog (contextual internal linking) -->
-  {
-    latestArticle && (
-      <section class="border-t border-line" aria-labelledby="services-blog-title">
-        <div class="mx-auto grid max-w-[1200px] gap-10 px-5 py-14 sm:px-8 lg:grid-cols-12 lg:gap-16 lg:py-20">
-          <div class="lg:col-span-5">
-            <SectionHeader
-              id="services-blog-title"
-              kicker="وبلاگ"
-              title="بیشتر دربارهٔ مسئلهٔ خودتان بخوانید"
-              lead="نوشته‌های نوونو یک موضوع را با مثال و روش بررسی می‌کنند — نه با وعده."
-            />
-          </div>
-          <div class="flex flex-col justify-center lg:col-span-7">
-            <a
-              href={`/blog/${latestArticle.id}`}
-              class="group flex flex-col gap-2 border-t border-line py-7 transition-colors duration-150 hover:bg-surface-soft/40 sm:px-3"
-            >
-              <span class="text-meta text-text-faint">{latestArticle.data.category} — تازه‌ترین نوشته</span>
-              <span class="text-h3 text-text transition-colors duration-150 group-hover:text-text-action">
-                {latestArticle.data.title}
-              </span>
-              <span class="inline-flex min-h-11 w-fit items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 group-hover:text-text-action">
-                خواندن نوشته
-                <svg
-                  viewBox="0 0 24 24"
-                  class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M19 12H5" />
-                  <path d="m12 19-7-7 7-7" />
-                </svg>
-              </span>
-            </a>
-            <Button href="/blog" variant="ghost" class="w-fit">
-              همه نوشته‌ها
-            </Button>
-          </div>
-        </div>
-      </section>
-    )
-  }
 
   <CTASection />
 </PageLayout>

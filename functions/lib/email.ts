@@ -34,7 +34,7 @@ function renderLeadHtml(lead: AuditSubmission): string {
       ? lead.acquisition_channels.map((id) => labelOf("channels", String(id))).join("، ")
       : "",
     primary_problem: safeText(labelOf("problems", lead.primary_problem)),
-    requested_service: safeText(labelOf("needs", lead.requested_service)),
+    requested_service: safeText(labelOf("needs", String(lead.requested_service ?? ""))),
     customer_value_range: safeText(labelOf("valueRanges", String(lead.customer_value_range ?? ""))),
     preferred_contact: safeText(labelOf("preferredContact", String(lead.preferred_contact))),
     landing_page: safeText(String(attribution.landing_page ?? "")),

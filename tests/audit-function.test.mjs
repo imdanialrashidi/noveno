@@ -195,10 +195,27 @@ test("unknown acquisition channel is rejected", () => {
   if (!result.ok) assert.equal(result.fields.acquisition_channels, "invalid_enum");
 });
 
-test("empty acquisition_channels is rejected", () => {
-  const result = validateAuditPayload(validPayload({ acquisition_channels: [] }));
+test("omitted or empty acquisition_channels is accepted (the first-contact form does not ask for channels)", () => {
+  // 2026-10 focus pass: the lead form asks only for name, phone,
+  // business type, site-or-instagram and one problem field. The deeper
+  // qualification happens in the first call, so the server must accept a
+  // payload without channels instead of forcing the client to invent one.
+  for (const channels of [undefined, []]) {
+    const payload = validPayload();
+    if (channels === undefined) delete payload.acquisition_channels;
+    else payload.acquisition_channels = channels;
+    const result = validateAuditPayload(payload);
+    assert.equal(result.ok, true, `channels=${JSON.stringify(channels)} must be accepted`);
+    if (result.ok) assert.equal(result.value.acquisition_channels, undefined, "omitted, never defaulted");
+  }
+});
+
+test("unknown acquisition channel is still rejected when channels are sent", () => {
+  // The relaxation above must not weaken the whitelist: a client that
+  // does send channels still gets every value enum-checked.
+  const result = validateAuditPayload(validPayload({ acquisition_channels: ["instagram", "ads-2026"] }));
   assert.equal(result.ok, false);
-  if (!result.ok) assert.equal(result.fields.acquisition_channels, "required");
+  if (!result.ok) assert.equal(result.fields.acquisition_channels, "invalid_enum");
 });
 
 test("all 7 distinct channels is accepted (maxChannels == enum size)", () => {
@@ -776,7 +793,7 @@ test("client option ids are exactly the server enum whitelists (no drift)", () =
 
 test("validateEvent accepts whitelisted events and rejects the rest", () => {
   assert.equal(validateEvent({ name: "audit_submitted" }).ok, true);
-  assert.equal(validateEvent({ name: "audit_submitted", payload: { step: "6", page: "/audit" } }).ok, true);
+  assert.equal(validateEvent({ name: "audit_submitted", payload: { step: "1", page: "/audit" } }).ok, true);
   assert.equal(validateEvent({ name: "not_an_event" }).ok, false);
   assert.equal(validateEvent({ name: "audit_submitted", payload: { phone: "09353598620" } }).ok, false);
   assert.equal(validateEvent({ name: "audit_submitted", payload: { name: "علی" } }).ok, false);
@@ -814,7 +831,7 @@ test("events endpoint: writes a data point when the binding exists", async () =>
   const written = [];
   const res = await eventsOnRequest({
     request: post(
-      { name: "audit_step_completed", payload: { step: "2", page: "/audit" } },
+      { name: "audit_step_completed", payload: { step: "1", page: "/audit" } },
       { origin: "https://noveno.ir", host: "noveno.ir" },
     ),
     env: {
@@ -828,7 +845,7 @@ test("events endpoint: writes a data point when the binding exists", async () =>
   assert.equal(written[0].indexes[0], "audit_step_completed");
   assert.equal(typeof written[0].doubles[0], "number");
   const blobs = JSON.parse(written[0].blobs[2]);
-  assert.equal(blobs.step, "2");
+  assert.equal(blobs.step, "1");
 });
 
 test("events endpoint: invalid payload returns 400 without writing", async () => {
@@ -859,7 +876,7 @@ test("events endpoint: enum payload values are whitelisted (step/service/channel
       env,
     });
   assert.equal((await postTo({ step: "not_a_step" })).status, 400);
-  assert.equal((await postTo({ step: "3" })).status, 204);
+  assert.equal((await postTo({ step: "1" })).status, 204);
   assert.equal((await postTo({ step: 3 })).status, 400); // numbers rejected
   assert.equal((await postTo({ service: "system" })).status, 204);
   assert.equal((await postTo({ service: "audit_analysis" })).status, 204);

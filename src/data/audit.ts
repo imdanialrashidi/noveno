@@ -98,113 +98,11 @@ export interface AuditStep {
 
 export const AUDIT_STEPS: readonly AuditStep[] = [
   {
-    id: "business",
-    label: "کسب‌وکار",
-    question: "کسب‌وکار شما چیست؟",
-    description: "تا پیش از تماس، تصویر دقیق‌تری از وضعیت فعلی داشته باشیم.",
-    fields: [
-      {
-        id: "business_name",
-        kind: "text",
-        label: "نام کسب‌وکار",
-        placeholder: "مثلاً: کافه نو",
-        hint: "اختیاری؛ برای این که گفت‌وگو شخصی‌تر شروع شود.",
-        optional: true,
-        autocomplete: "organization",
-        maxlength: 120,
-      },
-      {
-        id: "industry",
-        kind: "select",
-        label: "حوزه فعالیت",
-        placeholder: "انتخاب کنید",
-        hint: "نزدیک‌ترین گزینه را انتخاب کنید؛ «سایر» هم درست است.",
-        maxlength: 40,
-        options: AUDIT_OPTIONS.industry,
-      },
-      {
-        id: "website",
-        kind: "text",
-        label: "وب‌سایت یا شبکه اجتماعی",
-        placeholder: "مثلاً: instagram.com/your.business",
-        hint: "اختیاری؛ اگر سایت یا پیج دارید.",
-        optional: true,
-        inputmode: "url",
-        maxlength: 200,
-      },
-    ],
-  },
-  {
-    id: "channels",
-    label: "کانال‌ها",
-    question: "مشتری فعلاً بیشتر از کجا می‌آید؟",
-    description: "هر تعداد که درست است انتخاب کنید؛ چند انتخابی است.",
-    fields: [
-      {
-        id: "acquisition_channels",
-        kind: "multiselect",
-        label: "کانال‌های ورود مشتری",
-        maxlength: 30,
-        options: AUDIT_OPTIONS.channels,
-      },
-    ],
-  },
-  {
-    id: "problem",
-    label: "مشکل اصلی",
-    question: "مشکل اصلی مسیر جذب چیست؟",
-    description: "نزدیک‌ترین گزینه به وضعیت فعلی را انتخاب کنید.",
-    fields: [
-      {
-        id: "primary_problem",
-        kind: "select",
-        label: "مشکل اصلی",
-        placeholder: "انتخاب کنید",
-        hint: "اگر مطمئن نیستید، «مطمئن نیستیم مشکل دقیقاً چیست» را انتخاب کنید.",
-        maxlength: 40,
-        options: AUDIT_OPTIONS.problems,
-      },
-    ],
-  },
-  {
-    id: "value",
-    label: "ارزش مشتری",
-    question: "ارزش تقریبی هر مشتری چقدر است؟",
-    description: "بازه تقریبی کافی است؛ این مورد اختیاری است و به تمرکز بررسی کمک می‌کند.",
-    fields: [
-      {
-        id: "customer_value_range",
-        kind: "select",
-        label: "ارزش تقریبی مشتری در یک سال",
-        placeholder: "انتخاب کنید (اختیاری)",
-        hint: "بدون حدس دقیق؛ بازه کافی است.",
-        optional: true,
-        maxlength: 40,
-        options: AUDIT_OPTIONS.valueRanges,
-      },
-    ],
-  },
-  {
-    id: "need",
-    label: "نیاز",
-    question: "به چه چیزی نیاز دارید؟",
-    description: "اگر مطمئن نیستید، همان «هنوز مطمئن نیستم» درست است.",
-    fields: [
-      {
-        id: "requested_service",
-        kind: "select",
-        label: "نیاز شما",
-        placeholder: "انتخاب کنید",
-        maxlength: 40,
-        options: AUDIT_OPTIONS.needs,
-      },
-    ],
-  },
-  {
-    id: "contact",
-    label: "تماس",
-    question: "چگونه با شما در تماس باشیم؟",
-    description: "نام و شماره تماس برای هماهنگی گفت‌وگوی کوتاه اولیه.",
+    id: "lead",
+    label: "درخواست",
+    question: "برای اینکه مسیر جذب شما را ببینم، این پنج مورد کافی است",
+    description:
+      "این درخواست بررسی اولیه است، نه پرسش‌نامه. هرچه بیشتر بنویسید، گفت‌وگوی اول کوتاه‌تر می‌شود.",
     fields: [
       {
         id: "name",
@@ -225,31 +123,43 @@ export const AUDIT_STEPS: readonly AuditStep[] = [
         maxlength: 24,
       },
       {
-        id: "preferred_contact",
+        id: "industry",
         kind: "select",
-        label: "روش دلخواه تماس",
+        label: "نوع کسب‌وکار",
         placeholder: "انتخاب کنید",
+        hint: "نزدیک‌ترین گزینه کافی است.",
         maxlength: 40,
-        options: AUDIT_OPTIONS.preferredContact,
+        options: AUDIT_OPTIONS.industry,
       },
       {
-        id: "email",
+        id: "website",
         kind: "text",
-        label: "ایمیل",
-        placeholder: "you@example.com",
+        label: "سایت یا اینستاگرام",
+        placeholder: "مثلاً: instagram.com/your.business",
+        hint: "اختیاری؛ اگر سایت یا پیج دارید.",
         optional: true,
-        autocomplete: "email",
-        inputmode: "email",
-        maxlength: 120,
+        inputmode: "url",
+        maxlength: 200,
+      },
+      {
+        id: "primary_problem",
+        kind: "select",
+        label: "بیشتر کجا مشکل دارید؟",
+        placeholder: "انتخاب کنید",
+        hint: "اگر مطمئن نیستید، گزینهٔ آخر را بزنید.",
+        maxlength: 40,
+        options: AUDIT_OPTIONS.problems,
       },
     ],
   },
-] as const;
+];
 
 /**
- * Audit progress stations — DERIVED from AUDIT_STEPS so the desktop
- * progress rail can never drift from the form (previously duplicated
- * in src/data/site.ts).
+ * Audit progress stations — DERIVED from AUDIT_STEPS so a progress label
+ * can never drift from the form. The first-contact form is a single
+ * screen, so this list is one entry; the desktop rail that used to
+ * render six of them went away with the multi-step journey
+ * (docs/DESIGN.md §3.7).
  */
 export const AUDIT_STATIONS: readonly { id: string; label: string }[] = AUDIT_STEPS.map(({ id, label }) => ({
   id,
@@ -313,19 +223,20 @@ export function validateFieldClient(fieldId: string, value: string): string {
   }
 }
 
-/** Which fields are required for a step to advance (server contract). */
+/**
+ * Which fields are required for a step to advance (server contract).
+ *
+ * The first-contact form asks only what qualifies and contacts a lead
+ * (2026-10 focus pass). The deeper qualification — channels, customer
+ * value, requested service, preferred contact, email — happens in the
+ * first conversation instead of a six-screen interview, so the server
+ * treats those fields as optional and the client never invents an
+ * answer for them.
+ */
 export function requiredFieldsForStep(stepId: string): readonly string[] {
   switch (stepId) {
-    case "business":
-      return ["industry"];
-    case "channels":
-      return ["acquisition_channels"];
-    case "problem":
-      return ["primary_problem"];
-    case "need":
-      return ["requested_service"];
-    case "contact":
-      return ["name", "phone", "preferred_contact"];
+    case "lead":
+      return ["name", "phone", "industry", "primary_problem"];
     default:
       return [];
   }

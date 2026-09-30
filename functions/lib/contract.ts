@@ -86,18 +86,19 @@ export const EVENT_PAYLOAD_KEYS = [
 
 /**
  * Analytics `step` values — the client sends the 1-based positional
- * step index of the audit journey as a string ("1"…"6"; 6 steps in
- * AUDIT_STEPS), NOT the step ids. Bounded by the form's step count;
- * if the form gains/loses steps, update the array with it.
+ * step index of the audit journey as a string. Bounded by the form's
+ * step count; the first-contact form is a single screen (2026-10 focus
+ * pass), so the whitelist is ["1"] and must follow the form if the
+ * journey ever regains steps.
  */
-export const EVENT_STEP_VALUES = ["1", "2", "3", "4", "5", "6"] as const;
+export const EVENT_STEP_VALUES = ["1"] as const;
 
 /**
  * Analytics `service` values — union of the homepage OFFER ids
- * (audit/system/growth from src/data/site.ts OFFERS) and the audit
+ * (landing/system/growth from src/data/site.ts OFFERS) and the audit
  * form's REQUESTED_SERVICES, both sent by the client today.
  */
-export const EVENT_SERVICE_VALUES = [...REQUESTED_SERVICES, "audit", "system", "growth"] as const;
+export const EVENT_SERVICE_VALUES = [...REQUESTED_SERVICES, "landing", "system", "growth"] as const;
 
 /** Payload value patterns for the events endpoint (non-enum keys). */
 export const EVENT_VALUE_PATTERNS = {
@@ -128,8 +129,7 @@ export const LIMITS = {
   utm: 200,
   firstSeenAt: 40,
   /** Upper bound == full enum pass; a user may legitimately select every channel. */
-  maxChannels: ACQUISITION_CHANNELS.length,
-  /** Analytics payload value length. */
+  maxChannels: ACQUISITION_CHANNELS.length /** Analytics payload value length. */,
   maxEventPayloadValue: 100,
   maxEventPayloadBytes: 1024,
 } as const;
@@ -148,13 +148,19 @@ export interface AuditSubmission {
   name: string;
   phone: string;
   email?: string;
-  preferred_contact: string;
+  /**
+   * Deeper qualification is optional: the first-contact form (2026-10
+   * focus pass) asks only for name, phone, business type, site-or-
+   * instagram and one problem field, and never invents the answers to
+   * the rest. When a client does send them they are still whitelisted.
+   */
+  preferred_contact?: string;
   business_name?: string;
   industry: string;
   website?: string;
-  acquisition_channels: string[];
+  acquisition_channels?: string[];
   primary_problem: string;
-  requested_service: string;
+  requested_service?: string;
   customer_value_range?: string;
   cf_turnstile_token: string;
   attribution: {

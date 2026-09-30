@@ -1,8 +1,11 @@
 ---
 /**
  * OfferRow — one of the three core offers as an editorial row
- * (2026-08-14 founder redesign): large numeral ۰۱–۰۳, offer name,
- * summary, points, framing + CTA. No cards, no pills, no graph marks.
+ * (2026-08-14 founder redesign; 2026-10 focus pass adds the public
+ * تومان starting price). Large numeral ۰۱–۰۳, offer name, starting
+ * price, summary, scope points, framing + CTA. No cards, no pills, no
+ * fake scarcity: the recommended tier is marked with one quiet
+ * typographic label only (docs/DESIGN.md §0).
  */
 
 import type { Offer } from "../../data/site";
@@ -13,35 +16,61 @@ interface Props {
   offer: Offer;
   href: string;
   index: number;
+  /** Link label; defaults to a short, action-shaped phrase per offer. */
+  ctaLabel?: string;
+  /** Hide the price when the surrounding page already shows it. */
+  showPrice?: boolean;
 }
 
-const { offer, href, index } = Astro.props;
+const { offer, href, index, ctaLabel, showPrice = true } = Astro.props;
+const label = ctaLabel ?? (offer.id === "landing" ? "شروع با یک صفحه" : "جزئیات این بسته");
 ---
 
-<article class="group border-t border-line py-8 lg:py-12" data-reveal-item={index}>
+<article
+  class:list={["group border-t border-line py-8 lg:py-10", offer.recommended && "border-t-2 border-primary"]}
+  data-reveal-item={index}
+>
   <div class="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,4fr)_minmax(0,3fr)] lg:gap-10">
     <div class="flex flex-col gap-3">
-      <span class="editorial-num" aria-hidden="true">{toFaDigits(String(index + 1).padStart(2, "0"))}</span>
+      <div class="flex items-baseline gap-3">
+        <span class="editorial-num" aria-hidden="true">{toFaDigits(String(index + 1).padStart(2, "0"))}</span>
+        {offer.recommended && <span class="text-caption font-semibold text-text-action">پیشنهاد نوونو</span>}
+      </div>
       <h3 class="text-h3 text-text">{offer.name}</h3>
+      {
+        showPrice && (
+          <p class="text-data text-xl text-text tnum lg:text-2xl">
+            <span class="sr-only">قیمت: </span>
+            {offer.price}
+          </p>
+        )
+      }
       <p class="text-body text-text-muted measure-prose">{offer.summary}</p>
     </div>
 
-    <ul class="flex flex-col gap-2">
+    <div class="flex flex-col gap-4">
+      <ul class="flex flex-col gap-2">
+        {
+          offer.points.map((point) => (
+            <li class="flex items-start gap-2.5 text-body text-text">
+              <span class="mt-2.5 h-1 w-1 flex-none rounded-full bg-line-strong" aria-hidden="true" />
+              {point}
+            </li>
+          ))
+        }
+      </ul>
       {
-        offer.points.map((point) => (
-          <li class="flex items-start gap-2.5 text-body text-text">
-            <span class="mt-2.5 h-1 w-1 flex-none rounded-full bg-line-strong" aria-hidden="true" />
-            {point}
-          </li>
-        ))
+        showPrice && offer.priceNote && (
+          <p class="border-t border-line pt-3 text-meta text-text-faint">{offer.priceNote}</p>
+        )
       }
-    </ul>
+    </div>
 
     <div class="flex flex-col items-start gap-4 lg:pt-1">
       <p class="text-meta text-text-faint">{offer.framing}</p>
       <ArrowLink
         href={href}
-        label={offer.id === "audit" ? "شروع با بررسی مسیر جذب" : "جزئیات همکاری"}
+        label={label}
         data={{ "data-event": "service_opened", "data-event-payload": JSON.stringify({ service: offer.id }) }}
       />
     </div>

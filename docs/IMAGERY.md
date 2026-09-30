@@ -20,15 +20,16 @@ The following CC0 photographs were part of the 2026-08-14 image-led editorial sy
 
 Captured with Playwright from this repository's own production build (`astro build` + `astro preview`) at 1440×900, light theme; processed with `scripts/optimize-work-previews.py` (WebP q80, native + half size; AVIF is NOT used for screenshots — measured saving was ≈9% on text-bearing UI, below the quality/benefit bar).
 
-| File                                               | Source                                  | Captured                    | Used where                                                                                                                                                                               |
-| -------------------------------------------------- | --------------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `noveno-website-hero.webp` / `-800.webp`           | `/` homepage viewport, 1440×900         | 2026-09 (product-led build) | Work section preview + `/work` featured row + `/work/noveno-website` hero (LCP, preload + `fetchpriority=high`)                                                                          |
-| `noveno-website-audit.webp` / `-800.webp`          | `/audit` at step ۱ (business), 1440×900 | 2026-09 (product-led build) | Homepage system section figure + `/work/noveno-website` detail + social card (pre-2026-10 builds used it as the hero figure; **the hero now carries the brand artwork — no screenshot**) |
-| `noveno-website-audit-channels.webp` / `-800.webp` | `/audit` at step ۲ (channels), 1440×900 | 2026-09 (product-led build) | Homepage system section figure (channel capture with selected chips)                                                                                                                     |
+| File                                      | Source                                  | Captured             | Used where                                                                                                                                                                       |
+| ----------------------------------------- | --------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `noveno-website-hero.webp` / `-800.webp`  | `/` homepage viewport, 1440×900         | 2026-10 (focus pass) | Homepage «how it works» proof + `/work` featured row + `/work/noveno-website` hero (LCP, preload + `fetchpriority=high`)                                                         |
+| `noveno-website-audit.webp` / `-800.webp` | `/audit` one-screen lead form, 1440×900 | 2026-10 (focus pass) | Homepage «how it works» figure + `/work/noveno-website` detail (pre-2026-10 builds used a screenshot as the hero figure; **the hero carries the brand artwork — no screenshot**) |
 
 Other real-project previews (`mobile-khorsandi-hero`, `elsa-hamrah-hero`, `php-ielts-house-hero`, `isbatab-hero`, `danial-rashidi-portfolio-hero`) are captures of the public delivered sites via thum.io (see `assets/images/work/SOURCES.md`); refresh with `bash scripts/refresh-portfolio-previews.sh` (downloads 1440×900, then the same Pillow optimizer emits the WebP pair into `assets/images/work/`).
 
 These screenshots are real proof of real projects and are re-captured whenever the site's design changes.
+
+**Removed in the 2026-10 focus pass:** `noveno-website-audit-channels` (a capture of the old six-step audit journey) was deleted from `assets/images/work/` and `public/images/work/` together with its references. A capture of a form the site no longer has is a truthfulness defect, not a spare asset.
 
 ## Concept previews
 

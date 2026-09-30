@@ -1,13 +1,15 @@
 ---
 /**
- * Work detail page (Spec §21; 2026-08-14 founder redesign).
+ * Work detail page (Spec §21; 2026-10 focus pass).
  * Large real previews lead; concepts use designed mocks labeled
  * «نمونه نمایشی». Proof-type treatment is mechanical:
  *  case-study → metrics with source + limitation footnotes
  *  project    → honest outcome marker
  *  concept    → «نمونه نمایشی» + «هدف طراحی»/«KPI پیشنهادی»
- * The system-architecture diagram was removed with the flowchart
- * grammar; its information survives as a plain text breakdown.
+ * The page is now a case-study spine — مسئله → راه‌حل → آنچه ساخته شد
+ * → نتیجه — driven by the existing content fields, so no result is
+ * ever stated that the repository cannot evidence. The generic
+ * «ساختار سیستم» filler block was removed with this pass.
  */
 
 import PageLayout from "../../layouts/PageLayout.astro";
@@ -215,6 +217,71 @@ const breadcrumbJsonLd = JSON.stringify({
     </div>
   </section>
 
+  <!-- Case-study spine — مسئله → راه‌حل → آنچه ساخته شد → نتیجه.
+       Labels change with the proof type; the fields are the existing,
+       evidence-bound content fields, never invented claims. -->
+  {
+    (data.problem || data.solution || data.components.length > 0) && (
+      <section class="border-t border-line" aria-labelledby="spine-title">
+        <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
+          <h2 id="spine-title" class="sr-only">
+            {`مسئله، راه‌حل، آنچه ساخته شد و نتیجه${data.title}`}
+          </h2>
+          <div class="grid gap-x-16 gap-y-10 lg:grid-cols-2">
+            {data.problem && (
+              <div>
+                <h3 class="text-ui font-semibold text-text">مسئله</h3>
+                <p class="mt-3 text-body text-text-muted measure-prose">{data.problem}</p>
+              </div>
+            )}
+            {data.solution && (
+              <div>
+                <h3 class="text-ui font-semibold text-text">{isConcept ? "راه‌حل پیشنهادی" : "راه‌حل"}</h3>
+                <p class="mt-3 text-body text-text-muted measure-prose">{data.solution}</p>
+              </div>
+            )}
+            {data.components.length > 0 && (
+              <div>
+                <h3 class="text-ui font-semibold text-text">
+                  {isConcept ? "آنچه طراحی شد" : "آنچه ساخته شد"}
+                </h3>
+                <ul class="mt-3 flex flex-col">
+                  {data.components.map((component) => (
+                    <li class="flex items-start gap-2.5 border-t border-line py-2.5 text-body text-text">
+                      <span class="mt-2.5 h-1 w-1 flex-none rounded-full bg-line-strong" aria-hidden="true" />
+                      {component}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div>
+              <h3 class="text-ui font-semibold text-text">{isConcept ? "هدف طراحی (نه نتیجه)" : "نتیجه"}</h3>
+              {isCaseStudy && data.metrics.length > 0 ? (
+                <p class="mt-3 text-body text-text-muted measure-prose">
+                  نتیجه‌های اندازه‌گیری‌شده در بخش پایین همین صفحه، همراه با منبع و محدودیت تفسیرشان آمده است.
+                </p>
+              ) : isCaseStudy ? (
+                <p class="mt-3 text-body text-text-muted measure-prose">
+                  هنوز داده‌ای برای گزارش نتیجه نداریم؛ بدون داده، عددی نوشته نمی‌شود.
+                </p>
+              ) : isProject ? (
+                <p class="mt-3 text-body text-text-muted measure-prose">
+                  در دست اندازه‌گیری. وقتی داده واقعی جمع شود، همین‌جا با منبعش نوشته می‌شود.
+                </p>
+              ) : (
+                <p class="mt-3 text-body text-text-muted measure-prose">
+                  این یک سناریوی مفهومی است؛ هیچ داده‌ای از اجرای واقعی وجود ندارد و نتیجه‌ای هم گزارش
+                  نمی‌شود.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   <!-- Long content + sticky rail -->
   <section class="border-t border-line" aria-label="جزئیات کار">
     <div
@@ -248,20 +315,8 @@ const breadcrumbJsonLd = JSON.stringify({
             {
               data.scope && (
                 <div>
-                  <dt class="text-meta text-text-faint">Scope</dt>
+                  <dt class="text-meta text-text-faint">دامنه کار</dt>
                   <dd class="text-text">{data.scope}</dd>
-                </div>
-              )
-            }
-            {
-              data.components.length > 0 && (
-                <div>
-                  <dt class="text-meta text-text-faint">اجزا</dt>
-                  <dd class="flex flex-col gap-1.5">
-                    {data.components.map((component) => (
-                      <span class="text-text">{component}</span>
-                    ))}
-                  </dd>
                 </div>
               )
             }
@@ -391,42 +446,6 @@ const breadcrumbJsonLd = JSON.stringify({
       </section>
     )
   }
-
-  <!-- System breakdown — the diagram's information, as text -->
-  <section class="border-t border-line" aria-labelledby="architecture-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 lg:py-16">
-      <h2 id="architecture-title" class="text-h3 text-text">ساختار سیستم</h2>
-      <p class="mt-3 mb-8 max-w-2xl text-body text-text-muted">
-        {
-          isConcept
-            ? "ورودی‌ها و اجزای پیشنهادی این سناریو — نه یک سیستم اجراشده."
-            : "ورودی‌ها و اجزای این سیستم؛ هر درخواست از یک کانال وارد می‌شود و در یک نقطه ثبت، پیگیری و گزارش می‌شود."
-        }
-      </p>
-      <div class="grid max-w-3xl gap-10 sm:grid-cols-2">
-        <div>
-          <h3 class="text-ui font-semibold text-text">کانال‌های ورودی</h3>
-          <ul class="mt-4 flex flex-col gap-2">
-            {
-              ["اینستاگرام", "گوگل", "معرفی"].map((channel) => (
-                <li class="text-body text-text-muted">{channel}</li>
-              ))
-            }
-          </ul>
-        </div>
-        <div>
-          <h3 class="text-ui font-semibold text-text">اجزای اصلی</h3>
-          <ul class="mt-4 flex flex-col gap-2">
-            {
-              (isConcept ? ["ثبت درخواست", "پیگیری", "گزارش"] : ["ثبت لید", "پیگیری", "گزارش"]).map(
-                (part) => <li class="text-body text-text-muted">{part}</li>,
-              )
-            }
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <CTASection />
 </PageLayout>

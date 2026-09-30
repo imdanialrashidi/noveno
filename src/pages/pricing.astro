@@ -1,0 +1,109 @@
+---
+/**
+ * Pricing (/pricing — added by the 2026-10 focus pass).
+ *
+ * Public prices are Iranian تومان starting prices («از …»). There is no
+ * live FX widget, no USD figure and no internal pricing model on this
+ * page: Iranian customers see stable تومان prices, and the internal
+ * USD benchmark is not a customer-facing surface (docs/DESIGN.md §0).
+ *
+ * Structure: three core tiers → the recurring monthly options → the
+ * secondary e-commerce line → what the starting price does and does not
+ * include → one primary action.
+ */
+
+import PageLayout from "../layouts/PageLayout.astro";
+import Button from "../components/ui/Button.astro";
+import PageHero from "../components/layout/PageHero.astro";
+import SectionHeader from "../components/layout/SectionHeader.astro";
+import CTASection from "../components/layout/CTASection.astro";
+import OfferRow from "../components/business/OfferRow.astro";
+import { CONTACT, CTA_URL, ECOMMERCE_OFFER, OFFERS, PRICING_NOTE, RECURRING_PLANS } from "../data/site";
+---
+
+<PageLayout
+  title="قیمت خدمات نوونو — از ۲۴.۹ میلیون تومان"
+  description="سه بسته همکاری نوونو با قیمت شروع مشخص به تومان: صفحه جذب، سیستم جذب و سیستم رشد. به‌علاوه گزینه‌های همراهی ماهانه."
+  path="/pricing"
+  ogImageAlt="قیمت خدمات نوونو — بسته‌ها با قیمت شروع مشخص به تومان"
+>
+  <PageHero
+    id="pricing-hero-title"
+    eyebrow="قیمت"
+    title="قیمت شروع هر بسته، در تومان"
+    lead="عدد دقیق بعد از دیدن وضعیت کسب‌وکار شما اعلام می‌شود. اینجا نقطهٔ شروع هر بسته را می‌بینید تا بدانید با چه سطحی از کار روبه‌رو هستید."
+  >
+    <div class="mt-8 flex flex-wrap gap-4">
+      <Button href={CTA_URL} size="lg">درخواست بررسی مسیر جذب</Button>
+      <Button href="/work" variant="secondary" size="lg">دیدن نمونه‌کارها</Button>
+    </div>
+  </PageHero>
+
+  <!-- Three core tiers -->
+  <section class="border-t border-line" aria-labelledby="pricing-offers-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
+      <SectionHeader
+        id="pricing-offers-title"
+        title="سه بستهٔ اصلی"
+        lead="هر بسته برای یک وضعیت مشخص نوشته شده است؛ اگر مطمئن نیستید، در بررسی اولیه با هم انتخاب می‌کنیم."
+      />
+      <div class="border-b border-line" data-reveal-stagger>
+        {
+          OFFERS.map((offer, index) => (
+            <OfferRow offer={offer} index={index} href={CTA_URL} ctaLabel="شروع گفت‌وگو" />
+          ))
+        }
+      </div>
+      <p class="mt-6 max-w-3xl text-body text-text-muted">{PRICING_NOTE}</p>
+    </div>
+  </section>
+
+  <!-- Recurring support — productized monthly options -->
+  <section class="border-t border-line" aria-labelledby="recurring-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
+      <SectionHeader
+        id="recurring-title"
+        title="همراهی ماهانه، اختیاری"
+        lead="اگر بعد از تحویل بخواهید سایت و مسیر جذب به‌روز و بهبود بمانند، سه گزینه دارید. بدون قرارداد بلندمدت."
+      />
+      <div class="grid gap-6 lg:grid-cols-3 lg:gap-8">
+        {
+          RECURRING_PLANS.map((plan) => (
+            <div class="flex flex-col gap-3 border-t-2 border-line pt-5">
+              <h3 class="text-h3 text-text">{plan.name}</h3>
+              <p class="text-data text-lg text-text tnum">{plan.price}</p>
+              <p class="text-body text-text-muted">{plan.scope}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- E-commerce — secondary, custom-scoped, never a flagship -->
+  <section class="border-t border-line" aria-labelledby="ecommerce-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
+      <div class="grid gap-8 lg:grid-cols-12 lg:gap-16">
+        <div class="lg:col-span-5">
+          <SectionHeader
+            id="ecommerce-title"
+            kicker="پروژهٔ جداگانه"
+            title="پروژه‌های فروشگاهی"
+            lead="فروشگاه اینترنتی مسیر خرید دارد، نه مسیر جذب. برای همین بستهٔ جداگانه‌ای است و در سه بستهٔ بالا نمی‌آید."
+          />
+        </div>
+        <div class="flex flex-col gap-4 lg:col-span-7">
+          <p class="text-data text-lg text-text tnum">{ECOMMERCE_OFFER.price}</p>
+          <p class="text-body text-text-muted measure-prose">{ECOMMERCE_OFFER.note}</p>
+          <p class="border-t border-line pt-4 text-meta text-text-faint">
+            اگر فروشگاه اینترنتی دارید و فروش فعلی‌تان کار می‌کند، اول همان را بررسی می‌کنیم؛ شاید اصلاً نیازی
+            به پروژهٔ جدید نباشد. شمارهٔ تماس مستقیم:{" "}
+            <a href={CONTACT.phoneHref} class="text-link tnum" dir="ltr">{CONTACT.phone}</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <CTASection />
+</PageLayout>

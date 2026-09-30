@@ -1,9 +1,11 @@
 ---
 /**
- * Footer (2026-08-14 founder redesign) — contact facts always visible
- * (click-to-call, WhatsApp/Telegram/email — redundancy is a
- * requirement, Spec §64.1); privacy/terms links. The miniature route
- * motif was removed with the flowchart grammar.
+ * Footer — contact facts always visible (click-to-call, WhatsApp/
+ * Telegram/email — redundancy is a requirement, Spec §64.1). The
+ * primary navigation is intentionally short (docs/DESIGN.md §8), so the
+ * footer is where the supporting pages stay reachable: privacy, terms,
+ * process, blog and contact all keep their URLs and sitemap entries.
+ * The miniature route motif was removed with the flowchart grammar.
  */
 
 import Logo from "../brand/Logo.astro";
@@ -21,10 +23,9 @@ const year = jalaliYear();
           <Logo size="lg" />
         </a>
         <p class="text-body text-text-muted measure-prose">
-          نوونو برای کسب‌وکارهای خدماتی، مسیر مشتری را از دیدن شما تا تماس، ثبت درخواست و پیگیری طراحی و اجرا
-          می‌کند.
+          نوونو برای کسب‌وکارهای خدماتی، مسیر جذب را می‌سازد: از بازدید تا ثبت درخواست و پیگیری. هر کاری که
+          منتشر می‌کنیم واقعی است یا صریحاً «نمونه نمایشی» نام دارد.
         </p>
-        <p class="text-meta text-text-faint">سیستم جذب مشتری — با شواهد، بدون وعده فروش تضمینی.</p>
       </div>
 
       <div class="grid gap-8 sm:grid-cols-2">
@@ -33,10 +34,11 @@ const year = jalaliYear();
           <ul class="flex flex-col">
             {
               [
-                { href: "/services", label: "خدمات" },
-                { href: "/work", label: "پروژه‌ها" },
-                { href: "/blog", label: "وبلاگ" },
+                { href: "/services", label: "راهکارها" },
+                { href: "/pricing", label: "قیمت" },
+                { href: "/work", label: "نمونه‌کار" },
                 { href: "/process", label: "فرآیند" },
+                { href: "/blog", label: "وبلاگ" },
                 { href: "/about", label: "درباره" },
                 { href: "/contact", label: "تماس" },
               ].map((link) => (

@@ -160,25 +160,10 @@ function buildAuditDom() {
   doc.append(head);
   doc.append(body);
 
-  // Audit progress («مرحله X از ۶» counter + current-step label + bar)
-  const rail = el("aside", { "aria-label": "راهنمای بررسی" });
-  const progress = el("div");
-  for (const attr of ["data-stepper-counter", "data-stepper-current", "data-stepper-bar"]) {
-    progress.append(el("span", { [attr]: "" }));
-  }
-  rail.append(progress);
-  body.append(rail);
-
-  // Compact in-card mobile progress (same hooks, -mobile)
-  const mobileProgress = el("div");
-  for (const attr of [
-    "data-stepper-counter-mobile",
-    "data-stepper-current-mobile",
-    "data-stepper-bar-mobile",
-  ]) {
-    mobileProgress.append(el("span", { [attr]: "" }));
-  }
-  body.append(mobileProgress);
+  // NOTE (2026-10 focus pass): the first-contact form is ONE screen.
+  // The harness mirrors the real page — no step rail, no step counter,
+  // no progress bar, no back button, no per-step review summary. The
+  // state machine must therefore work with all of those handles absent.
 
   // Banner with all block kinds + retry buttons
   const banner = el("div", { id: "audit-banner", role: "alert", hidden: true });
@@ -221,33 +206,13 @@ function buildAuditDom() {
 
   const steps = [
     {
-      id: "business",
-      fields: [
-        ["business_name", "text"],
-        ["industry", "select"],
-        ["website", "text"],
-      ],
-    },
-    {
-      id: "channels",
-      fields: [
-        [
-          "acquisition_channels",
-          "multiselect",
-          ["instagram", "google", "advertising", "referral", "in_person", "website", "other"],
-        ],
-      ],
-    },
-    { id: "problem", fields: [["primary_problem", "select"]] },
-    { id: "value", fields: [["customer_value_range", "select"]] },
-    { id: "need", fields: [["requested_service", "select"]] },
-    {
-      id: "contact",
+      id: "lead",
       fields: [
         ["name", "text"],
         ["phone", "text"],
-        ["preferred_contact", "select"],
-        ["email", "text"],
+        ["industry", "select"],
+        ["website", "text"],
+        ["primary_problem", "select"],
       ],
     },
   ];
@@ -263,16 +228,6 @@ function buildAuditDom() {
 
   form.append(el("div", { id: "turnstile-container", class: "mt-6" }));
 
-  // Last-step review summary
-  const summary = el("div", { id: "audit-summary", hidden: true });
-  for (const row of ["industry", "channels", "problem", "need"]) {
-    summary.append(
-      el("div", { "data-summary-row": row, hidden: true }, [el("span", { ["data-summary-" + row]: "" })]),
-    );
-  }
-  form.append(summary);
-
-  form.append(el("button", { type: "button", id: "audit-back", hidden: true }));
   form.append(el("button", { type: "button", id: "audit-next", disabled: true }));
   body.append(form);
 
@@ -472,40 +427,29 @@ function selectChip(dom, id) {
   dom.getElementById("audit-form").dispatchEvent("input", { target: chip });
 }
 
-async function walkToContactStep(dom) {
-  const form = dom.getElementById("audit-form");
-  const next = dom.getElementById("audit-next");
-
-  // Step 1 — business
-  setField(dom, "business_name", "کافه نو");
-  setField(dom, "industry", "restaurant_cafe");
-  setField(dom, "website", "https://example.com");
-  next.dispatchEvent("click");
-
-  // Step 2 — channels (multiselect)
-  selectChip(dom, "instagram");
-  selectChip(dom, "referral");
-  next.dispatchEvent("click");
-
-  // Step 3 — problem
-  setField(dom, "primary_problem", "scattered_lost");
-  next.dispatchEvent("click");
-
-  // Step 4 — value (optional) — skip
-  next.dispatchEvent("click");
-
-  // Step 5 — need
-  setField(dom, "requested_service", "audit_analysis");
-  next.dispatchEvent("click");
-
-  // Step 6 — contact (bridge renders here)
-  setField(dom, "name", "علی رضایی");
-  setField(dom, "phone", "۰۹۳۵۳۵۹۸۶۲۰");
-  setField(dom, "preferred_contact", "whatsapp");
-  setField(dom, "email", "ali@example.com");
-
+/**
+ * Fill the single-screen lead form the way a visitor does: five fields,
+ * one click on «ثبت درخواست بررسی». There are no intermediate steps.
+ */
+async function fillLeadForm(dom, overrides = {}) {
+  const values = {
+    name: "علی رضایی",
+    phone: "۰۹۳۵۳۵۹۸۶۲۰",
+    industry: "restaurant_cafe",
+    website: "https://example.com",
+    primary_problem: "scattered_lost",
+    ...overrides,
+  };
+  for (const [id, value] of Object.entries(values)) {
+    if (value === null) continue;
+    setField(dom, id, value);
+  }
+  dom.getElementById("audit-next").dispatchEvent("click");
   await tick();
 }
+
+/** Legacy alias — the journey helper name used by the delivery tests. */
+const walkToContactStep = fillLeadForm;
 
 function bannerBlock(dom, kind) {
   return [...dom.byId.get("audit-banner").children].find((c) => c.getAttribute("data-banner") === kind);
@@ -549,17 +493,8 @@ test("retry after a recoverable /api/audit network failure: same submission_id, 
   });
 
   await walkToContactStep(dom);
-  assert.equal(turnstile.renders, 1, "widget must render once when the contact step becomes current");
-  assert.equal(
-    dom.document.querySelector("[data-stepper-counter]").textContent,
-    "مرحله ۶ از ۶",
-    "progress counter must announce the current step (۶ از ۶ at contact)",
-  );
-  assert.equal(
-    dom.document.querySelector("[data-stepper-current]").textContent,
-    "تماس",
-    "progress must show the current step name",
-  );
+  assert.equal(turnstile.renders, 1, "widget must render once on the single-screen form");
+  assert.equal(dom.getElementById("audit-summary"), null, "the one-screen form has no step summary to show");
 
   // First submission → recoverable network failure
   dom.getElementById("audit-next").dispatchEvent("click");
@@ -695,94 +630,78 @@ test("retry after a Turnstile script-load failure gets a fresh chance (script re
   assert.equal(web3Posts(env).length, 1, "recovered journey must complete the Web3Forms delivery");
 });
 
-test("in-card mobile progress stays in sync and the last-step review summary fills from the draft", async () => {
+test("the one-screen form needs no step progress: no counter, no back, validation blocks an incomplete submit", async () => {
+  // 2026-10 focus pass: /audit is a single screen, so the markup carries
+  // no step counter, no progress bar and no back button. The journey
+  // must still work, must not steal focus on boot, and must refuse an
+  // incomplete submit with an actionable, focused field error.
   const turnstile = makeTurnstileMock();
-  const env = installGlobals({ turnstile, fetchImpl: [] });
+  const env = installGlobals({ turnstile, fetchImpl: [okResponse], web3formsMode: "ok" });
   const dom = buildAuditDom();
   globalThis.document = dom.document;
   captureScripts();
 
-  initAudit({ turnstileSiteKey: "test-site-key", web3formsKey: "", web3formsUrl: "" });
+  initAudit({
+    turnstileSiteKey: "test-site-key",
+    web3formsKey: "wf-test-key",
+    web3formsUrl: "https://api.web3forms.com/submit",
+  });
 
-  const mobileCounter = dom.document.querySelector("[data-stepper-counter-mobile]");
-  const mobileCurrent = dom.document.querySelector("[data-stepper-current-mobile]");
-  const mobileBar = dom.document.querySelector("[data-stepper-bar-mobile]");
-  assert.ok(mobileCounter && mobileCurrent && mobileBar, "mobile progress hooks must exist");
+  assert.equal(
+    dom.document.querySelector("[data-stepper-counter-mobile]"),
+    null,
+    "the one-screen form must not ship a step counter",
+  );
+  assert.equal(dom.getElementById("audit-back"), null, "there is no previous step to go back to");
 
-  // Boot: mobile progress mirrors the desktop rail; summary is hidden;
-  // the step heading is NOT focused on a fresh visit (reviewer finding).
-  const heading = dom.getElementById("step-business-title");
+  const heading = dom.getElementById("step-lead-title");
   let headingFocuses = 0;
   heading.focus = () => {
     headingFocuses += 1;
   };
-  const channelsHeading = dom.getElementById("step-channels-title");
-  let channelsFocuses = 0;
-  channelsHeading.focus = () => {
-    channelsFocuses += 1;
+  assert.equal(headingFocuses, 0, "boot must not focus the form heading");
+
+  // Incomplete submit: name + phone only. The two selects are required,
+  // so the visitor must be told and nothing may be sent.
+  setField(dom, "name", "علی رضایی");
+  setField(dom, "phone", "۰۹۳۵۳۵۹۸۶۲۰");
+  let industryFocuses = 0;
+  dom.getElementById("industry").focus = () => {
+    industryFocuses += 1;
   };
-  assert.equal(mobileCounter.textContent, "مرحله ۱ از ۶", "mobile counter at boot");
-  assert.equal(mobileCurrent.textContent, "کسب‌وکار", "mobile current label at boot");
-  assert.equal(dom.getElementById("audit-summary").hidden, true, "summary hidden before the contact step");
-  assert.equal(headingFocuses, 0, "boot must not focus the step heading");
-
-  // Fill step 1 (industry) and advance — heading focus happens on the
-  // user-driven step change only.
-  dom.getElementById("industry").value = "salon_beauty";
-  dom.getElementById("industry").dispatchEvent("change");
   dom.getElementById("audit-next").dispatchEvent("click");
   await tick();
-  assert.equal(mobileCounter.textContent, "مرحله ۲ از ۶", "mobile counter follows the step change");
-  assert.equal(mobileCurrent.textContent, "کانال‌ها", "mobile current label follows the step change");
-  assert.equal(headingFocuses, 0, "boot-time focus must never happen");
-  assert.equal(channelsFocuses, 1, "user-driven step change focuses the new heading once");
 
-  // Walk to the contact step with answers everywhere.
-  selectChip(dom, "instagram");
-  selectChip(dom, "google");
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
+  assert.equal(bannerBlock(dom, "validation").hidden, false, "the validation banner must be shown");
+  assert.equal(industryFocuses, 1, "focus moves to the first incomplete required field");
+  assert.equal(
+    dom.getElementById("industry-error").hidden,
+    false,
+    "the field carries an inline, programmatically linked error",
+  );
+  assert.equal(env.auditCalls.length, 0, "an incomplete form must never reach the server");
+
+  // Complete the form: the request goes out with the five answers and
+  // nothing invented.
+  setField(dom, "industry", "restaurant_cafe");
+  setField(dom, "website", "https://example.com");
   setField(dom, "primary_problem", "scattered_lost");
   dom.getElementById("audit-next").dispatchEvent("click");
   await tick();
-  dom.getElementById("audit-next").dispatchEvent("click"); // value step optional
-  await tick();
-  setField(dom, "requested_service", "build_system");
-  dom.getElementById("audit-next").dispatchEvent("click");
+  turnstile.emitToken("token-1");
   await tick();
 
-  assert.equal(mobileCounter.textContent, "مرحله ۶ از ۶", "mobile counter at the contact step");
-  assert.equal(mobileBar.style.width, "83.33333333333334%", "mobile bar reflects 5/6 completed");
-
-  const summary = dom.getElementById("audit-summary");
-  assert.equal(summary.hidden, false, "review summary appears on the contact step");
-  const row = (name) => [...summary.children].find((c) => c.getAttribute("data-summary-row") === name);
-  assert.equal(row("industry").hidden, false, "industry row shown");
+  assert.equal(env.auditCalls.length, 1, "the complete form submits once");
+  const sent = env.auditCalls[0];
+  assert.equal(sent.industry, "restaurant_cafe");
+  assert.equal(sent.primary_problem, "scattered_lost");
   assert.equal(
-    row("industry").querySelector("[data-summary-industry]").textContent,
-    "آرایشگاه و زیبایی",
-    "industry label filled from the client enum",
+    sent.acquisition_channels,
+    undefined,
+    "channels are not asked, so they are omitted — never defaulted or guessed",
   );
-  assert.equal(
-    row("channels").querySelector("[data-summary-channels]").textContent,
-    "اینستاگرام، گوگل",
-    "channels labels joined from the client enum",
-  );
-  assert.equal(
-    row("problem").querySelector("[data-summary-problem]").textContent,
-    "درخواست‌ها پراکنده‌اند یا گم می‌شوند",
-    "problem label filled",
-  );
-  assert.equal(
-    row("need").querySelector("[data-summary-need]").textContent,
-    "ساخت سیستم جذب",
-    "need label filled",
-  );
-
-  dom.getElementById("audit-back").dispatchEvent("click");
-  await tick();
-  assert.equal(summary.hidden, true, "summary hides when leaving the contact step");
-  assert.equal(mobileCounter.textContent, "مرحله ۵ از ۶", "mobile counter follows Back");
+  assert.equal(sent.requested_service, undefined, "requested service is omitted, never invented");
+  assert.equal(sent.preferred_contact, undefined, "preferred contact is omitted, never invented");
 });
 
 /* ------------------------------------------------------------------ */
@@ -807,8 +726,6 @@ test("Web3Forms success: exactly one delivery POST (no Turnstile token, Persian 
   });
 
   await walkToContactStep(dom);
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
   turnstile.emitToken("token-1");
   await tick();
   await sleep(900); // let the delivery + analytics flush settle
@@ -823,20 +740,17 @@ test("Web3Forms success: exactly one delivery POST (no Turnstile token, Persian 
   assert.equal(notify.submission_id, submissionId);
   assert.equal(notify.name, "علی رضایی");
   assert.equal(notify.phone, "09353598620");
-  assert.equal(notify.email, "ali@example.com");
-  assert.equal(notify.business_name, "کافه نو");
   assert.equal(
     notify.industry,
     labelFor("industry", "restaurant_cafe"),
     "enum ids must reach the email as readable Persian labels",
   );
-  assert.equal(
-    notify.acquisition_channels,
-    joinedLabels("channels", ["instagram", "referral"]),
-    "multiselect must be readable Persian labels",
-  );
+  assert.equal(notify.website, "https://example.com");
   assert.equal(notify.primary_problem, labelFor("problems", "scattered_lost"));
-  assert.equal(notify.requested_service, labelFor("needs", "audit_analysis"));
+  // The one-screen form never asked for these: they must arrive empty
+  // rather than filled with a guessed answer.
+  assert.equal(notify.acquisition_channels, "", "unasked channels must not be invented");
+  assert.equal(notify.requested_service, "", "unasked service must not be invented");
   assert.ok("cf_turnstile_token" in notify === false, "the Turnstile token must never reach Web3Forms");
   assert.ok("company_website" in notify === false, "the internal honeypot value must not reach Web3Forms");
 
@@ -1076,7 +990,7 @@ test("server validation rejection surfaces the rejected field (no silent generic
       () => ({
         ok: false,
         status: 400,
-        json: async () => ({ ok: false, error: { code: "validation", fields: { email: "too_long" } } }),
+        json: async () => ({ ok: false, error: { code: "validation", fields: { phone: "invalid" } } }),
       }),
     ],
   });
@@ -1089,8 +1003,6 @@ test("server validation rejection surfaces the rejected field (no silent generic
   });
 
   await walkToContactStep(dom);
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
   turnstile.emitToken("token-1");
   await tick();
   await sleep(10);
@@ -1099,12 +1011,17 @@ test("server validation rejection surfaces the rejected field (no silent generic
   assert.equal(env.nav.length, 0, "a server rejection must never navigate");
   assert.equal(env.session.has("noveno:audit:draft"), true, "draft preserved on rejection");
   assert.equal(web3Posts(env).length, 0, "no delivery after a rejected submission");
-  const emailError = dom.byId.get("email-error");
-  assert.equal(emailError.hidden, false, "the rejected field's error must be surfaced");
+  const phoneError = dom.byId.get("phone-error");
+  assert.equal(phoneError.hidden, false, "the rejected field's error must be surfaced");
   assert.equal(
-    emailError.querySelector("[data-error-text]").textContent,
-    "ایمیل خیلی طولانی است",
+    phoneError.querySelector("[data-error-text]").textContent,
+    "شماره تماس را کامل وارد کنید",
     "the server message key maps to the Persian copy",
+  );
+  assert.equal(
+    dom.getElementById("phone").getAttribute("aria-invalid"),
+    "true",
+    "the rejected field is marked invalid for assistive tech",
   );
   assert.equal(bannerBlock(dom, "validation").hidden, false, "the validation banner must be shown");
   assert.equal(dom.getElementById("audit-next").disabled, false, "submit must not stay stuck busy");
@@ -1211,7 +1128,7 @@ test("the /api/audit request carries an abort timeout signal (never stuck submit
   assert.deepEqual(env.nav, ["/audit/thank-you"]);
 });
 
-test("draft restore: a saved draft renders at its step with values applied and keeps its submission_id", async () => {
+test("draft restore: a saved draft repopulates the one-screen form and keeps its submission_id", () => {
   const turnstile = makeTurnstileMock();
   const env = installGlobals({ turnstile, fetchImpl: [] });
   const dom = buildAuditDom();
@@ -1223,19 +1140,19 @@ test("draft restore: a saved draft renders at its step with values applied and k
     "noveno:audit:draft",
     JSON.stringify({
       submission_id: submissionId,
-      step: 3,
+      step: 1,
       values: {
-        business_name: "کافه نو",
-        industry: "restaurant_cafe",
-        website: "https://example.com",
-        acquisition_channels: ["instagram", "referral"],
-        primary_problem: "scattered_lost",
+        name: "مریم احمدی",
+        phone: "۰۹۱۲۳۴۵۶۷۸۹",
+        industry: "clinic_health",
+        website: "https://clinic.example",
+        primary_problem: "low_requests",
       },
       attribution: null,
     }),
   );
 
-  const heading = dom.getElementById("step-problem-title");
+  const heading = dom.getElementById("step-lead-title");
   let headingFocuses = 0;
   heading.focus = () => {
     headingFocuses += 1;
@@ -1244,52 +1161,16 @@ test("draft restore: a saved draft renders at its step with values applied and k
   initAudit({ turnstileSiteKey: "test-site-key", web3formsKey: "", web3formsUrl: "" });
 
   assert.equal(
-    dom.document.querySelector("[data-stepper-counter]").textContent,
-    "مرحله ۳ از ۶",
-    "the counter must render at the saved step",
-  );
-  assert.equal(
-    dom.document.querySelector("[data-stepper-current]").textContent,
-    "مشکل اصلی",
-    "the current-step label must render at the saved step",
-  );
-  assert.equal(
-    dom.document.querySelector('[data-step-section="problem"]').hidden,
+    dom.document.querySelector('[data-step-section="lead"]').hidden,
     false,
-    "the saved step section must be visible",
+    "the single form section is visible on restore",
   );
-  assert.equal(
-    dom.document.querySelector('[data-step-section="business"]').hidden,
-    true,
-    "earlier sections stay hidden",
-  );
-  assert.equal(dom.getElementById("business_name").value, "کافه نو", "text field restored");
-  assert.equal(dom.getElementById("industry").value, "restaurant_cafe", "select restored");
-  assert.equal(
-    dom.document
-      .querySelector('[data-chip][data-group="acquisition_channels"][data-chip="instagram"]')
-      .getAttribute("aria-checked"),
-    "true",
-    "multiselect chip restored",
-  );
-  assert.equal(
-    dom.getElementById("audit-summary").hidden,
-    true,
-    "review summary hidden before the contact step",
-  );
+  assert.equal(dom.getElementById("name").value, "مریم احمدی", "name restored");
+  assert.equal(dom.getElementById("phone").value, "۰۹۱۲۳۴۵۶۷۸۹", "phone restored");
+  assert.equal(dom.getElementById("industry").value, "clinic_health", "select restored");
+  assert.equal(dom.getElementById("primary_problem").value, "low_requests", "problem select restored");
   assert.equal(headingFocuses, 0, "boot must not focus the heading on restore");
-  assert.equal(dom.getElementById("audit-next").disabled, false, "the journey resumes, next is enabled");
-
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  const persisted = JSON.parse(env.session.get("noveno:audit:draft"));
-  assert.equal(persisted.step, 4, "advancing from the restore writes the next step");
-  assert.equal(persisted.submission_id, submissionId, "submission_id must survive the restore");
-  assert.equal(
-    dom.document.querySelector("[data-stepper-counter]").textContent,
-    "مرحله ۴ از ۶",
-    "the counter follows the resumed journey",
-  );
+  assert.equal(dom.getElementById("audit-next").disabled, false, "the journey resumes, submit is enabled");
 });
 
 test("audit validation receipt is echoed in Web3Forms body (plan 021)", async () => {
@@ -1519,9 +1400,12 @@ test("createDraft falls back to Math.random when getRandomValues unavailable", a
   }
 });
 
-test("selecting all 7 channels passes client validation (maxChannels == enum size)", async () => {
+test("the Turnstile container is visible on the one-screen form and renders exactly once", async () => {
+  // Regression guard: the widget is rendered without await while the
+  // visitor may already be submitting. Concurrent ensureRendered() calls
+  // must share one render, never create a second widget.
   const turnstile = makeTurnstileMock();
-  const env = installGlobals({ turnstile, fetchImpl: [] });
+  const env = installGlobals({ turnstile, fetchImpl: [okResponse], web3formsMode: "ok" });
   const dom = buildAuditDom();
   globalThis.document = dom.document;
   initAudit({
@@ -1529,59 +1413,16 @@ test("selecting all 7 channels passes client validation (maxChannels == enum siz
     web3formsKey: "wf-test-key",
     web3formsUrl: "https://api.web3forms.com/submit",
   });
-  // Walk to channels step
-  setField(dom, "business_name", "کافه نو");
-  setField(dom, "industry", "restaurant_cafe");
-  setField(dom, "website", "https://example.com");
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  // Select all 7 channels
-  for (const id of ["instagram", "google", "advertising", "referral", "in_person", "website", "other"]) {
-    selectChip(dom, id);
-  }
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  // Should advance to next step (problem), not show error
-  assert.equal(
-    dom.document.querySelector('[data-step-section="channels"]').hidden,
-    true,
-    "channels step should be hidden after valid 7 selection",
-  );
-  assert.equal(
-    dom.document.querySelector('[data-step-section="problem"]').hidden,
-    false,
-    "should advance to problem step",
-  );
-  const err = dom.getElementById("acquisition_channels-error");
-  assert.equal(err.hidden, true, "no error for 7 valid channels");
-});
 
-test("turnstile container hidden off final step, visible on it, single render", async () => {
-  const turnstile = makeTurnstileMock();
-  const env = installGlobals({ turnstile, fetchImpl: [] });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
   const container = dom.getElementById("turnstile-container");
-  // Initial step 1: hidden
-  assert.equal(container.hidden, true, "turnstile hidden on step 1");
-  await walkToContactStep(dom);
+  assert.equal(container.hidden, false, "the widget is visible on the only screen of the form");
+
+  await fillLeadForm(dom);
+  assert.equal(turnstile.renders, 1, "a fast submit must not render a second widget");
+  turnstile.emitToken("token-1");
   await tick();
-  assert.equal(container.hidden, false, "visible on final step");
-  assert.equal(turnstile.renders, 1, "rendered once");
-  // Back to step 5
-  dom.getElementById("audit-back").dispatchEvent("click");
-  await tick();
-  assert.equal(container.hidden, true, "hidden after back to step 5");
-  // Forward again to contact
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  assert.equal(container.hidden, false, "visible again on final step");
-  assert.equal(turnstile.renders, 1, "widget persists, no re-render");
+  assert.equal(env.auditCalls.length, 1, "the submission proceeds normally");
+  assert.equal(turnstile.renders, 1, "still exactly one widget after submission");
 });
 
 test("captureAttributionNow clamps landing_page to LIMITS.landingPage", async () => {

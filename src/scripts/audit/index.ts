@@ -204,9 +204,12 @@ export function initAudit(config: AuditConfig): void {
     if (handles.barMobile) handles.barMobile.style.width = `${((current - 1) / totalSteps) * 100}%`;
 
     if (handles.announce) {
-      handles.announce.textContent = `مرحله ${toFaDigits(current)} از ${toFaDigits(totalSteps)}: ${
-        AUDIT_STEPS[current - 1]?.label ?? ""
-      }`;
+      // Single-screen form: there is no step to announce. The section
+      // heading is already the first thing in the landmark order.
+      handles.announce.textContent =
+        totalSteps > 1
+          ? `مرحله ${toFaDigits(current)} از ${toFaDigits(totalSteps)}: ${AUDIT_STEPS[current - 1]?.label ?? ""}`
+          : "";
     }
 
     if (handles.summary) {
@@ -369,20 +372,28 @@ export function initAudit(config: AuditConfig): void {
     const attribution = d.attribution ?? captureAttributionNow();
     const phoneRaw = String(values.phone ?? "");
     const honeypot = root.querySelector<HTMLInputElement>("[data-honeypot]");
+    /* Deeper qualification (channels, requested service, preferred
+       contact, customer value) is not asked on the first-contact form.
+       It is OMITTED, never guessed: the server treats those fields as
+       optional and the owner fills them in during the first call. */
+    const optional = (id: string): string | undefined => String(values[id] ?? "").trim() || undefined;
+    const channels = Array.isArray(values.acquisition_channels)
+      ? values.acquisition_channels.filter((id) => typeof id === "string" && id !== "")
+      : [];
     return {
       submission_id: d.submission_id,
       company_website: honeypot?.value ?? "",
       name: String(values.name ?? "").trim(),
       phone: normalizePhoneClient(phoneRaw),
-      email: String(values.email ?? "").trim() || undefined,
-      preferred_contact: String(values.preferred_contact ?? ""),
-      business_name: String(values.business_name ?? "").trim() || undefined,
+      email: optional("email"),
+      preferred_contact: optional("preferred_contact"),
+      business_name: optional("business_name"),
       industry: String(values.industry ?? ""),
-      website: String(values.website ?? "").trim() || undefined,
-      acquisition_channels: Array.isArray(values.acquisition_channels) ? values.acquisition_channels : [],
+      website: optional("website"),
+      ...(channels.length > 0 ? { acquisition_channels: channels } : {}),
       primary_problem: String(values.primary_problem ?? ""),
-      requested_service: String(values.requested_service ?? ""),
-      customer_value_range: String(values.customer_value_range ?? "") || undefined,
+      requested_service: optional("requested_service"),
+      customer_value_range: optional("customer_value_range"),
       cf_turnstile_token: token,
       attribution: {
         landing_page: attribution.landing_page,
@@ -552,6 +563,19 @@ export function initAudit(config: AuditConfig): void {
   });
 
   form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    goNext();
+  });
+
+  /* Single-screen form: Enter in a text field submits, the way a form
+     is expected to behave. Select/textarea keep their native Enter
+     (option commit / newline) and the submit guard makes a double
+     invocation harmless. */
+  form.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || event.shiftKey) return;
+    const target = event.target as HTMLElement | null;
+    const tag = target?.tagName;
+    if (tag === "SELECT" || tag === "TEXTAREA" || target?.getAttribute("role") === "button") return;
     event.preventDefault();
     goNext();
   });

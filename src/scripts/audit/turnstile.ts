@@ -27,6 +27,14 @@ export class TurnstileBridge {
   private static readonly TOKEN_TTL_MS = 4 * 60_000;
   private scriptLoaded = false;
   private scriptFailed = false;
+  /**
+   * In-flight render promise. `renderStep()` starts the render without
+   * awaiting it, and `getToken()` can be called before it finishes (the
+   * first-contact form is one screen, so a fast visitor submits while
+   * the Turnstile script is still loading). Without this guard both
+   * callers see a null `widgetId` and render a SECOND widget.
+   */
+  private rendering: Promise<boolean> | null = null;
   private waiters: ((token: string | null) => void)[] = [];
   private readonly siteKey: string;
   private readonly container: HTMLElement;
@@ -67,6 +75,13 @@ export class TurnstileBridge {
 
   async ensureRendered(): Promise<boolean> {
     if (this.widgetId) return true;
+    this.rendering ??= this.renderOnce().finally(() => {
+      this.rendering = null;
+    });
+    return this.rendering;
+  }
+
+  private async renderOnce(): Promise<boolean> {
     await this.ensureScript();
     if (this.scriptFailed || !window.turnstile) return false;
     this.widgetId = window.turnstile.render(this.container, {

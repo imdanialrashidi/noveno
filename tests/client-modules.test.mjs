@@ -412,9 +412,9 @@ test("analytics: PII-free payload contract — beacon keys stay within the white
   const env = installClientGlobals({ pathname: "/audit" });
   initAnalytics();
   track("audit_started");
-  track("audit_step_completed", { step: "2" });
+  track("audit_step_completed", { step: "1" });
   track("phone_click", { section: "hero" });
-  track("service_opened", { service: "audit", slug: "growth" });
+  track("service_opened", { service: "landing", slug: "growth" });
   env.win.dispatchEvent("pagehide", {});
 
   const events = [];
