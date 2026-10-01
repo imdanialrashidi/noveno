@@ -225,7 +225,7 @@ const installed = new Set((settings.packages || []).map((entry) =>
 const required = [
   'npm:pi-sub-agent@0.1.5',
   'npm:pi-mcp-adapter@2.26.1',
-  'npm:@juicesharp/rpiv-todo@2.6.2',
+  'npm:@juicesharp/rpiv-todo@2.12.0',
   'npm:pi-lsp-adapter@0.1.3',
   'npm:@dreki-gg/pi-doc-search@0.3.2',
   'npm:@bytetrue/pi-web-search@0.2.1',
@@ -251,6 +251,10 @@ const mcpPackage = (settings.packages || []).find((entry) =>
 );
 if (!mcpPackage || !Array.isArray(mcpPackage.skills) || mcpPackage.skills.length !== 0) {
   console.error('MCP adapter package skills must be disabled to avoid loading mcpScript guidance.');
+  process.exit(1);
+}
+if (!(settings.extensions || []).includes('-builtin:mcp')) {
+  console.error('Built-in mcp must stay disabled: pi-mcp-adapter registers /mcp and serves .mcp.json.');
   process.exit(1);
 }
 NODE

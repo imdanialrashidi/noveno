@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "reviewedAt": "2026-08-20",
+  "reviewedAt": "2026-10-01",
   "packages": [
     {
       "source": "npm:@earendil-works/pi-coding-agent@0.84.2",
@@ -21,8 +21,8 @@
       "repository": "https://github.com/nicobailon/pi-mcp-adapter"
     },
     {
-      "source": "npm:@juicesharp/rpiv-todo@2.6.2",
-      "integrity": "sha512-Lt2HzNaKWgOl7/nEJrxtRsKoIQJTZd32BeckDxJ0JGvoUmwYvqOicSpXbgKVZwyGqGBw90WBKYWkEggo9U/Q4Q==",
+      "source": "npm:@juicesharp/rpiv-todo@2.12.0",
+      "integrity": "sha512-bTILerGqMGrWMUkahHzXTuYa4iPkRX/LTl12HPppcCdPg7pGwrC1K7/ZtPfp7Xi4cXzqEoyZpeUM6IA8y5gtEQ==",
       "license": "MIT",
       "repository": "https://github.com/juicesharp/rpiv-mono"
     },
