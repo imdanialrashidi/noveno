@@ -3,7 +3,7 @@
  * Services page — now «راهکارها» (the 2026-10 focus pass kept the
  * `/services` URL and moved public prices to `/pricing`). The six-stage
  * system model and the engagement steps live here, so the homepage can
- * stay short. Offers render through the shared OfferRow (with prices).
+ * stay short. Prices and package scope live on /pricing only.
  */
 
 import PageLayout from "../layouts/PageLayout.astro";
@@ -11,24 +11,21 @@ import Button from "../components/ui/Button.astro";
 import PageHero from "../components/layout/PageHero.astro";
 import SectionHeader from "../components/layout/SectionHeader.astro";
 import CTASection from "../components/layout/CTASection.astro";
-import OfferRow from "../components/business/OfferRow.astro";
 import FAQItem from "../components/ui/FAQItem.astro";
 import {
   toFaDigits,
-  OFFERS,
   SYSTEM_COMPONENTS,
   SYSTEM_STAGES,
   GOOD_FIT,
   BAD_FIT,
   CTA_URL,
   FAQ_ITEMS,
-  PRICING_NOTE,
 } from "../data/site";
 ---
 
 <PageLayout
   title="راهکارهای نوونو — سیستم جذب برای کسب‌وکار خدماتی"
-  description="سه بسته همکاری نوونو، اجزای یک سیستم جذب، و اینکه هر همکاری چطور پیش می‌رود. قیمت شروع هر بسته در صفحه قیمت."
+  description="اجزای یک سیستم جذب، سه بستهٔ همکاری نوونو، و اینکه هر همکاری چطور پیش می‌رود. قیمت شروع هر بسته در صفحه قیمت."
   path="/services"
 >
   <!-- Hero -->
@@ -44,24 +41,9 @@ import {
     </div>
   </PageHero>
 
-  <!-- Three offers as route rows -->
-  <section class="border-t border-line" id="offers" aria-labelledby="offers-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
-      <SectionHeader
-        id="offers-title"
-        title="سه بسته، با قیمت شروع مشخص"
-        lead="از یک صفحه تا یک سیستم کامل جذب و رشد. جزئیات هر بسته در صفحه قیمت هم هست."
-      />
-      <div class="border-b border-line">
-        {
-          OFFERS.map((offer, index) => (
-            <OfferRow offer={offer} index={index} href={offer.id === "landing" ? CTA_URL : "/pricing"} />
-          ))
-        }
-      </div>
-      <p class="mt-6 max-w-3xl text-meta text-text-faint">{PRICING_NOTE}</p>
-    </div>
-  </section>
+  <!-- The offers are NOT repeated here: /pricing owns prices and scope
+       (DESIGN §16.1 item 6), and this page's own meta description says
+       so. The hero button is the single entry to them. -->
 
   <!-- Possible components -->
   <section class="border-t border-line" aria-labelledby="components-title">

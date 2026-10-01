@@ -61,143 +61,148 @@ const MOTIF_PATH =
          would dim the mask in dark mode and change the grid's fade. -->
     <linearGradient id="hp-fade" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#fff" stop-opacity="1"></stop>
-      <stop offset="0.52" stop-color="#fff" stop-opacity="0.85"></stop>
-      <stop offset="0.78" stop-color="#fff" stop-opacity="0"></stop>
+      <stop offset="0.6" stop-color="#fff" stop-opacity="0.9"></stop>
+      <stop offset="0.86" stop-color="#fff" stop-opacity="0"></stop>
     </linearGradient>
     <mask id="hp-mask">
       <rect x="0" y="0" width="600" height="600" fill="url(#hp-fade)"></rect>
     </mask>
     <clipPath id="hp-plate-clip">
-      <rect x="40" y="310" width="280" height="280"></rect>
+      <rect x="40" y="230" width="340" height="340"></rect>
     </clipPath>
   </defs>
 
-  <!-- 1. The field — faint 60px grid, present where structure exists -->
-  <g mask="url(#hp-mask)" opacity="0.52">
+  <!-- 1. The field — faint 60px grid, present where structure exists.
+       Carries the quiet upper-left corner so the frame reads as a field
+       with structure in it, not as marks floating in emptiness. -->
+  <g mask="url(#hp-mask)" opacity="0.8">
     <rect x="0" y="0" width="600" height="600" fill="url(#hp-grid)"></rect>
   </g>
 
   <!-- 2. Core layer (structure) — subtle pointer parallax, same direction -->
   <g class="hero-art-core">
-    <!-- system plate: surface materializes once -->
+    <!-- system plate: surface materializes once. It is the compositional
+         anchor of the frame (340×340 of 600×600) so the settled image
+         reads as structure with attention arriving, not as a small grid
+         in a corner (DESIGN §16.1 item 2). -->
     <g class="hero-art-plate">
-      <rect x="40" y="310" width="280" height="280" fill="var(--surface-soft)" opacity="0.82"></rect>
+      <rect x="40" y="230" width="340" height="340" fill="var(--surface-soft)" opacity="0.82"></rect>
       <rect
         x="40"
-        y="310"
-        width="280"
-        height="280"
+        y="230"
+        width="340"
+        height="340"
         fill="none"
         stroke="var(--line-strong)"
         stroke-opacity="0.7"
         stroke-width="1.5"></rect>
       <!-- internal 40px pitch — the order the signals join -->
       <g stroke="var(--line)" stroke-opacity="0.6" stroke-width="1">
-        <path d="M80 310V590M120 310V590M160 310V590M200 310V590M240 310V590M280 310V590"></path>
-        <path d="M40 350H320M40 390H320M40 430H320M40 470H320M40 510H320M40 550H320"></path>
+        <path
+          d="M80 230V570M120 230V570M160 230V570M200 230V570M240 230V570M280 230V570M320 230V570M360 230V570"
+        ></path>
+        <path d="M40 270H380M40 310H380M40 350H380M40 390H380M40 430H380M40 470H380M40 510H380M40 550H380"
+        ></path>
       </g>
     </g>
 
-    <!-- registered signals: axis-aligned squares on the grid -->
+    <!-- registered signals: axis-aligned squares on the 40px lattice,
+         ringing the attractor so the pattern visibly converges on it -->
     <g class="text-text">
-      <rect fill="currentColor" x="55" y="325" width="10" height="10" opacity="0.68"></rect>
-      <rect fill="currentColor" x="135" y="325" width="10" height="10" opacity="0.62"></rect>
+      <rect fill="currentColor" x="52" y="242" width="11" height="11" opacity="0.68"></rect>
+      <rect fill="currentColor" x="132" y="242" width="11" height="11" opacity="0.62"></rect>
       <rect
-        x="255"
-        y="325"
-        width="10"
-        height="10"
-        fill="none"
-        stroke="currentColor"
-        stroke-opacity="0.75"
-        stroke-width="1.5"></rect>
-      <rect fill="currentColor" x="55" y="365" width="10" height="10" opacity="0.62"></rect>
-      <rect
-        x="175"
-        y="365"
-        width="10"
-        height="10"
-        fill="none"
-        stroke="currentColor"
-        stroke-opacity="0.75"
-        stroke-width="1.5"></rect>
-      <rect fill="currentColor" x="295" y="365" width="10" height="10" opacity="0.68"></rect>
-      <rect
-        x="95"
-        y="405"
-        width="10"
-        height="10"
-        fill="none"
-        stroke="currentColor"
-        stroke-opacity="0.75"
-        stroke-width="1.5"></rect>
-      <rect fill="currentColor" x="215" y="405" width="10" height="10" opacity="0.62"></rect>
-      <rect
-        x="55"
-        y="445"
-        width="10"
-        height="10"
-        fill="none"
-        stroke="currentColor"
-        stroke-opacity="0.75"
-        stroke-width="1.5"></rect>
-      <rect fill="currentColor" x="135" y="445" width="10" height="10" opacity="0.68"></rect>
-      <rect
-        x="295"
-        y="445"
-        width="10"
-        height="10"
+        x="212"
+        y="242"
+        width="11"
+        height="11"
         fill="none"
         stroke="currentColor"
         stroke-opacity="0.75"
         stroke-width="1.5"></rect>
       <rect
-        x="95"
-        y="485"
-        width="10"
-        height="10"
-        fill="none"
-        stroke="currentColor"
-        stroke-opacity="0.65"
-        stroke-width="1.5"></rect>
-      <rect fill="currentColor" x="215" y="485" width="10" height="10" opacity="0.62"></rect>
-      <rect fill="currentColor" x="135" y="525" width="10" height="10" opacity="0.62"></rect>
-      <rect
-        x="175"
-        y="525"
-        width="10"
-        height="10"
+        x="292"
+        y="242"
+        width="11"
+        height="11"
         fill="none"
         stroke="currentColor"
         stroke-opacity="0.75"
         stroke-width="1.5"></rect>
-      <rect fill="currentColor" x="295" y="525" width="10" height="10" opacity="0.6"></rect>
+      <rect fill="currentColor" x="352" y="242" width="11" height="11" opacity="0.68"></rect>
+      <rect fill="currentColor" x="52" y="542" width="11" height="11" opacity="0.62"></rect>
       <rect
-        x="95"
-        y="565"
-        width="10"
-        height="10"
+        x="92"
+        y="542"
+        width="11"
+        height="11"
         fill="none"
         stroke="currentColor"
         stroke-opacity="0.75"
         stroke-width="1.5"></rect>
-    </g>
-    <g class="text-primary">
-      <rect fill="currentColor" x="95" y="405" width="10" height="10" opacity="0.9"></rect>
-      <rect fill="currentColor" x="175" y="445" width="10" height="10" opacity="0.85"></rect>
-      <rect fill="currentColor" x="255" y="485" width="10" height="10" opacity="0.9"></rect>
-      <rect fill="currentColor" x="215" y="565" width="10" height="10" opacity="0.85"></rect>
+      <rect fill="currentColor" x="172" y="542" width="11" height="11" opacity="0.68"></rect>
+      <rect
+        x="252"
+        y="542"
+        width="11"
+        height="11"
+        fill="none"
+        stroke="currentColor"
+        stroke-opacity="0.75"
+        stroke-width="1.5"></rect>
+      <rect fill="currentColor" x="332" y="542" width="11" height="11" opacity="0.62"></rect>
+      <rect
+        x="52"
+        y="322"
+        width="11"
+        height="11"
+        fill="none"
+        stroke="currentColor"
+        stroke-opacity="0.75"
+        stroke-width="1.5"></rect>
+      <rect
+        x="52"
+        y="402"
+        width="11"
+        height="11"
+        fill="none"
+        stroke="currentColor"
+        stroke-opacity="0.7"
+        stroke-width="1.5"></rect>
+      <rect fill="currentColor" x="52" y="482" width="11" height="11" opacity="0.62"></rect>
+      <rect fill="currentColor" x="352" y="322" width="11" height="11" opacity="0.62"></rect>
+      <rect
+        x="352"
+        y="402"
+        width="11"
+        height="11"
+        fill="none"
+        stroke="currentColor"
+        stroke-opacity="0.75"
+        stroke-width="1.5"></rect>
+      <rect
+        x="352"
+        y="482"
+        width="11"
+        height="11"
+        fill="none"
+        stroke="currentColor"
+        stroke-opacity="0.75"
+        stroke-width="1.5"></rect>
     </g>
 
     <!-- the attractor: the Noveno mark, hairline, with signals locked
-         onto its key vertices -->
-    <g transform="translate(105 382.5) scale(0.3425)">
+         onto its key vertices. Drawn in `text-muted` so it is the
+         strongest hairline on the plate — previously it rendered at a
+         ~0.96px effective stroke in `line-strong` and read as noise
+         (DESIGN §16.1 item 1). -->
+    <g transform="translate(80 283) scale(0.595)">
       <path
         d={MOTIF_PATH}
         fill="none"
-        stroke="var(--line-strong)"
-        stroke-opacity="0.62"
-        stroke-width="2.8"
+        stroke="var(--text-muted)"
+        stroke-opacity="0.9"
+        stroke-width="3"
         stroke-linejoin="round"></path>
       <g class="text-primary">
         <rect fill="currentColor" x="104.6" y="41.5" width="20" height="20" opacity="0.95"></rect>
@@ -215,10 +220,10 @@ const MOTIF_PATH =
     </g>
     <!-- queued at the plate's edge: axis-aligned, about to register -->
     <g class="text-text">
-      <rect fill="currentColor" x="330" y="425" width="10" height="10" opacity="0.68"></rect>
+      <rect fill="currentColor" x="392" y="302" width="10" height="10" opacity="0.68"></rect>
       <rect
-        x="330"
-        y="465"
+        x="392"
+        y="342"
         width="10"
         height="10"
         fill="none"
@@ -347,8 +352,8 @@ const MOTIF_PATH =
     <rect
       fill="currentColor"
       class="hero-art-mark hero-art-settle"
-      x="355"
-      y="280"
+      x="404"
+      y="262"
       width="10"
       height="10"
       opacity="0.75"
@@ -356,8 +361,8 @@ const MOTIF_PATH =
     <rect
       fill="currentColor"
       class="hero-art-mark hero-art-settle"
-      x="395"
-      y="315"
+      x="444"
+      y="297"
       width="10"
       height="10"
       opacity="0.7"
@@ -365,8 +370,8 @@ const MOTIF_PATH =
     <rect
       fill="currentColor"
       class="hero-art-mark hero-art-settle"
-      x="345"
-      y="345"
+      x="394"
+      y="327"
       width="10"
       height="10"
       opacity="0.65"
@@ -374,8 +379,8 @@ const MOTIF_PATH =
     <rect
       fill="currentColor"
       class="hero-art-mark hero-art-settle"
-      x="385"
-      y="355"
+      x="434"
+      y="337"
       width="10"
       height="10"
       opacity="0.6"
@@ -383,8 +388,8 @@ const MOTIF_PATH =
     <circle
       fill="currentColor"
       class="hero-art-settle text-primary"
-      cx="370"
-      cy="395"
+      cx="419"
+      cy="377"
       r="4.5"
       opacity="0.85"
       style="--dx: -24px; --dy: -16px; --dr: 0deg; --d: 750ms"></circle>
@@ -395,12 +400,12 @@ const MOTIF_PATH =
        Clipped to the plate so the line never escapes the system. -->
   <g clip-path="url(#hp-plate-clip)">
     <g class="hero-art-sweep">
-      <path d="M310 310V590" stroke="var(--line-strong)" stroke-width="1.5" opacity="0.6"></path>
+      <path d="M370 230V570" stroke="var(--line-strong)" stroke-width="1.5" opacity="0.6"></path>
       <rect
         class="hero-art-sweep-lead text-primary"
         fill="currentColor"
-        x="305"
-        y="326"
+        x="365"
+        y="246"
         width="10"
         height="10"
         rx="1"></rect>
@@ -411,10 +416,10 @@ const MOTIF_PATH =
   <rect
     fill="currentColor"
     class="hero-art-ack text-primary"
-    x="255"
-    y="485"
-    width="10"
-    height="10"
+    x="352"
+    y="482"
+    width="11"
+    height="11"
     opacity="0.9"></rect>
 </svg>
 
@@ -432,60 +437,64 @@ const MOTIF_PATH =
     </pattern>
     <linearGradient id="hp-m-fade" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#fff" stop-opacity="1"></stop>
-      <stop offset="0.5" stop-color="#fff" stop-opacity="0.85"></stop>
-      <stop offset="0.75" stop-color="#fff" stop-opacity="0"></stop>
+      <stop offset="0.58" stop-color="#fff" stop-opacity="0.9"></stop>
+      <stop offset="0.82" stop-color="#fff" stop-opacity="0"></stop>
     </linearGradient>
     <mask id="hp-m-mask">
       <rect x="0" y="0" width="600" height="210" fill="url(#hp-m-fade)"></rect>
     </mask>
     <clipPath id="hp-m-shelf-clip">
-      <rect x="24" y="66" width="306" height="80"></rect>
+      <rect x="40" y="52" width="300" height="116"></rect>
     </clipPath>
   </defs>
 
   <!-- faint field, structure side only -->
-  <g mask="url(#hp-m-mask)" opacity="0.5">
+  <g mask="url(#hp-m-mask)" opacity="0.8">
     <rect x="0" y="0" width="600" height="210" fill="url(#hp-m-grid)"></rect>
   </g>
 
   <!-- the shelf: an open band the signals land in -->
   <g class="hero-art-core">
+    <rect x="40" y="52" width="300" height="116" fill="var(--surface-soft)" opacity="0.82"></rect>
     <path
-      d="M24 66H330M24 146H330"
+      d="M40 52H340M40 168H340"
       fill="none"
       stroke="var(--line-strong)"
-      stroke-opacity="0.72"
+      stroke-opacity="0.8"
       stroke-width="1.5"></path>
-    <!-- the Noveno mark as the band's anchor -->
-    <g transform="translate(10 82) scale(0.12)">
+    <!-- the Noveno mark as the band's anchor. It used to be translated
+         to x=10 while the shelf starts at x=24, so the attractor hung
+         outside its own system and was sliced by the frame edge; it is
+         now inside the shelf and legible at strip height. -->
+    <g transform="translate(44 61) scale(0.25)">
       <path
         d={MOTIF_PATH}
         fill="none"
-        stroke="var(--line-strong)"
-        stroke-opacity="0.55"
-        stroke-width="8"
+        stroke="var(--text-muted)"
+        stroke-opacity="0.9"
+        stroke-width="5"
         stroke-linejoin="round"></path>
     </g>
     <!-- the registered row -->
     <g class="text-text">
-      <rect fill="currentColor" x="68" y="98" width="16" height="16" opacity="0.6"></rect>
+      <rect fill="currentColor" x="196" y="102" width="16" height="16" opacity="0.6"></rect>
       <rect
-        x="180"
-        y="98"
+        x="240"
+        y="102"
         width="16"
         height="16"
         fill="none"
         stroke="currentColor"
         stroke-opacity="0.7"
         stroke-width="1.5"></rect>
-      <rect fill="currentColor" x="236" y="98" width="16" height="16" opacity="0.5"></rect>
+      <rect fill="currentColor" x="284" y="102" width="16" height="16" opacity="0.5"></rect>
     </g>
     <g class="text-primary">
-      <rect fill="currentColor" x="124" y="98" width="16" height="16" opacity="0.9"></rect>
-      <rect fill="currentColor" x="292" y="98" width="16" height="16" opacity="0.9"></rect>
+      <rect fill="currentColor" x="164" y="102" width="16" height="16" opacity="0.9"></rect>
+      <rect fill="currentColor" x="316" y="102" width="16" height="16" opacity="0.85"></rect>
     </g>
     <!-- queued at the shelf's edge -->
-    <rect fill="currentColor" class="text-text" x="338" y="99" width="14" height="14" opacity="0.6"></rect>
+    <rect fill="currentColor" class="text-text" x="348" y="103" width="14" height="14" opacity="0.6"></rect>
   </g>
 
   <!-- transition: two marks settling into the row -->
@@ -493,8 +502,8 @@ const MOTIF_PATH =
     <rect
       fill="currentColor"
       class="hero-art-mark hero-art-settle"
-      x="368"
-      y="86"
+      x="386"
+      y="92"
       width="14"
       height="14"
       opacity="0.75"
@@ -502,8 +511,8 @@ const MOTIF_PATH =
     <rect
       fill="currentColor"
       class="hero-art-mark hero-art-settle"
-      x="400"
-      y="114"
+      x="420"
+      y="122"
       width="14"
       height="14"
       opacity="0.65"
@@ -513,13 +522,13 @@ const MOTIF_PATH =
   <!-- registration sweep (mobile recomposition): a shorter scan across
        the shelf, fewer marks, same grammar -->
   <g clip-path="url(#hp-m-shelf-clip)">
-    <g class="hero-art-sweep" style="--sweep-travel: 290px">
-      <path d="M320 66V146" stroke="var(--line-strong)" stroke-width="2" opacity="0.6"></path>
+    <g class="hero-art-sweep" style="--sweep-travel: 300px">
+      <path d="M330 52V168" stroke="var(--line-strong)" stroke-width="2" opacity="0.6"></path>
       <rect
         class="hero-art-sweep-lead text-primary"
         fill="currentColor"
-        x="313"
-        y="86"
+        x="323"
+        y="72"
         width="14"
         height="14"
         rx="1"></rect>

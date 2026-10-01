@@ -3,6 +3,13 @@
  * FAQItem — accordion (DESIGN §10, §12.2 state feedback 250ms).
  * Framework-free: one delegated script initializes every
  * [data-accordion] on the page; only one item is open at a time.
+ *
+ * Progressive enhancement (DESIGN §16.1 item 4): the answer is content,
+ * so it is **visible by default**. The script marks each item enhanced
+ * before it wires the triggers, and only then does the closed state
+ * apply. Without JavaScript (blocked scripts are a realistic condition
+ * for this audience) every answer stays readable instead of collapsing
+ * to a 24px transparent panel.
  */
 
 interface Props {
@@ -14,6 +21,10 @@ interface Props {
 const { question, answer, open = false } = Astro.props;
 const id = `faq-${question.replace(/\s+/g, "-")}`;
 const buttonId = `${id}-trigger`;
+/* The panel carries the rendered default so the script can restore it
+   after marking the item enhanced; `aria-expanded` and what the visitor
+   can actually see then never disagree. */
+const openAttr = open ? "true" : "false";
 ---
 
 <div class="border-b border-line" data-accordion>
@@ -22,7 +33,7 @@ const buttonId = `${id}-trigger`;
       type="button"
       id={buttonId}
       class="flex w-full items-center justify-between gap-4 py-5 text-start text-h3 text-text transition-colors duration-150 hover:text-text-action"
-      aria-expanded={open ? "true" : "false"}
+      aria-expanded={openAttr}
       aria-controls={id}
       data-accordion-trigger
     >
@@ -42,7 +53,14 @@ const buttonId = `${id}-trigger`;
       </svg>
     </button>
   </h3>
-  <div id={id} role="region" aria-labelledby={buttonId} class="accordion-panel" data-accordion-panel>
+  <div
+    id={id}
+    role="region"
+    aria-labelledby={buttonId}
+    class="accordion-panel"
+    data-accordion-panel
+    data-open-default={openAttr}
+  >
     <p class="pb-6 text-body text-text-muted measure-prose">{answer}</p>
   </div>
 </div>
@@ -51,8 +69,15 @@ const buttonId = `${id}-trigger`;
   /**
    * One delegated initializer for all accordions on the page.
    * Height animation via grid-template-rows trick (no JS measuring).
+   *
+   * The items are marked enhanced *before* the triggers are wired and
+   * before the collapsed style can apply, so an item that is open by
+   * default never flashes open→closed, and with no JavaScript every
+   * answer simply stays visible. The marker lives on the item (not
+   * <html>) so the component's scoped CSS still matches.
    */
   const items = Array.from(document.querySelectorAll<HTMLElement>("[data-accordion]"));
+  for (const item of items) item.setAttribute("data-accordion-ready", "true");
   const closeOthers = (current: HTMLElement) => {
     for (const item of items) {
       if (item === current) continue;
@@ -66,6 +91,10 @@ const buttonId = `${id}-trigger`;
     const trigger = item.querySelector<HTMLButtonElement>("[data-accordion-trigger]");
     const panel = item.querySelector<HTMLElement>("[data-accordion-panel]");
     if (!trigger || !panel) continue;
+    /* Server-rendered default wins; `open` stays consistent with what
+       the visitor actually sees because the enhanced state is applied
+       only after this attribute is already in the DOM. */
+    if (panel.dataset.openDefault === "true") panel.classList.add("is-open");
     trigger.addEventListener("click", () => {
       const isOpen = trigger.getAttribute("aria-expanded") === "true";
       closeOthers(item);
@@ -78,36 +107,44 @@ const buttonId = `${id}-trigger`;
 </script>
 
 <style>
+  /* Unenhanced default — the answer is plain readable content. */
   .accordion-panel {
     display: grid;
-    grid-template-rows: 0fr;
-    transition:
-      grid-template-rows 250ms var(--ease-standard),
-      opacity 250ms var(--ease-standard);
-    opacity: 0;
-  }
-  .accordion-panel.is-open {
     grid-template-rows: 1fr;
     opacity: 1;
   }
   .accordion-panel > p {
     overflow: hidden;
     min-height: 0;
-    /* Registration layer (DESIGN §12, device 5b): the answer registers
-       6px into place as its panel opens. The panel is 0fr when closed,
-       so this never hides content that should be readable. */
+  }
+
+  /* Enhanced — the accordion collapses panels and the registration
+     layer (DESIGN §12, device 5b) lets an answer settle 6px into place
+     as its panel opens. Nothing depends on JS to *be readable*. */
+  [data-accordion][data-accordion-ready] .accordion-panel {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+      grid-template-rows 250ms var(--ease-standard),
+      opacity 250ms var(--ease-standard);
+  }
+  [data-accordion][data-accordion-ready] .accordion-panel.is-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+  [data-accordion][data-accordion-ready] .accordion-panel > p {
     opacity: 0;
     transform: translateY(-6px);
     transition:
       opacity var(--dur-2) var(--ease-standard),
       transform var(--dur-2) var(--ease-standard);
   }
-  .accordion-panel.is-open > p {
+  [data-accordion][data-accordion-ready] .accordion-panel.is-open > p {
     opacity: 1;
     transform: none;
     transition-delay: 60ms;
   }
-  [aria-expanded="true"] [data-accordion-icon] {
+  [data-accordion][data-accordion-ready] [aria-expanded="true"] [data-accordion-icon] {
     transform: rotate(180deg);
   }
 </style>

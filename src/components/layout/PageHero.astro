@@ -3,6 +3,12 @@
  * PageHero — unified premium page header for all non-home routes
  * (2026-08-14 redesign): eyebrow + H1 (30–48px) + lead + optional CTA
  * slot. One consistent opening for every public page.
+ *
+ * Cover rhythm (DESIGN §16.1 item 7): the hero is a short text column
+ * with a composed margin above and a wider, quieter band below it, so
+ * the empty left half of a 1440px viewport reads as composed space
+ * rather than an unfinished band. Still one column — no second column,
+ * no invented decoration.
  */
 
 interface Props {
@@ -19,7 +25,7 @@ const { id, title, lead, eyebrow, meta } = Astro.props;
 ---
 
 <section aria-labelledby={id}>
-  <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
+  <div class="mx-auto max-w-[1200px] px-5 pb-10 pt-12 sm:px-8 sm:pb-12 lg:pb-14 lg:pt-16">
     {eyebrow && <p class="text-ui font-medium text-text-faint">{eyebrow}</p>}
     <h1 id={id} class:list={["max-w-3xl text-h1-page text-text", eyebrow ? "mt-4" : ""]}>{title}</h1>
     {lead && <p class="mt-6 max-w-2xl text-lead text-text-muted">{lead}</p>}

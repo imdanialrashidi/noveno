@@ -28,6 +28,7 @@ import OfferRow from "../components/business/OfferRow.astro";
 import WorkCard from "../components/business/WorkCard.astro";
 import FAQItem from "../components/ui/FAQItem.astro";
 import ChannelLink from "../components/ui/ChannelLink.astro";
+import ArrowLink from "../components/ui/ArrowLink.astro";
 import HeroArtwork from "../components/brand/HeroArtwork.astro";
 import { getCollection } from "astro:content";
 import { previewFor } from "../data/work-previews";
@@ -110,8 +111,11 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
           <h1 id="hero-title" class="mt-4 text-display text-text">{HERO_HEADLINE}</h1>
           <p class="mt-6 max-w-xl text-lead text-text-muted">{HERO_LEAD}</p>
           {
-            /* One primary action per section: on mobile both actions take
-              the full column width so the tap targets read as a pair. */
+            /* One primary action per section (DESIGN §0). On desktop the
+              secondary stays a real button beside it; on mobile it drops
+              to a quiet link below the microcopy so the first viewport
+              carries the thesis, one action, and the brand artwork — and
+              the same analytics event still records the click. */
           }
           <div class="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
             <Button
@@ -121,16 +125,24 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
               data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"hero"}' }}
               >{PRIMARY_CTA_LABEL}</Button
             >
-            <Button
-              href="/work"
-              variant="secondary"
-              size="lg"
-              class="w-full sm:w-auto"
-              data={{ "data-event": "secondary_cta_click", "data-event-payload": '{"section":"hero"}' }}
-              >{SECONDARY_CTA_LABEL}</Button
-            >
+            <div class="hidden sm:block">
+              <Button
+                href="/work"
+                variant="secondary"
+                size="lg"
+                data={{ "data-event": "secondary_cta_click", "data-event-payload": '{"section":"hero"}' }}
+                >{SECONDARY_CTA_LABEL}</Button
+              >
+            </div>
           </div>
           <p class="mt-4 text-meta text-text-faint">{HERO_MICROCOPY}</p>
+          <div class="mt-3 sm:hidden">
+            <ArrowLink
+              href="/work"
+              label={SECONDARY_CTA_LABEL}
+              data={{ "data-event": "secondary_cta_click", "data-event-payload": '{"section":"hero"}' }}
+            />
+          </div>
         </div>
 
         <!-- Visual side: the brand artwork — scattered signals finding
@@ -298,11 +310,19 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
       <div class="border-b border-line" data-reveal-stagger>
         {
           OFFERS.map((offer, index) => (
-            <OfferRow offer={offer} index={index} href={offer.id === "landing" ? CTA_URL : "/pricing"} />
+            <OfferRow
+              offer={offer}
+              index={index}
+              compact
+              href={offer.id === "landing" ? CTA_URL : "/pricing"}
+            />
           ))
         }
       </div>
-      <p class="mt-6 max-w-3xl text-meta text-text-faint">{PRICING_NOTE}</p>
+      <div class="mt-6 flex flex-wrap items-center justify-between gap-4">
+        <p class="max-w-3xl text-meta text-text-faint">{PRICING_NOTE}</p>
+        <Button href="/pricing" variant="secondary">همه جزئیات و بسته‌های ماهانه</Button>
+      </div>
     </div>
   </section>
 

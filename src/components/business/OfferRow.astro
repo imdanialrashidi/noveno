@@ -20,9 +20,16 @@ interface Props {
   ctaLabel?: string;
   /** Hide the price when the surrounding page already shows it. */
   showPrice?: boolean;
+  /**
+   * Compact row — numeral, name, starting price, framing and the link.
+   * The scope points and the price note are `/pricing` detail, so the
+   * homepage (which keeps the founder-accepted starting prices) does not
+   * repeat them (DESIGN §16.1 item 6).
+   */
+  compact?: boolean;
 }
 
-const { offer, href, index, ctaLabel, showPrice = true } = Astro.props;
+const { offer, href, index, ctaLabel, showPrice = true, compact = false } = Astro.props;
 const label = ctaLabel ?? (offer.id === "landing" ? "شروع با یک صفحه" : "جزئیات این بسته");
 ---
 
@@ -36,7 +43,14 @@ const label = ctaLabel ?? (offer.id === "landing" ? "شروع با یک صفحه
   data-reveal-item={index}
   data-sweep
 >
-  <div class="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,4fr)_minmax(0,3fr)] lg:gap-10">
+  <div
+    class:list={[
+      "grid gap-6",
+      compact
+        ? "lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-baseline lg:gap-10"
+        : "lg:grid-cols-[minmax(0,5fr)_minmax(0,4fr)_minmax(0,3fr)] lg:gap-10",
+    ]}
+  >
     <div class="flex flex-col gap-3">
       <div class="flex items-baseline gap-3">
         <span class="editorial-num" aria-hidden="true">{toFaDigits(String(index + 1).padStart(2, "0"))}</span>
@@ -51,26 +65,26 @@ const label = ctaLabel ?? (offer.id === "landing" ? "شروع با یک صفحه
           </p>
         )
       }
-      <p class="text-body text-text-muted measure-prose">{offer.summary}</p>
+      {!compact && <p class="text-body text-text-muted measure-prose">{offer.summary}</p>}
     </div>
 
-    <div class="flex flex-col gap-4">
-      <ul class="flex flex-col gap-2">
-        {
-          offer.points.map((point) => (
-            <li class="flex items-start gap-2.5 text-body text-text">
-              <span class="mt-2.5 h-1 w-1 flex-none rounded-full bg-line-strong" aria-hidden="true" />
-              {point}
-            </li>
-          ))
-        }
-      </ul>
-      {
-        showPrice && offer.priceNote && (
-          <p class="border-t border-line pt-3 text-meta text-text-faint">{offer.priceNote}</p>
-        )
-      }
-    </div>
+    {
+      !compact && (
+        <div class="flex flex-col gap-4">
+          <ul class="flex flex-col gap-2">
+            {offer.points.map((point) => (
+              <li class="flex items-start gap-2.5 text-body text-text">
+                <span class="mt-2.5 h-1 w-1 flex-none rounded-full bg-line-strong" aria-hidden="true" />
+                {point}
+              </li>
+            ))}
+          </ul>
+          {showPrice && offer.priceNote && (
+            <p class="border-t border-line pt-3 text-meta text-text-faint">{offer.priceNote}</p>
+          )}
+        </div>
+      )
+    }
 
     <div class="flex flex-col items-start gap-4 lg:pt-1">
       <p class="text-meta text-text-faint">{offer.framing}</p>
