@@ -8,12 +8,12 @@ The reviewed Pi pin requires Node.js 22.19.0 or newer. The included CI pins Node
 
 - `pi-sub-agent@0.1.5`
 - `pi-mcp-adapter@2.26.1`
-- `@juicesharp/rpiv-todo@2.6.2`
+- `@juicesharp/rpiv-todo@2.12.0`
 - `pi-lsp-adapter@0.1.3`
 - `@dreki-gg/pi-doc-search@0.3.2`
 - `@bytetrue/pi-web-search@0.2.1`
 
-The project MCP configuration pins `@playwright/mcp@0.0.79` and exposes a restricted browser tool set through the single `mcp` proxy.
+The project MCP configuration pins `@playwright/mcp@0.0.79` and exposes a restricted browser tool set through the single `mcp` proxy. `.pi/settings.json` disables the built-in `mcp` extension on purpose: `pi-mcp-adapter` registers `/mcp`, replaces the built-in support, and serves `.mcp.json`. Without `-builtin:mcp` every session start reports the built-in extension as not loaded.
 
 The packages remain installed and their commands remain available, but their model-call schemas are deferred. `./p` starts with seven repository tools plus `harness_tools`:
 

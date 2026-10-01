@@ -71,16 +71,16 @@ The optimized workflow keeps a small model-neutral core and loads specialization
 
 Exact versions and registry integrity values are recorded in `.pi/package-integrity.json`.
 
-| Package                           | Reviewed pin | Decision                                                                                                                |
-| --------------------------------- | -----------: | ----------------------------------------------------------------------------------------------------------------------- |
-| `@earendil-works/pi-coding-agent` |     `0.84.2` | Upgrade from `0.84.1`; current reviewed Pi release.                                                                     |
-| `pi-sub-agent`                    |      `0.1.5` | Keep; already current in the audit.                                                                                     |
-| `pi-mcp-adapter`                  |     `2.26.1` | Upgrade from `2.20.1`; reviewed fixes include approval correctness, hang/catalog fixes, and lower startup catalog work. |
-| `@juicesharp/rpiv-todo`           |      `2.6.2` | Upgrade from `2.1.0`; keep conditional use.                                                                             |
-| `pi-lsp-adapter`                  |      `0.1.3` | Keep.                                                                                                                   |
-| `@dreki-gg/pi-doc-search`         |      `0.3.2` | Keep.                                                                                                                   |
-| `@bytetrue/pi-web-search`         |      `0.2.1` | Upgrade from `0.1.3`; retain one explicit search provider and safe public fetch behavior.                               |
-| `@playwright/mcp`                 |     `0.0.79` | Keep exact lazy pin and restricted browser tool set.                                                                    |
+| Package                           | Reviewed pin | Decision                                                                                                                   |
+| --------------------------------- | -----------: | -------------------------------------------------------------------------------------------------------------------------- |
+| `@earendil-works/pi-coding-agent` |     `0.84.2` | Upgrade from `0.84.1`; current reviewed Pi release.                                                                        |
+| `pi-sub-agent`                    |      `0.1.5` | Keep; already current in the audit.                                                                                        |
+| `pi-mcp-adapter`                  |     `2.26.1` | Upgrade from `2.20.1`; reviewed fixes include approval correctness, hang/catalog fixes, and lower startup catalog work.    |
+| `@juicesharp/rpiv-todo`           |     `2.12.0` | Upgrade from `2.6.2`; `2.12.0` moves `typebox` to `peerDependencies: "*"`, clearing Pi's host-provided dependency warning. |
+| `pi-lsp-adapter`                  |      `0.1.3` | Keep. Latest release still lists `@earendil-works/pi-tui` and `typebox` in `dependencies`, so Pi keeps warning at startup. |
+| `@dreki-gg/pi-doc-search`         |      `0.3.2` | Keep.                                                                                                                      |
+| `@bytetrue/pi-web-search`         |      `0.2.1` | Upgrade from `0.1.3`; retain one explicit search provider and safe public fetch behavior.                                  |
+| `@playwright/mcp`                 |     `0.0.79` | Keep exact lazy pin and restricted browser tool set.                                                                       |
 
 ## Mechanical changes measured in this audit
 
