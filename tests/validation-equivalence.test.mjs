@@ -28,7 +28,7 @@ function validPayload(overrides = {}) {
   return {
     submission_id: crypto.randomUUID(),
     name: "علی رضایی",
-    phone: "۰۹۳۵۳۵۹۸۶۲۰",
+    phone: "۰۹۱۰۲۲۵۶۹۸۶",
     email: "ali@example.com",
     preferred_contact: "whatsapp",
     business_name: "کافه نمونه",
@@ -58,14 +58,14 @@ test("phone normalization equivalence: client and server agree on the corpus", (
   // single leading '+' (see report note); the corpus below contains at most
   // one '+', where the two sides are defined to agree.
   const corpus = [
-    "۰۹۳۵۳۵۹۸۶۲۰",
+    "۰۹۱۰۲۲۵۶۹۸۶",
     "٠٩٣٥٣٥٩٨٦٢٠",
     "0935 359 8620",
     "0935-359-8620",
     "+98 935 359 8620",
-    "00989353598620",
+    "00989102256986",
     "۰۹۳۵-۳۵۹-۸۶۲۰",
-    " 09353598620 ",
+    " 09102256986 ",
     "۰۹35۳۵۹۸۶20", // mixed Persian + Latin digits
   ];
   for (const input of corpus) {
@@ -104,7 +104,7 @@ test("email pattern equivalence: client acceptance matches the server", () => {
 
 test("phone validity agreement: client and server accept exactly the same phones", () => {
   // Valid on both sides.
-  for (const phone of ["09353598620", "۰۹۳۵۳۵۹۸۶۲۰", "+989353598620"]) {
+  for (const phone of ["09102256986", "۰۹۱۰۲۲۵۶۹۸۶", "+989102256986"]) {
     assert.equal(validateFieldClient("phone", phone), "", `client rejected ${JSON.stringify(phone)}`);
     assert.equal(
       validateAuditPayload(validPayload({ phone })).ok,
@@ -134,13 +134,13 @@ test("documented divergence pinned: client ≤15-digit cap vs server ≤24 limit
   // for UX only; the server remains authoritative.
   //
   // 16 digits: the client rejects (>15), the server accepts (≤24).
-  const p16 = "0935359862012345";
+  const p16 = "0910225698612345";
   assert.equal(p16.length, 16);
   assert.equal(validateFieldClient("phone", p16), "invalid");
   assert.equal(validateAuditPayload(validPayload({ phone: p16 })).ok, true);
 
   // 15 digits: both accept.
-  const p15 = "093535986201234";
+  const p15 = "091022569861234";
   assert.equal(p15.length, 15);
   assert.equal(validateFieldClient("phone", p15), "");
   assert.equal(validateAuditPayload(validPayload({ phone: p15 })).ok, true);

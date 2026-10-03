@@ -266,15 +266,15 @@ Example registration (`src/data/work-previews.ts`):
 import { imageUrl } from "../generated/image-manifest";
 
 export function previewFor(id: string): WorkPreview {
-  if (id === "noveno-website") {
+  if (id === "elsa-hamrah") {
     return {
       type: "image",
-      src: imageUrl("work/noveno-website-hero.webp"),
-      srcset: `${imageUrl("work/noveno-website-hero.webp")} 1440w, ${imageUrl("work/noveno-website-hero-800.webp")} 720w`,
-      alt: "صفحه نخست وب‌سایت نوونو",
-      detailSrc: imageUrl("work/noveno-website-audit.webp"),
-      detailSrcset: `${imageUrl("work/noveno-website-audit.webp")} 1440w, ${imageUrl("work/noveno-website-audit-800.webp")} 720w`,
-      detailAlt: "فرم بررسی مسیر جذب در وب‌سایت نوونو",
+      src: imageUrl("work/elsa-hamrah-hero.webp"),
+      srcset: `${imageUrl("work/elsa-hamrah-hero.webp")} 1440w, ${imageUrl("work/elsa-hamrah-hero-800.webp")} 720w`,
+      alt: "صفحه نخست فروشگاه السا همراه",
+      detailSrc: imageUrl("work/elsa-hamrah-hero.webp"),
+      detailSrcset: `${imageUrl("work/elsa-hamrah-hero.webp")} 1440w, ${imageUrl("work/elsa-hamrah-hero-800.webp")} 720w`,
+      detailAlt: "فهرست محصولات دیجیتال فروشگاه السا همراه",
     };
   }
   // concepts → designed mock layout + screen-reader scenario
@@ -319,4 +319,4 @@ Native Playwright MCP via `tool_search` (`/mcp` for the in-session connection ch
 
 ## Contact / facts
 
-Brand: Noveno / نوونو · WhatsApp/Telegram/Phone: 09353598620 · Email: imdanialrashidi@gmail.com · Instagram: @noveno_ir
+Brand: Noveno / نوونو · WhatsApp/Telegram/Phone: 09102256986 · Email: imdanialrashidi@gmail.com · Instagram: @noveno_ir

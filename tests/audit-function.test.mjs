@@ -57,7 +57,7 @@ function validPayload(overrides = {}) {
   return {
     submission_id: crypto.randomUUID(),
     name: "علی رضایی",
-    phone: "۰۹۳۵۳۵۹۸۶۲۰",
+    phone: "۰۹۱۰۲۲۵۶۹۸۶",
     email: "ali@example.com",
     preferred_contact: "whatsapp",
     business_name: "کافه نمونه",
@@ -109,21 +109,21 @@ function makeDeps(overrides = {}) {
 /* ------------------------------------------------------------------ */
 
 test("normalizePhone converts Persian digits to Latin", () => {
-  assert.equal(normalizePhone("۰۹۳۵۳۵۹۸۶۲۰"), "09353598620");
+  assert.equal(normalizePhone("۰۹۱۰۲۲۵۶۹۸۶"), "09102256986");
 });
 
 test("normalizePhone converts Arabic-Indic digits to Latin", () => {
-  assert.equal(normalizePhone("٠٩٣٥٣٥٩٨٦٢٠"), "09353598620");
+  assert.equal(normalizePhone("٠٩١٠٢٢٥٦٩٨٦"), "09102256986");
 });
 
 test("normalizePhone strips formatting junk", () => {
-  assert.equal(normalizePhone("0935-359 8620"), "09353598620");
-  assert.equal(normalizePhone("(0935) 359-8620"), "09353598620");
+  assert.equal(normalizePhone("0910-225 6986"), "09102256986");
+  assert.equal(normalizePhone("(0910) 225-6986"), "09102256986");
 });
 
 test("normalizePhone keeps a single leading plus", () => {
-  assert.equal(normalizePhone("+989353598620"), "+989353598620");
-  assert.equal(normalizePhone("++98 935 359 8620"), "+989353598620");
+  assert.equal(normalizePhone("+989102256986"), "+989102256986");
+  assert.equal(normalizePhone("++98 910 225 6986"), "+989102256986");
 });
 
 test("normalizeDigits handles mixed digit scripts", () => {
@@ -146,7 +146,7 @@ test("valid payload passes and phone is normalized to Latin digits", () => {
   const result = validateAuditPayload(validPayload());
   assert.equal(result.ok, true);
   if (result.ok) {
-    assert.equal(result.value.phone, "09353598620");
+    assert.equal(result.value.phone, "09102256986");
     assert.equal(result.value.name, "علی رضایی");
     assert.equal(result.value.attribution.utm_source, "instagram");
   }
@@ -795,7 +795,7 @@ test("validateEvent accepts whitelisted events and rejects the rest", () => {
   assert.equal(validateEvent({ name: "audit_submitted" }).ok, true);
   assert.equal(validateEvent({ name: "audit_submitted", payload: { step: "1", page: "/audit" } }).ok, true);
   assert.equal(validateEvent({ name: "not_an_event" }).ok, false);
-  assert.equal(validateEvent({ name: "audit_submitted", payload: { phone: "09353598620" } }).ok, false);
+  assert.equal(validateEvent({ name: "audit_submitted", payload: { phone: "09102256986" } }).ok, false);
   assert.equal(validateEvent({ name: "audit_submitted", payload: { name: "علی" } }).ok, false);
   assert.equal(validateEvent({ name: "audit_submitted", payload: { note: "x".repeat(500) } }).ok, false);
   assert.equal(validateEvent(null).ok, false);
@@ -852,7 +852,7 @@ test("events endpoint: invalid payload returns 400 without writing", async () =>
   const written = [];
   const res = await eventsOnRequest({
     request: post(
-      { name: "audit_submitted", payload: { phone: "09353598620" } },
+      { name: "audit_submitted", payload: { phone: "09102256986" } },
       { origin: "https://noveno.ir", host: "noveno.ir" },
     ),
     env: { NOVENO_EVENTS: { writeDataPoint: (d) => written.push(d) } },

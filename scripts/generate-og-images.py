@@ -354,7 +354,9 @@ def main():
 
     # --- work index --------------------------------------------------------
     entries = work_entries()
-    featured = next((e for e in entries if e["slug"] == "noveno-website"), entries[0] if entries else None)
+    # Use the first published entry as the cover — no entry is flagged
+    # featured, so nothing here should hard-code a work slug.
+    featured = entries[0] if entries else None
     img, draw = base_card("پروژه‌ها و نمونه‌کارها")
     if featured and featured["shot"]:
         cover_panel(featured["shot"], 528, H, img, draw, 0, 0)

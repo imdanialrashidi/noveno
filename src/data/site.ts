@@ -61,9 +61,11 @@ export const GOOGLE_SITE_VERIFICATION = "2iOJHcK1PglZdQc_FBOOZRu55LmikB_HLm0BUjA
 /* ------------------------------------------------------------------ */
 
 export const CONTACT = {
-  phone: "09353598620",
-  phoneHref: "tel:09353598620",
-  whatsappHref: "https://wa.me/989353598620",
+  phone: "09102256986",
+  phoneHref: "tel:09102256986",
+  /** E.164-ish international form for schema.org `telephone` (no formatting tricks). */
+  phoneIntl: "+98-910-225-6986",
+  whatsappHref: "https://wa.me/989102256986",
   telegramHref: "https://t.me/noveno_ir",
   email: "imdanialrashidi@gmail.com",
   emailHref: "mailto:imdanialrashidi@gmail.com",

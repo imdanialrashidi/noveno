@@ -19,7 +19,7 @@ export function normalizeDigits(input: string): string {
 /**
  * Phone normalization: any digit script → Latin, then keep only digits
  * and a single leading "+". Persian formatting like «۰۹۳۵-۳۵۹ ۸۶۲۰»
- * becomes «09353598620».
+ * becomes «09102256986».
  */
 export function normalizePhone(input: string): string {
   const digits = normalizeDigits(input).replace(/[^\d+]/g, "");

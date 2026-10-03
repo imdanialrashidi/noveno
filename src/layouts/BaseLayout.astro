@@ -1,6 +1,6 @@
 ---
 import "../styles/global.css";
-import { GOOGLE_SITE_VERIFICATION } from "../data/site";
+import { GOOGLE_SITE_VERIFICATION, CONTACT } from "../data/site";
 
 interface Props {
   title: string;
@@ -42,7 +42,7 @@ const organizationJsonLd = JSON.stringify({
   sameAs: ["https://instagram.com/noveno_ir"],
   contactPoint: {
     "@type": "ContactPoint",
-    telephone: "+98-935-359-8620",
+    telephone: CONTACT.phoneIntl,
     contactType: "customer service",
     availableLanguage: ["fa"],
   },

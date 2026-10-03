@@ -59,7 +59,10 @@ import {
  * can never render empty.
  */
 const published = (await getCollection("work")).filter(({ data }) => !data.draft);
-const HOMEPAGE_PROOF = ["noveno-website", "php-ielts-house"];
+/* Owner decision 2026-10: the site's own build is no longer published as a
+   case study, so the homepage proof pair is two client projects. Edit this
+   array to change which two lead the proof section. */
+const HOMEPAGE_PROOF = ["php-ielts-house", "danial-rashidi-portfolio"];
 const proofEntries = HOMEPAGE_PROOF.map((id) => published.find((e) => e.id === id)).filter(
   (entry): entry is NonNullable<typeof entry> => Boolean(entry),
 );

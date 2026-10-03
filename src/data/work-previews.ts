@@ -28,18 +28,6 @@ function webpSrcset(name: string): string {
 }
 
 export function previewFor(id: string): WorkPreview {
-  if (id === "noveno-website") {
-    return {
-      type: "image",
-      src: imageUrl("work/noveno-website-hero.webp"),
-      srcset: webpSrcset("noveno-website-hero"),
-      alt: "صفحهٔ نخست وب‌سایت نوونو — عنوان جذب مشتری و دکمهٔ درخواست بررسی",
-      detailSrc: imageUrl("work/noveno-website-audit.webp"),
-      detailSrcset: webpSrcset("noveno-website-audit"),
-      detailAlt: "فرم درخواست بررسی در وب‌سایت نوونو — یک صفحه با پنج سؤال کوتاه",
-    };
-  }
-
   if (id === "mobile-khorsandi") {
     return {
       type: "image",

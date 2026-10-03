@@ -17,7 +17,6 @@ const PAGE_PATHS = [
   "/index.html",
   "/services/index.html",
   "/work/index.html",
-  "/work/noveno-website/index.html",
   "/process/index.html",
   "/about/index.html",
   "/audit/index.html",
@@ -262,11 +261,11 @@ test("primary CTA flows to /audit in Slice 2 (launch contract), contact fallback
   assert.ok(home.includes('href="/work"'), "homepage must keep the secondary CTA to /work");
   // Direct contact stays reachable everywhere (resilience, Spec §64.1).
   const contact = fs.readFileSync(path.join(dist, "contact", "index.html"), "utf8");
-  assert.ok(contact.includes('href="tel:09353598620"'), "contact page must keep click-to-call");
+  assert.ok(contact.includes('href="tel:09102256986"'), "contact page must keep click-to-call");
   for (const file of pages) {
     const html = fs.readFileSync(file, "utf8");
     assert.ok(
-      html.includes('href="tel:09353598620"'),
+      html.includes('href="tel:09102256986"'),
       `${path.relative(dist, file)}: footer contact fallback missing`,
     );
   }

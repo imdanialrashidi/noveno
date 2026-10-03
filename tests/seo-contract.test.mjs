@@ -126,14 +126,12 @@ test("per-page social cards exist and are referenced with correct metadata", () 
 
   png("og.png");
   png("og/work.png");
-  png("og/work/noveno-website.png");
   png("og/blog.png");
   png("og/blog/instagram-lead-tracking.png");
   png("og/about.png");
 
   expectCard("index.html", "/og.png");
   expectCard("work/index.html", "/og/work.png");
-  expectCard("work/noveno-website/index.html", "/og/work/noveno-website.png");
   expectCard("blog/index.html", "/og/blog.png");
   expectCard("blog/instagram-lead-tracking/index.html", "/og/blog/instagram-lead-tracking.png");
   expectCard("about/index.html", "/og/about.png");

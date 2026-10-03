@@ -17,10 +17,6 @@ export const imageManifest: Readonly<Record<string, string>> = {
   "work/noveno-website-audit-800.webp": "/images/work/noveno-website-audit-800.8e31ed74.webp",
   "work/noveno-website-audit.avif": "/images/work/noveno-website-audit.7f914318.avif",
   "work/noveno-website-audit.webp": "/images/work/noveno-website-audit.800d6a3a.webp",
-  "work/noveno-website-hero-800.avif": "/images/work/noveno-website-hero-800.094c9c0f.avif",
-  "work/noveno-website-hero-800.webp": "/images/work/noveno-website-hero-800.39e708d2.webp",
-  "work/noveno-website-hero.avif": "/images/work/noveno-website-hero.f8a7688c.avif",
-  "work/noveno-website-hero.webp": "/images/work/noveno-website-hero.590cc9e3.webp",
   "work/php-ielts-house-hero-800.webp": "/images/work/php-ielts-house-hero-800.472ce5ac.webp",
   "work/php-ielts-house-hero.webp": "/images/work/php-ielts-house-hero.bd5bd7ff.webp",
 };

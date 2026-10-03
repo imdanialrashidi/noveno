@@ -434,7 +434,7 @@ function selectChip(dom, id) {
 async function fillLeadForm(dom, overrides = {}) {
   const values = {
     name: "علی رضایی",
-    phone: "۰۹۳۵۳۵۹۸۶۲۰",
+    phone: "۰۹۱۰۲۲۵۶۹۸۶",
     industry: "restaurant_cafe",
     website: "https://example.com",
     primary_problem: "scattered_lost",
@@ -664,7 +664,7 @@ test("the one-screen form needs no step progress: no counter, no back, validatio
   // Incomplete submit: name + phone only. The two selects are required,
   // so the visitor must be told and nothing may be sent.
   setField(dom, "name", "علی رضایی");
-  setField(dom, "phone", "۰۹۳۵۳۵۹۸۶۲۰");
+  setField(dom, "phone", "۰۹۱۰۲۲۵۶۹۸۶");
   let industryFocuses = 0;
   dom.getElementById("industry").focus = () => {
     industryFocuses += 1;
@@ -739,7 +739,7 @@ test("Web3Forms success: exactly one delivery POST (no Turnstile token, Persian 
   assert.equal(notify.access_key, "wf-test-key");
   assert.equal(notify.submission_id, submissionId);
   assert.equal(notify.name, "علی رضایی");
-  assert.equal(notify.phone, "09353598620");
+  assert.equal(notify.phone, "09102256986");
   assert.equal(
     notify.industry,
     labelFor("industry", "restaurant_cafe"),

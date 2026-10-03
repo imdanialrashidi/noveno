@@ -21,7 +21,7 @@ Durable source of truth for what the product must do. Sources: `docs/Noveno_Webs
 ## Must-have user flows
 
 1. **Audit conversion (primary):** understand → qualify → start audit (`/audit`) → submit form → `/api/audit` validates → browser delivers the lead to **Web3Forms email** → `/audit/thank-you` with next steps (thank-you only after confirmed email acceptance). Attribution (landing page, referrer, UTM) rides in the lead email (Spec §31–33).
-2. **Direct contact fallback:** phone, WhatsApp, Telegram, email always reachable; contact redundancy is a resilience requirement, not an afterthought (Spec §64.1). Contact facts: 09353598620 (WhatsApp/Telegram/phone), imdanialrashidi@gmail.com, Instagram @noveno_ir.
+2. **Direct contact fallback:** phone, WhatsApp, Telegram, email always reachable; contact redundancy is a resilience requirement, not an afterthought (Spec §64.1). Contact facts: 09102256986 (WhatsApp/Telegram/phone), imdanialrashidi@gmail.com, Instagram @noveno_ir.
 3. **Proof journey:** `/work` with case studies/projects/concepts; every claim traceable, every demo labeled (Spec §18–19).
 4. **Qualification:** explicit good-fit / bad-fit section reduces bad leads (Spec §23).
 

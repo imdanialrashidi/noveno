@@ -232,13 +232,13 @@ Rule: **the primary button carries dark ink on green** (`#06130d` on `#679e86`/`
 - **Section headers:** `SectionHeader` = optional kicker (12–14px `text-faint`), H2 above a hairline rule, optional lead. No node markers, no icons.
 - **Desktop width is used intentionally**: media columns span 5–7 of 12; hero is a 6/6 split; work rows alternate 7/5 and 6/6.
 - **Header:** hairline bottom border; logo mark + English-only «NOVENO» wordmark (Estedad 800, +0.04em tracking); nav Estedad 500 14px; primary CTA button. Desktop non-sticky. **Nav depth (fifth review):** five links plus one action — «خانه», «راهکارها» (`/services`), «نمونه‌کار» (`/work`), «قیمت» (`/pricing`), «درباره» (`/about`), then the primary CTA to `/audit`. Supporting pages (`/process`, `/blog`, `/contact`, legal) live in the footer and in-context links. **Mobile: compact sticky header with three elements only — logo, theme toggle (44px), menu trigger (44px); the audit CTA moves into the opened menu as a full-width primary button.** Verified no horizontal overflow at 320/360/390/430.
-- **Footer:** contact facts always visible (click-to-call 09353598620, WhatsApp/Telegram/email — Spec §64.1 redundancy); short brand line; /privacy + /terms links. No route motif.
+- **Footer:** contact facts always visible (click-to-call 09102256986, WhatsApp/Telegram/email — Spec §64.1 redundancy); short brand line; /privacy + /terms links. No route motif.
 
 ## 9. Imagery, media, art direction
 
 ### 9.1 Media hierarchy (proof-first, brand-first hero)
 
-1. **Real product screenshots** — captured from real, accessible implementations (this site's own build for the `noveno-website` project). The proof mechanism for the system section, `/work`, work detail pages — never the primary hero visual (fourth review, §3.6).
+1. **Real product screenshots** — captured from real, accessible implementations (client sites for the case studies; this site's own `/audit` form for the homepage product proof). The proof mechanism for the system section, `/work`, work detail pages — never the primary hero visual (fourth review, §3.6).
 2. **Brand artwork** — the hero's visual: the signal-field composition (scattered marks → structured system, Noveno mark as attractor), an original inline-SVG piece of branded information art (§3.6). Social cards mirror the same geometry.
 3. **Designed concept previews** — for concepts only: a small designed page mockup (real tokens, real Persian UI labels) with the fixed overlay tag «نمونه نمایشی — سناریوی مفهومی». Never a wireframe-diagram, never a screenshot of a nonexistent product, never implying a real client result.
 4. **Typography-led editorial composition + restrained brand geometry** — text, editorial numerals, hairlines, square/circle primitives, subtle grid texture, logo-derived geometry. The second visual primitive of the public site (problem section, philosophy, final CTA).

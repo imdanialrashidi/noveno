@@ -4,7 +4,7 @@
 set -euo pipefail
 OUT="${1:-/tmp/noveno-bench}"
 mkdir -p "$OUT"
-ROUTES=("/" "/work" "/work/noveno-website" "/audit" "/audit/thank-you")
+ROUTES=("/" "/work" "/work/php-ielts-house" "/audit" "/audit/thank-you")
 declare -A PROFILES=( [mobile]="" [desktop]="--preset=desktop" )
 
 for prof in mobile desktop; do

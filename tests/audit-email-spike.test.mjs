@@ -14,7 +14,7 @@ function validPayload(overrides = {}) {
   return {
     submission_id: crypto.randomUUID(),
     name: "علی رضایی",
-    phone: "۰۹۳۵۳۵۹۸۶۲۰",
+    phone: "۰۹۱۰۲۲۵۶۹۸۶",
     email: "ali@example.com",
     preferred_contact: "whatsapp",
     business_name: "کافه نمونه",
@@ -131,7 +131,7 @@ test("sendLeadEmail renders Persian labels and strips markup", async () => {
   const lead = {
     submission_id: crypto.randomUUID(),
     name: "<b>علی</b>",
-    phone: "09353598620",
+    phone: "09102256986",
     email: "ali@example.com",
     preferred_contact: "whatsapp",
     business_name: "کافه <script>",
