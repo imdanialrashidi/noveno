@@ -5,7 +5,7 @@ import { isGitMutationCommand, isGitMutationTool } from "../../.pi/extensions/sa
 
 const PROTECTED_WORKFLOW_PATHS = [
   "AGENTS.md",
-  ".mcp.json",
+  ".pi/mcp.json",
   ".github/**",
   ".pi/**",
   "p",

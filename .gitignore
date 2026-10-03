@@ -24,7 +24,7 @@ docs/private/**
 .pi/models.env
 .pi/models.json
 .pi/trust.json
-.pi/mcp.json
+.pi/mcp-auth.json
 .pi/mcp-oauth/
 .pi/mcp-traces/
 

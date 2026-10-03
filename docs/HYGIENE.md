@@ -25,7 +25,7 @@ every rule so drift is caught by CI, not by memory.
    re-run the full gate. The test now restores committed card bytes defensively
    after the suite (`tests/og-assets.test.mjs`).
 2. **Formatting is mechanical.** Run `npm run format` (never hand-fix format-only
-   feedback). Machine-local harness state (`.pi/`, `.mcp.json`, durable plan
+   feedback). Machine-local harness state (`.pi/`, durable plan
    prose, eval fixtures) is intentionally excluded in `.prettierignore` —
    prettier must not rewrap contract-shaped fixtures.
 3. **Never reference a public image by a hard-coded `/images/...` path** — use

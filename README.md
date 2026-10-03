@@ -315,7 +315,7 @@ Structural tests (run inside the gate) also pin the design contract: the flowcha
 
 ## Browser QA
 
-Lazy Playwright MCP (`/mcp status`); accessibility snapshots and DOM/console/network evidence first, screenshots under `.artifacts/playwright/` as reproducible artifacts. Deterministic browser tests stay separate from interactive MCP exploration. Slice-2 trust-boundary states can be exercised locally with `node scripts/slice2-test-server.mjs [--mode ok|web3forms-down|turnstile-fail] [--port 8788]`.
+Native Playwright MCP via `tool_search` (`/mcp` for the in-session connection check); accessibility snapshots and DOM/console/network evidence first, screenshots under `.artifacts/playwright/` as reproducible artifacts. Deterministic browser tests stay separate from interactive MCP exploration. Slice-2 trust-boundary states can be exercised locally with `node scripts/slice2-test-server.mjs [--mode ok|web3forms-down|turnstile-fail] [--port 8788]`.
 
 ## Contact / facts
 

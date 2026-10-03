@@ -178,6 +178,6 @@ Canonical commands:
 - Affected-change routing: `node scripts/verify-affected.mjs --file <path> [--plan]` (routes in `.pi/verification.json`; unmatched files fall back to the full gate).
 - Harness/workflow tests: `node --test tests/*.test.mjs`.
 - Install (harness): `./p` installs pinned Pi packages; app install (`npm install` or `pnpm install`) arrives with the Astro scaffolding.
-- Browser QA: lazy Playwright MCP (`/mcp status`), screenshots under `.artifacts/playwright/`; deterministic browser tests separate from MCP exploration.
+- Browser QA: native Playwright MCP via `tool_search` (`/mcp` for the in-session connection check), screenshots under `.artifacts/playwright/`; deterministic browser tests separate from MCP exploration.
 
 Do not invent quality targets that the product or repository has not accepted.

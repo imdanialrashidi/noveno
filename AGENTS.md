@@ -19,14 +19,14 @@ Read only what the current decision needs:
 
 - `docs/HARNESS.md`: non-trivial execution, bounded recovery and handoff.
 - `docs/QUALITY.md`: acceptance, test value, security and UI quality.
-- `docs/PRODUCT.md`, `DESIGN.md`, `ARCHITECTURE.md`, `PLAN.md`: the corresponding product decision.
+- `docs/PRODUCT.md`, `DESIGN.md`, `ARCHITECTURE.md`, `PLAN.md`: the corresponding product decision. For UI work, read `docs/DESIGN.md` first; record explicit user design/color choices there before implementation and reuse its mapped tokens.
 - `docs/EVALUATION.md`: harness measurement and model comparisons.
 - `docs/GIT_POLICY.md`: before authorized Git/GitHub writes.
 - `docs/exec-plans/active/`: when resuming durable work.
 - `docs/PROJECT_CONTEXT.md`: before product/UI work, run the informational readiness check (`node scripts/validate-project-context.mjs --static`).
-- `docs/DESIGN.md` and `docs/VISUAL_REVIEW.md`: visually significant work; the locked visual direction is the contract. For UI work, read `docs/DESIGN.md` first; record explicit user design/color choices there before implementation and reuse its mapped tokens.
+- `docs/DESIGN.md` and `docs/VISUAL_REVIEW.md`: visually significant work; the locked visual direction is the contract.
 
-Do not add tests by default: identify a plausible regression and a gap in existing evidence first. `No new test` is a valid outcome; fewer tests alone is not the goal. When tests are added or materially changed, use `test-design`: distinct failure model, independent oracle, cheapest faithful layer and defect sensitivity. Use `verification-routing` for non-obvious check selection. Load browser/frontend skills only for their matching work; use `docs/QUALITY.md` for risk review and `no-ai-slop` for substantive prose; load the project domain skills (`accessibility-audit`, `web-performance`, `technical-seo`, `rtl-i18n`) only when the accepted scope contains that domain.
+Do not add tests by default: identify a plausible regression and a gap in existing evidence first. `No new test` is a valid outcome; fewer tests alone is not the goal. When tests are added or materially changed, use `test-design`: independent oracle, cheapest faithful layer and defect sensitivity. Use `verification-routing` for non-obvious check selection. Load browser/frontend skills only for matching work; use `docs/QUALITY.md` for risk review and `no-ai-slop` for substantive prose; load the project domain skills (`accessibility-audit`, `web-performance`, `technical-seo`, `rtl-i18n`) only when the accepted scope contains that domain.
 
 ## Engineering invariants
 
