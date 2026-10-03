@@ -61,4 +61,3 @@ featured: false
 
 - [صفحهٔ اصلی پرتفولیو](https://imdanialrashidi.github.io/)
 - [پروفایل GitHub](https://github.com/imdanialrashidi)
-- [صفحهٔ نمونه‌کار نوونو](https://noveno.ir/portfolio/)

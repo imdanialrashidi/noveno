@@ -72,4 +72,3 @@ featured: false
 - [دربارهٔ شرکت](https://isbatab.ir/about/)
 - [خدمات](https://isbatab.ir/services/)
 - [رزومهٔ پروژه‌ها](https://isbatab.ir/projects/)
-- [صفحهٔ نمونه‌کار نوونو](https://noveno.ir/portfolio/)

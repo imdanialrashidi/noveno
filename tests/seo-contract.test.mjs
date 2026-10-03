@@ -215,3 +215,65 @@ test("thank-you page ships the pre-paint guard script (reviewer MAJOR)", () => {
   );
   assert.ok(html.includes("data-audit-done"), "the head script must set the data-audit-done attribute");
 });
+
+/**
+ * Internal link integrity (technical SEO audit 2026-10).
+ *
+ * Contract: every same-origin href/src in the built HTML must resolve to a
+ * file that the build actually ships. The oracle is the contents of `dist/`
+ * itself — the set of emitted routes and assets — so a link to a route that
+ * was never built (e.g. a `/portfolio/` page removed from the section
+ * grammar) fails here instead of silently 404-ing for a crawler and a reader.
+ *
+ * Why this gate exists: the sitemap/robots/JSON-LD checks above all passed
+ * while five published case studies linked to `https://noveno.ir/portfolio/`
+ * on every build. Nothing in the suite asserted link targets.
+ *
+ * External links are out of scope: client sites, Instagram, messaging apps,
+ * and the Cloudflare Turnstile script are not ours to resolve.
+ */
+test("every same-origin link in built HTML resolves to a built route or asset", () => {
+  const files = walk(dist);
+
+  /** Route URLs the build serves as pages, e.g. "/" or "/work/isbatab/". */
+  const routes = new Set(
+    files
+      .filter((f) => f.endsWith(".html"))
+      .map((f) => ("/" + path.relative(dist, f)).replace(/\.html$/, "").replace(/\/index$/, "/")),
+  );
+  /** Non-HTML files the build ships, e.g. "/og/work.png" or "/rss.xml". */
+  const assets = new Set(
+    files.filter((f) => !f.endsWith(".html")).map((f) => "/" + path.relative(dist, f)),
+  );
+
+  assert.ok(routes.size > 0, "dist/ has no built pages — run a build first");
+
+  const broken = [];
+  for (const file of files.filter((f) => f.endsWith(".html"))) {
+    const html = fs.readFileSync(file, "utf8");
+    const page = "/" + path.relative(dist, file);
+    for (const [, raw] of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
+      if (/^(mailto:|tel:|#|javascript:|data:)/.test(raw)) continue;
+      let url;
+      try {
+        url = new URL(raw, `${site}/`);
+      } catch {
+        broken.push({ page, link: raw, why: "unparseable URL" });
+        continue;
+      }
+      if (url.origin !== site) continue; // external — out of scope
+      const p = url.pathname;
+      const resolves = [p, p.replace(/\/$/, "") + "/", p.replace(/\/$/, "")].some(
+        (c) => routes.has(c) || assets.has(c),
+      );
+      if (!resolves) broken.push({ page, link: raw, why: "not present in dist/" });
+    }
+  }
+
+  assert.deepEqual(
+    broken,
+    [],
+    "dead same-origin links in built HTML (each resolves to a 404 for readers and crawlers):\n" +
+      broken.map((b) => `  ${b.page} -> ${b.link}  [${b.why}]`).join("\n"),
+  );
+});

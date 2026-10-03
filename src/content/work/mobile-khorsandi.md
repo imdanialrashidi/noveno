@@ -62,4 +62,3 @@ featured: false
 - [صفحهٔ اصلی](https://mobilekhorsandi.ir/)
 - [تماس با ما](https://mobilekhorsandi.ir/contact-us/)
 - [سوال‌های متداول](https://mobilekhorsandi.ir/faq/)
-- [صفحهٔ نمونه‌کار نوونو](https://noveno.ir/portfolio/)

@@ -62,4 +62,3 @@ featured: false
 
 - [صفحهٔ اصلی](https://phpieltshouse.ir/)
 - [وبلاگ](https://phpieltshouse.ir/blog/)
-- [صفحهٔ نمونه‌کار نوونو](https://noveno.ir/portfolio/)
