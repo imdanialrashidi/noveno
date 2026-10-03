@@ -37,6 +37,26 @@ export const PRIMARY_CTA_LABEL = "درخواست بررسی مسیر جذب";
 export const SECONDARY_CTA_LABEL = "دیدن نمونه‌کارها";
 
 /* ------------------------------------------------------------------ */
+/* Search Console verification                                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Google Search Console HTML-tag verification token.
+ *
+ * This is a **public identifier, not a secret**: the tag exists precisely
+ * so that anyone — including Google's crawler — can read it from the served
+ * homepage. It grants no access and must never be treated as a credential.
+ *
+ * Google reads this meta tag from the homepage `<head>`. It is rendered by
+ * `BaseLayout` so every route carries it, which guarantees the homepage
+ * does too.
+ *
+ * To rotate: issue a new token in Search Console → Settings → Ownership
+ * verification → HTML tags, replace this value, then re-verify.
+ */
+export const GOOGLE_SITE_VERIFICATION = "2iOJHcK1PglZdQc_FBOOZRu55LmikB_HLm0BUjACqWw";
+
+/* ------------------------------------------------------------------ */
 /* Contact facts (Spec §64.1 — redundancy is a requirement)            */
 /* ------------------------------------------------------------------ */
 
