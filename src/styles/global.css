@@ -773,6 +773,41 @@
     transform: translateX(-4px);
   }
 
+  /* 5c. Blog index row — the row's OWN hairline registers on hover and
+        on keyboard focus, so a ledger row answers a pointer and the
+        keyboard the same way a work preview does (device 5a). Pointer
+        devices only, so touch never leaves a stuck line. The affordance
+        inside the row is a non-interactive `ArrowLink as="span"` (the
+        row itself is the anchor), so its underline and glyph nudge are
+        driven by the focused group rather than by its own focus. */
+  @media (hover: hover) {
+    .blog-row {
+      position: relative;
+    }
+    .blog-row::after {
+      content: "";
+      position: absolute;
+      inset-inline: 0;
+      top: -1px;
+      height: 1px;
+      background-color: var(--primary);
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform var(--dur-2) var(--ease-standard);
+      pointer-events: none;
+    }
+    .blog-row:hover::after,
+    .blog-row:focus-within::after {
+      transform: scaleX(1);
+    }
+  }
+  .group:focus-visible .arrow-link--inline::after {
+    transform: scaleX(1);
+  }
+  .group:focus-visible .arrow-link--inline svg {
+    transform: translateX(-4px);
+  }
+
   /* 6. Registration line on the mobile sticky header — scroll-driven,
         off the main thread, no listener, no JS. Desktop is excluded
         because the desktop header is `static` (DESIGN §8), and reduced
@@ -1124,6 +1159,244 @@
   .work-prose img {
     border: 1px solid var(--line);
     border-radius: 4px;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Article figures — the blog's visual language (docs/BLOG.md)      */
+  /*                                                                   */
+  /* Figures in article bodies follow the accepted public primitives   */
+  /* (docs/DESIGN.md §3.2/§4): designed page mockups with real         */
+  /* Persian UI labels, editorial numerals, hairline brand geometry    */
+  /* and real product surfaces — never stock photography and never     */
+  /* the rejected line-diagram grammar (§3.1).                         */
+  /*                                                                   */
+  /* Why semantic classes instead of image files: the labels stay      */
+  /* real text (selectable, searchable, RTL-correct, re-themable      */
+  /* with the Light/Dark tokens), a figure costs no extra request,     */
+  /* and its box is fully reserved by the layout (zero CLS). A figure */
+  /* is authored as a few lines of semantic HTML in the Markdown body. */
+  /* ---------------------------------------------------------------- */
+  .fig {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .fig-stage {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background-color: var(--surface);
+    padding: 1rem;
+  }
+  @media (min-width: 640px) {
+    .fig-stage {
+      padding: 1.25rem;
+    }
+  }
+  /* Data / ledger stage — a quieter ground for tables and grids. */
+  .fig-stage--soft {
+    background-color: var(--surface-soft);
+  }
+  /* Two-up comparison; stacks on narrow screens (mobile recomposition). */
+  .fig-cols {
+    display: grid;
+    gap: 0.75rem;
+  }
+  @media (min-width: 640px) {
+    .fig-cols {
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+    }
+  }
+  .fig-cap {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--text-faint);
+  }
+  /* Annotation chip — states what a figure shows, never a fake badge. */
+  .fig-tag {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 0.375rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 2px;
+    padding: 0.125rem 0.5rem;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+  /* Hairline-separated rows — the ledger reading of a list. */
+  .fig-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .fig-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    border-top: 1px solid var(--line);
+    padding-block: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+  .fig-row:first-child {
+    border-top: 0;
+  }
+  .fig-key {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .fig-val {
+    color: var(--text-muted);
+  }
+  /* Small editorial numeral for figures (the page-level .editorial-num
+     is tuned for section scale, not for an in-prose caption). */
+  .fig-num {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.125rem;
+    line-height: 1;
+    color: var(--text-action);
+    font-variant-numeric: tabular-nums;
+  }
+  /* Designed page mock — real labels, no skeleton bars. */
+  .mock {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background-color: var(--surface);
+    padding: 1rem;
+  }
+  .mock-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.5rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+  .mock-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    color: var(--text);
+    text-wrap: balance;
+  }
+  .mock-lead {
+    font-size: 0.875rem;
+    line-height: 1.8;
+    color: var(--text-muted);
+  }
+  .mock-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-start;
+    border-radius: 4px;
+    background-color: var(--primary);
+    color: var(--on-primary);
+    padding: 0.375rem 0.875rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+  .mock-cta--ghost {
+    background-color: transparent;
+    border: 1px solid var(--line-strong);
+    color: var(--text-muted);
+  }
+  .mock-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .mock-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background-color: var(--canvas);
+    padding: 0.75rem;
+  }
+  .mock-field {
+    border: 1px solid var(--line-strong);
+    border-radius: 3px;
+    background-color: var(--surface);
+    padding: 0.375rem 0.625rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+  .mock-block {
+    display: flex;
+    gap: 0.625rem;
+    border-top: 1px solid var(--line);
+    padding-top: 0.5rem;
+  }
+  .mock-block:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .mock-block-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+  .mock-block-label {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--text);
+  }
+  .mock-block-note {
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+  /* Data grid inside a figure — compact, tabular, wraps like prose tables. */
+  .fig-table {
+    width: 100%;
+    border-collapse: collapse;
+    display: block;
+    overflow-x: auto;
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    white-space: nowrap;
+  }
+  .fig-table th {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--text);
+    text-align: start;
+    border-bottom: 1px solid var(--line-strong);
+    padding: 0.375rem 0.5rem;
+  }
+  .fig-table td {
+    border-bottom: 1px solid var(--line);
+    padding: 0.375rem 0.5rem;
+    vertical-align: top;
+    color: var(--text-muted);
+  }
+  .fig-table tr:last-child td {
+    border-bottom: 0;
   }
 }
 

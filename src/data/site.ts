@@ -78,16 +78,20 @@ export const CONTACT = {
 /* ------------------------------------------------------------------ */
 
 /**
- * Primary navigation (2026-10 focus pass): five links plus one action.
+ * Primary navigation: six links plus one action.
  * `/services` and `/work` keep their URLs — only the labels changed to
- * the founder's product language (راهکارها / نمونه‌کار). Supporting
- * pages (`/process`, `/blog`, `/contact`, legal) stay reachable through
+ * the founder's product language (راهکارها / نمونه‌کار). `/blog` returned
+ * to the primary navigation by the eighth review (2026-10,
+ * docs/DESIGN.md §0/§8): the section now holds six real published
+ * articles, which is the credibility signal the fifth review asked for.
+ * Supporting pages (`/process`, `/contact`, legal) stay reachable through
  * the footer and in-context links; no route is deleted for simplicity.
  */
 export const NAV_LINKS = [
   { href: "/", label: "خانه" },
   { href: "/services", label: "راهکارها" },
   { href: "/work", label: "نمونه‌کار" },
+  { href: "/blog", label: "وبلاگ" },
   { href: "/pricing", label: "قیمت" },
   { href: "/about", label: "درباره" },
 ] as const;

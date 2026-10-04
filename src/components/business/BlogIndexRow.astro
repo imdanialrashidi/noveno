@@ -1,0 +1,95 @@
+---
+/**
+ * BlogIndexRow — the homepage /blog section's row (DESIGN §3.8, eighth
+ * review 2026-10). The section reads as a publication's index, not a card
+ * wall: one continuous sequence of hairline rows numbered ۰۱، ۰۲، ۰۳، ۰۴
+ * built on the editorial-numeral device, where the newest article carries
+ * the only description and the only reading affordance.
+ *
+ * Structure is a book's running head: the entry text sits at the start
+ * (right, RTL) and its reference — category, date, reading time — in a
+ * column at the inline end. Below `sm` the reference stacks above the
+ * title, so the row is recomposed rather than compressed.
+ *
+ * Every row — lead and ledger — is a single anchor wrapping the whole row,
+ * so the target is the row (mobile-first) and keyboard users get exactly
+ * one stop per article. The anchor therefore owns the `.group`, so hover
+ * and keyboard focus drive the same devices (title colour, arrow nudge,
+ * and the row hairline from §12 device 5c).
+ *
+ * The lead is promoted by WEIGHT and structure, never by a new type step:
+ * `text-h3` bold with `text-wrap: balance`, plus the description and the
+ * affordance. `text-h2` is deliberately not used — at 1440 it is the same
+ * 40px as the section's own heading, and an article title must stay
+ * subordinate to it.
+ *
+ * Motion is the existing registration layer only: `data-sweep` draws the
+ * row's hairline in from the RTL start and the `.editorial-num` inside
+ * `data-reveal-item` locks once. No new JavaScript.
+ *
+ * Data contract: the caller passes entries that already passed the
+ * `isPublished` gate; a draft can never reach this component.
+ */
+
+import ArrowLink from "../ui/ArrowLink.astro";
+import { toFaDigits } from "../../data/site";
+
+interface BlogRow {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  dateLabel: string;
+  readingLabel: string;
+}
+
+interface Props {
+  entry: BlogRow;
+  /** Editorial ordinal inside the section's sequence (0-based). */
+  index: number;
+  /** The newest article: carries the description and the reading affordance. */
+  lead?: boolean;
+}
+
+const { entry, index, lead = false } = Astro.props;
+const faIndex = toFaDigits(String(index + 1).padStart(2, "0"));
+const href = `/blog/${entry.id}`;
+---
+
+<li class="flex items-start gap-4 sm:gap-8" data-reveal-item={index} data-sweep>
+  <span class="editorial-num shrink-0 text-text-action" aria-hidden="true">{faIndex}</span>
+  <a
+    href={href}
+    class="blog-row group flex min-h-13 min-w-0 flex-1 flex-col gap-3 border-t border-line py-7 sm:flex-row sm:gap-8"
+  >
+    <span class="flex min-w-0 flex-1 flex-col gap-4">
+      <span
+        class:list={[
+          "text-h3 text-text transition-colors duration-150 group-hover:text-text-action",
+          lead ? "text-balance font-bold" : "",
+        ]}
+      >
+        {entry.title}
+      </span>
+      {
+        lead && (
+          <span class="flex max-w-2xl flex-col gap-5">
+            <span class="text-body text-text-muted measure-prose">{entry.description}</span>
+            <ArrowLink as="span" label="خواندن نوشته" />
+          </span>
+        )
+      }
+    </span>
+    {/* Reference column: above the entry text on a narrow screen (the
+        familiar article-list header), beside it from `sm` up. Narrowed at
+        `sm` so the 640–900px band keeps a readable text column. */}
+    <span class="order-first flex shrink-0 flex-col items-start gap-2 sm:order-none sm:w-48 xl:w-56">
+      <span
+        class="inline-flex rounded-[4px] border border-line bg-surface px-2 py-0.5 text-caption text-text-muted"
+      >
+        {entry.category}
+      </span>
+      <span class="text-meta text-text-faint">{entry.dateLabel} · {entry.readingLabel}</span>
+    </span>
+  </a>
+</li>

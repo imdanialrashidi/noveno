@@ -142,6 +142,66 @@ test("rss feed exists, is valid RSS 2.0, and excludes drafts (plan 029)", () => 
   );
 });
 
+test("in-article table-of-contents links resolve to real headings", () => {
+  // Long articles ship a «در این نوشته» list whose anchors are hand-written
+  // in the Markdown body. Astro derives heading ids by slugifying the heading
+  // text, so a reworded or re-punctuated heading silently breaks every link —
+  // and the link-integrity gate in tests/seo-contract.test.mjs skips `#`
+  // fragments by design. Oracle: the ids actually emitted in dist/.
+  const distBlog = path.resolve(import.meta.dirname, "..", "dist", "blog");
+  const articleDirs = fs.existsSync(distBlog)
+    ? fs
+        .readdirSync(distBlog, { withFileTypes: true })
+        .filter((e) => e.isDirectory())
+        .map((e) => path.join(distBlog, e.name, "index.html"))
+        .filter((f) => fs.existsSync(f))
+    : [];
+  if (articleDirs.length === 0) return; // dist not built (routing-lite runs)
+
+  let checked = 0;
+  const broken = [];
+  for (const file of articleDirs) {
+    const html = fs.readFileSync(file, "utf8");
+    const ids = new Set([...html.matchAll(/ id="([^"]*)"/g)].map((m) => decodeURIComponent(m[1])));
+    for (const [, fragment] of html.matchAll(/href="#([^"]+)"/g)) {
+      const target = decodeURIComponent(fragment);
+      if (!ids.has(target)) {
+        broken.push(`${path.basename(path.dirname(file))} -> #${target}`);
+        continue;
+      }
+      checked += 1;
+    }
+  }
+  assert.deepEqual(broken, [], `dead in-article anchors:\n${broken.join("\n")}`);
+  assert.ok(checked > 0, "expected at least one in-article anchor to check");
+});
+
+test("article figures ship real anchors, never raw Markdown link syntax", () => {
+  // Figures are authored as raw HTML inside the Markdown body, and Markdown
+  // is NOT processed inside an HTML block: a `[label](/url)` written there
+  // renders as literal text — a dead link that still *looks* fine in the
+  // source. The link-integrity gate only inspects href/src attributes, so
+  // nothing else would notice. Oracle: the built HTML of every article.
+  const distBlog = path.resolve(import.meta.dirname, "..", "dist", "blog");
+  const articles = fs.existsSync(distBlog)
+    ? fs
+        .readdirSync(distBlog, { withFileTypes: true })
+        .filter((e) => e.isDirectory())
+        .map((e) => path.join(distBlog, e.name, "index.html"))
+        .filter((f) => fs.existsSync(f))
+    : [];
+  if (articles.length === 0) return; // dist not built (routing-lite runs)
+
+  const leaked = [];
+  for (const file of articles) {
+    const html = fs.readFileSync(file, "utf8");
+    const hits = [...html.matchAll(/\[([^\]\n]{2,40})\]\(([^)\s]+)\)/g)];
+    for (const [, label, href] of hits)
+      leaked.push(`${path.basename(path.dirname(file))}: [${label}](${href})`);
+  }
+  assert.deepEqual(leaked, [], `Markdown link syntax leaked into rendered HTML:\n${leaked.join("\n")}`);
+});
+
 test("neighbours mapping: older = published before (قبلی), newer = published after (بعدی)", () => {
   const entry = (id, date) => ({
     id,

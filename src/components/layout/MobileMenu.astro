@@ -55,9 +55,11 @@ const pathname = Astro.url.pathname;
     </ul>
 
     {
-      /* Supporting pages (/process, /blog, /contact) stay out of the
+      /* Supporting pages (/process, /contact, legal) stay out of the
         primary navigation — they remain reachable from the footer and
-        from in-context links on the page that owns them. */
+        from in-context links on the page that owns them. /blog IS in the
+        primary navigation (eighth review, 2026-10) and comes from the same
+        NAV_LINKS list, so the header and this menu can never disagree. */
     }
 
     <p class="mt-6 mb-2 text-meta text-text-faint">تماس مستقیم</p>

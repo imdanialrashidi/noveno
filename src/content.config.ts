@@ -91,28 +91,50 @@ const work = defineCollection({
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/blog" }),
-  schema: z.object({
-    /** Article title — unique per article, used in <title>/og:title/H1. */
-    title: z.string().min(3).max(120),
-    /** Meta description — unique per article (SEO surface). */
-    description: z.string().min(20).max(180),
-    /** Publication date — drives ordering, sitemap lastmod, schema. */
-    published_at: z.coerce.date(),
-    /** Optional revision date — only when the article was materially updated. */
-    updated_at: z.coerce.date().optional(),
-    /** Truthful author — default is the publisher «نوونو». */
-    author: z.string().min(2).max(60).default("نوونو"),
-    /** Draft gate — drafts never build, never appear in index/sitemap. */
-    draft: z.boolean().default(false),
-    /** Topic/category — the only taxonomy; powers related articles. */
-    category: z.string().min(2).max(40),
-    /** Optional tags — no tag pages are generated (thin taxonomy rule). */
-    tags: z.array(z.string().min(2).max(30)).default([]),
-    /** Optional social-card override (path under public/, e.g. /og/blog/x.png). */
-    ogImage: z.string().optional(),
-    /** Optional canonical override — only when genuinely required. */
-    canonical: z.url().optional(),
-  }),
+  schema: z
+    .object({
+      /** Article title — unique per article, used in <title>/og:title/H1. */
+      title: z.string().min(3).max(120),
+      /** Meta description — unique per article (SEO surface). */
+      description: z.string().min(20).max(180),
+      /** Publication date — drives ordering, sitemap lastmod, schema. */
+      published_at: z.coerce.date(),
+      /** Optional revision date — only when the article was materially updated. */
+      updated_at: z.coerce.date().optional(),
+      /** Truthful author — default is the publisher «نوونو». */
+      author: z.string().min(2).max(60).default("نوونو"),
+      /** Draft gate — drafts never build, never appear in index/sitemap. */
+      draft: z.boolean().default(false),
+      /** Topic/category — the only taxonomy; powers related articles. */
+      category: z.string().min(2).max(40),
+      /** Optional tags — no tag pages are generated (thin taxonomy rule). */
+      tags: z.array(z.string().min(2).max(30)).default([]),
+      /** Optional social-card override (path under public/, e.g. /og/blog/x.png). */
+      ogImage: z.string().optional(),
+      /** Optional canonical override — only when genuinely required. */
+      canonical: z.url().optional(),
+      /**
+       * Optional cover: a REAL product surface (docs/DESIGN.md §3.2/§4 —
+       * the only substantial image primitive on a Noveno page). Value is a
+       * logical path in `src/generated/image-manifest.ts`, WITH extension
+       * (e.g. "work/noveno-website-audit.webp"), never a hand-written
+       * `/images/...` path; the build hashes it and pairs it with its 720w
+       * partner.
+       */
+      heroImage: z.string().min(1).optional(),
+      /**
+       * Descriptive Persian alt text for `heroImage`. Required whenever a
+       * cover is set: a cover without alt is a publishing error, not a
+       * styling choice.
+       */
+      heroImageAlt: z.string().min(10).optional(),
+      /** Optional caption under the cover — adds context the alt cannot. */
+      heroImageCaption: z.string().min(10).optional(),
+    })
+    .refine((entry) => !entry.heroImage || Boolean(entry.heroImageAlt), {
+      message: "heroImage requires heroImageAlt (descriptive Persian alt text)",
+      path: ["heroImageAlt"],
+    }),
 });
 
 export const collections = { work, blog };

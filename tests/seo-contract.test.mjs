@@ -153,6 +153,55 @@ test("insights → blog migration: permanent redirects and no duplicate indexabl
   );
 });
 
+test("blog is discoverable from the site shell and from the homepage (owner decision 2026-10)", () => {
+  // The eighth review put /blog back in the primary navigation and gave the
+  // homepage one blog section. Two regressions this closes, neither covered
+  // elsewhere: (1) someone reverts NAV_LINKS to the fifth review's five links
+  // — the "blog leaves primary navigation" rule is still written in DESIGN
+  // §3.7, so a future editor can legitimately "restore" it; (2) the homepage
+  // section silently disappears or starts linking a draft.
+  //
+  // Oracle: the published set is derived from the source frontmatter, not
+  // from the page component, so the test cannot agree with a broken filter.
+  const contentDir = path.join(root, "src", "content", "blog");
+  const slugs = fs
+    .readdirSync(contentDir)
+    .filter((f) => f.endsWith(".md"))
+    .map((f) => ({ slug: f.replace(/\.md$/, ""), file: path.join(contentDir, f) }))
+    .map(({ slug, file }) => {
+      const raw = fs.readFileSync(file, "utf8");
+      const fm = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
+      assert.ok(fm, `${file}: missing frontmatter`);
+      return { slug, draft: /^draft:\s*true\s*$/m.test(fm[1]) };
+    });
+  const publishedSlugs = new Set(slugs.filter((s) => !s.draft).map((s) => s.slug));
+  const draftSlugs = slugs.filter((s) => s.draft).map((s) => s.slug);
+  assert.ok(publishedSlugs.size >= 1, "expected at least one published article");
+
+  // (1) every built page's primary nav links to /blog
+  for (const file of walk(dist).filter((f) => f.endsWith(".html"))) {
+    const html = fs.readFileSync(file, "utf8");
+    const nav = /<nav[^>]*aria-label="ناوبری اصلی"[^>]*>([\s\S]*?)<\/nav>/.exec(html);
+    assert.ok(nav, `${path.relative(dist, file)}: primary nav not found`);
+    assert.match(
+      nav[1],
+      /<a[^>]*href="\/blog"/,
+      `${path.relative(dist, file)}: primary nav must contain the /blog link`,
+    );
+  }
+
+  // (2) the homepage indexes the blog and only published articles
+  const home = fs.readFileSync(path.join(dist, "index.html"), "utf8");
+  const linked = [...home.matchAll(/href="\/blog\/([^"/]+)"/g)].map((m) => m[1]);
+  assert.ok(linked.length > 0, "homepage must link at least one blog article");
+  for (const slug of linked) {
+    assert.ok(publishedSlugs.has(slug), `homepage links unpublished article /blog/${slug}`);
+  }
+  for (const slug of draftSlugs) {
+    assert.ok(!linked.includes(slug), `homepage must not link draft /blog/${slug}`);
+  }
+});
+
 test("draft blog articles never build and never enter the sitemap", () => {
   const draftHtml = path.join(dist, "blog", "draft-sample", "index.html");
   assert.ok(!fs.existsSync(draftHtml), "draft article must not be built");

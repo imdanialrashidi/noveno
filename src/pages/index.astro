@@ -9,15 +9,20 @@
  *   problem   → the leak, in three lines
  *   how       → three steps + the real audit-UI surface (real proof)
  *   proof     → two real project previews with honest labels
+ *   blog      → an index of the real published writing (DESIGN §3.8,
+ *               eighth review — the owner put /blog back in the header and
+ *               on this page; it sits here, between proof and price)
  *   offers    → three tiers, تومان starting prices, validity note
  *   founder   → دانیال رشیدی, founder-led trust, no invented bio
  *   faq       → the five real objections, short answers
  *   CTA       → brand-led finish
  *
  * Removed in this pass (their substance lives on the page that owns it):
- * a separate process section, the six-principles grid, the fit list, and
- * the blog teaser band. No unverified metric, dashboard, or percentage
- * appears anywhere; there is no measured client data behind one.
+ * a separate process section, the six-principles grid, and the fit list.
+ * The blog teaser is no longer one of them: the eighth review restored one
+ * blog section (see §3.8 and the block below). No unverified metric,
+ * dashboard, or percentage appears anywhere; there is no measured client
+ * data behind one.
  */
 
 import PageLayout from "../layouts/PageLayout.astro";
@@ -30,8 +35,10 @@ import FAQItem from "../components/ui/FAQItem.astro";
 import ChannelLink from "../components/ui/ChannelLink.astro";
 import ArrowLink from "../components/ui/ArrowLink.astro";
 import HeroArtwork from "../components/brand/HeroArtwork.astro";
+import BlogIndexRow from "../components/business/BlogIndexRow.astro";
 import { getCollection } from "astro:content";
 import { previewFor } from "../data/work-previews";
+import { isPublished, sortByDate, formatFaDate, readingMinutes } from "../data/blog";
 import { imageUrl } from "../generated/image-manifest";
 import {
   HERO_HEADLINE,
@@ -89,6 +96,22 @@ const FORM_SRCSET = `${FORM_SHOT.w1440} 1440w, ${FORM_SHOT.w720} 720w`;
 
 /* The four hero stage words — typography + geometry, never a diagram. */
 const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
+
+/* Blog section (DESIGN §3.8, eighth review). The homepage shows an index of
+   the real published writing — never a draft, never a placeholder row —
+   ordered exactly like /blog (newest first). Four rows is enough to read as
+   a body of work; /blog owns the full archive. */
+const BLOG_ROWS = 4;
+const blogPublished = sortByDate((await getCollection("blog")).filter(isPublished));
+const blogEntries = blogPublished.slice(0, BLOG_ROWS).map((entry) => ({
+  id: entry.id,
+  title: entry.data.title,
+  description: entry.data.description,
+  category: entry.data.category,
+  dateLabel: formatFaDate(entry.data.published_at),
+  readingLabel: `${toFaDigits(readingMinutes(entry.body ?? ""))} دقیقه مطالعه`,
+}));
+const blogTotal = toFaDigits(blogPublished.length);
 ---
 
 <PageLayout
@@ -297,6 +320,49 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
           </p>
           <Button href="/work" variant="secondary">همه نمونه‌کارها</Button>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Blog — an index of the real published writing ============ -->
+  <section class="border-t border-line" aria-labelledby="blog-title">
+    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
+      <SectionHeader
+        id="blog-title"
+        kicker="وبلاگ"
+        title="مسئله‌های واقعی مسیر جذب را می‌نویسیم"
+        lead="هر نوشته یک گلوگاه مشخص را باز می‌کند: جایی که درخواست گم می‌شود، چه چیزی جواب می‌دهد و کجا نمی‌شود عددی وعده داد."
+      />
+      {
+        blogEntries.length > 0 ? (
+          <ol data-reveal-stagger>
+            {blogEntries.map((entry, index) => (
+              <BlogIndexRow entry={entry} index={index} lead={index === 0} />
+            ))}
+          </ol>
+        ) : (
+          /* Real empty state: the section keeps its place in the narrative
+             and says what is true. It never renders filler rows. */
+          <div class="flex flex-col items-start gap-4 border-t border-line py-14">
+            <h3 class="text-h3 text-text">هنوز نوشته‌ای منتشر نشده است</h3>
+            <p class="max-w-xl text-body text-text-muted measure-prose">
+              وبلاگ نوونو تازه راه افتاده. اولین نوشته دربارهٔ یکی از همین مسائل مسیر جذب منتشر می‌شود — بدون پرکردن
+              صفحه با محتوای کم‌ارزش.
+            </p>
+          </div>
+        )
+      }
+      <div class="flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
+        <p class="text-meta text-text-faint">
+          {
+            blogEntries.length > 0
+              ? /* NBSP inside «فهرست بالا» — at 320px a normal space orphans
+                   the last word onto a line of its own. */
+                `${blogTotal} نوشتهٔ منتشرشده — تازه‌ترین ${toFaDigits(blogEntries.length)} نوشته در فهرست بالا.`
+              : "فهرست کامل نوشته‌ها در وبلاگ نگه داشته می‌شود."
+          }
+        </p>
+        <Button href="/blog" variant="secondary">همه نوشته‌ها</Button>
       </div>
     </div>
   </section>

@@ -69,3 +69,33 @@ export function neighbours(
     newer: sorted[index - 1] ?? null, // published after → «نوشتهٔ بعدی»
   };
 }
+
+/* ------------------------------------------------------------------ */
+/* Article cover — a real product surface, never decoration            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Intrinsic pixel size of every cover the blog may reference. Explicit on
+ * purpose: only real product surfaces are allowed here (docs/IMAGERY.md),
+ * and their capture size is known, so nothing has to be guessed at runtime.
+ *
+ * This module stays free of the generated image manifest (the `.astro` page
+ * resolves the hashed URLs) so it stays importable from plain Node tests.
+ */
+const HERO_IMAGE_DIMS: Record<string, { width: number; height: number }> = {
+  // 1440×900 capture of this site's own /audit form (docs/IMAGERY.md —
+  // real product surface, product 16:10 stage).
+  "work/noveno-website-audit.webp": { width: 1440, height: 900 },
+};
+
+/**
+ * Validate a frontmatter `heroImage` value and return its intrinsic size.
+ * The key is the same logical path the image manifest uses (WITH extension),
+ * so the page can hash it like every other public image. An unknown key
+ * returns null, degrading to a typographic article (the blog's normal state)
+ * instead of shipping a broken image.
+ */
+export function heroImageDims(key: string | undefined): { width: number; height: number } | null {
+  if (!key || !key.endsWith(".webp")) return null;
+  return HERO_IMAGE_DIMS[key] ?? null;
+}

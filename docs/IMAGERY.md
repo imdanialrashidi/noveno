@@ -35,6 +35,28 @@ These screenshots are real proof of real projects and are re-captured whenever t
 
 Concepts (`clinic-acquisition-concept`, `language-school-concept`) use **no image files**: `ConceptPreview.astro` renders a designed page mockup (tokens + Persian UI labels) always labeled «نمونه نمایشی — سناریوی مفهومی». Nothing fabricated is presented as real.
 
+## Article figures — no image files
+
+Blog articles do not ship their own raster assets. Their visual material is
+**designed page mockups, editorial-numeral lists and hairline brand
+geometry rendered from semantic HTML in the Markdown body** (the `.fig` /
+`.mock` classes in `src/styles/global.css`; authoring rules in
+`docs/BLOG.md`). Two reasons, both deliberate:
+
+1. it obeys the accepted public visual language — real product surfaces plus
+   designed mockups, never stock photography and never the rejected
+   line-diagram grammar (`docs/DESIGN.md` §3.1–§3.2);
+2. a figure made of real text adds no request, no layout shift and stays
+   selectable, searchable and RTL-correct in both themes.
+
+An article may still show **one real product surface** as its cover through
+the `heroImage` frontmatter field, which accepts only logical paths that
+already exist in the manifest above (`work/noveno-website-audit.webp` today)
+and requires Persian alt text. If a genuinely useful raster asset appears
+later, add the source under `assets/images/`, let
+`scripts/build-image-manifest.mjs` hash it, and record it in this registry
+exactly like a work preview.
+
 ## Social cards
 
 Locally rendered PNGs (1200×630) via `npm run generate:og` (`scripts/generate-og-images.py` — Pillow + raqm; Noto Sans Arabic, brand tokens from docs/DESIGN.md §6):

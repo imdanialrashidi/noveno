@@ -20,7 +20,15 @@
 import PageLayout from "../../layouts/PageLayout.astro";
 import Button from "../../components/ui/Button.astro";
 import { getCollection, render } from "astro:content";
-import { isPublished, relatedEntries, neighbours, formatFaDate, readingMinutes } from "../../data/blog";
+import {
+  isPublished,
+  relatedEntries,
+  neighbours,
+  formatFaDate,
+  readingMinutes,
+  heroImageDims,
+} from "../../data/blog";
+import { imageUrl } from "../../generated/image-manifest";
 import { toFaDigits } from "../../data/site";
 
 export async function getStaticPaths() {
@@ -43,6 +51,19 @@ const ogImage = data.ogImage ?? `/og/blog/${entry.id}.png`;
 
 const related = relatedEntries(all, entry, 2);
 const { older, newer } = neighbours(all, entry);
+
+/* Cover — a real product surface resolved through the content-hashed image
+   manifest (never a hand-written /images/... path). Unknown keys degrade to
+   the blog's normal typographic article. */
+const heroDims = heroImageDims(data.heroImage);
+const hero =
+  heroDims && data.heroImage
+    ? {
+        src: imageUrl(data.heroImage),
+        srcset: `${imageUrl(data.heroImage)} 1440w, ${imageUrl(data.heroImage.replace(/\.webp$/, "-800.webp"))} 720w`,
+        ...heroDims,
+      }
+    : null;
 
 const pageTitle = `${data.title} | نوونو`;
 const publishedIso = data.published_at.toISOString();
@@ -165,6 +186,25 @@ const readingLabel = `${toFaDigits(readingMinutes(entry.body ?? ""))} دقیقه
   <section class="border-t border-line" aria-label="متن نوشته">
     <div class="mx-auto max-w-[1200px] px-5 py-10 sm:px-8 lg:py-14">
       <article class="article-prose mx-auto">
+        {
+          hero && (
+            <figure class="media-figure mb-10">
+              <div class="media-frame aspect-[16/10]">
+                <img
+                  src={hero.src}
+                  srcset={hero.srcset}
+                  sizes="(min-width: 768px) 700px, 100vw"
+                  alt={data.heroImageAlt}
+                  width={hero.width}
+                  height={hero.height}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <figcaption class="media-caption">{data.heroImageCaption ?? data.heroImageAlt}</figcaption>
+            </figure>
+          )
+        }
         <Content />
       </article>
     </div>
