@@ -10,6 +10,17 @@ const artifactsRoot = path.join(repositoryRoot, ".artifacts");
 function runLauncher(overrides = {}, extraArgs = []) {
   fs.mkdirSync(artifactsRoot, { recursive: true });
   const temporaryDirectory = fs.mkdtempSync(path.join(artifactsRoot, "launcher-test-"));
+  fs.mkdirSync(path.join(temporaryDirectory, "scripts"));
+  fs.mkdirSync(path.join(temporaryDirectory, ".pi/npm/node_modules/pi-lsp-adapter"), { recursive: true });
+  for (const file of ["p", "scripts/pi-extension-compat.mjs", "scripts/pi-provider.mjs", ".pi/settings.json", ".pi/models.env"]) {
+    fs.copyFileSync(path.join(repositoryRoot, file), path.join(temporaryDirectory, file));
+  }
+  // Argument/environment tests start with an installed adapter. Actual missing-
+  // package installation is exercised by the separate native CLI smoke check.
+  fs.writeFileSync(path.join(temporaryDirectory, ".pi/npm/node_modules/pi-lsp-adapter/package.json"), JSON.stringify({
+    name: "pi-lsp-adapter", version: "0.1.3", dependencies: {},
+    peerDependencies: { "@earendil-works/pi-tui": "*", typebox: "*" },
+  }));
   const fakePi = path.join(temporaryDirectory, "pi");
   fs.writeFileSync(
     fakePi,
@@ -33,8 +44,8 @@ process.stdout.write(JSON.stringify({
   );
 
   try {
-    return spawnSync("bash", ["p", ...extraArgs], {
-      cwd: repositoryRoot,
+    const result = spawnSync("bash", ["p", ...extraArgs], {
+      cwd: temporaryDirectory,
       encoding: "utf8",
       env: {
         ...process.env,
@@ -51,6 +62,7 @@ process.stdout.write(JSON.stringify({
         ...overrides,
       },
     });
+    return { ...result, fixtureRoot: temporaryDirectory };
   } finally {
     fs.rmSync(temporaryDirectory, { recursive: true, force: true });
   }
@@ -58,7 +70,7 @@ process.stdout.write(JSON.stringify({
 
 function parsed(result) {
   assert.equal(result.status, 0, result.stderr);
-  return JSON.parse(result.stdout);
+  return { ...JSON.parse(result.stdout), fixtureRoot: result.fixtureRoot };
 }
 
 test("launcher grants trusted full-scope work while Git and external mutation fail closed", () => {
@@ -70,7 +82,7 @@ test("launcher grants trusted full-scope work while Git and external mutation fa
   assert.equal(result.fileScope, "full");
   assert.equal(result.gitMutation, "deny");
   assert.equal(result.externalMutation, "deny");
-  assert.equal(result.projectRoot, repositoryRoot);
+  assert.equal(result.projectRoot, result.fixtureRoot);
 });
 
 test("repository does not force a provider, model, or thinking level", () => {
@@ -81,21 +93,19 @@ test("repository does not force a provider, model, or thinking level", () => {
 });
 
 test("explicit model and thinking overrides pass through unchanged", () => {
-  const result = parsed(
-    runLauncher({
-      PI_MAIN_MODEL: "provider/model-id",
-      PI_MAIN_THINKING: "medium",
-      PI_ENABLED_MODELS: "provider/*",
-    }),
-  );
+  const result = parsed(runLauncher({
+    PI_MAIN_MODEL: "provider/model-id",
+    PI_MAIN_THINKING: "medium",
+    PI_ENABLED_MODELS: "provider/*",
+  }));
   assert.deepEqual(result.args.slice(result.args.indexOf("--model"), result.args.indexOf("--model") + 2), [
     "--model",
     "provider/model-id",
   ]);
-  assert.deepEqual(
-    result.args.slice(result.args.indexOf("--thinking"), result.args.indexOf("--thinking") + 2),
-    ["--thinking", "medium"],
-  );
+  assert.deepEqual(result.args.slice(result.args.indexOf("--thinking"), result.args.indexOf("--thinking") + 2), [
+    "--thinking",
+    "medium",
+  ]);
   assert.deepEqual(result.args.slice(result.args.indexOf("--models"), result.args.indexOf("--models") + 2), [
     "--models",
     "provider/*",
@@ -105,10 +115,8 @@ test("explicit model and thinking overrides pass through unchanged", () => {
 test("project defaults keep native MCP discovery while launcher preserves explicit CLI tool selection", () => {
   const result = parsed(runLauncher());
   assert.equal(result.args.includes("--tools"), false, "CLI restrictions hide deferred native MCP tools");
-  assert.deepEqual(
-    JSON.parse(fs.readFileSync(path.join(repositoryRoot, ".pi/settings.json"), "utf8")).defaultTools,
-    ["read", "bash", "edit", "write", "grep", "find", "ls", "harness_tools", "tool_search"],
-  );
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(repositoryRoot, ".pi/settings.json"), "utf8")).defaultTools,
+    ["read", "bash", "edit", "write", "grep", "find", "ls", "harness_tools", "tool_search"]);
   const restricted = parsed(runLauncher({}, ["--tools", "read"]));
   assert.deepEqual(restricted.args.slice(-2), ["--tools", "read"]);
 });
@@ -122,14 +130,12 @@ test("launcher enables bounded runtime optimization defaults with explicit opt-o
   assert.equal(defaults.blindRetryLimit, "2");
   assert.equal(defaults.continuity, "1");
 
-  const disabled = parsed(
-    runLauncher({
-      PI_EXPERIMENTAL: "0",
-      PI_SMART_READ: "0",
-      PI_BLIND_RETRY_LIMIT: "0",
-      PI_CONTINUITY: "0",
-    }),
-  );
+  const disabled = parsed(runLauncher({
+    PI_EXPERIMENTAL: "0",
+    PI_SMART_READ: "0",
+    PI_BLIND_RETRY_LIMIT: "0",
+    PI_CONTINUITY: "0",
+  }));
   assert.equal(disabled.experimental, "0");
   assert.equal(disabled.smartRead, "0");
   assert.equal(disabled.blindRetryLimit, "0");
@@ -137,14 +143,12 @@ test("launcher enables bounded runtime optimization defaults with explicit opt-o
 });
 
 test("launcher preserves explicit trust and guard overrides", () => {
-  const ask = parsed(
-    runLauncher({
-      PI_PROJECT_TRUST: "ask",
-      PI_GUARD_MODE: "strict",
-      PI_GUARD_FILE_SCOPE: "repository",
-      PI_GIT_MUTATION: "allow",
-    }),
-  );
+  const ask = parsed(runLauncher({
+    PI_PROJECT_TRUST: "ask",
+    PI_GUARD_MODE: "strict",
+    PI_GUARD_FILE_SCOPE: "repository",
+    PI_GIT_MUTATION: "allow",
+  }));
   assert.equal(ask.args.includes("--approve"), false);
   assert.equal(ask.args.includes("--no-approve"), false);
   assert.equal(ask.guardMode, "strict");
@@ -165,6 +169,12 @@ test("launcher rejects an invalid project-trust mode", () => {
 test("native MCP subcommands are commands rather than accidental model prompts", () => {
   const result = parsed(runLauncher({ PI_MAIN_MODEL: "provider/model-id" }, ["mcp", "list", "--json"]));
   assert.deepEqual(result.args, ["mcp", "list", "--json"]);
+});
+
+test("native package installation and updates preserve command arguments", () => {
+  for (const args of [["install", "--local", "npm:pi-lsp-adapter@0.1.3"], ["update", "--help"]]) {
+    assert.deepEqual(parsed(runLauncher({}, args)).args, args);
+  }
 });
 
 test("custom-provider setup routes through Node before requiring Pi", () => {
