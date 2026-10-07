@@ -310,13 +310,13 @@ test("signatures and capsules never expose raw secret inputs", () => {
 });
 
 test("a fresh session drops managed specialists left active by the previous session", async () => {
-  const runtime = createRuntime({ extraTools: ["doc_search_get_library_docs", "lsp_hover", "lsp_document_symbols", "doc_search_get_cached_doc_raw", "mcp__playwright__browser_snapshot", "mcp__context7__resolve_library_id", "local_custom"] });
+  const runtime = createRuntime({ extraTools: ["doc_search_get_library_docs", "lsp_hover", "lsp_document_symbols", "doc_search_get_cached_doc_raw", "mcp__playwright__browser_snapshot", "mcp__deepwiki__ask_wiki_question", "local_custom"] });
   assert.ok(runtime.activeTools().includes("doc_search_get_library_docs"));
   await runtime.handlers.get("session_start")({ type: "session_start", reason: "new" }, runtime.ctx);
   assert.equal(runtime.activeTools().includes("doc_search_get_library_docs"), false);
   assert.ok(runtime.activeTools().includes("local_custom"));
   assert.ok(runtime.activeTools().includes("mcp__playwright__browser_snapshot"), "native MCP branch state belongs to Pi");
-  assert.ok(runtime.activeTools().includes("mcp__context7__resolve_library_id"), "native Context7 MCP branch state belongs to Pi");
+  assert.ok(runtime.activeTools().includes("mcp__deepwiki__ask_wiki_question"), "native DeepWiki MCP branch state belongs to Pi");
   for (const name of ["lsp_hover", "lsp_document_symbols", "doc_search_get_cached_doc_raw", "doc_search_resolve_library_id", "doc_search_get_library_docs"]) assert.equal(runtime.activeTools().includes(name), false);
   assert.deepEqual(runtime.appended, []);
 });
