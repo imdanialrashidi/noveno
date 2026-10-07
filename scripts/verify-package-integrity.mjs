@@ -43,11 +43,16 @@ for (const entry of manifest.packages) {
 const configured = (settings.packages ?? []).map((entry) =>
   typeof entry === "string" ? entry : entry?.source,
 );
-const playwrightSpec = (mcp.mcpServers?.playwright?.args ?? []).find(
-  (value) => typeof value === "string" && value.startsWith("@playwright/mcp@"),
+const playwrightSpec = (mcp.mcpServers?.playwright?.args ?? []).find((value) =>
+  typeof value === "string" && value.startsWith("@playwright/mcp@"),
 );
 if (!playwrightSpec) throw new Error("Playwright MCP pin is missing");
 configured.push(`npm:${playwrightSpec}`);
+const context7Spec = (mcp.mcpServers?.context7?.args ?? []).find((value) =>
+  typeof value === "string" && value.startsWith("@upstash/context7-mcp@"),
+);
+if (!context7Spec) throw new Error("Context7 MCP pin is missing");
+configured.push(`npm:${context7Spec}`);
 const docker = fs.readFileSync(path.join(repositoryRoot, "Dockerfile.pi"), "utf8");
 const piVersion = docker.match(/^ARG PI_VERSION=(\d+\.\d+\.\d+)$/m)?.[1];
 if (!piVersion) throw new Error("Dockerfile Pi pin is missing");
@@ -68,7 +73,14 @@ if (online) {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "inherit"],
     });
-    const published = JSON.parse(output);
+    const parsed = JSON.parse(output);
+    // `npm view --json` returns an array when the spec resolves to one
+    // version (observed for every pinned spec here); unwrap it so the
+    // comparison below reads the real record instead of `undefined`.
+    const published = Array.isArray(parsed) ? parsed[0] : parsed;
+    if (!published || typeof published !== "object") {
+      throw new Error(`registry lookup returned no record for ${source}`);
+    }
     if (published["dist.integrity"] !== entry.integrity) {
       throw new Error(
         `registry integrity mismatch for ${source}: reviewed=${entry.integrity} published=${published["dist.integrity"]}`,
