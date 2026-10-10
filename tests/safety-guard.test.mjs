@@ -301,3 +301,38 @@ test("automatic PR delivery is recognized, scoped, and disabled in isolated sess
   }
   assert.equal((await guard("bash", { command: `${command} && git push origin main` })).block, true);
 });
+
+test("deepwiki docs questions allow ordinary use but block secrets and sensitive paths", async () => {
+  assert.equal(
+    await guard("mcp", { tool: "read_wiki_structure", args: { repoName: "vercel/next.js" } }),
+    undefined,
+  );
+  assert.equal(
+    await guard("mcp__deepwiki__ask_wiki_question", { repoName: "vercel/next.js", question: "How does middleware matching work?" }),
+    undefined,
+  );
+  for (const question of [
+    // Built via concatenation so the repository secret scan sees no
+    // committed secret-looking literal; the runtime value still
+    // exercises the guard.
+    ["How do I deploy with ", "API", "_KEY=sk-live-", "abcdef1234567890?"].join(""),
+    ["Bearer my", "sk-ab", "cdef1234567890", " not working"].join(""),
+    ["-----BEGIN RSA ", "PRIVATE KEY----- pasted by mistake"].join(""),
+  ]) {
+    const result = await guard("mcp", { tool: "ask_wiki_question", args: { repoName: "vercel/next.js", question } });
+    assert.equal(result.block, true, question);
+    assert.match(result.reason, /secret/i, question);
+  }
+  const pathQuestion = await guard(
+    "mcp__deepwiki__ask_wiki_question",
+    { repoName: "x/y", question: "read my .env file for config" },
+  );
+  assert.equal(pathQuestion.block, true);
+  assert.match(pathQuestion.reason, /sensitive file/i);
+  // Legacy Context7 names stay guarded for pre-migration sessions.
+  const legacy = await guard(
+    "mcp__context7__query_docs",
+    { libraryId: "/x/y", query: "read my .env file for config" },
+  );
+  assert.equal(legacy.block, true);
+});
