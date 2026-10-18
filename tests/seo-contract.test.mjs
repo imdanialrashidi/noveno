@@ -289,9 +289,7 @@ test("every same-origin link in built HTML resolves to a built route or asset", 
       .map((f) => ("/" + path.relative(dist, f)).replace(/\.html$/, "").replace(/\/index$/, "/")),
   );
   /** Non-HTML files the build ships, e.g. "/og/work.png" or "/rss.xml". */
-  const assets = new Set(
-    files.filter((f) => !f.endsWith(".html")).map((f) => "/" + path.relative(dist, f)),
-  );
+  const assets = new Set(files.filter((f) => !f.endsWith(".html")).map((f) => "/" + path.relative(dist, f)));
 
   assert.ok(routes.size > 0, "dist/ has no built pages — run a build first");
 
