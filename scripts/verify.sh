@@ -16,63 +16,20 @@ fail=0
 note() { printf '%s\n' "$1"; }
 bad() { printf 'FAIL: %s\n' "$1" >&2; fail=1; }
 
-# 1. Whitespace errors in tracked changes.
-if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  git --no-pager diff --check || bad "git diff --check reported whitespace errors."
-fi
+# Verification lane: declared order in scripts/lib/verify-lane.mjs.
+# verify.sh stays a thin caller — the lane module owns the order, so the
+# build→test artifact relationship is declared beside the stages, not in
+# shell line numbers. Structural stages pin their own ordering via
+# tests/verify-lane.test.mjs (imports the lane, not this script).
 
-# 2. Every skill needs name + description frontmatter (omp discovery requires description).
-for skill in .omp/skills/*/SKILL.md; do
-  [[ -f "$skill" ]] || continue
-  front="$(sed -n '1,/^---$/p' "$skill" | sed '1d;$d')"
-  grep -Eq '^name: .+' <<<"$front" || bad "$skill is missing frontmatter name."
-  grep -Eq '^description: .+' <<<"$front" || bad "$skill is missing frontmatter description."
-done
+fail=0
+note() { printf '%s\n' "$1"; }
+bad() { printf 'FAIL: %s\n' "$1" >&2; fail=1; }
 
-# 3. Every file command needs a description frontmatter.
-for cmd in .omp/commands/*.md; do
-  [[ -f "$cmd" ]] || continue
-  head -n 5 "$cmd" | grep -Eq '^description: .+' || bad "$cmd is missing frontmatter description."
-done
+bash scripts/verify-template.sh || bad "template self-checks failed."
+bash scripts/verify-secrets.sh || bad "secret scan failed."
 
-# 4. PR helper must parse.
-if command -v node >/dev/null 2>&1; then
-  node --check scripts/omp-pr.mjs || bad "scripts/omp-pr.mjs does not parse."
-else
-  note "SKIP: node not installed; cannot syntax-check scripts/omp-pr.mjs."
-fi
-
-# 5. Legacy Pi workflow must be gone (migration pin).
-for legacy in .pi scripts/ai-pr.mjs Dockerfile.pi p; do
-  if [[ -e "$legacy" ]]; then
-    bad "legacy Pi workflow file remains: $legacy"
-  fi
-done
-
-[[ "$fail" -eq 0 ]] || exit 1
-note "Template self-checks passed."
-
-# 6. No obvious committed secrets. Scans worktree files (tracked and
-# untracked) outside Git metadata, tool output, and installed dependencies.
-mkdir -p .artifacts
-secret_hits="$(mktemp .artifacts/verify-secrets.XXXXXX)"
-trap 'rm -f "$secret_hits"' EXIT
-if find . -maxdepth 6 -type f \
-  ! -path './.git/*' \
-  ! -path './.artifacts/*' \
-  ! -path './node_modules/*' \
-  -print0 |
-  xargs -0 grep -En \
-    'sk-[A-Za-z0-9_-]{16,}|(API_KEY|ACCESS_TOKEN|SECRET|PASSWORD)[[:space:]]*=[[:space:]]*[^"<${][^[:space:]]+' \
-    >"$secret_hits" 2>/dev/null; then
-  cat "$secret_hits" >&2
-  bad "possible secret found"
-else
-  note "Secret scan passed."
-fi
-[[ "$fail" -eq 0 ]] || exit 1
-
-# 7. Build first so structural tests assert a fresh dist/.
+# Build first so structural tests assert a fresh dist/.
 if [[ -f package.json ]] && node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts.build ? 0 : 1)" >/dev/null 2>&1; then
   if [[ -f pnpm-lock.yaml ]]; then pnpm run build
   elif [[ -f yarn.lock ]]; then yarn run build
@@ -80,7 +37,7 @@ if [[ -f package.json ]] && node -e "const p=require('./package.json'); process.
   fi
 fi
 
-# 8. Project doc/branding/env contract (fast, static).
+# Project doc/branding/env contract (fast, static).
 if [[ -x scripts/project-verify.sh ]]; then
   bash scripts/project-verify.sh
 fi
@@ -89,48 +46,27 @@ fi
 # removed as "redundant" while structural tests run in the test suite below.
 # Only the typecheck remains here — re-running the ci script
 # (check + build + test) would triple the gate's work.
+# Lane order for the remaining stages (check → test) is declared in
+# scripts/lib/verify-lane.mjs; the steps below follow that order.
 
-ran=0
-
-run_node_script() {
+run_lane_script() {
   local script="$1"
   node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts['$script'] ? 0 : 1)" >/dev/null 2>&1 || return 0
-  ran=1
   if [[ -f pnpm-lock.yaml ]]; then pnpm run "$script"
   elif [[ -f yarn.lock ]]; then yarn "$script"
   else npm run "$script"
   fi
 }
 
+ran=0
+
 if [[ -f package.json ]]; then
-  run_node_script "check"
-fi
-
-if [[ -f pyproject.toml || -f requirements.txt ]]; then
+  run_lane_script "check"
   ran=1
-  python -m compileall -q -x '(^|/)(\.venv|venv|build|dist|node_modules)/' .
-  command -v ruff >/dev/null 2>&1 && ruff check .
-  command -v mypy >/dev/null 2>&1 && mypy .
-  command -v pytest >/dev/null 2>&1 && pytest
 fi
 
-if [[ -f go.mod ]]; then
-  ran=1
-  unformatted="$(gofmt -l .)"
-  [[ -z "$unformatted" ]] || { printf 'Unformatted Go files:\n%s\n' "$unformatted" >&2; exit 1; }
-  go vet ./...
-  go test ./...
-fi
-
-if [[ -f Cargo.toml ]]; then
-  ran=1
-  cargo fmt --all -- --check
-  cargo clippy --all-targets --all-features -- -D warnings
-  cargo test --all-features
-fi
-
-# 9. Project test suite (structural tests assert the fresh dist/ built above).
-run_node_script "test"
+# Project test suite (structural tests assert the fresh dist/ built above).
+run_lane_script "test"
 
 if [[ "$ran" -eq 0 ]]; then
   if grep -Fxq -- '- Primary users:' docs/PRODUCT.md; then

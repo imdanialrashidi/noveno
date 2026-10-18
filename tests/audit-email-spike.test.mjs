@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 
 import { handleAuditRequest } from "../functions/api/audit.ts";
 import { AUDIT_OPTIONS } from "../src/data/audit.ts";
-import { AUDIT_OPTIONS as SERVER_LABELS } from "../functions/lib/email.ts";
+import { LEAD_ENUMS, LEAD_LIMITS } from "../src/data/lead-contract.ts";
 
 function validPayload(overrides = {}) {
   return {
@@ -117,8 +117,24 @@ test("missing sendEmail dep → fallback validated (spike flag off)", async () =
   assert.equal(body.status, "validated");
 });
 
-test("email label table matches the form's canonical AUDIT_OPTIONS (no drift)", () => {
-  assert.deepEqual(SERVER_LABELS, AUDIT_OPTIONS);
+test("lead value contract pinned (enum ids + caps shared by client, server, senders)", () => {
+  // One source (lead-contract) feeds client UX, server gate, and both
+  // senders — pin the values, not self-equality, so a silent edit fails.
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(AUDIT_OPTIONS).map(([group, opts]) => [group, opts.map((o) => o.id)])),
+    {
+      industry: [...LEAD_ENUMS.industries],
+      channels: [...LEAD_ENUMS.channels],
+      problems: [...LEAD_ENUMS.problems],
+      needs: [...LEAD_ENUMS.requestedServices],
+      valueRanges: [...LEAD_ENUMS.valueRanges],
+      preferredContact: [...LEAD_ENUMS.preferredContacts],
+    },
+  );
+  assert.equal(LEAD_LIMITS.name, 80);
+  assert.equal(LEAD_LIMITS.phone, 24);
+  assert.equal(LEAD_LIMITS.email, 120);
+  assert.ok(Object.values(AUDIT_OPTIONS).every((opts) => opts.every((o) => o.label.trim() !== "")));
 });
 
 test("sendLeadEmail renders Persian labels and strips markup", async () => {

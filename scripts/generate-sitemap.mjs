@@ -25,35 +25,20 @@ import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import YAML from "yaml";
 import { FALLBACK_SITE_ORIGIN } from "./lib/site-origin.mjs";
+import { parseFrontmatterFile } from "./lib/published-scan.mjs";
+import { staticRoutes } from "./lib/route-inventory.mjs";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 const SITE = process.env.PUBLIC_APP_URL ?? FALLBACK_SITE_ORIGIN;
 const OUT = join(ROOT, "public", "sitemap.xml");
 
-/** Static routes (must match src/pages): path → { changefreq, priority, lastmod }. */
-const STATIC_ROUTES = [
-  { path: "/", changefreq: "monthly", priority: "1.0" },
-  { path: "/audit", changefreq: "monthly", priority: "0.9" },
-  { path: "/services", changefreq: "monthly", priority: "0.8" },
-  { path: "/pricing", changefreq: "monthly", priority: "0.9" },
-  { path: "/work", changefreq: "weekly", priority: "0.8" },
-  { path: "/blog", changefreq: "weekly", priority: "0.8" },
-  { path: "/process", changefreq: "monthly", priority: "0.8" },
-  { path: "/about", changefreq: "yearly", priority: "0.7" },
-  { path: "/contact", changefreq: "yearly", priority: "0.7" },
-  { path: "/privacy", changefreq: "yearly", priority: "0.3" },
-  { path: "/terms", changefreq: "yearly", priority: "0.3" },
-];
+/** Static routes — derived from the src/pages filesystem (route-inventory seam). */
+const STATIC_ROUTES = staticRoutes(join(ROOT, "src", "pages"));
 
-/** Fixed lastmod for static pages (the product-led pass date). */
-const STATIC_LASTMOD = "2026-10-01";
+import { STATIC_LASTMOD } from "./lib/route-inventory.mjs";
 
 export function parseFrontmatter(file) {
-  const raw = readFileSync(file, "utf8");
-  const match = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
-  if (!match) return {};
-  const data = YAML.parse(match[1]);
-  return data && typeof data === "object" ? data : {};
+  return parseFrontmatterFile(file, (src) => YAML.parse(src));
 }
 
 function contentEntries(dir) {

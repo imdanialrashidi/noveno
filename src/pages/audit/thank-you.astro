@@ -11,13 +11,13 @@
 import PageLayout from "../../layouts/PageLayout.astro";
 import PageHero from "../../components/layout/PageHero.astro";
 import ChannelLink from "../../components/ui/ChannelLink.astro";
+import SiteLink from "../../components/ui/SiteLink.astro";
 import NextStepsRail from "../../components/business/NextStepsRail.astro";
 import { getCollection } from "astro:content";
+import { realWork as realWorkEntries } from "../../data/published";
 import { CONTACT } from "../../data/site";
 
-const realWork = (await getCollection("work"))
-  .filter((entry) => entry.data.type !== "concept")
-  .sort((a, b) => (a.data.featured === b.data.featured ? 0 : a.data.featured ? -1 : 1));
+const realWork = realWorkEntries(await getCollection("work"));
 const pointer = realWork[0] ?? null;
 ---
 
@@ -93,27 +93,12 @@ const pointer = realWork[0] ?? null;
             pointer && (
               <div class="mt-6 flex flex-col gap-3 border-t border-line pt-6">
                 <p class="text-ui font-medium text-text">نمونه‌ای واقعی از کار نوونو</p>
-                <a
+                <SiteLink
+                  intent="readmore"
                   href={`/work/${pointer.id}`}
-                  class="group inline-flex min-h-11 w-fit items-center gap-2 text-ui font-medium text-accent-strong hover:text-text-action"
-                  data-event="project_opened"
-                  data-event-payload={`{"slug":"${pointer.id}"}`}
-                >
-                  {pointer.data.title}
-                  <svg
-                    viewBox="0 0 24 24"
-                    class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M19 12H5" />
-                    <path d="m12 19-7-7 7-7" />
-                  </svg>
-                </a>
+                  label={pointer.data.title}
+                  event={{ name: "project_opened", payload: { slug: pointer.id } }}
+                />
               </div>
             )
           }

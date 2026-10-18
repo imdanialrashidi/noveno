@@ -16,11 +16,12 @@ import PageLayout from "../../layouts/PageLayout.astro";
 import Button from "../../components/ui/Button.astro";
 import SectionHeader from "../../components/layout/SectionHeader.astro";
 import { getCollection } from "astro:content";
-import { isPublished, sortByDate, formatFaDate, readingMinutes } from "../../data/blog";
+import { formatFaDate, readingMinutes } from "../../data/blog";
+import { publishedBlog } from "../../data/published";
 import { toFaDigits } from "../../data/site";
 
 const all = await getCollection("blog");
-const published = sortByDate(all.filter(isPublished));
+const published = publishedBlog(all);
 const featured = published[0] ?? null;
 const rest = published.slice(1);
 const totalLabel = toFaDigits(published.length);

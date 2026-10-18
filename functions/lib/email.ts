@@ -7,42 +7,17 @@
  */
 
 import type { AuditSubmission, AuditEnv } from "./contract.ts";
-import { AUDIT_OPTIONS } from "../../src/data/audit.ts";
-export { AUDIT_OPTIONS };
+import { leadRows } from "../../src/data/lead-contract.ts";
 
-function labelOf(group: keyof typeof AUDIT_OPTIONS, id: string): string {
-  return (
-    (AUDIT_OPTIONS[group] as readonly { id: string; label: string }[]).find((o) => o.id === id)?.label ?? id
+function renderRows(lead: AuditSubmission): Record<string, string> {
+  return leadRows(
+    lead as unknown as Record<string, unknown>,
+    (lead.attribution ?? {}) as unknown as Record<string, unknown>,
   );
 }
 
-function safeText(value: string): string {
-  return value.replace(/[<>]/g, "");
-}
-
 function renderLeadHtml(lead: AuditSubmission): string {
-  const attribution = lead.attribution ?? {};
-  const labels: Record<string, string> = {
-    submission_id: safeText(lead.submission_id),
-    name: safeText(lead.name),
-    phone: safeText(lead.phone),
-    email: safeText(lead.email ?? ""),
-    business_name: safeText(lead.business_name ?? ""),
-    industry: safeText(labelOf("industry", lead.industry)),
-    website: safeText(lead.website ?? ""),
-    acquisition_channels: Array.isArray(lead.acquisition_channels)
-      ? lead.acquisition_channels.map((id) => labelOf("channels", String(id))).join("، ")
-      : "",
-    primary_problem: safeText(labelOf("problems", lead.primary_problem)),
-    requested_service: safeText(labelOf("needs", String(lead.requested_service ?? ""))),
-    customer_value_range: safeText(labelOf("valueRanges", String(lead.customer_value_range ?? ""))),
-    preferred_contact: safeText(labelOf("preferredContact", String(lead.preferred_contact))),
-    landing_page: safeText(String(attribution.landing_page ?? "")),
-    referrer: safeText(String(attribution.referrer ?? "")),
-    utm_source: safeText(String(attribution.utm_source ?? "")),
-    utm_medium: safeText(String(attribution.utm_medium ?? "")),
-    utm_campaign: safeText(String(attribution.utm_campaign ?? "")),
-  };
+  const labels = renderRows(lead);
   const rows = Object.entries(labels)
     .map(
       ([k, v]) =>
@@ -61,7 +36,8 @@ export async function sendLeadEmail(
   const to = env.LEAD_TO_EMAIL ?? "imdanialrashidi@gmail.com";
   const from = env.EMAIL_FROM ?? "Noveno <noreply@noveno.ir>";
   if (!apiKey) return { ok: false };
-  const subject = `درخواست بررسی مسیر جذب — ${safeText(lead.business_name ?? lead.name ?? "")}`;
+  const rows = renderRows(lead);
+  const subject = `درخواست بررسی مسیر جذب — ${rows.business_name || rows.name}`;
   const html = renderLeadHtml(lead);
   try {
     const res = await fetchImpl("https://api.resend.com/emails", {

@@ -6,28 +6,12 @@
  * - Bounded: one initial attempt + one automatic retry; never infinite.
  */
 
-import { AUDIT_OPTIONS } from "../../data/audit.ts";
+import { leadRows, safeText } from "../../data/lead-contract.ts";
 import type { AuditConfig } from "./index.ts";
 
 export interface DeliveryOutcome {
   ok: boolean;
   rateLimited?: boolean;
-}
-
-function labelOf(group: keyof typeof AUDIT_OPTIONS, id: string): string {
-  return (
-    (AUDIT_OPTIONS[group] as readonly { id: string; label: string }[]).find((option) => option.id === id)
-      ?.label ?? id
-  );
-}
-
-/**
- * Strip markup from free-text fields before the notification email
- * (security review MINOR-3): lead values are client-controlled and the
- * email renders as HTML — never let a submitted value carry tags.
- */
-export function safeText(value: string): string {
-  return value.replace(/[<>]/g, "");
 }
 
 /**
@@ -44,31 +28,28 @@ export function buildWeb3FormsBody(
   attempt: number,
   validatedAt: string | null = null,
 ): Record<string, string> {
-  const label = (ids: unknown, group: keyof typeof AUDIT_OPTIONS): string =>
-    Array.isArray(ids)
-      ? ids.map((id) => labelOf(group, String(id))).join("، ")
-      : labelOf(group, String(ids ?? ""));
+  const rows = leadRows(payload, payload.attribution as Record<string, unknown> | undefined);
   const attribution = payload.attribution as Record<string, string> | undefined;
   const validatedAtIso =
     validatedAt && !Number.isNaN(Date.parse(validatedAt)) ? validatedAt : new Date().toISOString();
   return {
     access_key: config.web3formsKey,
-    subject: `درخواست بررسی مسیر جذب — ${safeText(String(payload.business_name ?? payload.name ?? ""))}`,
+    subject: `درخواست بررسی مسیر جذب — ${rows.business_name || rows.name}`,
     validation_receipt: receipt ?? "none",
     validated_at: validatedAtIso,
     delivery_attempt: String(attempt + 1),
-    submission_id: String(payload.submission_id ?? ""),
-    name: safeText(String(payload.name ?? "")),
-    phone: safeText(String(payload.phone ?? "")),
-    email: safeText(String(payload.email ?? "")),
-    business_name: safeText(String(payload.business_name ?? "")),
-    industry: labelOf("industry", String(payload.industry ?? "")),
-    website: safeText(String(payload.website ?? "")),
-    acquisition_channels: label(payload.acquisition_channels, "channels"),
-    primary_problem: labelOf("problems", String(payload.primary_problem ?? "")),
-    requested_service: labelOf("needs", String(payload.requested_service ?? "")),
-    customer_value_range: labelOf("valueRanges", String(payload.customer_value_range ?? "")),
-    preferred_contact: labelOf("preferredContact", String(payload.preferred_contact ?? "")),
+    submission_id: rows.submission_id,
+    name: rows.name,
+    phone: rows.phone,
+    email: rows.email,
+    business_name: rows.business_name,
+    industry: rows.industry,
+    website: rows.website,
+    acquisition_channels: rows.acquisition_channels,
+    primary_problem: rows.primary_problem,
+    requested_service: rows.requested_service,
+    customer_value_range: rows.customer_value_range,
+    preferred_contact: rows.preferred_contact,
     landing_page: safeText(String(attribution?.landing_page ?? "")),
     referrer: safeText(String(attribution?.referrer ?? "")),
     utm_source: safeText(String(attribution?.utm_source ?? "")),

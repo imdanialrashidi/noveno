@@ -26,12 +26,15 @@
  */
 
 import {
-  AUDIT_OPTIONS,
-  AUDIT_STEPS,
-  normalizePhoneClient,
+  JOURNEY_STEPS,
+  MAX_CLIENT_CHANNELS,
+  errorCopyFor,
+  phaseAfterDelivery,
+  phaseAfterServerResponse,
   requiredFieldsForStep,
-  validateFieldClient,
-} from "../../data/audit.ts";
+  validateJourneyField,
+  buildJourneyPayload,
+} from "../../data/audit-journey.ts";
 import { track } from "../analytics.ts";
 import { toFaDigits } from "../../data/site.ts";
 import {
@@ -79,31 +82,6 @@ interface Handles {
 /* ------------------------------------------------------------------ */
 /* Validation UX (client-side only — server is authoritative)          */
 /* ------------------------------------------------------------------ */
-
-const FIELD_ERROR_COPY: Record<string, Record<string, string>> = {
-  name: {
-    required: "نام و نام خانوادگی را وارد کنید",
-    too_short: "نام کوتاه است",
-    too_long: "نام خیلی طولانی است",
-  },
-  phone: { required: "شماره تماس را وارد کنید", invalid: "شماره تماس را کامل وارد کنید" },
-  email: { invalid: "ایمیل معتبر وارد کنید", too_long: "ایمیل خیلی طولانی است" },
-  website: { too_long: "نشانی خیلی طولانی است" },
-  business_name: { too_long: "نام کسب‌وکار خیلی طولانی است" },
-  industry: { required: "یک حوزه فعالیت انتخاب کنید" },
-  acquisition_channels: {
-    required: "حداقل یک کانال ورود مشتری را انتخاب کنید",
-    too_long: "بیشتر از این گزینه انتخاب نشود؛ فقط کانال‌های اصلی را علامت بزنید",
-    invalid_enum: "یکی از گزینه‌های فهرست را انتخاب کنید",
-  },
-  primary_problem: { required: "یک گزینه انتخاب کنید" },
-  requested_service: { required: "یک گزینه انتخاب کنید" },
-  preferred_contact: { required: "روش دلخواه تماس را انتخاب کنید" },
-  customer_value_range: {},
-};
-
-// Mirrors functions/lib/contract.ts LIMITS.maxChannels — server is authoritative.
-const MAX_CLIENT_CHANNELS = AUDIT_OPTIONS.channels.length;
 
 /* ------------------------------------------------------------------ */
 /* Main controller                                                      */
@@ -195,12 +173,12 @@ export function initAudit(config: AuditConfig): void {
 
     if (handles.counter)
       handles.counter.textContent = `مرحله ${toFaDigits(current)} از ${toFaDigits(totalSteps)}`;
-    if (handles.currentLabel) handles.currentLabel.textContent = AUDIT_STEPS[current - 1]?.label ?? "";
+    if (handles.currentLabel) handles.currentLabel.textContent = JOURNEY_STEPS[current - 1]?.label ?? "";
     if (handles.bar) handles.bar.style.width = `${((current - 1) / totalSteps) * 100}%`;
 
     if (handles.counterMobile)
       handles.counterMobile.textContent = `مرحله ${toFaDigits(current)} از ${toFaDigits(totalSteps)}`;
-    if (handles.currentMobile) handles.currentMobile.textContent = AUDIT_STEPS[current - 1]?.label ?? "";
+    if (handles.currentMobile) handles.currentMobile.textContent = JOURNEY_STEPS[current - 1]?.label ?? "";
     if (handles.barMobile) handles.barMobile.style.width = `${((current - 1) / totalSteps) * 100}%`;
 
     if (handles.announce) {
@@ -208,7 +186,7 @@ export function initAudit(config: AuditConfig): void {
       // heading is already the first thing in the landmark order.
       handles.announce.textContent =
         totalSteps > 1
-          ? `مرحله ${toFaDigits(current)} از ${toFaDigits(totalSteps)}: ${AUDIT_STEPS[current - 1]?.label ?? ""}`
+          ? `مرحله ${toFaDigits(current)} از ${toFaDigits(totalSteps)}: ${JOURNEY_STEPS[current - 1]?.label ?? ""}`
           : "";
     }
 
@@ -240,7 +218,7 @@ export function initAudit(config: AuditConfig): void {
       void bridge.ensureRendered();
     }
 
-    const heading = document.getElementById(`step-${AUDIT_STEPS[current - 1]?.id}-title`);
+    const heading = document.getElementById(`step-${JOURNEY_STEPS[current - 1]?.id}-title`);
     if (heading && renderedStep !== current) {
       (heading as HTMLElement).focus({ preventScroll: true });
     }
@@ -259,7 +237,7 @@ export function initAudit(config: AuditConfig): void {
     const errorEl = document.getElementById(`${fieldId}-error`);
     const input = document.getElementById(fieldId) as HTMLElement | null;
     if (!errorEl) return;
-    const copy = FIELD_ERROR_COPY[fieldId]?.[key] ?? "";
+    const copy = errorCopyFor(fieldId, key);
     const textEl = errorEl.querySelector<HTMLElement>("[data-error-text]");
     if (textEl) textEl.textContent = copy;
     errorEl.hidden = !copy;
@@ -306,7 +284,7 @@ export function initAudit(config: AuditConfig): void {
         showFieldError(fieldId, "too_long");
         valid = false;
       } else {
-        const key = validateFieldClient(fieldId, value);
+        const key = validateJourneyField(fieldId, value);
         if (key) {
           showFieldError(fieldId, key);
           valid = false;
@@ -349,7 +327,7 @@ export function initAudit(config: AuditConfig): void {
   function goNext(): void {
     ensureDraft();
     if (!draft) return;
-    const current = AUDIT_STEPS[draft.step - 1];
+    const current = JOURNEY_STEPS[draft.step - 1];
     if (!current) return;
     saveValues();
     if (!validateStep(current.id)) return;
@@ -368,44 +346,16 @@ export function initAudit(config: AuditConfig): void {
 
   function buildPayload(token: string): Record<string, unknown> {
     const d = ensureDraft();
-    const values = d.values;
+    const values = d.values as Record<string, string | string[]>;
     const attribution = d.attribution ?? captureAttributionNow();
-    const phoneRaw = String(values.phone ?? "");
     const honeypot = root.querySelector<HTMLInputElement>("[data-honeypot]");
-    /* Deeper qualification (channels, requested service, preferred
-       contact, customer value) is not asked on the first-contact form.
-       It is OMITTED, never guessed: the server treats those fields as
-       optional and the owner fills them in during the first call. */
-    const optional = (id: string): string | undefined => String(values[id] ?? "").trim() || undefined;
-    const channels = Array.isArray(values.acquisition_channels)
-      ? values.acquisition_channels.filter((id) => typeof id === "string" && id !== "")
-      : [];
-    return {
-      submission_id: d.submission_id,
-      company_website: honeypot?.value ?? "",
-      name: String(values.name ?? "").trim(),
-      phone: normalizePhoneClient(phoneRaw),
-      email: optional("email"),
-      preferred_contact: optional("preferred_contact"),
-      business_name: optional("business_name"),
-      industry: String(values.industry ?? ""),
-      website: optional("website"),
-      ...(channels.length > 0 ? { acquisition_channels: channels } : {}),
-      primary_problem: String(values.primary_problem ?? ""),
-      requested_service: optional("requested_service"),
-      customer_value_range: optional("customer_value_range"),
-      cf_turnstile_token: token,
-      attribution: {
-        landing_page: attribution.landing_page,
-        referrer: attribution.referrer,
-        utm_source: attribution.utm_source,
-        utm_medium: attribution.utm_medium,
-        utm_campaign: attribution.utm_campaign,
-        utm_content: attribution.utm_content,
-        utm_term: attribution.utm_term,
-        first_seen_at: attribution.first_seen_at,
-      },
-    };
+    return buildJourneyPayload(
+      values,
+      d.submission_id,
+      token,
+      honeypot?.value ?? "",
+      attribution as unknown as Record<string, string>,
+    );
   }
 
   function setSubmitting(active: boolean): void {
@@ -432,7 +382,7 @@ export function initAudit(config: AuditConfig): void {
       showBanner("unconfigured");
       return;
     }
-    const current = AUDIT_STEPS[stepIndex() - 1];
+    const current = JOURNEY_STEPS[stepIndex() - 1];
     if (!current || !validateStep(current.id)) return;
 
     showBanner(null);
@@ -476,7 +426,7 @@ export function initAudit(config: AuditConfig): void {
           };
           // D-01 transition (spike §4): accept both statuses while Web3Forms
           // delivery still runs client-side. After cutover this narrows to "sent".
-          validated = body.status === "validated" || body.status === "sent";
+          validated = phaseAfterServerResponse(200, body.status) === "delivering";
           if (typeof body.receipt === "string" && body.receipt.length > 0) receipt = body.receipt;
           if (typeof body.validated_at === "string" && body.validated_at.length > 0)
             validatedAt = body.validated_at;
@@ -492,7 +442,7 @@ export function initAudit(config: AuditConfig): void {
         const delivered = await deliverLead(payload, config, receipt, validatedAt);
         if (!delivered.ok) {
           bridge?.invalidate();
-          showBanner(delivered.rateLimited ? "rate" : "delivery");
+          showBanner(phaseAfterDelivery(delivered.rateLimited === true));
           setSubmitting(false);
           return;
         }
@@ -584,7 +534,7 @@ export function initAudit(config: AuditConfig): void {
     input.addEventListener("blur", () => {
       const fieldId = input.getAttribute("data-save");
       if (!fieldId) return;
-      const key = validateFieldClient(fieldId, fieldValue(fieldId));
+      const key = validateJourneyField(fieldId, fieldValue(fieldId));
       if (key) showFieldError(fieldId, key);
       else clearFieldError(fieldId);
       saveValues();

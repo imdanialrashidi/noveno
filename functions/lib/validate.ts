@@ -9,7 +9,6 @@
 import {
   ACQUISITION_CHANNELS,
   CUSTOMER_VALUE_RANGES,
-  HONEYPOT_FIELD,
   INDUSTRIES,
   LIMITS,
   PREFERRED_CONTACTS,
@@ -20,6 +19,7 @@ import {
   type ValidationResult,
 } from "./contract.ts";
 import { normalizeEmail, normalizePhone, normalizePlain, normalizeText } from "./normalize.ts";
+export { honeypotTriggered } from "../../src/data/lead-contract.ts";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 /** Strict ISO-8601 — must also be valid Postgres timestamptz input. */
@@ -36,14 +36,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function str(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
-}
-
-/** Honeypot check: any present, meaningful value for the hidden field → bot. Legit clients submit an empty hidden input → "". Anything else present (non-empty string, number, array, object) marks automation. */
-export function honeypotTriggered(body: Record<string, unknown>): boolean {
-  const value = body[HONEYPOT_FIELD];
-  if (value === undefined || value === null) return false;
-  if (typeof value === "string") return value.trim() !== "";
-  return true;
 }
 
 /**

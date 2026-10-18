@@ -16,17 +16,10 @@
  *   throw into UI handlers.
  */
 
-export type EventName =
-  | "primary_cta_click"
-  | "secondary_cta_click"
-  | "audit_started"
-  | "audit_step_completed"
-  | "audit_submitted"
-  | "phone_click"
-  | "messaging_click"
-  | "service_opened"
-  | "case_study_opened"
-  | "project_opened";
+import { serializeTelemetryEvent, TELEMETRY_NAMES } from "../data/telemetry-contract.ts";
+import type { TelemetryName } from "../data/telemetry-contract.ts";
+
+export type EventName = TelemetryName;
 
 export interface EventPayload {
   [key: string]: string | number;
@@ -123,7 +116,9 @@ function schedule(): void {
 
 export function track(name: EventName, payload: EventPayload = {}): void {
   try {
-    pending.push({ name, payload: { ...payload, page: location.pathname } });
+    if (!(TELEMETRY_NAMES as readonly string[]).includes(name)) return;
+    const event = serializeTelemetryEvent(name, payload, location.pathname);
+    pending.push({ name: event.name as EventName, payload: event.payload as EventPayload });
     schedule();
   } catch {
     /* never throw into UI handlers */

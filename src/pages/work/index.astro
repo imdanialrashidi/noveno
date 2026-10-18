@@ -10,13 +10,9 @@ import WorkCard from "../../components/business/WorkCard.astro";
 import Button from "../../components/ui/Button.astro";
 import { getCollection } from "astro:content";
 import { previewFor } from "../../data/work-previews";
+import { publishedWork } from "../../data/published";
 
-const entries = (await getCollection("work"))
-  .filter(({ data }) => !data.draft)
-  .sort((a, b) => {
-    if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
-    return b.data.published_at.valueOf() - a.data.published_at.valueOf();
-  });
+const entries = publishedWork(await getCollection("work"));
 
 const industries = [...new Set(entries.map((e) => e.data.industry))].sort((a, b) => a.localeCompare(b, "fa"));
 

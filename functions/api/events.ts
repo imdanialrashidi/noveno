@@ -10,16 +10,9 @@
  * the lead row, not in events.
  */
 
-import {
-  EVENT_NAMES,
-  EVENT_PAYLOAD_KEYS,
-  EVENT_SERVICE_VALUES,
-  EVENT_STEP_VALUES,
-  EVENT_VALUE_PATTERNS,
-  LIMITS,
-  PREFERRED_CONTACTS,
-  type AuditEnv,
-} from "../lib/contract.ts";
+import { LIMITS, type AuditEnv } from "../lib/contract.ts";
+import { TELEMETRY_BOUNDS, validateTelemetryEvent } from "../../src/data/telemetry-contract.ts";
+import { EVENT_SERVICE_VALUES, EVENT_STEP_VALUES, PREFERRED_CONTACTS } from "../lib/contract.ts";
 import { errorResponse, jsonResponse } from "../lib/respond.ts";
 import { createRateLimiter, type RateLimiter } from "../lib/rate-limit.ts";
 
@@ -33,56 +26,23 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * Fixed-set payload keys validated against exact value whitelists
- * (plan 010). The client sends these values as strings; anything else
- * is rejected before it can burn the metered Analytics Engine quota.
+ * Ingest adapter: the contract owns names, keys, and value rules (plan
+ * 010); this module only supplies the server-known enum lists and the
+ * metered-quota bounds before delegating. Rejects burn no Analytics
+ * Engine quota.
  */
-const EVENT_ENUM_VALUES: Record<string, Set<string>> = {
-  step: new Set<string>(EVENT_STEP_VALUES),
-  service: new Set<string>(EVENT_SERVICE_VALUES),
-  channel: new Set<string>(PREFERRED_CONTACTS),
-};
-
 export function validateEvent(raw: unknown): { ok: true; event: EventInput } | { ok: false } {
-  if (!isRecord(raw)) return { ok: false };
-  const name = typeof raw.name === "string" ? raw.name : "";
-  if (!EVENT_NAMES.includes(name as never)) return { ok: false };
-
-  let payload: Record<string, unknown> = {};
-  if (raw.payload !== undefined) {
-    if (!isRecord(raw.payload)) return { ok: false };
-    const entries = Object.entries(raw.payload);
-    if (entries.length > 8) return { ok: false };
-    for (const [key, value] of entries) {
-      if (!EVENT_PAYLOAD_KEYS.includes(key as never)) return { ok: false };
-      const okValue = typeof value === "string" || typeof value === "number";
-      if (!okValue) return { ok: false };
-      if (typeof value === "string" && value.length > LIMITS.maxEventPayloadValue) return { ok: false };
-      // Value whitelists (plan 010): enum keys must be exact client-sent
-      // strings (numbers rejected); page/slug/section/cta_id must match
-      // their pattern when strings. Numbers stay accepted only where a key
-      // legitimately carries them — none do today, so the string/number
-      // type check above remains the baseline.
-      if (key === "step" || key === "service" || key === "channel") {
-        const allowed = EVENT_ENUM_VALUES[key];
-        if (typeof value !== "string" || !allowed || !allowed.has(value)) return { ok: false };
-      } else if (typeof value === "string") {
-        const pattern =
-          key === "page"
-            ? EVENT_VALUE_PATTERNS.page
-            : key === "slug"
-              ? EVENT_VALUE_PATTERNS.slug
-              : EVENT_VALUE_PATTERNS.wordish; // section, cta_id
-        if (!pattern.test(value)) return { ok: false };
-      }
-      payload[key] = value;
-    }
+  const result = validateTelemetryEvent(raw, {
+    step: EVENT_STEP_VALUES,
+    service: EVENT_SERVICE_VALUES,
+    channel: PREFERRED_CONTACTS,
+  });
+  if (!result.ok) return { ok: false };
+  if (JSON.stringify(result.event.payload).length > LIMITS.maxEventPayloadBytes) return { ok: false };
+  for (const value of Object.values(result.event.payload)) {
+    if (typeof value === "string" && value.length > LIMITS.maxEventPayloadValue) return { ok: false };
   }
-
-  const serialized = JSON.stringify(payload);
-  if (serialized.length > LIMITS.maxEventPayloadBytes) return { ok: false };
-
-  return { ok: true, event: { name, payload } };
+  return result;
 }
 
 export async function handleEventRequest(
