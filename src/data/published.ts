@@ -80,11 +80,7 @@ export function publishedBlog<T extends PublishableEntry>(entries: T[]): T[] {
  * current article, capped at `limit`. Returns [] when there is no real
  * related content — never fabricates recommendations.
  */
-export function relatedEntries<T extends PublishableEntry>(
-  all: T[],
-  current: T,
-  limit = 2,
-): T[] {
+export function relatedEntries<T extends PublishableEntry>(all: T[], current: T, limit = 2): T[] {
   return sortByDate(
     all.filter(
       (entry) =>

@@ -162,10 +162,7 @@ export function fillSummary(draft: Draft | null): void {
     if (has) textEl.textContent = value;
   };
   set("industry", labelOf("industry", String(values.industry ?? "")));
-  set(
-    "channels",
-    labelsOf("channels", values.acquisition_channels),
-  );
+  set("channels", labelsOf("channels", values.acquisition_channels));
   set("problem", labelOf("problems", String(values.primary_problem ?? "")));
   set("need", labelOf("needs", String(values.requested_service ?? "")));
 }

@@ -58,7 +58,11 @@ export function validateFieldClient(fieldId: string, value: string): string {
   return leadFieldKey(fieldId, value);
 }
 
-export type { JourneyFieldKind as FieldKind, JourneyField as AuditField, JourneyStep as AuditStep } from "./audit-journey.ts";
+export type {
+  JourneyFieldKind as FieldKind,
+  JourneyField as AuditField,
+  JourneyStep as AuditStep,
+} from "./audit-journey.ts";
 export { JOURNEY_FIELDS, JOURNEY_STATIONS, JOURNEY_STEPS } from "./audit-journey.ts";
 import { JOURNEY_STEPS as JOURNEY_STEPS_FOR_ALIAS } from "./audit-journey.ts";
 import type { JourneyStep as JourneyStepType } from "./audit-journey.ts";

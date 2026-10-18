@@ -121,9 +121,7 @@ test("lead value contract pinned (enum ids + caps shared by client, server, send
   // One source (lead-contract) feeds client UX, server gate, and both
   // senders — pin the values, not self-equality, so a silent edit fails.
   assert.deepEqual(
-    Object.fromEntries(
-      Object.entries(AUDIT_OPTIONS).map(([group, opts]) => [group, opts.map((o) => o.id)]),
-    ),
+    Object.fromEntries(Object.entries(AUDIT_OPTIONS).map(([group, opts]) => [group, opts.map((o) => o.id)])),
     {
       industry: [...LEAD_ENUMS.industries],
       channels: [...LEAD_ENUMS.channels],

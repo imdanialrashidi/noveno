@@ -39,7 +39,11 @@ const PUBLIC = join(ROOT, "public");
 const REQUIRED_W = 1200;
 const REQUIRED_H = 630;
 
-import { contentEntries, parseFrontmatterFile, requiredCards as requiredCardsFromScan } from "./lib/published-scan.mjs";
+import {
+  contentEntries,
+  parseFrontmatterFile,
+  requiredCards as requiredCardsFromScan,
+} from "./lib/published-scan.mjs";
 
 /** Minimal frontmatter parse — the shared published-scan parser. */
 function parseFrontmatter(file) {
@@ -65,16 +69,21 @@ function parseFrontmatter(file) {
  */
 function requiredCards() {
   const contentBase = join(ROOT, "src", "content");
-  const work = contentEntries(contentBase, "work", (src) => {
-    const data = {};
-    for (const line of src.split(/\r?\n/)) {
-      const kv = /^([a-zA-Z_]+):\s*(.*)$/.exec(line.trim());
-      if (!kv) continue;
-      const value = kv[2].trim().replace(/^"|"$/g, "");
-      data[kv[1]] = value === "true" ? true : value === "false" ? false : value;
-    }
-    return data;
-  }, { skipDrafts: true });
+  const work = contentEntries(
+    contentBase,
+    "work",
+    (src) => {
+      const data = {};
+      for (const line of src.split(/\r?\n/)) {
+        const kv = /^([a-zA-Z_]+):\s*(.*)$/.exec(line.trim());
+        if (!kv) continue;
+        const value = kv[2].trim().replace(/^"|"$/g, "");
+        data[kv[1]] = value === "true" ? true : value === "false" ? false : value;
+      }
+      return data;
+    },
+    { skipDrafts: true },
+  );
   // OG_ASSETS_BLOG_DIR lets tests point the gate at a throwaway fixture
   // directory so temp entries never race other suites that read
   // src/content/blog (node --test runs test files concurrently).

@@ -11,15 +11,8 @@
  */
 
 import { LIMITS, type AuditEnv } from "../lib/contract.ts";
-import {
-  TELEMETRY_BOUNDS,
-  validateTelemetryEvent,
-} from "../../src/data/telemetry-contract.ts";
-import {
-  EVENT_SERVICE_VALUES,
-  EVENT_STEP_VALUES,
-  PREFERRED_CONTACTS,
-} from "../lib/contract.ts";
+import { TELEMETRY_BOUNDS, validateTelemetryEvent } from "../../src/data/telemetry-contract.ts";
+import { EVENT_SERVICE_VALUES, EVENT_STEP_VALUES, PREFERRED_CONTACTS } from "../lib/contract.ts";
 import { errorResponse, jsonResponse } from "../lib/respond.ts";
 import { createRateLimiter, type RateLimiter } from "../lib/rate-limit.ts";
 

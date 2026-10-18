@@ -13,13 +13,7 @@ import type { CollectionEntry } from "astro:content";
 
 export type BlogEntry = CollectionEntry<"blog">;
 
-export {
-  isPublished,
-  neighbours,
-  publishedBlog,
-  relatedEntries,
-  sortByDate,
-} from "./published.ts";
+export { isPublished, neighbours, publishedBlog, relatedEntries, sortByDate } from "./published.ts";
 
 /** Editorial Persian date — «۱۴ شهریور ۱۴۰۵» style (no invented precision). */
 export function formatFaDate(date: Date): string {

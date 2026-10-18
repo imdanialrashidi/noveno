@@ -16,10 +16,29 @@ interface Props {
   data?: Record<string, string>;
 }
 
-const { href, variant = "primary", size = "md", type = "button", ariaLabel, disabled = false, data = {} } = Astro.props;
+const {
+  href,
+  variant = "primary",
+  size = "md",
+  type = "button",
+  ariaLabel,
+  disabled = false,
+  data = {},
+} = Astro.props;
 const className = Astro.props["class"] ?? "";
 ---
 
-<SiteLink intent="cta" href={href} label="" tone={variant} size={size} type={type} ariaLabel={ariaLabel} disabled={disabled} class={className} data={data}>
+<SiteLink
+  intent="cta"
+  href={href}
+  label=""
+  tone={variant}
+  size={size}
+  type={type}
+  ariaLabel={ariaLabel}
+  disabled={disabled}
+  class={className}
+  data={data}
+>
   <slot />
 </SiteLink>

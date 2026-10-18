@@ -63,15 +63,12 @@ const {
 const className = Astro.props["class"] ?? "";
 
 const eventAttrs =
-  event != null
-    ? { "data-event": event.name, "data-event-payload": JSON.stringify(event.payload) }
-    : {};
+  event != null ? { "data-event": event.name, "data-event-payload": JSON.stringify(event.payload) } : {};
 const externalAttrs = external ? { target: "_blank", rel: "noopener noreferrer" } : {};
 
 const ctaTones: Record<string, string> = {
   primary: "bg-primary text-on-primary hover:bg-primary-hover active:bg-primary-active",
-  secondary:
-    "border border-line-strong text-text hover:border-primary hover:text-text-action bg-transparent",
+  secondary: "border border-line-strong text-text hover:border-primary hover:text-text-action bg-transparent",
   ghost: "text-accent-strong hover:text-text-action underline-offset-4",
 };
 const ctaSizes: Record<string, string> = { md: "min-h-12 px-6", lg: "min-h-14 px-8" };
@@ -109,27 +106,49 @@ const GLYPH = `<svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform dura
 
 {
   intent === "cta" && href && (
-    <a href={href} class={ctaClasses} aria-label={ariaLabel} aria-disabled={disabled ? "true" : undefined} {...eventAttrs} {...data}>
+    <a
+      href={href}
+      class={ctaClasses}
+      aria-label={ariaLabel}
+      aria-disabled={disabled ? "true" : undefined}
+      {...eventAttrs}
+      {...data}
+    >
       <slot />
     </a>
   )
 }
 {
   intent === "cta" && !href && (
-    <button type={type} class={ctaClasses} aria-label={ariaLabel} disabled={disabled} {...eventAttrs} {...data}>
+    <button
+      type={type}
+      class={ctaClasses}
+      aria-label={ariaLabel}
+      disabled={disabled}
+      {...eventAttrs}
+      {...data}
+    >
       <slot />
     </button>
   )
 }
 {
   intent === "channel" && (
-    <a href={href} class:list={[channelVariants[channelVariant], className]} {...externalAttrs} {...eventAttrs} {...data}>
+    <a
+      href={href}
+      class:list={[channelVariants[channelVariant], className]}
+      {...externalAttrs}
+      {...eventAttrs}
+      {...data}
+    >
       {icon && (
         <span class={chip[channelVariant]} aria-hidden="true">
           <Icon name={icon} class="h-4 w-4" />
         </span>
       )}
-      <span class="tnum" dir={value ? "ltr" : undefined}>{label}</span>
+      <span class="tnum" dir={value ? "ltr" : undefined}>
+        {label}
+      </span>
       {value && <span class="text-meta text-text-faint">({value})</span>}
     </a>
   )

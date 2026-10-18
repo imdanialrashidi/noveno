@@ -74,8 +74,7 @@ export const AUDIT_OPTIONS = {
 
 export type LeadOptionGroup = keyof typeof AUDIT_OPTIONS;
 
-const idsOf = (group: LeadOptionGroup): readonly string[] =>
-  AUDIT_OPTIONS[group].map((o) => o.id);
+const idsOf = (group: LeadOptionGroup): readonly string[] => AUDIT_OPTIONS[group].map((o) => o.id);
 
 export const LEAD_ENUMS = {
   industries: idsOf("industry"),
@@ -101,8 +100,7 @@ export const LEAD_LIMITS = {
 
 export const LEAD_HONEYPOT_FIELD = "company_website";
 
-export const LEAD_UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const LEAD_UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /* ------------------------------------------------------------------ */
 /* Labels — the display side of every lead enum (client + both senders) */
