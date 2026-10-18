@@ -16,11 +16,12 @@ trap 'rm -rf "$tmp_dir"' EXIT
 mkdir -p "$out_dir"
 
 items=(
-  "mobile-khorsandi|https://mobilekhorsandi.ir/"
+  # mobile-khorsandi uses the owner-supplied screenshot (Oct 2026) — do NOT
+  # refresh it from thum.io; re-crop the owner file instead.
   "elsa-hamrah|https://elsahamrah.com/"
   "php-ielts-house|https://phpieltshouse.ir/"
   "isbatab|https://isbatab.ir/"
-  "danial-rashidi-portfolio|https://imdanialrashidi.github.io/"
+  "study|https://study.danialrashidi.ir/"
 )
 
 for item in "${items[@]}"; do

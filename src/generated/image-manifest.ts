@@ -5,20 +5,20 @@
 // replacements (see docs/IMAGERY.md §replacement).
 
 export const imageManifest: Readonly<Record<string, string>> = {
-  "work/danial-rashidi-portfolio-hero-800.webp": "/images/work/danial-rashidi-portfolio-hero-800.72e781d1.webp",
-  "work/danial-rashidi-portfolio-hero.webp": "/images/work/danial-rashidi-portfolio-hero.9a6c4a0f.webp",
   "work/elsa-hamrah-hero-800.webp": "/images/work/elsa-hamrah-hero-800.72905b76.webp",
   "work/elsa-hamrah-hero.webp": "/images/work/elsa-hamrah-hero.82efe0d6.webp",
   "work/isbatab-hero-800.webp": "/images/work/isbatab-hero-800.cd747fc0.webp",
   "work/isbatab-hero.webp": "/images/work/isbatab-hero.859510be.webp",
-  "work/mobile-khorsandi-hero-800.webp": "/images/work/mobile-khorsandi-hero-800.f4fe2c66.webp",
-  "work/mobile-khorsandi-hero.webp": "/images/work/mobile-khorsandi-hero.e3e110cc.webp",
+  "work/mobile-khorsandi-hero-800.webp": "/images/work/mobile-khorsandi-hero-800.3df9d259.webp",
+  "work/mobile-khorsandi-hero.webp": "/images/work/mobile-khorsandi-hero.b2ff5eee.webp",
   "work/noveno-website-audit-800.avif": "/images/work/noveno-website-audit-800.7c8740d5.avif",
   "work/noveno-website-audit-800.webp": "/images/work/noveno-website-audit-800.8e31ed74.webp",
   "work/noveno-website-audit.avif": "/images/work/noveno-website-audit.7f914318.avif",
   "work/noveno-website-audit.webp": "/images/work/noveno-website-audit.800d6a3a.webp",
   "work/php-ielts-house-hero-800.webp": "/images/work/php-ielts-house-hero-800.472ce5ac.webp",
   "work/php-ielts-house-hero.webp": "/images/work/php-ielts-house-hero.bd5bd7ff.webp",
+  "work/study-hero-800.webp": "/images/work/study-hero-800.5f907ef1.webp",
+  "work/study-hero.webp": "/images/work/study-hero.d70f4e7d.webp",
 };
 
 /**

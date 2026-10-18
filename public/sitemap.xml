@@ -69,12 +69,6 @@
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://noveno.ir/work/danial-rashidi-portfolio</loc>
-    <lastmod>2026-08-14</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://noveno.ir/work/elsa-hamrah</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>yearly</changefreq>
@@ -95,6 +89,12 @@
   <url>
     <loc>https://noveno.ir/work/php-ielts-house</loc>
     <lastmod>2026-08-14</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://noveno.ir/work/study</loc>
+    <lastmod>2026-08-15</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
   </url>

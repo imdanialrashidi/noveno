@@ -33,7 +33,7 @@ export function previewFor(id: string): WorkPreview {
       type: "image",
       src: imageUrl("work/mobile-khorsandi-hero.webp"),
       srcset: webpSrcset("mobile-khorsandi-hero"),
-      alt: "صفحهٔ اصلی فروشگاه آنلاین موبایل خرسندی",
+      alt: "اسکرین‌شات صفحه‌ی اصلی فروشگاه موبایل خورسندی — هدر آبی، بنر فروشگاه و دسته‌بندی لوازم جانبی",
     };
   }
 
@@ -42,7 +42,7 @@ export function previewFor(id: string): WorkPreview {
       type: "image",
       src: imageUrl("work/elsa-hamrah-hero.webp"),
       srcset: webpSrcset("elsa-hamrah-hero"),
-      alt: "صفحهٔ اصلی فروشگاه آنلاین السا همراه",
+      alt: "اسکرین‌شات صفحه‌ی اصلی فروشگاه السا همراه — بنر ساعت هوشمند و پیشنهاد لحظه‌ای",
     };
   }
 
@@ -51,7 +51,7 @@ export function previewFor(id: string): WorkPreview {
       type: "image",
       src: imageUrl("work/php-ielts-house-hero.webp"),
       srcset: webpSrcset("php-ielts-house-hero"),
-      alt: "صفحهٔ اصلی سایت آموزشی خانهٔ آیلتس PHP",
+      alt: "اسکرین‌شات صفحه‌ی اصلی خانه‌ی آیلتس PHP — معرفی دوره‌ها",
     };
   }
 
@@ -60,16 +60,16 @@ export function previewFor(id: string): WorkPreview {
       type: "image",
       src: imageUrl("work/isbatab-hero.webp"),
       srcset: webpSrcset("isbatab-hero"),
-      alt: "صفحهٔ اصلی وب‌سایت شرکتی ایمن صنعت باتاب",
+      alt: "اسکرین‌شات صفحه‌ی اصلی ایمن صنعت باتاب — معرفی خدمات HSE",
     };
   }
 
-  if (id === "danial-rashidi-portfolio") {
+  if (id === "study") {
     return {
       type: "image",
-      src: imageUrl("work/danial-rashidi-portfolio-hero.webp"),
-      srcset: webpSrcset("danial-rashidi-portfolio-hero"),
-      alt: "صفحهٔ اصلی پرتفولیوی شخصی دانیال رشیدی",
+      src: imageUrl("work/study-hero.webp"),
+      srcset: webpSrcset("study-hero"),
+      alt: "اسکرین‌شات صفحه‌ی اصلی مرکز مطالعه‌ی دانیال رشیدی — وب‌سایت‌هایی که درس‌های سخت را ساده می‌کنند",
     };
   }
 

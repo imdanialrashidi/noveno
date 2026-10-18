@@ -61,16 +61,16 @@ import {
 
 /**
  * The two homepage proof entries are an editorial choice, not a sort
- * order: Noveno's own site (the same process, self-hosted) plus one
- * service-business project in a priority segment. A slug that is not
+ * order: the study center (the deep build on the source portfolio) plus
+ * one service-business project in a priority segment. A slug that is not
  * published falls back to the newest published entry, so the section
  * can never render empty.
  */
 const published = publishedWork(await getCollection("work"));
-/* Owner decision 2026-10: the site's own build is no longer published as a
-   case study, so the homepage proof pair is two client projects. Edit this
-   array to change which two lead the proof section. */
-const HOMEPAGE_PROOF = ["php-ielts-house", "danial-rashidi-portfolio"];
+/* The homepage proof pair leads with the study center — the deep build on
+   the source portfolio — plus the newest client project as fallback. Edit
+   this array to change which two lead the proof section. */
+const HOMEPAGE_PROOF = ["study", "php-ielts-house"];
 const proofEntries = HOMEPAGE_PROOF.map((id) => published.find((e) => e.id === id)).filter(
   (entry): entry is NonNullable<typeof entry> => Boolean(entry),
 );
