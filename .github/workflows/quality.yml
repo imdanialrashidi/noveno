@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  workflow-doctor:
+  verify:
     runs-on: ubuntu-latest
     timeout-minutes: 15 # headroom so a cold-cache day fails loudly on real errors, not the ceiling
 
@@ -28,14 +28,8 @@ jobs:
           node-version: 22.23.2
           cache: npm
 
-      - name: Install pinned packages
-        run: bash scripts/ci-install.sh
-
       - name: Check formatting
         run: npm run format:check
 
-      - name: Validate template
+      - name: Run verification gate
         run: bash scripts/verify.sh
-
-      - name: Verify pinned packages against npm
-        run: node scripts/verify-package-integrity.mjs --online

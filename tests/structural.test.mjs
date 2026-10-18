@@ -310,18 +310,6 @@ test("no secrets or real-looking env values in built output", () => {
   }
 });
 
-// Ensure the tests themselves fail when the app disappears (red check).
-test("the app route is wired into verification routing", () => {
-  const config = JSON.parse(fs.readFileSync(path.join(root, ".pi", "verification.json"), "utf8"));
-  const appRoute = config.routes.find((r) => r.id === "app");
-  assert.ok(appRoute, "missing app route");
-  assert.ok(appRoute.include.includes("src/**"), "app route must include src/**");
-  assert.ok(
-    appRoute.commands.some((c) => c.includes("tests/structural.test.mjs")),
-    "app route must run structural tests",
-  );
-});
-
 test("security headers include HSTS and upgrade-insecure-requests", () => {
   const headers = fs.readFileSync(path.join(root, "public", "_headers"), "utf8");
   assert.match(headers, /Strict-Transport-Security: max-age=31536000; includeSubDomains/);

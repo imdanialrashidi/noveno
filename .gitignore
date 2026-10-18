@@ -15,18 +15,7 @@
 docs/private/**
 !docs/private/.gitkeep
 
-# Pi local runtime and installed project packages
-.pi/npm/
-.pi/git/
-.pi/sessions/
-.pi/cache/
-.pi/auth.json
-.pi/models.env
-.pi/models.json
-.pi/trust.json
-.pi/mcp-auth.json
-.pi/mcp-oauth/
-.pi/mcp-traces/
+# Local runtime state
 
 # Dependencies and environments
 node_modules/

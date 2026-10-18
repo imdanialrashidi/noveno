@@ -109,7 +109,7 @@ test("frontmatter parser handles YAML arrays and quoted colons", () => {
 test("rss feed exists, is valid RSS 2.0, and excludes drafts (plan 029)", () => {
   const distRss = path.resolve(import.meta.dirname, "..", "dist", "rss.xml");
   if (!fs.existsSync(distRss)) {
-    // Allow test to be skipped when dist not built (e.g. verify-affected without full gate)
+    // Allow test to be skipped when dist not built (e.g. a targeted run without the full gate)
     // but in full gate it must exist.
     if (
       process.env.CI ||

@@ -8,31 +8,29 @@ Include the affected version/commit, impact, prerequisites, a minimal reproducti
 
 ## Execution boundary
 
-Pi runs with the operating-system permissions of the account that starts it. Project trust, prompts, tool allowlists, and `.pi/extensions/safety-guard.js` are defense in depth; they are not a sandbox and cannot reliably parse every shell/interpreter behavior or redirect. This matches Pi's official security model: project trust controls repository-provided input, while real isolation must come from the operating system, container, or VM.
+`omp` runs with the operating-system permissions of the account that starts it. Approval tiers, project trust, and prompt allowlists are defense in depth; they are not a sandbox and cannot reliably parse every shell/interpreter behavior or redirect. Real isolation must come from the operating system, container, or VM.
 
-For a trusted working copy, `./p` is autonomous by default: it passes `--approve`, allows routine full-workspace and browser execution, and does not insert confirmation popups. Raw Git/GitHub mutation is independently denied by default; the owner-adopted policy permits only the reviewed `scripts/ai-pr.mjs` helper for scoped commit/push/PR delivery on `ai-changes`. Main writes, PR merge, and other external actions still need exact owner authorization. Read-only inspection remains available. The guard also blocks high-blast-radius patterns such as credential-store access, destructive deletion, publication/deployment, production mutation, and browser file upload. `PI_PROJECT_TRUST=ask|never` and `PI_GUARD_MODE=strict` remain explicit diagnostic/restriction overrides.
+For a trusted working copy, routine implementation runs in the working tree by default (solo, no commit or PR). Only an explicit team-delivery request permits the reviewed `scripts/omp-pr.mjs` helper for a scoped commit/push/PR on the persistent `ai-changes` lane. Main writes, PR merge, and other external actions still need exact owner authorization. Read-only inspection remains available. Never weaken, skip, or delete a valid control or test to obtain green status.
 
 For an untrusted repository, unreviewed third-party instructions, or work exposed to meaningful credentials/private data:
 
 1. Prefer an OS/container/VM boundary with only the required workspace and credentials.
-2. Use `scripts/pi-sandbox.sh` for a simple local Docker boundary, or follow Pi's official [containerization guidance](https://pi.dev/docs/latest/containerization) for Gondolin/OpenShell alternatives.
-3. Pass only the provider keys required for the task. The wrapper intentionally does not mount the host Pi home, SSH keys, cloud credentials, or Docker socket.
-4. Review the repository, `.pi/settings.json`, packages, extensions, skills, prompts, and MCP configuration before trusting them.
+2. Use a simple local Docker boundary for exploration, following the official `omp` container guidance when available.
+3. Pass only the provider keys required for the task. Do not mount host credentials, SSH keys, cloud credentials, or the Docker socket into an untrusted boundary.
+4. Review the repository, `.omp/skills`, `.omp/commands`, and `scripts/` before trusting them.
 5. Review diffs and outputs before copying or deploying them to a trusted/production environment.
 
-The Docker build context is reduced by `.dockerignore` to the Dockerfile only. At runtime the wrapper bind-mounts this repository read/write, so the agent can still modify repository files. It uses a read-only container filesystem, drops Linux capabilities, disables privilege escalation, and applies process/resource limits. Model/API traffic still requires network access; use a policy-controlled sandbox when network/credential egress must be restricted.
+The Docker build context, when one is used for exploration, should be reduced to the minimum (never the whole credential-bearing host). At runtime a container filesystem should be read-only where practical, drop Linux capabilities, disable privilege escalation, and apply process/resource limits. Model/API traffic still requires network access; use a policy-controlled sandbox when network/credential egress must be restricted.
 
-Autonomous Playwright may navigate public HTTP(S) pages and use focused page evaluation. File upload/drop and MCP scripting stay unavailable; strict mode also makes navigation local-only and blocks page evaluation. None of these settings is a network security boundary or redirect containment. Use network policy/container isolation when browsing untrusted applications or when egress matters.
+Autonomous browsing may navigate public HTTP(S) pages. File upload and arbitrary code execution stay restricted; use isolation when browsing untrusted applications or when egress matters.
 
 ## Third-party packages
 
-Pi packages and extensions execute with the Pi process's permissions. Versions in `.pi/settings.json` and `.pi/mcp.json` are exact pins, but a pin is not a source review. Before updating:
+`omp` itself is one binary; no workflow packages or extensions execute with project privileges. Product dependencies in `package.json` are pinned in `package-lock.json`, but a pin is not a source review. Before updating:
 
 - review the upstream repository, ownership, release diff, install scripts, dependencies, and published integrity;
 - test the new pin in a disposable copy/container;
-- update doctor assertions and the changelog;
-- update `.pi/package-integrity.json` and run `node scripts/verify-package-integrity.mjs --online` against the npm registry;
-- rerun `bash scripts/pi-doctor.sh --ci`.
+- rerun `bash scripts/verify.sh`.
 
 ## Supported versions
 

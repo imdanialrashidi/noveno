@@ -1,10 +1,10 @@
 # Quality Contract
 
-This file defines the evaluator-facing quality bar for meaningful changes. Keep it project-specific after `/bootstrap`; do not turn it into a generic checklist dump.
+Evaluator-facing quality bar for meaningful changes. Keep project-specific after the first real feature; do not turn it into a generic checklist dump.
 
 ## Release rule
 
-A change is not complete because the code compiles or the happy-path test passes. Every accepted behavior must be implemented rather than stubbed, exercised at the appropriate layer, and supported by evidence.
+A change is not complete because the code compiles or the happy-path check passes. Every accepted behavior must be implemented rather than stubbed, exercised at the appropriate layer (real run, not opinion), and supported by evidence.
 
 A required criterion that is unproven is **not passed**.
 
@@ -24,28 +24,11 @@ For accepted scope:
 - Validate external/untrusted data at boundaries.
 - Handle retries, duplicate requests, time, rounding, ordering, partial failure, and concurrency where they are material to the changed behavior.
 - A production bug should gain regression evidence when practical.
-- Tests should assert behavior and contracts rather than implementation trivia.
-- A new regression test should demonstrably fail on pre-fix behavior (or a safe focused mutation/equivalent independent characterization) when practical, then pass after the fix.
-- Generated tests must build, pass reliably, add a distinct behavioral signal, and isolate relevant state; line coverage alone is not acceptance evidence.
+- Checks should assert behavior and contracts rather than implementation trivia.
+- A new regression test should demonstrably fail on pre-fix behavior (or a safe focused mutation) when practical, then pass after the fix.
+- Generated checks must build, pass reliably, add a distinct behavioral signal, and isolate relevant state; line coverage alone is not acceptance evidence.
 
-### Test Value Gate
-
-A new or materially changed test is retained only when it identifies:
-
-1. an observable contract or invariant;
-2. a plausible failure it can detect;
-3. a gap not already covered by an existing test, type, schema, or deterministic check;
-4. the cheapest faithful layer;
-5. an oracle independent from the implementation under test; and
-6. red-before-green, a controlled focused mutation, or equivalent defect-sensitivity evidence when practical.
-
-Extend an existing case only to close a distinct evidence gap; otherwise add no test. `No new test` is an acceptable professional outcome for behavior-neutral changes or behavior already proved by the suite. Coverage, assertion count, and test count are diagnostic signals—not acceptance goals.
-
-A test must justify what could break, why existing evidence misses it, and how it would detect that failure. Keep this explanation proportional; do not create a separate test-plan document for a small edit. Never substitute mocked unit tests for a real integration risk, or use prose/source-text matching as proof that an agent follows instructions. Preserve explicit machine-format and architecture checks where those are the contract.
-
-Select one representative per equivalence class and exact material boundaries. Use decision tables, pairwise cases, or properties for meaningful interactions instead of Cartesian enumeration. Prefer the lowest-cost layer that preserves the real contract; use full end-to-end tests only for failures lower layers cannot represent.
-
-Do not compute expected values with the implementation's own logic, mock the subject/authority, verify private calls unless contractual, test framework or third-party behavior, use broad incidental snapshots, blind-update snapshots, sleep/retry away nondeterminism, or duplicate cases that add no distinct behavioral signal. Mocks are reserved for owned boundaries that are expensive, nondeterministic, or unsafe. Browser tests use user-visible behavior and accessible roles/labels, keep independent state, and exercise only the journey that requires a browser.
+`/skill:test-design` owns the Test Value Gate — apply it before adding or materially changing tests. `No new test` is acceptable for behavior-neutral changes or behavior the suite already proves.
 
 ## Security and data integrity
 
@@ -61,11 +44,11 @@ At minimum:
 
 ### Focused risk review
 
-Review only the accepted scope and actual diff. Trace changed trust boundaries, input-to-sink data flows, state transitions, public contracts, dependencies, and operational behavior; check the actual controls and tests before reporting a finding.
+Review only the accepted scope and actual diff. Trace changed trust boundaries, input-to-sink data flows, state transitions, public contracts, dependencies, and operational behavior; check the actual controls and checks before reporting a finding.
 
-Check only relevant failure paths: authorization/tenant isolation, injection and unsafe files/URLs, credential/session handling, payment/replay/idempotency, races and partial writes, timeout/cancellation/recovery, unbounded work, inaccessible/error states, dependency/CI mismatch, and migration rollback. The correctness, security, UX, and reliability sections define the underlying contracts.
+Check only relevant failure paths: authorization/tenant isolation, injection and unsafe files/URLs, credential/session handling, payment/replay/idempotency, races and partial writes, timeout/cancellation/recovery, unbounded work, inaccessible/error states, dependency/CI mismatch, migration rollback. For High-risk scopes prefer a `/review` reviewer pass (plus `/advisor on` — second model, extra cost); otherwise a direct evidence-focused pass.
 
-For each evidence-backed finding give severity, `file:line` or symbol, a concrete failure/attack scenario, why the current control is insufficient, the smallest safe fix, and a proof test. Prefer a few actionable findings over speculative checklist output.
+For each evidence-backed finding give severity, exact `file:line` or symbol, a concrete failure/attack scenario, the impact if triggered, why the current control is insufficient, whether it is a regression introduced by this diff or `Pre-existing`, the smallest safe fix, and a proof check. Suppress speculative findings (no concrete scenario), duplicates, and purely stylistic findings. Prefer a few actionable findings over speculative checklist output.
 
 - **BLOCKER:** exploitable security, data loss/corruption, money/access violation, migration/deployment breakage, or a broken critical flow.
 - **MAJOR:** likely user-visible correctness/reliability failure or substantial security/performance regression.
@@ -78,48 +61,26 @@ Return the acceptance evidence and one verdict: `PASS`, `PASS WITH FIXES`, or `B
 
 For rendered interfaces:
 
-- exercise the critical journey in the real browser when browser behavior matters;
+- exercise the critical journey in the real application with the `browser` tool when browser behavior matters;
 - preserve keyboard access, visible focus, semantic controls, labels, contrast, touch targets, and reduced-motion behavior;
 - check realistic data, long text, localization/RTL when relevant, and at least one narrow viewport for mobile-facing surfaces;
-- follow the accepted `docs/DESIGN.md`; use existing design tokens/components when they remain sound and change them deliberately when the accepted direction requires it;
+- follow the accepted `docs/DESIGN.md`; reuse existing design tokens/components when sound, change deliberately when the direction requires it;
 - do not add explanatory copy that merely restates obvious UI;
 - visual polish cannot compensate for missing interaction depth or broken behavior.
 
-Default accessibility baseline when the product has not chosen a stricter target:
-
-- WCAG 2.2 AA;
-- text contrast at least 4.5:1, or 3:1 for qualifying large text;
-- non-text UI/state contrast at least 3:1 where WCAG requires it;
-- reflow without loss of information/functionality at 320 CSS px where the content is not inherently two-dimensional;
-- usable at 200% text zoom, with clear visible focus and meaning that does not depend on color alone.
-
-### Visual excellence
-
-For a new interface, redesign, launch surface, or explicitly high-aesthetic task, load `frontend-design` and evaluate the rendered result using its visual-quality rubric.
-
-Require:
-
-- a product-specific visual thesis and one restrained signature element;
-- typography, palette, composition, geometry, media, and motion derived from the product/audience rather than interchangeable defaults;
-- semantic tokens and coherent components without turning every section into the same card;
-- mobile recomposition rather than simple shrinkage;
-- real content and deliberately designed loading, empty, error, success, focus, selected, disabled, and permission states as relevant;
-- one product/interaction browser pass and one independent studio/aesthetic pass;
-- named desktop, mobile, and demanding-state evidence when the application can run.
-
-Hard-gate failures cannot be offset by aesthetic scoring. The ordinary production craft threshold is 2.75/4 with no dimension below 2; an explicitly flagship surface requires 3.25/4 with every dimension at least 3. Any criterion that depends on rendered evidence is `UNPROVEN` when only code was inspected.
+Default accessibility baseline when the product has not chosen a stricter target: WCAG 2.2 AA, text contrast ≥ 4.5:1 (3:1 large text), non-text UI/state contrast ≥ 3:1, reflow at 320 CSS px, usable at 200% text zoom with visible focus and meaning not carried by color alone.
 
 ## Reliability and performance
 
 Apply only where relevant to the changed path:
 
-- avoid unbounded reads/work, N+1 access, duplicate calls, uncontrolled concurrency, and blocking hot paths;
+- avoid unbounded reads/work, N+1 access, duplicate calls, uncontrolled concurrency, blocking hot paths;
 - use explicit timeouts/cancellation/retries where the boundary requires them;
 - preserve meaningful non-sensitive logs or diagnostics for critical transitions;
 - performance claims require a reproducible baseline and after-measurement;
-- a flaky test or intermittent runtime path is a reliability defect, not automatic permission to weaken the gate.
+- a flaky check or intermittent runtime path is a reliability defect, not permission to weaken the gate.
 
-For production web surfaces without accepted product-specific field budgets, use current Core Web Vitals `good` thresholds as targets at the 75th percentile, segmented by mobile and desktop: LCP ≤ 2.5 s, INP ≤ 200 ms, and CLS ≤ 0.1. Before field data exists, require an accepted repeatable lab budget, RUM instrumentation, and a staged-rollout check. Lab results are pre-production signals; do not present them as field/RUM proof.
+For production web surfaces without accepted product-specific field budgets, target Core Web Vitals `good` at p75 segmented by mobile/desktop: LCP ≤ 2.5 s, INP ≤ 200 ms, CLS ≤ 0.1. Before field data exists, require an accepted repeatable lab budget plus rollout checks; lab results are pre-production signals, not field proof.
 
 ## Maintainability and architecture
 
@@ -127,33 +88,29 @@ For production web surfaces without accepted product-specific field budgets, use
 - Keep public interfaces small and backward-compatible unless a breaking change is accepted.
 - Keep business rules separable from presentation/transport when the existing architecture supports it.
 - New abstractions should solve more than one real current use case or remove a demonstrated risk/duplication.
-- New dependencies require a concrete benefit over existing/platform capabilities.
+- New dependencies require a concrete benefit over existing/platform capabilities — omp already ships LSP, eval runtimes, browser, search, and subagents; adding a package that duplicates them needs justification.
 - Architecture invariants that matter repeatedly should be enforced mechanically with types, lint rules, structural tests, schemas, or CI rather than prose alone.
 
 ## Evidence hierarchy
 
 Prefer stronger evidence when practical:
 
-1. deterministic automated test of the accepted behavior;
-2. real browser/API/database exercise of the relevant journey;
-3. type/lint/structural/static analysis for invariant classes;
+1. deterministic automated check of the accepted behavior;
+2. real `eval`/`bash` run or `browser`-tool exercise of the relevant journey;
+3. `lsp` diagnostics/references, type/lint/structural analysis for invariant classes;
 4. reproducible measurement for performance/reliability claims;
-5. focused independent-evaluator inspection for aspects that cannot be automated economically.
+5. focused independent-evaluator inspection (`/review`) for aspects that cannot be automated economically.
 
-A reviewer or subagent opinion alone is not proof.
+A reviewer or subagent opinion alone is not proof. Never report a test or check as passed unless its command was executed and its result was observed.
 
 ## Evaluator rubric
 
-An evaluator should assess the accepted contract, not invent adjacent scope.
-
-For each acceptance criterion return one of:
+Judge the accepted contract, not adjacent scope. For each criterion return one of:
 
 - **PASS** — implementation and evidence satisfy the criterion;
 - **FAIL** — evidence demonstrates incorrect/incomplete behavior;
 - **UNPROVEN** — implementation may exist but adequate evidence is missing;
 - **BLOCKED** — a genuine prerequisite prevents verification.
-
-Then inspect cross-cutting regression risk only where the diff makes it relevant.
 
 The overall task cannot be called complete while a required criterion is `FAIL` or `UNPROVEN`, or while a required independent review has an unresolved BLOCKER/MAJOR finding.
 
@@ -165,19 +122,19 @@ Confirmed rules for this project (source: `docs/PRODUCT.md`, `docs/ARCHITECTURE.
 2. **Static by default; no client UI framework.** No React/Vue/Svelte; interactivity only via Astro components and framework-free TS modules; no SSR. Mechanical check once the app exists: `package.json` dependency assertion + build output inspection.
 3. **No fabricated proof.** Case studies/projects must be real; results evidence-backed (Spec §19, §21.7); demo/concept content must be visibly labeled; no fake testimonials/logos; no sales guarantees in copy. Check: content review step in `/review` plus copy fixtures in tests when content lands.
 4. **Audit form is business-critical.** Server-side validation, abuse mitigation, no silent failure, no false success, attribution preserved; every accepted submission is delivered as **email via Web3Forms**, and the visitor sees success only after Web3Forms confirms acceptance (no database — 2026-10 email-only architecture, Spec §61–62 adapted). Check: function-level tests at implementation (defect-sensitive: must fail on pre-fix behavior) + client journey tests proving thank-you requires confirmed delivery.
-5. **Secrets stay out of the repository.** `.env*` ignored except `.env.example` (names only, never values); credentials only in Cloudflare Pages secrets. Check: `scripts/pi-doctor.sh` secret scan (exists) + `.env.example` value scan in `scripts/check-project-contract.mjs` (exists, run via `scripts/project-verify.sh`).
-6. **Light/dark themes with system default, persisted override, no incorrect-theme flash; tokens from the accepted anchors in `docs/DESIGN.md`.** Check: browser theme-flash/contrast evidence per `browser-qa` at design/build.
+5. **Secrets stay out of the repository.** `.env*` ignored except `.env.example` (names only, never values); credentials only in Cloudflare Pages secrets. Check: `bash scripts/verify.sh` secret scan + `scripts/check-project-contract.mjs` `.env.example` value scan (exists, run via `scripts/project-verify.sh`).
+6. **Light/dark themes with system default, persisted override, no incorrect-theme flash; tokens from the accepted anchors in `docs/DESIGN.md`.** Check: browser theme-flash/contrast evidence via the native `browser` tool at design/build.
 7. **Accessibility baseline WCAG 2.2 AA** (keyboard, focus, labels, contrast 4.5:1/3:1, reduced motion, no color-only meaning) and **mobile-first** (320px reflow, tap targets, click-to-call). Check: browser QA gates.
 8. **Performance is a product requirement**: static rendering, minimal JS, optimized self-hosted assets; CWV `good` targets pending an accepted lab budget. Check: lab measurement at build, RUM via Cloudflare Web Analytics after launch.
 9. **No speculative infrastructure**: new dependencies/services need a concrete current benefit; Cloudflare free-tier compatibility where practical. Check: dependency review in `/review`.
 
 Canonical commands:
 
-- Full canonical gate: `bash scripts/verify.sh` (builds the project so structural tests run against a fresh `dist/`, then runs `scripts/pi-doctor.sh --ci` + `scripts/project-verify.sh`; CI mirrors this in `.github/workflows/quality.yml`).
+- Full canonical gate: `bash scripts/verify.sh` (omp template self-checks + secret scan, builds the project so structural tests run against a fresh `dist/`, then runs `scripts/project-verify.sh`, `npm run check`, and `npm test`; CI mirrors this in `.github/workflows/quality.yml`).
 - Project doc/branding/contract checks: `bash scripts/project-verify.sh` (fast, static).
-- Affected-change routing: `node scripts/verify-affected.mjs --file <path> [--plan]` (routes in `.pi/verification.json`; unmatched files fall back to the full gate).
-- Harness/workflow tests: `node --test tests/*.test.mjs`.
-- Install (harness): `./p` installs pinned Pi packages; app install (`npm install` or `pnpm install`) arrives with the Astro scaffolding.
-- Browser QA: native Playwright MCP via `tool_search` (`/mcp` for the in-session connection check), screenshots under `.artifacts/playwright/`; deterministic browser tests separate from MCP exploration.
+- Affected/feature lanes: `/skill:verify` (exact new test first, then nearest existing tests via `lsp` references; unmatched files use the feature lane or the full gate).
+- Contract tests: `node --test tests/*.test.mjs` (project suite; structural tests assert a fresh `dist/` — run the full gate, not bare `npm test`, on a clean checkout).
+- Workflow runtime: `omp` (single binary, `curl -fsSL https://omp.sh/install | sh`); no packages, MCP servers, or launcher. Project config lives in `.omp/`.
+- Browser QA: native `browser` tool; accessibility snapshots and DOM/console/network evidence first, screenshots under `.artifacts/` as reproducible artifacts. Deterministic browser tests stay separate from interactive exploration.
 
 Do not invent quality targets that the product or repository has not accepted.

@@ -136,22 +136,59 @@ function checkEnvExample(root) {
   return errors;
 }
 
-function checkVerificationConfig(root) {
+// omp workflow structure: the canonical commands and skills exist with valid
+// discovery frontmatter, the scoped PR helper exists, and no legacy Pi
+// workflow remnants remain.
+const OMP_COMMANDS = ["spec", "build", "review", "ship"];
+
+function checkOmpWorkflow(root) {
   const errors = [];
-  let config;
+  for (const command of OMP_COMMANDS) {
+    const relative = `.omp/commands/${command}.md`;
+    let content;
+    try {
+      content = readText(root, relative);
+    } catch {
+      errors.push(`${relative}: missing`);
+      continue;
+    }
+    if (!/^description: .+/m.test(content)) {
+      errors.push(`${relative}: missing frontmatter description`);
+    }
+  }
+  let skills;
   try {
-    config = JSON.parse(readText(root, ".pi/verification.json"));
-  } catch (error) {
-    return [`.pi/verification.json: invalid JSON (${error.message})`];
+    skills = fs.readdirSync(path.join(root, ".omp", "skills"));
+  } catch {
+    return [...errors, ".omp/skills: missing"];
   }
-  if (config.version !== 1) errors.push(".pi/verification.json: version must be 1");
-  const ids = (config.routes ?? []).map((route) => route.id);
-  if (!ids.includes("project-contract")) {
-    errors.push('.pi/verification.json: missing "project-contract" route');
+  if (skills.length === 0) errors.push(".omp/skills: empty");
+  for (const skill of skills) {
+    const relative = `.omp/skills/${skill}/SKILL.md`;
+    let content;
+    try {
+      content = readText(root, relative);
+    } catch {
+      errors.push(`${relative}: missing`);
+      continue;
+    }
+    if (!/^name: .+/m.test(content)) errors.push(`${relative}: missing frontmatter name`);
+    if (!/^description: .+/m.test(content)) {
+      errors.push(`${relative}: missing frontmatter description`);
+    }
   }
-  const fallback = JSON.stringify(config.fallback);
-  if (fallback !== JSON.stringify([["bash", "scripts/verify.sh"]])) {
-    errors.push(".pi/verification.json: fallback must be the canonical full gate scripts/verify.sh");
+  try {
+    readText(root, "scripts/omp-pr.mjs");
+  } catch {
+    errors.push("scripts/omp-pr.mjs: missing");
+  }
+  for (const relative of [".pi", "scripts/ai-pr.mjs", "Dockerfile.pi", "p"]) {
+    try {
+      fs.statSync(path.join(root, relative));
+      errors.push(`${relative}: legacy Pi workflow file must be removed`);
+    } catch {
+      // Absent is the expected state.
+    }
   }
   return errors;
 }
@@ -187,7 +224,7 @@ export function checkProjectContract(root) {
   }
   errors.push(...checkSpecRouteHistory(root, "docs/Noveno_Website_Master_Spec.md"));
   errors.push(...checkEnvExample(root));
-  errors.push(...checkVerificationConfig(root));
+  errors.push(...checkOmpWorkflow(root));
   errors.push(...checkBranding(root));
   return errors;
 }

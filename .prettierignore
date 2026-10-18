@@ -8,8 +8,7 @@ public/
 CHANGELOG.md
 plans/
 
-# Harness runtime state — machine-local, managed by the launcher (not product code)
-.pi/
+# Machine-local runtime state — managed by verification runs, not product code
 
 # Durable handoff prose where structure outranks wrapping
 docs/exec-plans/
