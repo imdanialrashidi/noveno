@@ -17,6 +17,11 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 15 # headroom so a cold-cache day fails loudly on real errors, not the ceiling
+    # Project-canonical timezone: Jalali Nowruz-boundary tests construct
+    # Tehran-local times (see tests/site-data.test.mjs); UTC hosts shift
+    # March 20 23:59 into March 21 Tehran time and fail them spuriously.
+    env:
+      TZ: Asia/Tehran
 
     steps:
       - name: Checkout
