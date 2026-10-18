@@ -15,7 +15,7 @@ npm run check        # astro check (types + content schema validation)
 npm run build        # production build → dist/
 npm run preview      # serve the built site locally
 npm test             # project test suite (node --test tests/*.test.mjs)
-bash scripts/verify.sh   # canonical full gate (build + pi-doctor + project contract)
+bash scripts/verify.sh   # canonical full gate (template checks + build + project contract + tests)
 ```
 
 Environment variables are **names only** in `.env.example` — copy it to `.env` for local development and fill values; real secrets live in the Cloudflare Pages project settings, never in the repository:
@@ -306,16 +306,16 @@ Then look at `/work`, `/work/<slug>`, and the homepage proof section in the brow
 ## Verification lanes
 
 - **Tiny low-risk fix:** `/skill:quick-fix` — inspect → change → targeted check → diff review; no plan, todo, subagent, or broad gate.
-- **Targeted/affected:** `node scripts/verify-affected.mjs --file <path>` — routes in `.pi/verification.json`; unmatched files fall back to the canonical full gate.
+- **Targeted/affected:** `/skill:verify` affected lane — exact new test first, then nearest existing tests via `lsp` references; unmatched files use the feature lane or the full gate.
 - **Feature:** once after a bounded change: project contract + relevant tests + build.
-- **Full:** `bash scripts/verify.sh` — builds the project (fresh `dist/` for structural tests), then runs `scripts/pi-doctor.sh --ci` (harness integrity, security scan, context budgets) and `scripts/project-verify.sh` (Noveno doc/branding/env contract). CI mirrors this in `.github/workflows/quality.yml`.
+- **Full:** `bash scripts/verify.sh` — omp template self-checks + secret scan, builds the project (fresh `dist/` for structural tests), then runs `scripts/project-verify.sh` (Noveno doc/branding/env contract), `npm run check`, and `npm test`. CI mirrors this in `.github/workflows/quality.yml`.
 - **Formatting:** `npm run format:check` (also enforced in CI) — formatting is mechanical; never hand-fix format-only feedback.
 
 Structural tests (run inside the gate) also pin the design contract: the flowchart grammar classes are banned from built output, the homepage LCP is the headline text (no hero image preload, no eager images, brand artwork is an inline SVG, below-fold screenshots stay lazy), every `/images/` reference must be content-hashed and exist on disk, fonts ≤ 200 KB (four subsets), interactive JS ≤ 15 KB gzip, every page `fa` + `dir="rtl"`, theme anchors present, no dead links, no env names leaked, and security headers/CSP are present.
 
 ## Browser QA
 
-Native Playwright MCP via `tool_search` (`/mcp` for the in-session connection check); accessibility snapshots and DOM/console/network evidence first, screenshots under `.artifacts/playwright/` as reproducible artifacts. Deterministic browser tests stay separate from interactive MCP exploration. Slice-2 trust-boundary states can be exercised locally with `node scripts/slice2-test-server.mjs [--mode ok|web3forms-down|turnstile-fail] [--port 8788]`.
+Native `browser` tool (no MCP setup); accessibility snapshots and DOM/console/network evidence first, screenshots under `.artifacts/` as reproducible artifacts. Deterministic browser tests stay separate from interactive exploration. Slice-2 trust-boundary states can be exercised locally with `node scripts/slice2-test-server.mjs [--mode ok|web3forms-down|turnstile-fail] [--port 8788]`.
 
 ## Contact / facts
 

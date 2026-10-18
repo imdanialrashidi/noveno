@@ -13,7 +13,7 @@ const root = path.resolve(import.meta.dirname, "..");
 test("domain skills are discoverable, bounded, and distinct from native wrappers", () => {
   assert.deepEqual(domainSkills, ["accessibility-audit", "web-performance", "technical-seo", "rtl-i18n"]);
   for (const name of domainSkills) {
-    const source = fs.readFileSync(path.join(root, ".pi/skills", name, "SKILL.md"), "utf8");
+    const source = fs.readFileSync(path.join(root, ".omp/skills", name, "SKILL.md"), "utf8");
     assert.match(source, new RegExp(`^---\\nname: ${name}\\n`));
     assert.match(source, /\ndescription: .+\n/);
     assert(source.split(/\r?\n/).length < 180, `${name} should remain cheap to load`);

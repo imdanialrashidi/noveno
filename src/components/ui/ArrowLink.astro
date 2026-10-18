@@ -36,9 +36,7 @@ const className = Astro.props["class"] ?? "";
 const base =
   "arrow-link inline-flex min-h-11 items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-text-action";
 
-const classes = [className, as === "span" ? "arrow-link--inline" : "", base]
-  .filter(Boolean)
-  .join(" ");
+const classes = [className, as === "span" ? "arrow-link--inline" : "", base].filter(Boolean).join(" ");
 
 /* One glyph, one definition — both variants render the same SVG. */
 const GLYPH = `<svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>`;

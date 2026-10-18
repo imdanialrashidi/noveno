@@ -29,30 +29,26 @@ test("package ci script builds before it tests", () => {
   );
 });
 
-test("canonical gate builds the project before running the workflow test suite", () => {
+test("canonical gate builds the project before running the test suite", () => {
   const verify = fs.readFileSync(path.join(root, "scripts", "verify.sh"), "utf8");
   const lines = verify.split("\n");
   const buildLine = lines.findIndex((line) => line.includes("run build"));
-  const doctorLine = lines.findIndex((line) => line.includes("pi-doctor.sh"));
+  const testLine = lines.findIndex((line) => line.includes('run_node_script "test"'));
   assert.notEqual(buildLine, -1, "verify.sh must build the project (npm/pnpm run build)");
-  assert.notEqual(doctorLine, -1, "verify.sh must run pi-doctor");
-  assert.ok(
-    buildLine < doctorLine,
-    "verify.sh must build before pi-doctor: pi-doctor --ci runs the workflow test suite, and structural tests need dist/",
-  );
+  assert.notEqual(testLine, -1, "verify.sh must run the project test suite");
+  assert.ok(buildLine < testLine, "verify.sh must build before testing: structural tests need a fresh dist/");
 });
 
-test("verify.sh must not re-run the full ci script after pi-doctor", () => {
+test("verify.sh must not re-run the full ci script after building", () => {
   const verify = fs.readFileSync(path.join(root, "scripts", "verify.sh"), "utf8");
   assert.ok(
     !/npm run ci/.test(verify),
-    "verify.sh must not re-run `npm run ci` (check+build+test) — pi-doctor already ran the suite and the build happened above",
+    "verify.sh must not re-run `npm run ci` (check+build+test) — the build already happened above",
   );
   const lines = verify.split("\n");
-  const doctorLine = lines.findIndex((l) => l.includes("pi-doctor.sh"));
-  const checkLine = lines.findIndex(
-    (l) => l.includes('run_node_script "check"') || l.includes("npm run check"),
-  );
+  const contractLine = lines.findIndex((l) => l.includes("scripts/project-verify.sh"));
+  const checkLine = lines.findIndex((l) => l.includes('run_node_script "check"'));
+  assert.notEqual(contractLine, -1, "verify.sh must run the project contract");
   assert.notEqual(checkLine, -1, "verify.sh must run npm run check");
-  assert.ok(doctorLine < checkLine, "the check must come after the doctor suite");
+  assert.ok(contractLine < checkLine, "the project contract must run before the typecheck");
 });

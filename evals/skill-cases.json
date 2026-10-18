@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Routing contract for the four domain skills. These cases are deterministic trigger fixtures; they do not claim model-quality or runtime activation without a Pi model run.",
+  "description": "Routing contract for the four domain skills. These cases are deterministic trigger fixtures; they do not claim model-quality or runtime activation without a model run.",
   "cases": [
     {
       "id": "a11y-explicit",
@@ -49,8 +49,11 @@
       "id": "a11y-native-tool-negative",
       "skill": "accessibility-audit",
       "shouldTrigger": false,
-      "prompt": "Explain how Pi's Playwright MCP browser_snapshot tool works; do not audit an application route or change a project.",
-      "acceptance": ["skill does not replace native tool documentation", "no product evidence is fabricated"]
+      "prompt": "Explain how omp's native browser snapshot tool works; do not audit an application route or change a project.",
+      "acceptance": [
+        "skill does not replace native tool documentation",
+        "no product evidence is fabricated"
+      ]
     },
     {
       "id": "perf-explicit",
@@ -99,8 +102,11 @@
       "id": "perf-tooling-negative",
       "skill": "web-performance",
       "shouldTrigger": false,
-      "prompt": "Tell me which Pi subagent model is fastest for a tiny local refactor; no route, asset, or runtime measurement is requested.",
-      "acceptance": ["skill does not replace native model routing", "no unmeasured speed claim is made"]
+      "prompt": "Tell me which omp task model is fastest for a tiny local refactor; no route, asset, or runtime measurement is requested.",
+      "acceptance": [
+        "skill does not replace native model routing",
+        "no unmeasured speed claim is made"
+      ]
     },
     {
       "id": "seo-explicit",
@@ -204,7 +210,10 @@
       "skill": "rtl-i18n",
       "shouldTrigger": false,
       "prompt": "Translate a standalone paragraph from English to Persian; no layout, direction, formatting, or application behavior is involved.",
-      "acceptance": ["skill is not routed to translation-only work", "no layout evidence is invented"]
+      "acceptance": [
+        "skill is not routed to translation-only work",
+        "no layout evidence is invented"
+      ]
     }
   ]
 }
