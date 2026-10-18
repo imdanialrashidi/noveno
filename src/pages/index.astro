@@ -38,7 +38,8 @@ import HeroArtwork from "../components/brand/HeroArtwork.astro";
 import BlogIndexRow from "../components/business/BlogIndexRow.astro";
 import { getCollection } from "astro:content";
 import { previewFor } from "../data/work-previews";
-import { isPublished, sortByDate, formatFaDate, readingMinutes } from "../data/blog";
+import { formatFaDate, readingMinutes } from "../data/blog";
+import { publishedBlog, publishedWork } from "../data/published";
 import { imageUrl } from "../generated/image-manifest";
 import {
   HERO_HEADLINE,
@@ -65,7 +66,7 @@ import {
  * published falls back to the newest published entry, so the section
  * can never render empty.
  */
-const published = (await getCollection("work")).filter(({ data }) => !data.draft);
+const published = publishedWork(await getCollection("work"));
 /* Owner decision 2026-10: the site's own build is no longer published as a
    case study, so the homepage proof pair is two client projects. Edit this
    array to change which two lead the proof section. */
@@ -102,7 +103,7 @@ const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
    ordered exactly like /blog (newest first). Four rows is enough to read as
    a body of work; /blog owns the full archive. */
 const BLOG_ROWS = 4;
-const blogPublished = sortByDate((await getCollection("blog")).filter(isPublished));
+const blogPublished = publishedBlog(await getCollection("blog"));
 const blogEntries = blogPublished.slice(0, BLOG_ROWS).map((entry) => ({
   id: entry.id,
   title: entry.data.title,

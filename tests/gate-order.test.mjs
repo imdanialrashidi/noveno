@@ -29,14 +29,23 @@ test("package ci script builds before it tests", () => {
   );
 });
 
-test("canonical gate builds the project before running the test suite", () => {
+test("canonical gate builds the project before running the test suite", async () => {
+  const { laneOrder } = await import("../scripts/lib/verify-lane.mjs");
+  const order = laneOrder();
+  const buildIndex = order.indexOf("build");
+  const testIndex = order.indexOf("test");
+  assert.notEqual(buildIndex, -1, "lane must declare a build stage");
+  assert.notEqual(testIndex, -1, "lane must declare a test stage");
+  assert.ok(buildIndex < testIndex, "lane must build before testing: structural tests need a fresh dist/");
+});
+
+test("verify.sh is a thin caller over the lane (order lives in one module)", () => {
   const verify = fs.readFileSync(path.join(root, "scripts", "verify.sh"), "utf8");
-  const lines = verify.split("\n");
-  const buildLine = lines.findIndex((line) => line.includes("run build"));
-  const testLine = lines.findIndex((line) => line.includes('run_node_script "test"'));
-  assert.notEqual(buildLine, -1, "verify.sh must build the project (npm/pnpm run build)");
-  assert.notEqual(testLine, -1, "verify.sh must run the project test suite");
-  assert.ok(buildLine < testLine, "verify.sh must build before testing: structural tests need a fresh dist/");
+  assert.ok(
+    verify.includes("verify-lane.mjs"),
+    "verify.sh must reference the lane module that declares the order",
+  );
+  assert.ok(!verify.includes("run_node_script"), "verify.sh must not carry the old runner name anymore");
 });
 
 test("verify.sh must not re-run the full ci script after building", () => {
@@ -47,8 +56,8 @@ test("verify.sh must not re-run the full ci script after building", () => {
   );
   const lines = verify.split("\n");
   const contractLine = lines.findIndex((l) => l.includes("scripts/project-verify.sh"));
-  const checkLine = lines.findIndex((l) => l.includes('run_node_script "check"'));
+  const checkLine = lines.findIndex((l) => l.includes('run_lane_script "check"'));
   assert.notEqual(contractLine, -1, "verify.sh must run the project contract");
-  assert.notEqual(checkLine, -1, "verify.sh must run npm run check");
+  assert.notEqual(checkLine, -1, "verify.sh must run the typecheck stage");
   assert.ok(contractLine < checkLine, "the project contract must run before the typecheck");
 });

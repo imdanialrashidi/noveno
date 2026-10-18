@@ -1,0 +1,150 @@
+---
+/**
+ * SiteLink — the one intent-keyed link module behind the link seam.
+ *
+ * Intents (not variants): `cta` (primary/secondary/ghost call to action),
+ * `channel` (contact channel row: icon chip + label + optional value),
+ * `readmore` (arrow affordance, anchor or in-row span cue).
+ * Styling, glyph, and analytics serialization live in this module's
+ * implementation — callers name the intent and hand over `href` + event;
+ * dialects (`data` bag vs `event` object) and hand-rolled channel loops
+ * delete.
+ *
+ * - cta: renders <a> when href is set, <button> otherwise.
+ * - channel: renders <a> with icon chip; event serializes to data-event.
+ * - readmore: renders <a>, or a non-interactive <span> cue when `as`
+ *   is "span" (rows whose whole area is already one anchor).
+ */
+
+import Icon, { type IconName } from "./Icon.astro";
+
+export type SiteLinkIntent = "cta" | "channel" | "readmore";
+
+interface Props {
+  intent: SiteLinkIntent;
+  href?: string;
+  label: string;
+  /** cta tone. */
+  tone?: "primary" | "secondary" | "ghost";
+  size?: "md" | "lg";
+  /** channel icon (required for channel intent). */
+  icon?: IconName;
+  /** secondary value beside the label (e.g. the phone number). */
+  value?: string;
+  /** external link (target/rel). */
+  external?: boolean;
+  /** non-interactive cue for in-row readmore. */
+  as?: "a" | "span";
+  /** analytics event — serialized to data-event(+payload) in one place. */
+  event?: { name: string; payload: Record<string, string> };
+  ariaLabel?: string;
+  type?: "button" | "submit";
+  disabled?: boolean;
+  class?: string;
+  data?: Record<string, string>;
+}
+
+const {
+  intent,
+  href,
+  label,
+  tone = "primary",
+  size = "md",
+  icon,
+  value,
+  external = false,
+  as = "a",
+  event,
+  ariaLabel,
+  type = "button",
+  disabled = false,
+  data = {},
+} = Astro.props;
+const className = Astro.props["class"] ?? "";
+
+const eventAttrs =
+  event != null
+    ? { "data-event": event.name, "data-event-payload": JSON.stringify(event.payload) }
+    : {};
+const externalAttrs = external ? { target: "_blank", rel: "noopener noreferrer" } : {};
+
+const ctaTones: Record<string, string> = {
+  primary: "bg-primary text-on-primary hover:bg-primary-hover active:bg-primary-active",
+  secondary:
+    "border border-line-strong text-text hover:border-primary hover:text-text-action bg-transparent",
+  ghost: "text-accent-strong hover:text-text-action underline-offset-4",
+};
+const ctaSizes: Record<string, string> = { md: "min-h-12 px-6", lg: "min-h-14 px-8" };
+const ctaClasses = [
+  "btn-press inline-flex items-center justify-center gap-2 rounded-[4px] font-display text-ui font-medium cursor-pointer select-none disabled:opacity-45 disabled:cursor-not-allowed",
+  ctaTones[tone],
+  ctaSizes[size],
+  className,
+].join(" ");
+
+const channelVariants: Record<string, string> = {
+  row: "group inline-flex min-h-10 items-center gap-2.5 text-ui transition-colors duration-150",
+  tile: "group flex min-h-13 flex-1 items-center gap-2.5 rounded-[4px] border border-line bg-surface px-3.5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action",
+  inline:
+    "inline-flex min-h-11 items-center gap-2 text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-text-action",
+};
+const channelVariant = (Astro.props as { variant?: string }).variant ?? "inline";
+const chip: Record<string, string> = {
+  inline: "h-4.5 w-4.5 flex-none",
+  row: "flex h-7 w-7 flex-none items-center justify-center rounded-[4px] border border-line bg-surface text-text-muted transition-colors duration-150 group-hover:border-primary group-hover:bg-primary-soft group-hover:text-accent-strong",
+  tile: "flex h-8 w-8 flex-none items-center justify-center rounded-[4px] bg-surface-soft text-text-muted transition-colors duration-150 group-hover:bg-primary-soft group-hover:text-accent-strong",
+};
+
+const readmoreClasses = [
+  className,
+  as === "span" ? "arrow-link--inline" : "",
+  "arrow-link inline-flex min-h-11 items-center gap-1.5 text-ui font-medium text-accent-strong transition-colors duration-150 hover:text-text-action",
+]
+  .filter(Boolean)
+  .join(" ");
+
+/* One glyph, one definition — anchor and span cue render the same SVG. */
+const GLYPH = `<svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>`;
+---
+
+{
+  intent === "cta" && href && (
+    <a href={href} class={ctaClasses} aria-label={ariaLabel} aria-disabled={disabled ? "true" : undefined} {...eventAttrs} {...data}>
+      <slot />
+    </a>
+  )
+}
+{
+  intent === "cta" && !href && (
+    <button type={type} class={ctaClasses} aria-label={ariaLabel} disabled={disabled} {...eventAttrs} {...data}>
+      <slot />
+    </button>
+  )
+}
+{
+  intent === "channel" && (
+    <a href={href} class:list={[channelVariants[channelVariant], className]} {...externalAttrs} {...eventAttrs} {...data}>
+      {icon && (
+        <span class={chip[channelVariant]} aria-hidden="true">
+          <Icon name={icon} class="h-4 w-4" />
+        </span>
+      )}
+      <span class="tnum" dir={value ? "ltr" : undefined}>{label}</span>
+      {value && <span class="text-meta text-text-faint">({value})</span>}
+    </a>
+  )
+}
+{
+  intent === "readmore" &&
+    (as === "span" ? (
+      <span class={readmoreClasses}>
+        {label}
+        <Fragment set:html={GLYPH} />
+      </span>
+    ) : (
+      <a href={href} class={readmoreClasses} {...eventAttrs} {...data}>
+        {label}
+        <Fragment set:html={GLYPH} />
+      </a>
+    ))
+}

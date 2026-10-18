@@ -1,10 +1,10 @@
 import rss from "@astrojs/rss";
 import { getCollection } from "astro:content";
-import { isPublished, sortByDate } from "../data/blog";
+import { publishedBlog } from "../data/published";
 import { FALLBACK_SITE_ORIGIN } from "../../scripts/lib/site-origin.mjs";
 
 export async function GET(context: { site?: URL }) {
-  const posts = sortByDate((await getCollection("blog")).filter(isPublished));
+  const posts = publishedBlog(await getCollection("blog"));
   return rss({
     title: "وبلاگ نوونو — نوشته‌هایی درباره جذب و پیگیری مشتری",
     description:

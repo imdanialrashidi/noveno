@@ -20,9 +20,10 @@ import ConceptPreview from "../../components/business/ConceptPreview.astro";
 import { getCollection, render } from "astro:content";
 import { CONCEPT_DISCLAIMER, PROOF_LABELS } from "../../data/site";
 import { previewFor } from "../../data/work-previews";
+import { publishedWork } from "../../data/published";
 
 export async function getStaticPaths() {
-  const entries = (await getCollection("work")).filter(({ data }) => !data.draft);
+  const entries = publishedWork(await getCollection("work"));
   return entries.map((entry) => ({
     params: { slug: entry.id },
     props: { entry },

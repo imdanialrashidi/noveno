@@ -8,8 +8,8 @@
  *   journey start, falling back to a local capture — independent of analytics delivery.
  */
 
-import { AUDIT_OPTIONS } from "../../data/audit.ts";
-import { LIMITS } from "../../../functions/lib/contract.ts";
+import { labelOf, labelsOf } from "../../data/lead-contract.ts";
+import { ATTRIBUTION_BOUNDS } from "../../data/telemetry-contract.ts";
 import { readAttribution, type Attribution } from "../analytics.ts";
 
 function clampAttr(value: string | undefined, max: number): string {
@@ -64,13 +64,13 @@ export function clearDraft(): void {
 export function captureAttributionNow(): Attribution {
   const params = new URLSearchParams(location.search);
   const attribution: Attribution = {
-    landing_page: clampAttr(location.pathname + location.search, LIMITS.landingPage),
-    referrer: clampAttr(document.referrer, LIMITS.referrer),
+    landing_page: clampAttr(location.pathname + location.search, ATTRIBUTION_BOUNDS.landingPage),
+    referrer: clampAttr(document.referrer, ATTRIBUTION_BOUNDS.referrer),
     first_seen_at: new Date().toISOString(),
   };
   for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"] as const) {
     const value = params.get(key);
-    if (value) attribution[key] = clampAttr(value, LIMITS.utm);
+    if (value) attribution[key] = clampAttr(value, ATTRIBUTION_BOUNDS.utm);
   }
   return attribution;
 }
@@ -145,13 +145,6 @@ export function saveValues(
   writeDraft(draft);
 }
 
-function labelOf(group: keyof typeof AUDIT_OPTIONS, id: string): string {
-  return (
-    (AUDIT_OPTIONS[group] as readonly { id: string; label: string }[]).find((option) => option.id === id)
-      ?.label ?? id
-  );
-}
-
 /**
  * Fill the last-step review summary from the draft. Rows with no
  * answer stay hidden; labels are the display side of the client enums.
@@ -171,9 +164,7 @@ export function fillSummary(draft: Draft | null): void {
   set("industry", labelOf("industry", String(values.industry ?? "")));
   set(
     "channels",
-    Array.isArray(values.acquisition_channels)
-      ? values.acquisition_channels.map((id) => labelOf("channels", String(id))).join("، ")
-      : "",
+    labelsOf("channels", values.acquisition_channels),
   );
   set("problem", labelOf("problems", String(values.primary_problem ?? "")));
   set("need", labelOf("needs", String(values.requested_service ?? "")));

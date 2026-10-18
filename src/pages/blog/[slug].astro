@@ -20,6 +20,7 @@
 import PageLayout from "../../layouts/PageLayout.astro";
 import Button from "../../components/ui/Button.astro";
 import { getCollection, render } from "astro:content";
+import { publishedBlog } from "../../data/published";
 import {
   isPublished,
   relatedEntries,
@@ -33,7 +34,7 @@ import { toFaDigits } from "../../data/site";
 
 export async function getStaticPaths() {
   const all = await getCollection("blog");
-  const published = all.filter(isPublished);
+  const published = publishedBlog(all);
   return published.map((entry) => ({
     params: { slug: entry.id },
     props: { entry, all },

@@ -39,80 +39,53 @@ const PUBLIC = join(ROOT, "public");
 const REQUIRED_W = 1200;
 const REQUIRED_H = 630;
 
-/** Minimal frontmatter parse (same shape the sitemap generator uses). */
-function parseFrontmatter(file) {
-  const raw = readFileSync(file, "utf8");
-  const match = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
-  if (!match) return {};
-  const data = {};
-  for (const line of match[1].split(/\r?\n/)) {
-    // [a-zA-Z_] so camelCase schema keys like `ogImage` are read too (the
-    // sitemap generator only needs lowercase keys and keeps [a-z_]).
-    const kv = /^([a-zA-Z_]+):\s*(.*)$/.exec(line.trim());
-    if (!kv) continue;
-    const key = kv[1];
-    const value = kv[2].trim().replace(/^"|"$/g, "");
-    data[key] = value === "true" ? true : value === "false" ? false : value;
-  }
-  return data;
-}
+import { contentEntries, parseFrontmatterFile, requiredCards as requiredCardsFromScan } from "./lib/published-scan.mjs";
 
-/** Slugs of the content collection, optionally gated by draft. */
-function contentSlugs(dir, { skipDrafts }) {
-  const base = join(ROOT, "src", "content", dir);
-  const slugs = [];
-  for (const name of readdirSync(base).filter((f) => f.endsWith(".md"))) {
-    const data = parseFrontmatter(join(base, name));
-    if (skipDrafts && data.draft) continue;
-    slugs.push(name.slice(0, -3));
-  }
-  return slugs.sort();
+/** Minimal frontmatter parse — the shared published-scan parser. */
+function parseFrontmatter(file) {
+  return parseFrontmatterFile(file, (src) => {
+    // Hand-rolled line parse kept for dependency-free gating (no yaml dep):
+    // [a-zA-Z_] so camelCase schema keys like `ogImage` are read too.
+    const data = {};
+    const match = /^---\r?\n([\s\S]*?)\r?\n---/.exec(readFileSync(file, "utf8"));
+    if (!match) return {};
+    for (const line of match[1].split(/\r?\n/)) {
+      const kv = /^([a-zA-Z_]+):\s*(.*)$/.exec(line.trim());
+      if (!kv) continue;
+      const value = kv[2].trim().replace(/^"|"$/g, "");
+      data[kv[1]] = value === "true" ? true : value === "false" ? false : value;
+    }
+    return data;
+  });
 }
 
 /**
- * The cards the site requires. Entries mirror the ogImage values in
- * src/pages (index → /og.png default; about, work index, work item,
- * blog index, blog article each set a dedicated card).
+ * The cards the site requires — resolved through the shared scan module
+ * (same draft gate + cardFor default the pages apply).
  */
 function requiredCards() {
-  const cards = [
-    { rel: "og.png", why: "default / homepage card (BaseLayout fallback)" },
-    { rel: "og/about.png", why: "/about page card" },
-    { rel: "og/work.png", why: "/work index card" },
-    { rel: "og/blog.png", why: "/blog index card" },
-  ];
-  for (const slug of contentSlugs("work", { skipDrafts: true })) {
-    cards.push({ rel: `og/work/${slug}.png`, why: `work entry \`${slug}\`` });
-  }
+  const contentBase = join(ROOT, "src", "content");
+  const work = contentEntries(contentBase, "work", (src) => {
+    const data = {};
+    for (const line of src.split(/\r?\n/)) {
+      const kv = /^([a-zA-Z_]+):\s*(.*)$/.exec(line.trim());
+      if (!kv) continue;
+      const value = kv[2].trim().replace(/^"|"$/g, "");
+      data[kv[1]] = value === "true" ? true : value === "false" ? false : value;
+    }
+    return data;
+  }, { skipDrafts: true });
   // OG_ASSETS_BLOG_DIR lets tests point the gate at a throwaway fixture
   // directory so temp entries never race other suites that read
   // src/content/blog (node --test runs test files concurrently).
   const blogBase = process.env.OG_ASSETS_BLOG_DIR
     ? resolve(process.env.OG_ASSETS_BLOG_DIR)
     : join(ROOT, "src", "content", "blog");
+  const blogFiles = [];
   for (const name of readdirSync(blogBase).filter((f) => f.endsWith(".md"))) {
-    const slug = name.slice(0, -3);
-    const data = parseFrontmatter(join(blogBase, name));
-    if (data.draft) continue; // drafts never get a social card
-    // Match blog/[slug].astro exactly: `data.ogImage ?? /og/blog/{slug}.png`.
-    //   "/og/blog/x.png"          → committed repo card → validate it
-    //   "og/blog/x.png" (relative) → resolves against the site origin to the
-    //     same public path → validate it as a committed repo card
-    //   "https://cdn.example/.."  → external asset, not committed here → skip
-    if (typeof data.ogImage === "string" && data.ogImage !== "") {
-      if (/^https?:\/\//i.test(data.ogImage)) {
-        // external URL — nothing to validate in this repo
-      } else {
-        cards.push({
-          rel: data.ogImage.replace(/^\/+/, ""),
-          why: `published article \`${slug}\` ogImage override`,
-        });
-      }
-    } else if (!data.ogImage) {
-      cards.push({ rel: `og/blog/${slug}.png`, why: `published article \`${slug}\`` });
-    }
+    blogFiles.push({ slug: name.slice(0, -3), data: parseFrontmatter(join(blogBase, name)) });
   }
-  return cards;
+  return requiredCardsFromScan(work, blogFiles);
 }
 
 /** Full path of a public/rel asset; null when it escapes public/. */

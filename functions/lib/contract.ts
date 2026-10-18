@@ -2,87 +2,32 @@
  * Audit submission contract — the authoritative server-side field
  * definition (docs/exec-plans/active/noveno-launch.md §5.5).
  *
- * The client form (src/data/audit.ts) mirrors these values; a structural
- * test asserts the client options are an exact subset of these enums so
- * the two cannot silently drift. The server is the source of truth:
- * anything outside these whitelists is rejected before validation
- * completes (the function never persists — email-only delivery).
+ * Enum ids, length caps, honeypot field, and UUID shape are derived from
+ * the shared `lead-contract` module — this file keeps the server-only
+ * surface (event vocabulary, byte budgets, request/response types) while
+ * the lead identity lives behind one interface.
  */
 
-/* ------------------------------------------------------------------ */
-/* Enums — canonical Latin ids (labels live client-side)               */
-/* ------------------------------------------------------------------ */
+import { LEAD_ENUMS, LEAD_LIMITS, LEAD_UUID_PATTERN } from "../../src/data/lead-contract.ts";
+import { LEAD_HONEYPOT_FIELD } from "../../src/data/lead-contract.ts";
 
-export const INDUSTRIES = [
-  "salon_beauty",
-  "restaurant_cafe",
-  "clinic_health",
-  "education",
-  "real_estate",
-  "consulting_professional",
-  "retail_shop",
-  "auto_services",
-  "fitness_sports",
-  "manufacturing_craft",
-  "other",
-] as const;
+export const INDUSTRIES = LEAD_ENUMS.industries;
 
-export const ACQUISITION_CHANNELS = [
-  "instagram",
-  "google",
-  "advertising",
-  "referral",
-  "in_person",
-  "website",
-  "other",
-] as const;
+export const ACQUISITION_CHANNELS = LEAD_ENUMS.channels;
 
-export const PRIMARY_PROBLEMS = [
-  "low_requests",
-  "scattered_lost",
-  "no_website",
-  "website_unclear",
-  "weak_followup",
-  "unknown_channels",
-  "not_sure",
-] as const;
+export const PRIMARY_PROBLEMS = LEAD_ENUMS.problems;
 
-export const REQUESTED_SERVICES = [
-  "audit_analysis",
-  "build_system",
-  "redesign_path",
-  "monthly_improvement",
-  "not_sure_yet",
-] as const;
+export const REQUESTED_SERVICES = LEAD_ENUMS.requestedServices;
 
-export const CUSTOMER_VALUE_RANGES = ["under_5m", "5m_20m", "20m_50m", "50m_200m", "over_200m"] as const;
+export const CUSTOMER_VALUE_RANGES = LEAD_ENUMS.valueRanges;
 
-export const PREFERRED_CONTACTS = ["phone", "whatsapp", "telegram", "email"] as const;
+export const PREFERRED_CONTACTS = LEAD_ENUMS.preferredContacts;
 
 /** Accepted acquisition-event names (Spec §36; no PII in any payload). */
-export const EVENT_NAMES = [
-  "primary_cta_click",
-  "secondary_cta_click",
-  "audit_started",
-  "audit_step_completed",
-  "audit_submitted",
-  "phone_click",
-  "messaging_click",
-  "service_opened",
-  "case_study_opened",
-  "project_opened",
-] as const;
+export { TELEMETRY_NAMES as EVENT_NAMES } from "../../src/data/telemetry-contract.ts";
 
 /** Allowed payload keys for analytics events (generic, non-personal). */
-export const EVENT_PAYLOAD_KEYS = [
-  "page",
-  "section",
-  "cta_id",
-  "step",
-  "service",
-  "slug",
-  "channel",
-] as const;
+export { TELEMETRY_PAYLOAD_KEYS as EVENT_PAYLOAD_KEYS } from "../../src/data/telemetry-contract.ts";
 
 /**
  * Analytics `step` values — the client sends the 1-based positional
@@ -119,15 +64,15 @@ export const LIMITS = {
   maxBodyBytes: 32 * 1024,
   /** Analytics event body ceiling. */
   maxEventsBodyBytes: 16 * 1024,
-  name: 80,
-  phone: 24,
-  email: 120,
-  businessName: 120,
-  website: 200,
-  landingPage: 500,
-  referrer: 500,
-  utm: 200,
-  firstSeenAt: 40,
+  name: LEAD_LIMITS.name,
+  phone: LEAD_LIMITS.phone,
+  email: LEAD_LIMITS.email,
+  businessName: LEAD_LIMITS.businessName,
+  website: LEAD_LIMITS.website,
+  landingPage: LEAD_LIMITS.landingPage,
+  referrer: LEAD_LIMITS.referrer,
+  utm: LEAD_LIMITS.utm,
+  firstSeenAt: LEAD_LIMITS.firstSeenAt,
   /** Upper bound == full enum pass; a user may legitimately select every channel. */
   maxChannels: ACQUISITION_CHANNELS.length /** Analytics payload value length. */,
   maxEventPayloadValue: 100,
@@ -135,9 +80,9 @@ export const LIMITS = {
 } as const;
 
 /** Honeypot field — hidden from humans; a non-empty value marks a bot. */
-export const HONEYPOT_FIELD = "company_website";
+export const HONEYPOT_FIELD = LEAD_HONEYPOT_FIELD;
 
-export const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const UUID_PATTERN = LEAD_UUID_PATTERN;
 
 /* ------------------------------------------------------------------ */
 /* Request/response contract (plan §5.5)                               */
