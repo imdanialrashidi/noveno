@@ -32,3 +32,14 @@ import { CTA_URL, PRIMARY_CTA_LABEL } from "../data/site";
     </div>
   </section>
 </PageLayout>
+
+<script is:inline>
+  // GitHub Pages has no server-side redirects (Cloudflare's _redirects is
+  // unavailable there). Preserve the legacy /insights → /blog URL shape for
+  // real visitors; crawlers still see a 404, not a 301.
+  (function () {
+    var match = /^\/insights(?:\/([^/]+))?\/?$/.exec(window.location.pathname);
+    if (!match) return;
+    window.location.replace("/blog/" + (match[1] ? match[1] + "/" : ""));
+  })();
+</script>

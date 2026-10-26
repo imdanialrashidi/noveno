@@ -4,15 +4,15 @@ Durable constraints and accepted decisions only. Where the Master Spec (Spec §5
 
 ## Current system
 
-- **Runtime/platform:** **Astro 7 + TypeScript, statically rendered**, deployed to **Cloudflare Pages**. No SSR. One Pages Function pair: `/api/audit` (validation boundary) and `/api/events` (Analytics Engine ingestion).
+- **Runtime/platform:** **Astro 7 + TypeScript, statically rendered**. Static output deploys to **GitHub Pages**; the optional **Cloudflare Pages** deployment adds the Function pair `/api/audit` (validation boundary) and `/api/events` (Analytics Engine ingestion). No SSR.
 - **Main modules:** (shipped) Astro pages per the launch IA (Spec §8.1), Astro components, framework-free TypeScript modules for interactive behavior (`src/scripts/`), one narrowly scoped Cloudflare Pages Function for the audit-form validation boundary.
 - **Data stores:** **none.** Audit leads are delivered as **email via Web3Forms** (client-side) and are not durably stored anywhere by this site (2026-10 founder decision: no lead database for v1).
 - **External services:** Web3Forms client-side lead email delivery on audit submission (shipped; free tier requires client-side posting — `docs/ops/setup-checklist.md`); Cloudflare Turnstile (anti-abuse, siteverify in the function); Cloudflare Web Analytics (baseline traffic/performance) + Analytics Engine via `/api/events` (custom acquisition events); **Zaraz deferred** — tag manager, not a store (see pattern table); WhatsApp/Telegram (09102256986), email (imdanialrashidi@gmail.com) as contact channels — no third-party integration code required.
-- **Deployment topology:** static assets on Cloudflare Pages CDN; the audit function as a Pages Function attached to the same project; Pages secrets for the Turnstile secret key. Free-tier-compatible.
+- **Deployment topology:** static assets on GitHub Pages (custom domain `noveno.ir`) from CI; the audit function only exists on a Cloudflare Pages deployment, attached to that project and holding the Turnstile secret. GitHub Pages cannot execute the Functions, so the audit form has no server boundary there. Free-tier-compatible in both topologies.
 
 ## Trust boundaries and critical data flows
 
-1. **Public static site (untrusted visitors)** → audit form (client validation for UX only) → **Pages Function (the only server boundary)**: server-side validation, abuse protection (rate limiting/honeypot/Turnstile siteverify), attribution packaging (landing page, referrer, UTM) → **200 `validated`** → the browser posts the sanitized lead to **Web3Forms** → Web3Forms confirms `{ success: true }` → thank-you. The only server-side secret is the Turnstile secret key; the client never sees it.
+1. **Public static site (untrusted visitors)** → audit form (client validation for UX only) → **Pages Function (the only server boundary; Cloudflare deployment only)**: server-side validation, abuse protection (rate limiting/honeypot/Turnstile siteverify), attribution packaging (landing page, referrer, UTM) → **200 `validated`** → the browser posts the sanitized lead to **Web3Forms** → Web3Forms confirms `{ success: true }` → thank-you. The only server-side secret is the Turnstile secret key; the client never sees it. On the static-only GitHub Pages deployment no server boundary exists, so the form must not deliver a lead.
 2. Everything else on the site is static and contains no secrets and no dynamic data.
 
 ## Non-negotiable invariants

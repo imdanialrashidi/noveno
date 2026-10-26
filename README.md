@@ -31,6 +31,18 @@ Environment variables are **names only** in `.env.example` — copy it to `.env`
 
 > The audit form needs `PUBLIC_TURNSTILE_SITE_KEY` + `PUBLIC_WEB3FORMS_ACCESS_KEY` to submit; without them the form still validates locally and shows the honest «not available» fallback with direct-contact options. The Turnstile secret is used only by `functions/` (see `docs/ops/setup-checklist.md`). There is **no database**: audit leads are delivered as email via Web3Forms and nothing is durably stored by this site.
 
+## Deployment
+
+The static site deploys to **GitHub Pages** from `main`: `.github/workflows/quality.yml` runs the full gate, then uploads `dist/` and deploys it. Repository setup:
+
+1. **Settings → Pages → Source: GitHub Actions**.
+2. Custom domain `noveno.ir` (DNS already points the domain and `www` at GitHub Pages).
+3. **Settings → Secrets and variables → Actions → Variables**: `PUBLIC_TURNSTILE_SITE_KEY`, `PUBLIC_WEB3FORMS_ACCESS_KEY`, `PUBLIC_CF_ANALYTICS_TOKEN` (public build values only). `PUBLIC_APP_URL` is pinned to `https://noveno.ir` in the workflow.
+
+GitHub Pages serves static files only. `functions/api/audit.ts` and `functions/api/events.ts` (Cloudflare Pages Functions), `public/_headers`, and `public/_redirects` are not executed there: the audit page reaches its honest failure/fallback state instead of delivering a lead, security/caching headers are not applied, and `/insights/*` links are redirected client-side by `404.astro` (no 301). Host the Functions separately before GitHub Pages is the production conversion path.
+
+The canonical gate remains `bash scripts/verify.sh`; it runs before every Pages deploy.
+
 ---
 
 ## Repository state
@@ -54,7 +66,7 @@ The repository is the **Noveno production website project**: Slice 1 (flagship s
 
 ## Tech stack
 
-- **Astro 7 + TypeScript**, statically rendered, deployed to **Cloudflare Pages** (free-tier-compatible). No SSR.
+- **Astro 7 + TypeScript**, statically rendered. Static output deploys to **GitHub Pages**; the optional **Cloudflare Pages Functions** boundary runs only on a Cloudflare deployment. No SSR.
 - **No client UI framework** (no React/Vue/Svelte); interactivity via Astro components and small framework-free TypeScript modules (`src/scripts/`).
 - **No backend/auth/CMS/CRM/client portal.** One narrowly scoped Cloudflare Pages Function (`functions/api/audit.ts`) handles the business-critical **audit-form validation boundary**: server-side validation, abuse protection (honeypot, rate limiting, Turnstile). Lead delivery is **email-only** — the validated browser posts the sanitized lead to **Web3Forms** and the journey completes only when Web3Forms confirms acceptance. **No database** — nothing is durably stored by the site.
 - Analytics: **Cloudflare Web Analytics** + a Cloudflare-native events path (`functions/api/events.ts` + `src/scripts/analytics.ts`, Analytics Engine binding `NOVENO_EVENTS`); UTM/referrer/landing-page attribution rides in the Web3Forms lead email, not a database.

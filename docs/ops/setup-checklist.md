@@ -1,8 +1,9 @@
 # Noveno Launch — Founder Setup Checklist
 
-Provisioning steps for production readiness. **No deployment is executed from
-this repository** — this checklist prepares the accounts so a single
-`git push` to `main` + a Pages production deploy can go live.
+Provisioning steps for production readiness. The **static site deploys to
+GitHub Pages from `main`** (see README §Deployment); this checklist covers the
+Cloudflare side that is only needed when the Functions boundary is hosted
+there. A `git push` to `main` deploys the static site, not the Functions.
 
 There is **no database** and **no Supabase step**. Audit leads are delivered
 as email via **Web3Forms** — the only lead-delivery destination.
