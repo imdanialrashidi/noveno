@@ -251,6 +251,22 @@ export const ECOMMERCE_OFFER = {
 } as const;
 
 /**
+ * Homepage self-assessment (2026-10, ninth review) — six concrete
+ * statements about a working lead path. It is a CSS-only checklist: the
+ * visitor ticks what is already true and the page counts it locally.
+ * Nothing is submitted, stored, or measured, and the count is not a
+ * diagnostic score — the section says so in plain words.
+ */
+export const SELF_CHECK_ITEMS = [
+  "هر درخواست، یک جای مشخص برای ثبت دارد.",
+  "می‌دانیم هر درخواست از کدام کانال آمده است.",
+  "وضعیت هر درخواست مشخص است: جدید، در تماس، تبدیل‌شده یا از‌دست‌رفته.",
+  "اگر پیگیری عقب بیفتد، درخواست فراموش نمی‌شود.",
+  "می‌توانیم بگوییم کدام کانال مشتری آورده است.",
+  "بعد از هر تغییر، قبل و بعد را با عدد می‌بینیم.",
+] as const;
+
+/**
  * Priority segments (2026-10). These describe the *problem each segment
  * brings*, not a specialization claim, a client list, or a result: no
  * niche is presented as proven traction (docs/DESIGN.md §0).

@@ -159,6 +159,25 @@ test("homepage hero is brand-led: signal-field artwork + stage strip, no screens
   assert.ok(home.includes("noveno-website-audit"), "real product UI must remain as proof below the hero");
 });
 
+test("homepage self-check stays CSS-only: no form, no field names, no storage", () => {
+  // The section tells the visitor, in plain words, that nothing is sent or
+  // stored. Regression to protect: wrapping the checklist in a <form>, giving
+  // a checkbox a `name`, or wiring storage/analytics to the selections would
+  // silently turn a reading aid into data collection (DESIGN §0, §16 ninth).
+  const home = fs.readFileSync(path.join(dist, "index.html"), "utf8");
+  const start = home.indexOf('class="selfcheck"');
+  assert.ok(start > -1, "homepage must contain the self-check");
+  const section = home.slice(home.lastIndexOf("<section", start), home.indexOf("</section>", start));
+  assert.ok(!/<form[\s>]/.test(section), "self-check must not be inside a form");
+  const inputs = [...section.matchAll(/<input[^>]*type="checkbox"[^>]*>/g)].map((m) => m[0]);
+  assert.equal(inputs.length, 6, "self-check must render six real checkboxes");
+  for (const input of inputs) {
+    assert.ok(!/\sname=/.test(input), "self-check checkboxes must not submit a field");
+    assert.ok(!/data-(event|track)/.test(input), "self-check must not wire analytics to selections");
+  }
+  assert.ok(!/localStorage|sessionStorage/.test(section), "self-check must not store state");
+});
+
 test("old /insights routes no longer build — no duplicate indexable routes", () => {
   assert.ok(!fs.existsSync(path.join(dist, "insights")), "dist must not contain /insights pages");
   assert.ok(fs.existsSync(path.join(dist, "blog", "index.html")), "dist must contain /blog");

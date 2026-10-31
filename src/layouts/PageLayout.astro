@@ -41,6 +41,11 @@ const { title, description, path, robots, ogImage, ogType, ogImageAlt } = Astro.
   >
     رفتن به محتوای اصلی
   </a>
+  <!-- Desktop reading/scroll progress — the same scroll-driven technique
+       as the mobile header registration line (DESIGN §12 device 6). Zero
+       JavaScript, off the main thread; reduced motion opts out and
+       unsupported engines simply show no bar. Decorative: aria-hidden. -->
+  <div class="page-progress hidden lg:block" aria-hidden="true"><span></span></div>
   <Header />
   <main id="main" tabindex="-1">
     <slot />

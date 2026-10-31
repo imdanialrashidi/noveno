@@ -31,17 +31,17 @@ const pathname = Astro.url.pathname;
 <header class="sticky top-0 z-40 border-b border-line bg-surface lg:static">
   <span class="header-registration lg:hidden" aria-hidden="true"></span>
   <div
-    class="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-3 px-5 max-[359px]:px-4 sm:px-8 lg:h-20 lg:gap-8"
+    class="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-3 px-5 max-[359px]:px-4 sm:px-8 lg:grid lg:h-20 lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-8"
   >
     <a
       href="/"
-      class="inline-flex min-h-11 shrink-0 items-center gap-2.5 whitespace-nowrap rounded-[4px] text-text"
+      class="inline-flex min-h-11 shrink-0 items-center gap-2.5 whitespace-nowrap rounded-[4px] text-text lg:justify-self-start"
       aria-label="نوونو NOVENO — صفحه اصلی"
     >
       <Logo />
     </a>
 
-    <nav class="hidden items-center gap-6 lg:flex xl:gap-8" aria-label="ناوبری اصلی">
+    <nav class="hidden items-center gap-6 lg:flex lg:justify-self-center xl:gap-8" aria-label="ناوبری اصلی">
       {
         NAV_LINKS.map((link) => (
           <a
@@ -57,7 +57,7 @@ const pathname = Astro.url.pathname;
             {link.label}
             {isCurrent(link.href, pathname) && (
               <span
-                class="absolute -bottom-1.5 start-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-[1px] bg-primary"
+                class="absolute inset-x-0 -bottom-1.5 h-0.5 rounded-[1px] bg-primary"
                 aria-hidden="true"
               />
             )}
@@ -66,7 +66,7 @@ const pathname = Astro.url.pathname;
       }
     </nav>
 
-    <div class="flex shrink-0 items-center gap-2 lg:gap-3">
+    <div class="flex shrink-0 items-center gap-2 lg:justify-self-end lg:gap-3">
       <div class="hidden lg:block">
         <ThemeToggle id="theme-toggle-desktop" />
       </div>

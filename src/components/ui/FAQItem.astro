@@ -144,7 +144,10 @@ const openAttr = open ? "true" : "false";
     transform: none;
     transition-delay: 60ms;
   }
-  [data-accordion][data-accordion-ready] [aria-expanded="true"] [data-accordion-icon] {
+  /* The chevron follows the real expanded state, not only the enhanced
+     state: the first homepage item opens by default, and without
+     JavaScript that item must still read as open (DESIGN §16.1 item 4). */
+  [data-accordion] [aria-expanded="true"] [data-accordion-icon] {
     transform: rotate(180deg);
   }
 </style>

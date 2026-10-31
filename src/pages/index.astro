@@ -36,6 +36,7 @@ import ChannelLink from "../components/ui/ChannelLink.astro";
 import ArrowLink from "../components/ui/ArrowLink.astro";
 import HeroArtwork from "../components/brand/HeroArtwork.astro";
 import BlogIndexRow from "../components/business/BlogIndexRow.astro";
+import SelfCheck from "../components/business/SelfCheck.astro";
 import { getCollection } from "astro:content";
 import { previewFor } from "../data/work-previews";
 import { formatFaDate, readingMinutes } from "../data/blog";
@@ -95,8 +96,16 @@ const FORM_SHOT = {
 };
 const FORM_SRCSET = `${FORM_SHOT.w1440} 1440w, ${FORM_SHOT.w720} 720w`;
 
-/* The four hero stage words — typography + geometry, never a diagram. */
-const HERO_STAGES = ["توجه", "درخواست", "ثبت", "پیگیری"];
+/* The four hero stages — typography + geometry, never a diagram. The
+   detail line is what happens at that step, not a promise; it is hidden
+   below `sm` so the mobile first viewport stays with the thesis and one
+   action (DESIGN §0). */
+const HERO_STAGES = [
+  { label: "توجه", detail: "از دایرکت، گوگل و معرفی" },
+  { label: "درخواست", detail: "فرم، تماس یا پیام" },
+  { label: "ثبت", detail: "با منبع و وضعیت مشخص" },
+  { label: "پیگیری", detail: "تا تصمیم نهایی" },
+];
 
 /* Blog section (DESIGN §3.8, eighth review). The homepage shows an index of
    the real published writing — never a draft, never a placeholder row —
@@ -127,9 +136,13 @@ const blogTotal = toFaDigits(blogPublished.length);
        inline SVG. Real product screenshots below the fold stay lazy. -->
 
   <!-- ============ Hero — thesis, audience, action ============ -->
-  <section aria-labelledby="hero-title" data-hero-parallax>
-    <div class="mx-auto max-w-[1200px] px-5 pb-12 pt-12 sm:px-8 lg:pb-16 lg:pt-20">
-      <div class="grid items-start gap-10 lg:grid-cols-12 lg:gap-8">
+  <!-- The hero is one continuous field: an ambient 80px grid on the
+       section (masked toward the artwork side), the recomposed signal
+       artwork, and the four-stage rail closing the band. No raster,
+       no new JavaScript; the headline stays the LCP element. -->
+  <section aria-labelledby="hero-title" class="hero-field" data-hero-parallax>
+    <div class="mx-auto max-w-[1200px] px-5 sm:px-8">
+      <div class="grid items-center gap-10 pb-10 pt-10 sm:pt-12 lg:grid-cols-12 lg:gap-10 lg:pb-14 lg:pt-16">
         <!-- Primary side: kicker + thesis + one primary action (right, RTL-first) -->
         <div class="flex flex-col items-start lg:col-span-6">
           <p class="text-ui font-medium text-text-faint">{HERO_KICKER}</p>
@@ -172,37 +185,36 @@ const blogTotal = toFaDigits(blogPublished.length);
           </div>
         </div>
 
-        <!-- Visual side: the brand artwork — scattered signals finding
-             structure. The square field hangs below the headline block
-             and bleeds out of its column toward the page edge (a
-             controlled 32px escape; no overflow at ≥1024px). The
-             4-stage strip beneath is typography + small squares, not a
-             diagram (motion §12.2). -->
+        <!-- Visual side: the brand artwork, recomposed as the field's
+             larger system plate. The ambient grid behind it belongs to
+             the section, so the plate reads as structure inside the same
+             surface as the copy — not as a card floating in a column. -->
         <div class="lg:col-span-6">
-          <div class="lg:-me-6 lg:mt-8">
+          <div class="mx-auto max-w-[560px] lg:max-w-none lg:ps-2">
             <HeroArtwork />
-            <div
-              class="hero-stages mt-6"
-              data-hero-stages
-              aria-label="چهار گام مسیر: توجه، درخواست، ثبت، پیگیری"
-            >
-              <span class="sr-only">توجه، درخواست، ثبت، پیگیری</span>
-              {
-                HERO_STAGES.map((stage, i) => (
-                  <Fragment>
-                    <span class="hero-stage" aria-hidden="true">
-                      <span class="text-meta font-semibold text-text-action tnum">{faIndex(i)}</span>
-                      <span class="text-ui font-medium text-text-muted">{stage}</span>
-                    </span>
-                    {i < HERO_STAGES.length - 1 && (
-                      <span class="h-1 w-1 flex-none rounded-[1px] bg-line-strong" aria-hidden="true" />
-                    )}
-                  </Fragment>
-                ))
-              }
-            </div>
           </div>
         </div>
+      </div>
+
+      <!-- The four-stage rail — typography + small squares, not a diagram.
+           It closes the hero band instead of floating under the artwork,
+           so the thesis, the artwork and the path read as one composition. -->
+      <div class="hero-stages" data-hero-stages>
+        <ol aria-label="چهار گام مسیر جذب: توجه، درخواست، ثبت، پیگیری">
+          {
+            HERO_STAGES.map((stage, i) => (
+              <li class="hero-stage">
+                <span class="text-meta font-semibold text-text-action tnum" aria-hidden="true">
+                  {faIndex(i)}
+                </span>
+                <span class="hero-stage-text">
+                  <span class="text-ui font-medium text-text-muted">{stage.label}</span>
+                  <span class="hero-stage-detail text-meta text-text-faint">{stage.detail}</span>
+                </span>
+              </li>
+            ))
+          }
+        </ol>
       </div>
     </div>
   </section>
@@ -240,26 +252,29 @@ const blogTotal = toFaDigits(blogPublished.length);
   <!-- ============ How it works — three steps + the real form ============ -->
   <section class="border-t border-line" aria-labelledby="how-title">
     <div class="mx-auto grid max-w-[1200px] gap-12 px-5 py-14 sm:px-8 lg:grid-cols-12 lg:gap-16 lg:py-20">
-      <!-- The section's accessible name: the three steps below are the
-           argument, so the heading is carried visually by them. -->
-      <h2 id="how-title" class="sr-only">مسیر جذب، مرحله به مرحله</h2>
-      <ol class="flex flex-col lg:col-span-6" data-reveal-stagger>
-        {
-          HOW_IT_WORKS.map((step, i) => (
-            <li
-              class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-line py-7"
-              data-reveal-item={i}
-              data-sweep
-            >
-              <span class="editorial-num">{faIndex(i)}</span>
-              <div class="flex flex-col gap-2">
-                <h3 class="text-h3 text-text">{step.title}</h3>
-                <p class="text-body text-text-muted measure-prose">{step.text}</p>
-              </div>
-            </li>
-          ))
-        }
-      </ol>
+      <div class="lg:col-span-6">
+        <!-- The section's heading is a quiet kicker above the steps: the
+             three steps are the argument, and this line only orients the
+             reader after the problem section. -->
+        <h2 id="how-title" class="mb-4 text-ui font-medium text-text-faint">مسیر جذب، مرحله به مرحله</h2>
+        <ol class="flex flex-col" data-reveal-stagger>
+          {
+            HOW_IT_WORKS.map((step, i) => (
+              <li
+                class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-line py-7"
+                data-reveal-item={i}
+                data-sweep
+              >
+                <span class="editorial-num">{faIndex(i)}</span>
+                <div class="flex flex-col gap-2">
+                  <h3 class="text-h3 text-text">{step.title}</h3>
+                  <p class="text-body text-text-muted measure-prose">{step.text}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
 
       <!-- Real product surface: this site's own lead form -->
       <div class="lg:col-span-6" data-reveal>
@@ -396,32 +411,28 @@ const blogTotal = toFaDigits(blogPublished.length);
     </div>
   </section>
 
-  <!-- ============ Priority segments — the problem each one brings ============ -->
-  <section class="border-t border-line" aria-labelledby="segments-title">
-    <div class="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 lg:py-20">
-      <SectionHeader
-        id="segments-title"
-        title="بیشتر با این مسائل روبه‌رو هستیم"
-        lead="نه ادعای تخصص در یک صنعت؛ مسئله‌ای که در هر سه یکسان است: درخواست هست، ولی مسیر ندارد."
-      />
-      <ul class="grid gap-x-12 gap-y-8 sm:grid-cols-3" data-reveal>
-        {
-          PRIORITY_SEGMENTS.map((segment) => (
-            <li
-              class="flex flex-col gap-3 border-t-2 border-line pt-5"
-              style="--sweep-weight: 2px"
-              data-sweep
-            >
-              <h3 class="text-h3 text-text">{segment.name}</h3>
-              <p class="text-body text-text-muted">{segment.problem}</p>
-              <p class="border-t border-line pt-3 text-meta text-text-faint">
-                <span class="font-semibold text-text-muted">پاسخ نوونو: </span>
-                {segment.approach}
-              </p>
-            </li>
-          ))
-        }
-      </ul>
+  <!-- ============ Self-check — six statements, counted locally ============ -->
+  <!-- CSS-only interactivity: real checkboxes, a CSS counter and three
+       `:has()` notes. Nothing is submitted or stored, and the section
+       says so. It replaces the generic segment grid with something the
+       visitor can actually use. -->
+  <section class="border-t border-line" aria-labelledby="selfcheck-title">
+    <div class="mx-auto grid max-w-[1200px] gap-10 px-5 py-14 sm:px-8 lg:grid-cols-12 lg:gap-16 lg:py-20">
+      <div class="flex flex-col items-start gap-6 lg:col-span-5">
+        <SectionHeader
+          id="selfcheck-title"
+          kicker="خودارزیابی"
+          title="مسیر جذب شما کدام قدم را ندارد؟"
+          lead="شش جملهٔ کوتاه. هر کدام را که در کسب‌وکار شما درست است علامت بزنید؛ همان لحظه می‌بینید کدام بخش مسیر خالی است."
+        />
+        <p class="text-meta text-text-faint">
+          برای {PRIORITY_SEGMENTS.map((segment) => segment.name).join("، ")} — مسئله در هر سه یکی است: درخواست هست،
+          ولی مسیر ندارد.
+        </p>
+      </div>
+      <div class="lg:col-span-7" data-reveal-stagger>
+        <SelfCheck />
+      </div>
     </div>
   </section>
 
@@ -484,7 +495,7 @@ const blogTotal = toFaDigits(blogPublished.length);
       </div>
       <div class="lg:col-span-8" data-reveal>
         <div class="border-t border-line" data-sweep>
-          {HOME_FAQ.map((item) => <FAQItem question={item.q} answer={item.a} />)}
+          {HOME_FAQ.map((item, index) => <FAQItem question={item.q} answer={item.a} open={index === 0} />)}
         </div>
       </div>
     </div>

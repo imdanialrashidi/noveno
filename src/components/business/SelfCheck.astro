@@ -1,0 +1,78 @@
+---
+/**
+ * SelfCheck — the homepage's six-step self-assessment (ninth review,
+ * 2026-10). A CSS-only interactive block: the visitor ticks the
+ * statements that are already true in their business, and the page
+ * counts them locally and swaps one honest note.
+ *
+ * Design constraints (docs/DESIGN.md §0, §12):
+ *  - zero JavaScript, zero requests, zero data sent or stored: real
+ *    `<input type="checkbox">` elements, a CSS counter for the total,
+ *    and `:has()` only for the three summary notes (the count itself
+ *    does not depend on `:has`);
+ *  - the site's editorial grammar, not a quiz widget: hairline rows,
+ *    `.editorial-num`-scale index numerals, one `ArrowLink`;
+ *  - the result is framed as an orientation, not a diagnostic score,
+ *    and the copy says so.
+ *
+ * The checklist is not inside a `<form>`, so there is no accidental
+ * submission path; the inputs have no `name` and no persistence.
+ */
+
+import ArrowLink from "../ui/ArrowLink.astro";
+import { SELF_CHECK_ITEMS, toFaDigits } from "../../data/site";
+
+const faIndex = (i: number) => toFaDigits(String(i + 1).padStart(2, "0"));
+---
+
+<div class="selfcheck" data-selfcheck>
+  <ol class="selfcheck-list">
+    {
+      SELF_CHECK_ITEMS.map((item, i) => (
+        <li class="selfcheck-row" data-reveal-item={i}>
+          <label class="selfcheck-label">
+            <span class="selfcheck-index text-meta text-text-faint tnum" aria-hidden="true">
+              {faIndex(i)}
+            </span>
+            <input
+              type="checkbox"
+              class="selfcheck-input"
+              autocomplete="off"
+              aria-describedby="selfcheck-note"
+            />
+            <span class="selfcheck-text text-body text-text">{item}</span>
+          </label>
+        </li>
+      ))
+    }
+  </ol>
+
+  <div class="selfcheck-readout">
+    <p class="selfcheck-count">
+      <span class="selfcheck-score text-h2 text-text tnum" aria-hidden="true"></span>
+      <span class="text-ui font-medium text-text-muted">از ۶ مورد</span>
+    </p>
+    <div class="flex flex-col gap-2">
+      <p class="selfcheck-msg selfcheck-msg-none text-body text-text-muted">
+        هنوز چیزی علامت نزده‌اید. از جمله‌ای شروع کنید که برای شما آشناتر است.
+      </p>
+      <p class="selfcheck-msg selfcheck-msg-some text-body text-text-muted">
+        بخشی از مسیر هست، ولی هنوز یک جای خالی وجود دارد. بررسی اولیه دقیقاً همین خالی‌ها را پیدا می‌کند.
+      </p>
+      <p class="selfcheck-msg selfcheck-msg-all text-body text-text-muted">
+        هر شش مورد را دارید. قدم بعدی، پیدا کردن گلوگاه با داده است، نه ساختن دوبارهٔ مسیر.
+      </p>
+      <p id="selfcheck-note" class="text-meta text-text-faint">
+        این چک‌لیست چیزی ارسال یا ذخیره نمی‌کند و عددش معیار علمی نیست؛ فقط برای مرتب‌کردن ذهن خودتان است.
+      </p>
+    </div>
+  </div>
+
+  <div class="selfcheck-next">
+    <ArrowLink
+      href="/audit"
+      label="بررسی دقیق‌تر مسیر جذب"
+      data={{ "data-event": "primary_cta_click", "data-event-payload": '{"section":"selfcheck"}' }}
+    />
+  </div>
+</div>

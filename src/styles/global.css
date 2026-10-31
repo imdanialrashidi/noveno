@@ -230,6 +230,14 @@
   --ease-standard: var(--ease-standard);
 }
 
+/* Persian numerals for CSS counters — generated content cannot call the
+   `toFaDigits` helper, so the self-check total uses a counter style.
+   System numeric with ten symbols covers 0–9 (the checklist max is 6). */
+@counter-style fa-numeric {
+  system: numeric;
+  symbols: "۰" "۱" "۲" "۳" "۴" "۵" "۶" "۷" "۸" "۹";
+}
+
 /* ------------------------------------------------------------------ */
 /* 4. Base styles                                                      */
 /* ------------------------------------------------------------------ */
@@ -519,31 +527,85 @@
     }
   }
 
-  /* Hero stage strip — typography + small squares (brand geometry).
-     The hidden starting state is added by JS only (motion.ts), so
-     no-JS and reduced-motion render it fully visible instantly. */
+  /* Hero field — one ambient 80px grid behind the whole hero band,
+     masked toward the artwork side so the copy never sits on texture.
+     Purely CSS: no extra element, no request, no JavaScript. It is the
+     surface the recomposed artwork's plate reads against (DESIGN §16,
+     ninth review). */
+  .hero-field {
+    position: relative;
+    isolation: isolate;
+    overflow: clip;
+  }
+  .hero-field::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, var(--line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+    background-size: 80px 80px;
+    opacity: 0.45;
+    -webkit-mask-image: radial-gradient(62% 88% at 15% 58%, #000 0%, rgba(0, 0, 0, 0.5) 42%, transparent 74%);
+    mask-image: radial-gradient(62% 88% at 15% 58%, #000 0%, rgba(0, 0, 0, 0.5) 42%, transparent 74%);
+  }
+
+  /* Hero stage rail — typography + small squares (brand geometry), now a
+     full-width closing band instead of a strip floating under the
+     artwork. Vertical hairlines from `sm` up make it read as a system
+     index; below `sm` the four cells stack numeral over label. The
+     hidden starting state is added by JS only (motion.ts), so no-JS and
+     reduced-motion render it fully visible instantly. */
   .hero-stages {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.75rem 0.875rem;
-    padding-top: 0.875rem;
     border-top: 1px solid var(--line);
   }
-  .hero-stage {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.4rem;
+  .hero-stages > ol {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
-  @media (min-width: 1024px) {
-    .hero-stages {
-      gap: 1.25rem;
-      padding-top: 1rem;
+  .hero-stage {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+    padding-block: 0.875rem;
+  }
+  .hero-stage-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+  .hero-stage-detail {
+    display: none;
+    line-height: 1.5;
+  }
+  @media (min-width: 640px) {
+    .hero-stage {
+      flex-direction: row;
+      align-items: baseline;
+      gap: 0.625rem;
+      padding-block: 1rem;
+      padding-inline-start: 1.5rem;
+      border-inline-start: 1px solid var(--line);
+    }
+    .hero-stage:first-child {
+      padding-inline-start: 0;
+      border-inline-start: 0;
+    }
+    .hero-stage-detail {
+      display: block;
     }
   }
-  @media (max-width: 380px) {
-    .hero-stages {
-      gap: 0.625rem 0.75rem;
+  @media (min-width: 1024px) {
+    .hero-stage {
+      padding-block: 1.25rem;
+      padding-inline-start: 2rem;
+    }
+    .hero-stage:first-child {
+      padding-inline-start: 0;
     }
   }
   .hero-stages.hero-stages-init {
@@ -846,6 +908,183 @@
 
   /* The reduced-motion guard at the bottom of this file zeroes every
      duration, so all of the above render directly in their final state. */
+
+  /* ------------------------------------------------------------------ */
+  /* Self-check (homepage, ninth review) — CSS-only, zero JavaScript.    */
+  /* Real checkboxes, a `counter-increment` on the checked input for the */
+  /* total, and `:has()` only for the three summary notes. No form, no   */
+  /* name, no submission, no storage.                                    */
+  /* ------------------------------------------------------------------ */
+  .selfcheck {
+    counter-reset: selfcheck;
+  }
+  .selfcheck-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .selfcheck-row {
+    border-top: 1px solid var(--line);
+  }
+  .selfcheck-row:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+  .selfcheck-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    padding-block: 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color var(--dur-1) var(--ease-standard);
+  }
+  .selfcheck-label:hover {
+    background-color: var(--surface-soft);
+  }
+  @media (min-width: 640px) {
+    .selfcheck-label {
+      gap: 1.25rem;
+      padding-block: 1.125rem;
+    }
+  }
+  .selfcheck-input {
+    position: relative;
+    flex: none;
+    width: 22px;
+    height: 22px;
+    margin-top: 0.35rem;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid var(--line-strong);
+    border-radius: 2px;
+    background-color: var(--surface);
+    cursor: pointer;
+    transition:
+      background-color var(--dur-1) var(--ease-standard),
+      border-color var(--dur-1) var(--ease-standard);
+  }
+  /* The check is drawn with two borders rotated 45° — no icon font, no
+     extra request. It only appears in the checked state, and the fill +
+     glyph means selection never depends on color alone. */
+  .selfcheck-input::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: 7px;
+    top: 3px;
+    width: 5px;
+    height: 10px;
+    border: solid var(--on-primary);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: opacity var(--dur-1) var(--ease-standard);
+  }
+  .selfcheck-input:checked {
+    counter-increment: selfcheck;
+    background-color: var(--primary);
+    border-color: var(--primary);
+  }
+  .selfcheck-input:checked::after {
+    opacity: 1;
+  }
+  .selfcheck-input:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .selfcheck-text {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.75;
+  }
+  .selfcheck-index {
+    flex: none;
+    padding-top: 0.25rem;
+    transition: color var(--dur-1) var(--ease-standard);
+  }
+  .selfcheck-row:has(.selfcheck-input:checked) .selfcheck-index {
+    color: var(--text-action);
+  }
+  .selfcheck-readout {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 2px solid var(--line);
+  }
+  @media (min-width: 640px) {
+    .selfcheck-readout {
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: baseline;
+      gap: 2rem;
+    }
+  }
+  .selfcheck-count {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+  /* The first declaration is the fallback for engines without
+     `@counter-style`; the second (valid only where the custom style
+     exists) upgrades the digits to Persian. An invalid value is dropped
+     at parse time, so the fallback always remains. */
+  .selfcheck-score::before {
+    content: counter(selfcheck, decimal);
+  }
+  .selfcheck-score::before {
+    content: counter(selfcheck, fa-numeric);
+  }
+  .selfcheck-msg {
+    display: none;
+  }
+  .selfcheck:not(:has(.selfcheck-input:checked)) .selfcheck-msg-none {
+    display: block;
+  }
+  .selfcheck:has(.selfcheck-input:checked):has(.selfcheck-input:not(:checked)) .selfcheck-msg-some {
+    display: block;
+  }
+  .selfcheck:not(:has(.selfcheck-input:not(:checked))) .selfcheck-msg-all {
+    display: block;
+  }
+  .selfcheck-next {
+    margin-top: 1.25rem;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Page scroll progress (desktop) — the same scroll-driven,           */
+  /* off-main-thread technique as the mobile header registration line.   */
+  /* No listener, no JavaScript; unsupported engines and reduced motion  */
+  /* simply show no bar (the rule is decorative, aria-hidden).           */
+  /* ------------------------------------------------------------------ */
+  .page-progress {
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
+    z-index: 50;
+    height: 2px;
+    pointer-events: none;
+  }
+  .page-progress > span {
+    display: block;
+    height: 100%;
+    background-color: var(--primary);
+    transform: scaleX(0);
+    transform-origin: right;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+      .page-progress > span {
+        animation-name: page-progress-anim;
+        animation-duration: auto;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: scroll(root block);
+      }
+    }
+  }
+  @keyframes page-progress-anim {
+    to {
+      transform: scaleX(1);
+    }
+  }
 
   /* ------------------------------------------------------------------ */
   /* Audit progress (DESIGN 2026-08-14 — «مرحله ۳ از ۶» + clean bar).   */

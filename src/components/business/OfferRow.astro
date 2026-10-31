@@ -65,6 +65,11 @@ const label = ctaLabel ?? (offer.id === "landing" ? "شروع با یک صفحه
           </p>
         )
       }
+      {
+        compact && showPrice && offer.priceNote && (
+          <p class="max-w-md text-meta text-text-faint">{offer.priceNote}</p>
+        )
+      }
       {!compact && <p class="text-body text-text-muted measure-prose">{offer.summary}</p>}
     </div>
 
