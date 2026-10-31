@@ -7,16 +7,17 @@
  *
  * - ONE card, five questions: name, phone, business type,
  *   site-or-instagram, one problem field,
- * - a real submit path: POST /api/audit (server validation + Turnstile)
- *   and only a confirmed Web3Forms delivery completes the journey —
- *   no step counter, no back button, no fabricated answers,
+ * - a real submit path: the browser validates the values and posts the
+ *   lead straight to Web3Forms (the site is static on GitHub Pages);
+ *   only a confirmed Web3Forms delivery completes the journey — no
+ *   fabricated success,
  * - error banners (role=alert) for network / delivery / offline /
- *   turnstile / rate / validation / unconfigured, with retry and an
- *   always-reachable direct-contact fallback,
+ *   rate / validation / unconfigured, with retry and an always-reachable
+ *   direct-contact fallback,
  * - form card: surface panel, 8px radius, 560px measure, line-strong
  *   field borders, one shadow (light theme) per DESIGN §6.3,
- * - no-JS: submit disabled + noscript contact fallback (Turnstile and
- *   the journey require JavaScript by design).
+ * - no-JS: submit disabled + noscript contact fallback (the journey
+ *   requires JavaScript by design).
  */
 
 import PageLayout from "../layouts/PageLayout.astro";
@@ -28,10 +29,9 @@ import NextStepsRail from "../components/business/NextStepsRail.astro";
 import { JOURNEY_FIELDS, JOURNEY_STEPS } from "../data/audit-journey";
 import { CONTACT } from "../data/site";
 
-const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
 const web3formsKey = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY ?? "";
 const web3formsUrl = import.meta.env.PUBLIC_WEB3FORMS_URL ?? "https://api.web3forms.com/submit";
-const auditConfig = { turnstileSiteKey, web3formsKey, web3formsUrl };
+const auditConfig = { web3formsKey, web3formsUrl };
 
 const [step] = JOURNEY_STEPS;
 ---
@@ -214,37 +214,6 @@ const [step] = JOURNEY_STEPS;
                 </div>
               </div>
 
-              <div data-banner="turnstile" hidden>
-                <div class="flex items-start gap-3 rounded-[4px] border border-danger/40 bg-surface p-4">
-                  <svg
-                    viewBox="0 0 24 24"
-                    class="mt-0.5 h-5 w-5 flex-none text-danger"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <circle cx="12" cy="12" r="9"></circle>
-                    <path d="M12 8v5"></path>
-                    <path d="M12 16.5v.01"></path>
-                  </svg>
-                  <div class="flex flex-col gap-3">
-                    <p class="text-body font-medium text-danger">
-                      بررسی امنیتی ناموفق بود؛ دوباره تلاش کنید.
-                    </p>
-                    <button
-                      type="button"
-                      data-retry
-                      class="inline-flex min-h-11 w-fit items-center justify-center rounded-[4px] border border-line-strong px-5 text-ui font-medium text-text transition-colors duration-150 hover:border-primary hover:text-text-action"
-                    >
-                      تلاش دوباره
-                    </button>
-                  </div>
-                </div>
-              </div>
-
               <div data-banner="rate" hidden>
                 <div class="flex items-start gap-3 rounded-[4px] border border-danger/40 bg-surface p-4">
                   <svg
@@ -370,9 +339,6 @@ const [step] = JOURNEY_STEPS;
                 }
               </div>
 
-              <!-- Turnstile renders here, immediately before submit -->
-              <div id="turnstile-container" class="mt-6"></div>
-
               <div class="mt-8">
                 <button
                   type="button"
@@ -455,7 +421,6 @@ const [step] = JOURNEY_STEPS;
 
     const card = document.querySelector<HTMLElement>("[data-audit-config]");
     let config: AuditConfig = {
-      turnstileSiteKey: "",
       web3formsKey: "",
       web3formsUrl: "https://api.web3forms.com/submit",
     };

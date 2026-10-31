@@ -30,9 +30,7 @@ jobs:
       PUBLIC_APP_URL: https://noveno.ir
       # Public build-time values only. Set them as repository Actions
       # variables; unset values keep the honest "not configured" fallback.
-      PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY }}
       PUBLIC_WEB3FORMS_ACCESS_KEY: ${{ vars.PUBLIC_WEB3FORMS_ACCESS_KEY }}
-      PUBLIC_CF_ANALYTICS_TOKEN: ${{ vars.PUBLIC_CF_ANALYTICS_TOKEN }}
 
     steps:
       - name: Checkout
@@ -52,14 +50,6 @@ jobs:
 
       - name: Run verification gate
         run: bash scripts/verify.sh
-
-      # GitHub Pages serves static files only. Cloudflare's _headers and
-      # _redirects are dead weight there (and would be downloadable config),
-      # so they never enter the Pages artifact. The 404 route preserves
-      # legacy /insights links client-side instead.
-      - name: Prepare GitHub Pages artifact
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: rm -f dist/_headers dist/_redirects
 
       - name: Upload GitHub Pages artifact
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'

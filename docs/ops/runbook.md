@@ -1,103 +1,59 @@
-# Noveno Launch — Operations Runbook
+# Ops Runbook — Noveno (static, GitHub Pages)
 
-Operational procedures for the acquisition flow. Short, founder-sized,
-single-operator. **Lead delivery is email-only via Web3Forms** — there is no
-database, no lead table, and no backup to run.
+Operating notes for a **static** site. There is no server to restart, no
+database to restore, and no Cloudflare project to roll back. The deploy
+surface is one GitHub Actions workflow; the only external dependency at
+runtime is Web3Forms (lead email) and the browser's own network.
 
-## Lead pipeline (how the founder works leads)
+## Deploy pipeline
 
-1. Leads arrive as **Web3Forms email** to the founder inbox (the sole
-   lead-delivery destination). Each email carries a `submission_id` —
-   use it to recognize duplicate messages (e.g. a visitor retried after an
-   ambiguous network failure). The email also carries attribution:
-   `landing_page`, `referrer`, `utm_source/medium/campaign`, `first_seen_at`.
-2. Work the lead from the inbox (no dashboard exists at launch by design).
-   A `submission_id` seen twice means the same journey was delivered twice —
-   treat the later message as a duplicate of the earlier one.
+`push to main` → `.github/workflows/quality.yml`:
 
-## Monitoring
+1. `verify` job — format check, canonical gate, build, tests.
+2. `deploy` job — uploads `dist/` and deploys to GitHub Pages.
 
-- **Traffic/performance:** Cloudflare Web Analytics (page views + CWV).
-- **Acquisition funnel:** `/api/events` → Analytics Engine dataset
-  `noveno_events` (event names: `primary_cta_click`, `audit_started`,
-  `audit_step_completed`, `audit_submitted`, `phone_click`,
-  `messaging_click`, `service_opened`, `case_study_opened`,
-  `project_opened`). Query via the Analytics Engine SQL API.
-  Events carry **no PII** — funnel numbers only. `audit_submitted` fires
-  only after Web3Forms confirms delivery, so it is a true conversion signal.
-- **Failures:** Pages Functions logs. Expected codes: `validation` (400),
-  `turnstile_failed` (403), `rate_limited` (429), `server_error` (500),
-  `method_not_allowed` (405), `body_too_large` (413). Logs contain outcome
-  codes + `submission_id` only — **never lead content**.
+If `verify` fails, **deploy does not run** and the live site keeps the last
+successful artifact. Check the Actions run first for any "site is stale" report.
 
-## Failure semantics (by design — do not "fix" silently)
+## Symptom → action
 
-| Failure                                                                | Visitor sees                                                                                             | Lead status        | Action                                                       |
-| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------ |
-| `/api/audit` validation/abuse rejection                                | Field errors on the rejected fields + validation banner                                                  | Not delivered      | Normal bot/traffic; no action                                |
-| Turnstile reject/expire                                                | «بررسی امنیتی ناموفق بود» + retry                                                                        | Not delivered      | Normal bot/token-lifetime traffic; no action                 |
-| Web3Forms delivery fails (network/timeout/non-2xx/`success:false`/429) | Truthful «دریافت درخواست ناموفق بود» banner + retry + direct contact; values preserved; **no thank-you** | Not delivered      | Check access key/inbox/rate limit; retry happens client-side |
-| Analytics Engine down                                                  | Nothing                                                                                                  | Delivered normally | Binding issue; check dataset exists                          |
-| Visitor offline mid-form                                               | Offline banner + contact fallback                                                                        | Not delivered      | Nothing; draft kept in their session                         |
+| Symptom                                              | Likely cause                                                                      | Action                                                                                                 |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Push landed but the site did not change              | `verify` job failed before deploy                                                 | Open the run, fix the failing step, push again                                                         |
+| `last-modified` on `/` is old                        | No successful deploy since that date                                              | Compare the live `last-modified` with the latest green run                                             |
+| Form shows «ثبت درخواست … در دسترس نیست» immediately | `PUBLIC_WEB3FORMS_ACCESS_KEY` was empty at build time                             | Set the Actions variable, then re-run the workflow                                                     |
+| Form shows «ارسال نشد» / delivery banner             | Web3Forms rejected the POST, returned `success:false`, 429, or the network failed | Check Web3Forms dashboard/status, retry; the draft is preserved and the visitor can use direct contact |
+| Form shows the rate banner                           | Web3Forms rate limited the key                                                    | Wait; rotate the key if it persists                                                                    |
+| 404 on a route that exists in the repo               | Old deploy or build error                                                         | Check the run and the built `dist/`                                                                    |
+| `http://noveno.ir` serves the site                   | Enforce HTTPS is off                                                              | Settings → Pages → Enforce HTTPS                                                                       |
+| Legacy `/insights/...` link shows 404                | Expected — GitHub Pages cannot 301                                                | The 404 page forwards visitors to `/blog/...` client-side                                              |
 
-Never present a false success: thank-you is reachable **only after
-Web3Forms confirms acceptance**. Never change Web3Forms to another provider
-without explicit approval. Never move delivery server-side (free-tier
-constraint).
+## Lead delivery
 
-## Duplicate-submission note (accepted trade-off)
+- Destination: the Web3Forms access key's inbox. Nothing is stored by the site.
+- Each submit carries `submission_id` and `delivery_attempt`. Duplicate emails
+  with the same `submission_id` are the same journey retried (the client does
+  at most 2 automatic attempts; a manual retry adds one more).
+- The client never presents success unless Web3Forms returns `{ success: true }`.
 
-With no durable store, exactly-once delivery is impossible. A visitor who
-retries after an ambiguous failure (Web3Forms accepted the first attempt but
-the response was lost) can produce a second email with the same
-`submission_id`. Deduplicate by eye in the inbox; do not rebuild a database
-to solve this.
+## Rotating or revoking the Web3Forms key
 
-### Duplicate emails (plan 025) — inbox triage
-
-Search the inbox for `submission_id: <uuid>` — if multiple messages share the same ID, keep the last `delivery_attempt`. `delivery_attempt: 1` is the first delivery, `2` is the automatic bounded retry, `3`+ is a manual «تلاش دوباره». The lead is the same `submission_id` with stable field values. Retire manual dedupe after `D-01` (server-side email).
+1. Create/rotate the key in the Web3Forms dashboard.
+2. Update **Settings → Secrets and variables → Actions → Variables →
+   `PUBLIC_WEB3FORMS_ACCESS_KEY`**.
+3. Re-run the `quality` workflow (or push) so the new key is baked into the
+   build; the old key stays in previously built JS until then.
 
 ## Rollback
 
-- **Site:** Cloudflare Pages → Deployments → roll back to the previous
-  deployment (redeploy previous commit). The audit form is fully static;
-  old deploys keep working.
-- **Data:** none — lead data lives only in the founder inbox/email.
+Revert the offending commit on `main` and let the workflow rebuild, or re-run
+a known-good workflow run. GitHub Pages keeps serving the previous artifact
+until the new deployment finishes.
 
-## Release checklist (per deploy)
+## Do not
 
-1. `bash scripts/verify.sh` green locally.
-2. Preview deploy → verify `/audit` journey + one real submission (email
-   arrives) + one delivery-failure simulation (`web3forms-down` mode).
-3. Promote preview to production.
-4. Post-deploy smoke: `/audit` loads, widget renders, thank-you reachable
-   after a real submission, email arrives, one event visible in
-   `noveno_events`.
-
-## Accepted residual risks (do not "fix" silently)
-
-- **Client-side delivery is bypassable by design.** Web3Forms is a public
-  client-side endpoint: anyone who reads the access key from the page HTML
-  can POST directly to Web3Forms without the `/api/audit` anti-abuse stack
-  (Turnstile/honeypot/rate limit). This is the accepted email-only
-  architecture — server-side relay requires the Web3Forms paid plan + IP
-  whitelisting. Mitigations: Web3Forms' own `botcheck` + access-key controls
-  and founder-side inbox handling. Do not move delivery server-side without
-  explicit approval and a paid plan.
-- **Duplicate emails on ambiguous retry.** A visitor who retries after an
-  ambiguous delivery failure can produce a second email with the same
-  `submission_id` — deduplicate by eye in the inbox.
-
-## Security notes (do not weaken)
-
-- `TURNSTILE_SECRET_KEY` exists only as a Pages encrypted secret. It
-  verifies tokens — never ship it to the browser, never paste it into logs,
-  screenshots, or issues.
-- The Web3Forms access key is **public by design** (client-side posting);
-  abuse protection lives at the `/api/audit` boundary (honeypot, per-IP
-  rate limiting, mandatory Turnstile siteverify). Do not remove the Turnstile
-  check.
-- The in-memory rate limiter is per-isolate (documented limitation);
-  Turnstile is the primary abuse gate.
-- The Web3Forms payload is HTML-stripped (free-text fields) and never
-  contains the Turnstile token.
+- Do not re-add Turnstile, a CSP header file, or an `/api/*` function without
+  accepting a hosting change: GitHub Pages cannot run or honor them, and a
+  client-only Turnstile widget would imply a verification that does not exist.
+- Do not describe the form as server-validated in product copy, docs, or the
+  privacy page.

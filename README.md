@@ -18,18 +18,15 @@ npm test             # project test suite (node --test tests/*.test.mjs)
 bash scripts/verify.sh   # canonical full gate (workflow checks + build + project contract + tests)
 ```
 
-Environment variables are **names only** in `.env.example` — copy it to `.env` for local development and fill values; real secrets live in the Cloudflare Pages project settings, never in the repository:
+Environment variables are **names only** in `.env.example` — copy it to `.env` for local development and fill values; real values live in the GitHub Actions repository variables, never in the repository:
 
-| Variable                      | Purpose                                                                |
-| ----------------------------- | ---------------------------------------------------------------------- |
-| `PUBLIC_APP_URL`              | Canonical site URL for metadata/SEO                                    |
-| `PUBLIC_TURNSTILE_SITE_KEY`   | Cloudflare Turnstile site key (client-side)                            |
-| `PUBLIC_WEB3FORMS_ACCESS_KEY` | Web3Forms access key (lead email delivery — the sole lead destination) |
-| `PUBLIC_WEB3FORMS_URL`        | Optional Web3Forms endpoint override (local testing)                   |
-| `PUBLIC_CF_ANALYTICS_TOKEN`   | Cloudflare Web Analytics beacon token                                  |
-| `TURNSTILE_SECRET_KEY`        | **Server-side secret** — Cloudflare Pages secret only                  |
+| Variable                      | Purpose                                                          |
+| ----------------------------- | ---------------------------------------------------------------- |
+| `PUBLIC_APP_URL`              | Canonical site URL for metadata/SEO                              |
+| `PUBLIC_WEB3FORMS_ACCESS_KEY` | Web3Forms access key (lead delivery — the sole lead destination) |
+| `PUBLIC_WEB3FORMS_URL`        | Optional Web3Forms endpoint override (local testing)             |
 
-> The audit form needs `PUBLIC_TURNSTILE_SITE_KEY` + `PUBLIC_WEB3FORMS_ACCESS_KEY` to submit; without them the form still validates locally and shows the honest «not available» fallback with direct-contact options. The Turnstile secret is used only by `functions/` (see `docs/ops/setup-checklist.md`). There is **no database**: audit leads are delivered as email via Web3Forms and nothing is durably stored by this site.
+> The audit form needs `PUBLIC_WEB3FORMS_ACCESS_KEY` to submit; without it the form validates locally and shows the honest «not available» fallback with direct-contact options. The browser posts the lead straight to Web3Forms — GitHub Pages is static, so there is no server boundary, no Turnstile secret, and no `/api/*` runtime. Abuse protection is the hidden honeypot plus Web3Forms' own spam filtering. There is **no database**: leads are delivered as email and nothing is durably stored by this site.
 
 ## Deployment
 
@@ -37,9 +34,10 @@ The static site deploys to **GitHub Pages** from `main`: `.github/workflows/qual
 
 1. **Settings → Pages → Source: GitHub Actions**.
 2. Custom domain `noveno.ir` (DNS already points the domain and `www` at GitHub Pages).
-3. **Settings → Secrets and variables → Actions → Variables**: `PUBLIC_TURNSTILE_SITE_KEY`, `PUBLIC_WEB3FORMS_ACCESS_KEY`, `PUBLIC_CF_ANALYTICS_TOKEN` (public build values only). `PUBLIC_APP_URL` is pinned to `https://noveno.ir` in the workflow.
+3. **Settings → Secrets and variables → Actions → Variables**: `PUBLIC_WEB3FORMS_ACCESS_KEY` (public build value only). `PUBLIC_APP_URL` is pinned to `https://noveno.ir` in the workflow.
+4. **Settings → Pages → Enforce HTTPS** (the custom domain certificate is managed by GitHub).
 
-GitHub Pages serves static files only. `functions/api/audit.ts` and `functions/api/events.ts` (Cloudflare Pages Functions), `public/_headers`, and `public/_redirects` are not executed there: the audit page reaches its honest failure/fallback state instead of delivering a lead, security/caching headers are not applied, and `/insights/*` links are redirected client-side by `404.astro` (no 301). Host the Functions separately before GitHub Pages is the production conversion path.
+Everything the site needs runs in the browser: validation, Web3Forms delivery, and the `/insights/*` → `/blog/*` visitor redirect on the built `404.html`. GitHub Pages cannot set response headers or 301s, so there is no CSP/HSTS file in the repo and no `_headers`/`_redirects`. The `public/robots.txt` + build-time `sitemap.xml` cover discovery.
 
 The canonical gate remains `bash scripts/verify.sh`; it runs before every Pages deploy.
 
@@ -47,7 +45,7 @@ The canonical gate remains `bash scripts/verify.sh`; it runs before every Pages 
 
 ## Repository state
 
-The repository is the **Noveno production website project**: Slice 1 (flagship site — Astro app, all public routes), **Slice 2 (acquisition flow + production integration — `/audit`, `/audit/thank-you`, the Pages Function trust boundary, Turnstile validation + Web3Forms email delivery, analytics, SEO/production artifacts)**, the **2026-08-14 founder-directed visual redesign** (image-led editorial system, contact-channel icon set), the **2026-09 product-led pass** (photography retired → product UI/typography/geometry; `/blog` Markdown publishing system with per-page social cards, build-time sitemap, motion system, About philosophy page, audit experience refinement), the **2026-10 brand pass** (hero becomes original signal-field brand artwork; Insights renamed to وبلاگ with `/insights` → `/blog` 301s) and the **2026-10 email-only architecture** (Supabase removed entirely; the audit function validates only and Web3Forms email delivery is the sole lead destination and the true success gate) are committed and verified; launch awaits founder provisioning (`docs/ops/setup-checklist.md`) and a preview-deploy smoke.
+The repository is the **Noveno production website project**: Slice 1 (flagship site — Astro app, all public routes), **Slice 2 (acquisition flow + production integration — `/audit`, `/audit/thank-you`, Web3Forms email delivery, SEO/production artifacts)**, the **2026-08-14 founder-directed visual redesign** (image-led editorial system, contact-channel icon set), the **2026-09 product-led pass** (photography retired → product UI/typography/geometry; `/blog` Markdown publishing system with per-page social cards, build-time sitemap, motion system, About philosophy page, audit experience refinement), the **2026-10 brand pass** (hero becomes original signal-field brand artwork; Insights renamed to وبلاگ with `/insights` → `/blog` visitor redirects) and the **2026-10 email-only architecture** (Supabase removed entirely; the browser posts the sanitized lead straight to Web3Forms, which is the sole lead destination and the true success gate), and the **2026-10 static-only migration** (Cloudflare runtime, Turnstile, `_headers`/`_redirects`, and the dead events endpoint removed; everything deploys to GitHub Pages) are committed and verified; launch awaits the Web3Forms access key in Actions variables (`docs/ops/setup-checklist.md`).
 
 ## Source of truth
 
@@ -69,10 +67,10 @@ The repository is the **Noveno production website project**: Slice 1 (flagship s
 
 ## Tech stack
 
-- **Astro 7 + TypeScript**, statically rendered. Static output deploys to **GitHub Pages**; the optional **Cloudflare Pages Functions** boundary runs only on a Cloudflare deployment. No SSR.
+- **Astro 7 + TypeScript**, statically rendered. Output deploys to **GitHub Pages** with no server runtime. No SSR.
 - **No client UI framework** (no React/Vue/Svelte); interactivity via Astro components and small framework-free TypeScript modules (`src/scripts/`).
-- **No backend/auth/CMS/CRM/client portal.** One narrowly scoped Cloudflare Pages Function (`functions/api/audit.ts`) handles the business-critical **audit-form validation boundary**: server-side validation, abuse protection (honeypot, rate limiting, Turnstile). Lead delivery is **email-only** — the validated browser posts the sanitized lead to **Web3Forms** and the journey completes only when Web3Forms confirms acceptance. **No database** — nothing is durably stored by the site.
-- Analytics: **Cloudflare Web Analytics** + a Cloudflare-native events path (`functions/api/events.ts` + `src/scripts/analytics.ts`, Analytics Engine binding `NOVENO_EVENTS`); UTM/referrer/landing-page attribution rides in the Web3Forms lead email, not a database.
+- **No backend/auth/CMS/CRM/client portal.** The audit form validates in the browser and posts the sanitized lead to **Web3Forms**; the journey completes only when Web3Forms confirms acceptance. Abuse protection is the hidden honeypot + Web3Forms spam filtering (a static host has no server-side trust boundary). **No database** — nothing is durably stored by the site.
+- Analytics: the event queue exists but has no ingest endpoint on GitHub Pages (`EVENT_URL` is empty, so nothing leaves the browser). UTM/referrer/landing-page attribution rides in the Web3Forms lead email, not a database.
 - **Persian-first, RTL-first**; light + dark themes (system default, persisted override, no theme flash); Estedad + Vazirmatn self-hosted fonts; token system in `src/styles/global.css`.
 - **Fonts:** the shipped woff2 files under `public/fonts/` are the source of truth (declared via hand-written `@font-face` in `src/styles/global.css`, DESIGN §5.4). The `@fontsource-variable/*` devDependencies exist only as the licensed extraction source for replacing those files — a font change is a deliberate file replacement (rename to bump the immutable cache), not a dependency bump.
 
@@ -107,7 +105,7 @@ src/
 │   └── rss.xml.ts       RSS feed (draft-gated)
 ├── scripts/
 │   ├── analytics.ts     attribution capture (first-page-wins), event queue, sendBeacon fallback
-│   ├── audit/           index.ts (state machine + submit), draft.ts (draft + attribution clamp), delivery.ts (Web3Forms + validated_at), turnstile.ts (bridge + TTL)
+│   ├── audit/           index.ts (state machine + submit), draft.ts (draft + attribution clamp), delivery.ts (Web3Forms + bounded retry)
 │   ├── audit.ts         barrel re-export (preserves ../scripts/audit import path)
 │   ├── menu.ts          mobile menu (open/close, Escape, focus, fallback)
 │   ├── motion.ts        reveal, hero stages, parallax, reduced-motion guards
@@ -302,8 +300,8 @@ export function previewFor(id: string): WorkPreview {
 - **Every public image is content-addressed.** `npm run build` runs `scripts/build-image-manifest.mjs` (prebuild), which materializes sha256-hashed copies of every file in `assets/images/` into `public/images/` and writes `src/generated/image-manifest.ts`. All markup references images via `imageUrl("logical/path.ext")` from that module; the structural test **fails the build** if any built page references an unhashed `/images/` path or a missing file. Never hard-code `/images/...` URLs.
 - **Caching:** `public/_headers` serves `/images/*`, `/_astro/*`, and `/fonts/*` with `immutable` (correct only because of the versioning above); HTML, `sitemap.xml`, `robots.txt` revalidate normally; `og.png`/`og/*`/`favicon.svg` get 1-day caching (social cards must not go stale for long).
 - **Product screenshot workflow:** capture at 1440×900 from the production build (light theme), then `python3 scripts/optimize-work-previews.py shot.png <name>` emits the WebP pair; `npm run build` re-hashes. Alt/caption/provenance updates documented in `docs/IMAGERY.md`.
-- **Social cards are committed; the build validates them.** Cards are rendered locally with `npm run generate:og` (`scripts/generate-og-images.py` — Python + Pillow) and committed under `public/og/`; `prebuild` runs `scripts/validate-og-assets.mjs` (Node, no extra dependencies) which fails the build if a required committed card is missing or not a 1200×630 PNG, and `scripts/generate-sitemap.mjs` writes `public/sitemap.xml` from the published content — drafts are excluded from both. Cloudflare Pages does **not** regenerate cards: a new/changed article needs `npm run generate:og` locally before committing (or `npm run build:with-og` to render + build in one command). First time on a machine? Run `python3 -m pip install -r requirements-og.txt`; `generate:og` preflights everything else.
-- **Lab measurement:** `npm run build && node scripts/lab-server.mjs` serves `dist/` with Brotli/gzip (as Cloudflare does) for Lighthouse/CDP runs; `bash scripts/lab-benchmark.sh <outdir>` runs the 3×median sweep across the five representative routes (mobile + desktop).
+- **Social cards are committed; the build validates them.** Cards are rendered locally with `npm run generate:og` (`scripts/generate-og-images.py` — Python + Pillow) and committed under `public/og/`; `prebuild` runs `scripts/validate-og-assets.mjs` (Node, no extra dependencies) which fails the build if a required committed card is missing or not a 1200×630 PNG, and `scripts/generate-sitemap.mjs` writes `public/sitemap.xml` from the published content — drafts are excluded from both. The GitHub Pages build does **not** regenerate cards: a new/changed article needs `npm run generate:og` locally before committing (or `npm run build:with-og` to render + build in one command). First time on a machine? Run `python3 -m pip install -r requirements-og.txt`; `generate:og` preflights everything else.
+- **Lab measurement:** `npm run build && node scripts/lab-server.mjs` serves `dist/` with Brotli/gzip (as a CDN does) for Lighthouse/CDP runs; `bash scripts/lab-benchmark.sh <outdir>` runs the 3×median sweep across the five representative routes (mobile + desktop).
 
 ## 6. Verification checklist for a new entry
 
@@ -330,11 +328,11 @@ DSH is the agent runtime. Project skills live in `.dsh/skills/` and are loaded o
 - **Full:** `bash scripts/verify.sh` — DSH workflow self-checks + secret scan, builds the project (fresh `dist/` for structural tests), then runs `scripts/project-verify.sh` (Noveno doc/branding/env contract), `npm run check`, and `npm test`. CI mirrors this in `.github/workflows/quality.yml`.
 - **Formatting:** `npm run format:check` (also enforced in CI) — formatting is mechanical; never hand-fix format-only feedback.
 
-Structural tests (run inside the gate) also pin the design contract: the flowchart grammar classes are banned from built output, the homepage LCP is the headline text (no hero image preload, no eager images, brand artwork is an inline SVG, below-fold screenshots stay lazy), every `/images/` reference must be content-hashed and exist on disk, fonts ≤ 200 KB (four subsets), interactive JS ≤ 15 KB gzip, every page `fa` + `dir="rtl"`, theme anchors present, no dead links, no env names leaked, and security headers/CSP are present.
+Structural tests (run inside the gate) also pin the design contract: the flowchart grammar classes are banned from built output, the homepage LCP is the headline text (no hero image preload, no eager images, brand artwork is an inline SVG, below-fold screenshots stay lazy), every `/images/` reference must be content-hashed and exist on disk, fonts ≤ 200 KB (four subsets), interactive JS ≤ 15 KB gzip, every page `fa` + `dir="rtl"`, theme anchors present, no dead links, no env names leaked, and no Cloudflare-only config files ship in the artifact.
 
 ## Browser QA (when available)
 
-The runtime's browser capability, when configured (no MCP setup); accessibility snapshots and DOM/console/network evidence first, screenshots under `.artifacts/` as reproducible artifacts. If no browser capability is available, mark appearance/interaction criteria `UNPROVEN`. Deterministic browser tests stay separate from interactive exploration. Slice-2 trust-boundary states can be exercised locally with `node scripts/slice2-test-server.mjs [--mode ok|web3forms-down|turnstile-fail] [--port 8788]`.
+The runtime's browser capability, when configured (no MCP setup); accessibility snapshots and DOM/console/network evidence first, screenshots under `.artifacts/` as reproducible artifacts. If no browser capability is available, mark appearance/interaction criteria `UNPROVEN`. Deterministic browser tests stay separate from interactive exploration. The audit journey's delivery states are covered by `tests/audit-retry.test.mjs` against a scriptable Web3Forms mock.
 
 ## Contact / facts
 

@@ -1,22 +1,19 @@
 /**
- * Audit client journey tests (email-only architecture, 2026-10).
+ * Audit client journey tests (static GitHub Pages architecture, 2026-10).
  *
- * The success invariant: the visitor must NOT reach a success/thank-you
- * state merely because /api/audit validation succeeded. Success now means
- * Web3Forms accepted the lead ({ success: true }). The draft is cleared,
- * `audit_submitted` fires, the done marker is recorded, and the journey
- * navigates to /audit/thank-you ONLY after confirmed Web3Forms success.
+ * The site has no server boundary: the browser validates the values and
+ * posts the sanitized lead straight to Web3Forms. Success is only ever
+ * `{ success: true }` from Web3Forms — the visitor reaches thank-you, the
+ * draft is cleared, and `audit_submitted` fires only then.
  *
- * On Web3Forms failure (network/timeout/non-2xx/{ success: false }/429):
- * stay on /audit, preserve the draft + stable submission_id, show a
- * truthful recoverable banner with direct-contact fallback, and allow a
- * retry that mints a FRESH Turnstile token (the previous one may already
- * be consumed by siteverify).
+ * Delivery failure (network/timeout/non-2xx/{ success: false }/429): stay
+ * on /audit, keep the draft + stable submission_id, show a truthful
+ * recoverable banner with direct-contact fallback, and allow retry.
  *
  * This suite drives the REAL client state machine (src/scripts/audit.ts)
- * through a deterministic fake DOM + mock Turnstile widget + scriptable
- * fetch. Defect-sensitive: the Web3Forms-failure tests fail on the old
- * "best-effort notify then thank-you anyway" behavior.
+ * through a deterministic fake DOM + scriptable fetch. Defect-sensitive:
+ * the failure tests fail on any "thank-you anyway" behavior or a second
+ * delivery path (/api/audit) creeping back in.
  */
 
 import { test } from "node:test";
@@ -38,8 +35,6 @@ function joinedLabels(group, ids) {
 /* Minimal deterministic fake DOM (attribute selectors only — the      */
 /* exact selector grammar used by src/scripts/audit.ts)                */
 /* ------------------------------------------------------------------ */
-
-const SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js";
 
 class FakeEl {
   constructor(tag, attrs = {}, children = []) {
@@ -167,9 +162,9 @@ function buildAuditDom() {
 
   // Banner with all block kinds + retry buttons
   const banner = el("div", { id: "audit-banner", role: "alert", hidden: true });
-  for (const kind of ["network", "offline", "turnstile", "rate", "validation", "unconfigured", "delivery"]) {
+  for (const kind of ["network", "offline", "rate", "validation", "unconfigured", "delivery"]) {
     const block = el("div", { "data-banner": kind, hidden: true });
-    if (kind === "network" || kind === "offline" || kind === "turnstile" || kind === "delivery") {
+    if (kind === "network" || kind === "offline" || kind === "delivery") {
       block.append(el("button", { type: "button", "data-retry": "" }));
     }
     banner.append(block);
@@ -226,8 +221,6 @@ function buildAuditDom() {
     form.append(section);
   });
 
-  form.append(el("div", { id: "turnstile-container", class: "mt-6" }));
-
   form.append(el("button", { type: "button", id: "audit-next", disabled: true }));
   body.append(form);
 
@@ -256,37 +249,6 @@ function buildAuditDom() {
 /* Environment shims                                                    */
 /* ------------------------------------------------------------------ */
 
-function makeTurnstileMock() {
-  const mock = {
-    renders: 0,
-    resets: 0,
-    removes: 0,
-    options: null,
-    widgetId: "w-1",
-    render(_container, options) {
-      this.renders += 1;
-      this.options = options;
-      return this.widgetId;
-    },
-    reset() {
-      this.resets += 1;
-    },
-    remove() {
-      this.removes += 1;
-    },
-    emitToken(value) {
-      this.options.callback(value);
-    },
-    expire() {
-      this.options["expired-callback"]();
-    },
-    fail() {
-      this.options["error-callback"]();
-    },
-  };
-  return mock;
-}
-
 class FakeMutationObserver {
   constructor(_callback) {}
   observe() {}
@@ -294,23 +256,22 @@ class FakeMutationObserver {
 }
 
 /**
- * Scriptable fetch: /api/audit consumes response factories from
- * `fetchImpl` in order; the Web3Forms endpoint is recorded and its
- * behavior is driven by `web3formsMode` (mutable mid-test):
- *   ok     → 200 { success: true }
- *   fail   → 500 { success: false }          (non-2xx)
- *   badbody→ 200 { success: false }           (API-level rejection)
- *   rate   → 429 { success: false }           (rate limit)
- *   throw  → network TypeError (every attempt)
- *   silent → 200 unreadable body
+ * Scriptable fetch: only the Web3Forms endpoint is expected. Its behavior
+ * is driven by `web3formsMode` (mutable mid-test) so a retry can succeed:
+ *   ok      → 200 { success: true }
+ *   fail    → 500 { success: false }          (non-2xx)
+ *   badbody → 200 { success: false }           (API-level rejection)
+ *   rate    → 429 { success: false }           (rate limit)
+ *   throw   → network TypeError (every attempt)
+ *   silent  → 200 unreadable body
+ * Any other request is recorded and answered with 200 so a stray server
+ * hop is still visible in the assertions.
  */
-function installGlobals({ turnstile, fetchImpl, onLine = true, web3formsMode = "ok" }) {
+function installGlobals({ onLine = true, web3formsMode = "ok" } = {}) {
   const session = new Map();
   const nav = [];
-  const auditCalls = [];
   const externalCalls = [];
   const beacons = [];
-  const auditSignals = [];
   const state = { web3formsMode };
 
   globalThis.location = { search: "", pathname: "/audit", assign: (url) => nav.push(url) };
@@ -334,15 +295,6 @@ function installGlobals({ turnstile, fetchImpl, onLine = true, web3formsMode = "
   globalThis.matchMedia = () => ({ matches: false });
   globalThis.fetch = async (url, opts = {}) => {
     const parsed = typeof url === "string" ? url : url.url;
-    if (parsed === "/api/audit") {
-      auditCalls.push(JSON.parse(String(opts.body)));
-      auditSignals.push(opts.signal);
-      const next = fetchImpl.shift();
-      if (!next) throw new Error("test: unexpected /api/audit call");
-      return next();
-    }
-    // Non-audit requests are observed, not stubbed: the Web3Forms
-    // delivery must be provable (POST count + lead body).
     externalCalls.push({ url: parsed, method: opts.method ?? "GET", body: String(opts.body ?? "") });
     if (parsed.startsWith("https://api.web3forms.com/")) {
       switch (state.web3formsMode) {
@@ -373,30 +325,11 @@ function installGlobals({ turnstile, fetchImpl, onLine = true, web3formsMode = "
     return { ok: true, status: 200, json: async () => ({}) };
   };
   globalThis.window = globalThis;
-  window.turnstile = turnstile;
   window.addEventListener = () => {};
   window.clearTimeout = clearTimeout;
   window.setTimeout = setTimeout;
 
-  return { auditCalls, externalCalls, beacons, nav, session, state, auditSignals };
-}
-
-/** Validation-success mock: /api/audit 200 with status "validated". */
-function okResponse() {
-  return { ok: true, status: 200, json: async () => ({ ok: true, status: "validated" }) };
-}
-
-/** The audit script's Turnstile loader appends <script> to document.head. */
-function captureScripts() {
-  const scripts = [];
-  const originalCreate = document.createElement.bind(document);
-  document.createElement = (tag) => {
-    if (tag !== "script") return originalCreate(tag);
-    const script = new FakeEl("script");
-    scripts.push(script);
-    return script;
-  };
-  return scripts;
+  return { externalCalls, beacons, nav, session, state };
 }
 
 /* ------------------------------------------------------------------ */
@@ -455,1038 +388,143 @@ function bannerBlock(dom, kind) {
   return [...dom.byId.get("audit-banner").children].find((c) => c.getAttribute("data-banner") === kind);
 }
 
-async function submittedEvents(env) {
-  const submitted = [];
-  for (const beacon of env.beacons) {
-    const raw = typeof beacon.body.text === "function" ? await beacon.body.text() : beacon.body;
-    const event = JSON.parse(raw);
-    if (event.name === "audit_submitted") submitted.push(event);
-  }
-  return submitted;
-}
+/* ------------------------------------------------------------------ */
+/* Tests                                                                */
+/* ------------------------------------------------------------------ */
+
+const OK_CONFIG = { web3formsKey: "wf-test-key", web3formsUrl: "https://api.web3forms.com/submit" };
 
 function web3Posts(env) {
   return env.externalCalls.filter((c) => c.url.startsWith("https://api.web3forms.com/"));
 }
 
-/* ------------------------------------------------------------------ */
-/* Tests                                                                */
-/* ------------------------------------------------------------------ */
-
-test("retry after a recoverable /api/audit network failure: same submission_id, preserved values, fresh token, new /api/audit request, Web3Forms success, thank-you", async () => {
-  const turnstile = makeTurnstileMock();
-  const fetchImpl = [
-    () => {
-      throw new TypeError("Failed to fetch"); // recoverable network failure
-    },
-    okResponse, // retry validates
-  ];
-  const env = installGlobals({ turnstile, fetchImpl });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  captureScripts();
-
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-
-  await walkToContactStep(dom);
-  assert.equal(turnstile.renders, 1, "widget must render once on the single-screen form");
-  assert.equal(dom.getElementById("audit-summary"), null, "the one-screen form has no step summary to show");
-
-  // First submission → recoverable network failure
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  turnstile.emitToken("token-1");
-  await tick();
-
-  assert.equal(env.auditCalls.length, 1, "first submission must issue exactly one /api/audit request");
-  assert.equal(env.auditCalls[0].cf_turnstile_token, "token-1");
-  const submissionId = env.auditCalls[0].submission_id;
-  assert.ok(submissionId, "submission_id must be present");
-  assert.equal(
-    bannerBlock(dom, "network").hidden,
-    false,
-    "network banner block must be shown for a network failure",
-  );
-  assert.equal(dom.getElementById("audit-next").disabled, false, "submit must not stay stuck busy");
-  assert.equal(
-    env.session.has("noveno:audit:draft"),
-    true,
-    "values must be persisted in the draft after the failure",
-  );
-  assert.equal(env.nav.length, 0, "no navigation after a failed validation attempt");
-
-  // Retry: must NOT throw, must not reuse the consumed token, must not
-  // change submission_id, must preserve values, and must reach thank-you
-  // only once Web3Forms confirms the delivery.
-  const retryButton = dom.document.querySelector("[data-retry]");
-  assert.ok(retryButton, "retry control must exist");
-  let retryError = null;
-  try {
-    retryButton.dispatchEvent("click");
-  } catch (error) {
-    retryError = error;
-  }
-  assert.equal(retryError, null, "«تلاش دوباره» must not throw");
-  await tick();
-  turnstile.emitToken("token-2"); // fresh challenge for the retry
-  await tick();
-  await sleep(10); // let the Web3Forms delivery settle
-
-  assert.equal(env.auditCalls.length, 2, "retry must issue a new /api/audit request");
-  assert.equal(env.auditCalls[1].submission_id, submissionId, "submission_id must stay stable across retry");
-  assert.notEqual(
-    env.auditCalls[1].cf_turnstile_token,
-    env.auditCalls[0].cf_turnstile_token,
-    "a consumed/invalid Turnstile token must never be reused",
-  );
-  assert.equal(env.auditCalls[1].cf_turnstile_token, "token-2", "retry must use the fresh token");
-  assert.deepEqual(
-    { ...env.auditCalls[1], cf_turnstile_token: undefined },
-    { ...env.auditCalls[0], cf_turnstile_token: undefined },
-    "all field values must remain intact across retry",
-  );
-  assert.equal(turnstile.resets, 2, "a fresh challenge must be obtained for the retry");
-
-  assert.equal(env.nav.length, 1, "success must navigate exactly once");
-  assert.equal(env.nav[0], "/audit/thank-you");
-  assert.equal(
-    env.session.has("noveno:audit:draft"),
-    false,
-    "draft must be cleared after confirmed Web3Forms success",
-  );
-  assert.equal(env.session.get("noveno:audit:done"), submissionId, "done marker must record the submission");
-  assert.equal(bannerBlock(dom, "network").hidden, true, "banner must clear when retry recovery starts");
-  assert.equal(web3Posts(env).length, 1, "one Web3Forms delivery after the successful retry");
-});
-
-test("retry after a Turnstile script-load failure gets a fresh chance (script re-injected, fresh token, recovery)", async () => {
-  // First attempt: widget script cannot load (window.turnstile absent,
-  // script.onerror fires) → turnstile banner, no request.
-  const turnstile = makeTurnstileMock();
-  const fetchImpl = [okResponse];
-  const env = installGlobals({ turnstile: undefined, fetchImpl });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  const scripts = captureScripts();
-
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-
-  await walkToContactStep(dom);
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  assert.ok(scripts.length >= 1, "Turnstile script must be injected");
-  for (const script of scripts) script.onerror(); // script blocked/unreachable
-  await tick();
-
-  assert.equal(env.auditCalls.length, 0, "no request may be sent without a token");
-  assert.equal(bannerBlock(dom, "turnstile").hidden, false, "turnstile failure banner must be shown");
-
-  // Retry with the script STILL unreachable: the bridge must re-inject the
-  // script (retry() unlatches scriptFailed) instead of giving up silently.
-  const retryButton = dom.document.querySelector("[data-retry]");
-  let retryError = null;
-  try {
-    retryButton.dispatchEvent("click");
-  } catch (error) {
-    retryError = error;
-  }
-  assert.equal(retryError, null, "retry must not throw on the script-failure path either");
-  await tick();
-  const injected = scripts.length;
-  assert.ok(injected >= 2, "retry must re-inject the Turnstile script for a fresh chance");
-  for (const script of scripts.slice(1)) script.onerror(); // still unreachable → still no request
-  await tick();
-  assert.equal(env.auditCalls.length, 0, "no request without a token, even after a re-injected script fails");
-  assert.equal(
-    bannerBlock(dom, "turnstile").hidden,
-    false,
-    "banner must persist while the script is unreachable",
-  );
-
-  // Script becomes reachable: another retry must recover end-to-end.
-  window.turnstile = turnstile;
-  try {
-    retryButton.dispatchEvent("click");
-  } catch (error) {
-    retryError = error;
-  }
-  assert.equal(retryError, null, "retry must not throw when recovery is possible");
-  await tick();
-  turnstile.emitToken("token-fresh");
-  await tick();
-  await sleep(10);
-
-  assert.equal(env.auditCalls.length, 1, "retry must recover with a fresh token and submit");
-  assert.equal(env.auditCalls[0].cf_turnstile_token, "token-fresh");
-  assert.equal(env.nav[0], "/audit/thank-you");
-  assert.equal(web3Posts(env).length, 1, "recovered journey must complete the Web3Forms delivery");
-});
-
-test("the one-screen form needs no step progress: no counter, no back, validation blocks an incomplete submit", async () => {
-  // 2026-10 focus pass: /audit is a single screen, so the markup carries
-  // no step counter, no progress bar and no back button. The journey
-  // must still work, must not steal focus on boot, and must refuse an
-  // incomplete submit with an actionable, focused field error.
-  const turnstile = makeTurnstileMock();
-  const env = installGlobals({ turnstile, fetchImpl: [okResponse], web3formsMode: "ok" });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  captureScripts();
-
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-
-  assert.equal(
-    dom.document.querySelector("[data-stepper-counter-mobile]"),
-    null,
-    "the one-screen form must not ship a step counter",
-  );
-  assert.equal(dom.getElementById("audit-back"), null, "there is no previous step to go back to");
-
-  const heading = dom.getElementById("step-lead-title");
-  let headingFocuses = 0;
-  heading.focus = () => {
-    headingFocuses += 1;
-  };
-  assert.equal(headingFocuses, 0, "boot must not focus the form heading");
-
-  // Incomplete submit: name + phone only. The two selects are required,
-  // so the visitor must be told and nothing may be sent.
-  setField(dom, "name", "علی رضایی");
-  setField(dom, "phone", "۰۹۱۰۲۲۵۶۹۸۶");
-  let industryFocuses = 0;
-  dom.getElementById("industry").focus = () => {
-    industryFocuses += 1;
-  };
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-
-  assert.equal(bannerBlock(dom, "validation").hidden, false, "the validation banner must be shown");
-  assert.equal(industryFocuses, 1, "focus moves to the first incomplete required field");
-  assert.equal(
-    dom.getElementById("industry-error").hidden,
-    false,
-    "the field carries an inline, programmatically linked error",
-  );
-  assert.equal(env.auditCalls.length, 0, "an incomplete form must never reach the server");
-
-  // Complete the form: the request goes out with the five answers and
-  // nothing invented.
-  setField(dom, "industry", "restaurant_cafe");
-  setField(dom, "website", "https://example.com");
-  setField(dom, "primary_problem", "scattered_lost");
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  turnstile.emitToken("token-1");
-  await tick();
-
-  assert.equal(env.auditCalls.length, 1, "the complete form submits once");
-  const sent = env.auditCalls[0];
-  assert.equal(sent.industry, "restaurant_cafe");
-  assert.equal(sent.primary_problem, "scattered_lost");
-  assert.equal(
-    sent.acquisition_channels,
-    undefined,
-    "channels are not asked, so they are omitted — never defaulted or guessed",
-  );
-  assert.equal(sent.requested_service, undefined, "requested service is omitted, never invented");
-  assert.equal(sent.preferred_contact, undefined, "preferred contact is omitted, never invented");
-});
-
-/* ------------------------------------------------------------------ */
-/* Web3Forms = the completion gate (email-only architecture)           */
-/* ------------------------------------------------------------------ */
-
-test("Web3Forms success: exactly one delivery POST (no Turnstile token, Persian labels), one audit_submitted beacon, draft cleared, done marker, thank-you", async () => {
-  await sleep(900); // drain the shared analytics flush timer
-
-  const turnstile = makeTurnstileMock();
-  const env = installGlobals({
-    turnstile,
-    fetchImpl: [okResponse],
-    web3formsMode: "ok",
-  });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-
-  await walkToContactStep(dom);
-  turnstile.emitToken("token-1");
-  await tick();
-  await sleep(900); // let the delivery + analytics flush settle
-
-  assert.equal(env.auditCalls.length, 1, "exactly one /api/audit request");
-  const submissionId = env.auditCalls[0].submission_id;
-
-  const posts = web3Posts(env);
-  assert.equal(posts.length, 1, "a confirmed success must deliver to Web3Forms exactly once");
-  const notify = JSON.parse(posts[0].body);
-  assert.equal(notify.access_key, "wf-test-key");
-  assert.equal(notify.submission_id, submissionId);
-  assert.equal(notify.name, "علی رضایی");
-  assert.equal(notify.phone, "09102256986");
-  assert.equal(
-    notify.industry,
-    labelFor("industry", "restaurant_cafe"),
-    "enum ids must reach the email as readable Persian labels",
-  );
-  assert.equal(notify.website, "https://example.com");
-  assert.equal(notify.primary_problem, labelFor("problems", "scattered_lost"));
-  // The one-screen form never asked for these: they must arrive empty
-  // rather than filled with a guessed answer.
-  assert.equal(notify.acquisition_channels, "", "unasked channels must not be invented");
-  assert.equal(notify.requested_service, "", "unasked service must not be invented");
-  assert.ok("cf_turnstile_token" in notify === false, "the Turnstile token must never reach Web3Forms");
-  assert.ok("company_website" in notify === false, "the internal honeypot value must not reach Web3Forms");
-
-  const submitted = await submittedEvents(env);
-  assert.equal(submitted.length, 1, "audit_submitted must fire exactly once — only after email success");
-  assert.equal(submitted[0].payload.page, "/audit");
-
-  assert.deepEqual(env.nav, ["/audit/thank-you"], "thank-you must open only after confirmed email success");
-  assert.equal(env.session.has("noveno:audit:draft"), false, "draft cleared after confirmed email success");
-  assert.equal(
-    env.session.get("noveno:audit:done"),
-    submissionId,
-    "done marker recorded after confirmed email success",
-  );
-});
-
-test("Web3Forms failure (network): server validation success alone does NOT complete the journey — banner, values preserved, no navigation, no beacon, bounded retry", async () => {
-  await sleep(900); // drain the shared analytics flush timer
-
-  const turnstile = makeTurnstileMock();
-  const env = installGlobals({
-    turnstile,
-    fetchImpl: [okResponse, okResponse], // first submit validates; retry re-validates
-    web3formsMode: "throw", // every Web3Forms attempt throws
-  });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  captureScripts();
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-
-  await walkToContactStep(dom);
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  turnstile.emitToken("token-1");
-  await tick();
-  await sleep(50); // let the bounded delivery attempts settle
-
-  assert.equal(env.auditCalls.length, 1, "/api/audit succeeded (validated)");
-  assert.equal(
-    web3Posts(env).length,
-    2,
-    "exactly two bounded delivery attempts (one automatic retry), never infinite",
-  );
-  assert.equal(env.nav.length, 0, "server validation success alone must NOT navigate to thank-you");
-  assert.equal(
-    env.session.has("noveno:audit:draft"),
-    true,
-    "draft must remain intact until confirmed email success",
-  );
-  assert.equal(env.session.has("noveno:audit:done"), false, "no completion marker without email success");
-  assert.equal((await submittedEvents(env)).length, 0, "audit_submitted must NOT fire without email success");
-  assert.equal(
-    bannerBlock(dom, "delivery").hidden,
-    false,
-    "a truthful recoverable delivery banner must be shown",
-  );
-  assert.equal(dom.getElementById("audit-next").disabled, false, "submit must not stay stuck busy");
-
-  // Retry: same submission_id, preserved values, fresh Turnstile token,
-  // and — with Web3Forms now reachable — a full recovery to thank-you.
-  env.state.web3formsMode = "ok";
-  const retryButton = dom.document.querySelector("[data-retry]");
-  retryButton.dispatchEvent("click");
-  await tick();
-  turnstile.emitToken("token-2");
-  await tick();
-  await sleep(50);
-
-  assert.equal(env.auditCalls.length, 2, "retry issues a new /api/audit request");
-  assert.equal(
-    env.auditCalls[1].submission_id,
-    env.auditCalls[0].submission_id,
-    "submission_id stable across delivery retry",
-  );
-  assert.deepEqual(
-    { ...env.auditCalls[1], cf_turnstile_token: undefined },
-    { ...env.auditCalls[0], cf_turnstile_token: undefined },
-    "all field values preserved across the delivery retry",
-  );
-  assert.equal(env.auditCalls[1].cf_turnstile_token, "token-2", "fresh Turnstile token minted for the retry");
-  assert.equal(turnstile.resets, 2, "the retry must obtain a fresh challenge");
-  assert.deepEqual(env.nav, ["/audit/thank-you"], "retry recovers to thank-you once delivery succeeds");
-  assert.equal(env.session.has("noveno:audit:draft"), false, "draft cleared after the recovered success");
-  assert.equal(env.session.get("noveno:audit:done"), env.auditCalls[0].submission_id);
-});
-
-test("Web3Forms non-2xx and API { success: false } are delivery failures (no false success); 429 surfaces the rate banner", async () => {
-  await sleep(900); // drain the shared analytics flush timer
-
-  // non-2xx (500 + { success: false })
-  const turnstile = makeTurnstileMock();
-  const env = installGlobals({ turnstile, fetchImpl: [okResponse], web3formsMode: "fail" });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-  await walkToContactStep(dom);
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  turnstile.emitToken("token-1");
-  await tick();
-  await sleep(50);
-  assert.equal(env.nav.length, 0, "non-2xx Web3Forms response must never complete the journey");
-  assert.equal(bannerBlock(dom, "delivery").hidden, false, "delivery banner for a non-2xx response");
-
-  // API-level { success: false } on a 200 status is still a failure
-  const env2 = installGlobals({
-    turnstile: makeTurnstileMock(),
-    fetchImpl: [okResponse],
-    web3formsMode: "badbody",
-  });
-  const dom2 = buildAuditDom();
-  globalThis.document = dom2.document;
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-  await walkToContactStep(dom2);
-  dom2.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  emitTokenOn(dom2);
-  await tick();
-  await sleep(50);
-  assert.equal(env2.nav.length, 0, "200 with { success: false } must never complete the journey");
-  assert.equal(bannerBlock(dom2, "delivery").hidden, false);
-
-  // 429 rate limit → the dedicated rate banner
-  const env3 = installGlobals({
-    turnstile: makeTurnstileMock(),
-    fetchImpl: [okResponse],
-    web3formsMode: "rate",
-  });
-  const dom3 = buildAuditDom();
-  globalThis.document = dom3.document;
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-  await walkToContactStep(dom3);
-  dom3.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  emitTokenOn(dom3);
-  await tick();
-  await sleep(50);
-  assert.equal(env3.nav.length, 0, "Web3Forms 429 must never complete the journey");
-  assert.equal(bannerBlock(dom3, "rate").hidden, false, "rate banner for a Web3Forms 429");
-});
-
-function emitTokenOn(dom) {
-  // The bridge widget's callback was captured at render time by the mock;
-  // a late token emission drives the token promise to resolution.
-  window.turnstile.emitToken("token-x");
+function draftOf(env) {
+  const raw = env.session.get("noveno:audit:draft");
+  return raw ? JSON.parse(raw) : null;
 }
 
-test("unconfigured (missing Web3Forms key): honest «not available» fallback, no request, no navigation", async () => {
-  const turnstile = makeTurnstileMock();
-  const env = installGlobals({ turnstile, fetchImpl: [] });
+test("static submit: exactly one Web3Forms POST, no API hop, thank-you only on { success: true }", async () => {
+  const env = installGlobals();
   const dom = buildAuditDom();
   globalThis.document = dom.document;
-  captureScripts();
+  initAudit({ ...OK_CONFIG });
 
-  initAudit({ turnstileSiteKey: "test-site-key", web3formsKey: "", web3formsUrl: "" });
-
-  await walkToContactStep(dom);
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-
-  assert.equal(env.auditCalls.length, 0, "no /api/audit request without a Web3Forms key");
-  assert.equal(bannerBlock(dom, "unconfigured").hidden, false, "the honest fallback banner must be shown");
-  assert.equal(env.nav.length, 0, "no navigation without a delivery destination");
-  assert.equal(env.session.has("noveno:audit:draft"), true, "draft preserved");
-});
-
-test("offline: a network failure with navigator.onLine=false shows the offline banner; the online event clears it", async () => {
-  await sleep(900); // drain the shared analytics flush timer
-
-  const turnstile = makeTurnstileMock();
-  const env = installGlobals({
-    turnstile,
-    fetchImpl: [
-      () => {
-        throw new TypeError("Failed to fetch");
-      },
-    ],
-    onLine: false,
-  });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  captureScripts();
-  const windowListeners = {};
-  window.addEventListener = (type, fn) => {
-    (windowListeners[type] ??= []).push(fn);
-  };
-
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-
-  await walkToContactStep(dom);
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  turnstile.emitToken("token-1");
-  await tick();
-
-  assert.equal(env.auditCalls.length, 1, "the submission attempt is recorded even though fetch threw");
-  assert.equal(
-    bannerBlock(dom, "offline").hidden,
-    false,
-    "the offline block must be shown when navigator.onLine=false",
-  );
-  assert.equal(dom.getElementById("audit-next").disabled, false, "submit must not stay stuck busy");
-
-  navigator.onLine = true;
-  for (const fn of windowListeners.online ?? []) fn();
-  assert.equal(dom.byId.get("audit-banner").hidden, true, "the online event must clear the offline banner");
-  assert.equal(bannerBlock(dom, "offline").hidden, true);
-});
-
-test("server validation rejection surfaces the rejected field (no silent generic loop)", async () => {
-  await sleep(900); // drain the shared analytics flush timer
-
-  const turnstile = makeTurnstileMock();
-  const env = installGlobals({
-    turnstile,
-    fetchImpl: [
-      () => ({
-        ok: false,
-        status: 400,
-        json: async () => ({ ok: false, error: { code: "validation", fields: { phone: "invalid" } } }),
-      }),
-    ],
-  });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-
-  await walkToContactStep(dom);
-  turnstile.emitToken("token-1");
-  await tick();
+  await fillLeadForm(dom);
   await sleep(10);
 
-  assert.equal(env.auditCalls.length, 1, "the request reached /api/audit");
-  assert.equal(env.nav.length, 0, "a server rejection must never navigate");
-  assert.equal(env.session.has("noveno:audit:draft"), true, "draft preserved on rejection");
-  assert.equal(web3Posts(env).length, 0, "no delivery after a rejected submission");
-  const phoneError = dom.byId.get("phone-error");
-  assert.equal(phoneError.hidden, false, "the rejected field's error must be surfaced");
-  assert.equal(
-    phoneError.querySelector("[data-error-text]").textContent,
-    "شماره تماس را کامل وارد کنید",
-    "the server message key maps to the Persian copy",
-  );
-  assert.equal(
-    dom.getElementById("phone").getAttribute("aria-invalid"),
-    "true",
-    "the rejected field is marked invalid for assistive tech",
-  );
-  assert.equal(bannerBlock(dom, "validation").hidden, false, "the validation banner must be shown");
-  assert.equal(dom.getElementById("audit-next").disabled, false, "submit must not stay stuck busy");
+  assert.equal(env.externalCalls.length, 1, "the only network call is the Web3Forms delivery");
+  const [post] = web3Posts(env);
+  const body = JSON.parse(post.body);
+  assert.equal(body.access_key, "wf-test-key");
+  assert.equal(body.name, "علی رضایی");
+  assert.equal(body.phone, "09102256986", "the phone is normalized before it leaves the browser");
+  assert.equal(body.industry, labelFor("industry", "restaurant_cafe"));
+  assert.equal(body.primary_problem, labelFor("problems", "scattered_lost"));
+  assert.ok(body.submission_id, "every lead carries a submission id");
+  assert.ok(!("cf_turnstile_token" in body), "no Turnstile token may be sent anymore");
+  assert.ok(!("validation_receipt" in body), "no server receipt exists on static hosting");
+  assert.equal(body.botcheck, "");
+
+  assert.deepEqual(env.nav, ["/audit/thank-you"], "success navigates to thank-you exactly once");
+  assert.equal(env.session.has("noveno:audit:draft"), false, "draft clears only after confirmed success");
+  assert.ok(env.session.has("noveno:audit:done"), "the done marker is recorded");
 });
 
-test("a /api/audit 2xx with unknown status is NOT treated as success (contract drift guard)", async () => {
-  await sleep(900);
-
-  const turnstile = makeTurnstileMock();
-  const env = installGlobals({
-    turnstile,
-    fetchImpl: [
-      () => ({
-        ok: true,
-        status: 200,
-        json: async () => ({ ok: true, status: "future_status", id: "lead-1" }),
-      }),
-    ],
-  });
+test("delivery failure keeps the visitor on /audit with values, then retry reuses submission_id", async () => {
+  const env = installGlobals({ web3formsMode: "fail" });
   const dom = buildAuditDom();
   globalThis.document = dom.document;
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
+  initAudit({ ...OK_CONFIG });
 
-  await walkToContactStep(dom);
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  turnstile.emitToken("token-1");
-  await tick();
+  await fillLeadForm(dom);
   await sleep(10);
 
-  assert.equal(env.nav.length, 0, "an unknown 2xx status must never complete the journey");
-  assert.equal(web3Posts(env).length, 0, "no delivery without a validated response");
-  assert.equal(bannerBlock(dom, "network").hidden, false, "a truthful recoverable banner is shown");
-  assert.equal(env.session.has("noveno:audit:draft"), true, "draft preserved");
-});
+  assert.equal(web3Posts(env).length, 2, "bounded delivery retry: two attempts, then stop");
+  assert.equal(bannerBlock(dom, "delivery").hidden, false, "a truthful delivery banner is shown");
+  assert.equal(dom.getElementById("audit-next").disabled, false, "the submit button is not left stuck");
+  assert.equal(env.nav.length, 0, "no navigation without confirmed delivery");
 
-test("status:sent completes journey via Web3Forms with explicit validated_at (D-01 transition)", async () => {
-  await sleep(900);
-  const turnstile = makeTurnstileMock();
-  const receipt = "11111111-2222-3333-4444-555555555555.2026-08-21T00:00:00.000Z." + "a".repeat(64);
-  const validatedAt = "2026-08-21T00:00:00.000Z";
-  const env = installGlobals({
-    turnstile,
-    fetchImpl: [
-      () => ({
-        ok: true,
-        status: 200,
-        json: async () => ({ ok: true, status: "sent", receipt, validated_at: validatedAt }),
-      }),
-    ],
-  });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-  await walkToContactStep(dom);
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  turnstile.emitToken("token-sent");
-  await tick();
-  await sleep(50);
-  assert.equal(env.nav.length, 1, "sent status must navigate to thank-you");
-  assert.equal(env.nav[0], "/audit/thank-you");
-  assert.equal(web3Posts(env).length, 1, "Web3Forms POST exactly once on sent");
-  const body = JSON.parse(web3Posts(env)[0].body);
-  assert.equal(body.validation_receipt, receipt, "receipt echoed");
-  assert.equal(body.validated_at, validatedAt, "validated_at equals server timestamp, not sliced");
-  assert.equal(env.session.has("noveno:audit:draft"), false, "draft cleared");
-  assert.equal(env.session.get("noveno:audit:done"), env.auditCalls[0].submission_id, "done marker");
-});
+  const draft = draftOf(env);
+  assert.ok(draft, "the draft survives the failure");
+  assert.equal(draft.values.name, "علی رضایی", "values are preserved");
+  const submissionId = draft.submission_id;
 
-test("the /api/audit request carries an abort timeout signal (never stuck submitting)", async () => {
-  await sleep(900);
-
-  const turnstile = makeTurnstileMock();
-  const env = installGlobals({ turnstile, fetchImpl: [okResponse] });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-
-  await walkToContactStep(dom);
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  turnstile.emitToken("token-1");
-  await tick();
+  env.state.web3formsMode = "ok";
+  bannerBlock(dom, "delivery").querySelector("[data-retry]").dispatchEvent("click");
   await sleep(10);
 
-  assert.equal(env.auditSignals.length, 1, "one /api/audit request observed");
-  assert.ok(
-    env.auditSignals[0] instanceof AbortSignal,
-    "a timeout abort signal must be attached to the validation request",
-  );
+  assert.equal(web3Posts(env).length, 3, "retry issues one more delivery attempt");
+  assert.equal(JSON.parse(web3Posts(env)[2].body).submission_id, submissionId, "submission_id stays stable");
   assert.deepEqual(env.nav, ["/audit/thank-you"]);
 });
 
-test("draft restore: a saved draft repopulates the one-screen form and keeps its submission_id", () => {
-  const turnstile = makeTurnstileMock();
-  const env = installGlobals({ turnstile, fetchImpl: [] });
+test("200 with { success: false } is a failure, never a success", async () => {
+  const env = installGlobals({ web3formsMode: "badbody" });
   const dom = buildAuditDom();
   globalThis.document = dom.document;
-  captureScripts();
-
-  const submissionId = "draft-11111111-2222-3333-4444-555555555555";
-  env.session.set(
-    "noveno:audit:draft",
-    JSON.stringify({
-      submission_id: submissionId,
-      step: 1,
-      values: {
-        name: "مریم احمدی",
-        phone: "۰۹۱۲۳۴۵۶۷۸۹",
-        industry: "clinic_health",
-        website: "https://clinic.example",
-        primary_problem: "low_requests",
-      },
-      attribution: null,
-    }),
-  );
-
-  const heading = dom.getElementById("step-lead-title");
-  let headingFocuses = 0;
-  heading.focus = () => {
-    headingFocuses += 1;
-  };
-
-  initAudit({ turnstileSiteKey: "test-site-key", web3formsKey: "", web3formsUrl: "" });
-
-  assert.equal(
-    dom.document.querySelector('[data-step-section="lead"]').hidden,
-    false,
-    "the single form section is visible on restore",
-  );
-  assert.equal(dom.getElementById("name").value, "مریم احمدی", "name restored");
-  assert.equal(dom.getElementById("phone").value, "۰۹۱۲۳۴۵۶۷۸۹", "phone restored");
-  assert.equal(dom.getElementById("industry").value, "clinic_health", "select restored");
-  assert.equal(dom.getElementById("primary_problem").value, "low_requests", "problem select restored");
-  assert.equal(headingFocuses, 0, "boot must not focus the heading on restore");
-  assert.equal(dom.getElementById("audit-next").disabled, false, "the journey resumes, submit is enabled");
-});
-
-test("audit validation receipt is echoed in Web3Forms body (plan 021)", async () => {
-  await sleep(900);
-  const turnstile = makeTurnstileMock();
-  const receipt = "11111111-1111-1111-1111-111111111111.2026-08-21T10:00:00.000Z." + "a".repeat(64);
-  const env = installGlobals({
-    turnstile,
-    fetchImpl: [
-      () => ({ ok: true, status: 200, json: async () => ({ ok: true, status: "validated", receipt }) }),
-    ],
-  });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-  await walkToContactStep(dom);
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  turnstile.emitToken("token-1");
-  await tick();
-  await sleep(50);
-  assert.equal(web3Posts(env).length, 1, "one delivery with receipt");
-  const body = JSON.parse(web3Posts(env)[0].body);
-  assert.equal(body.validation_receipt, receipt, "receipt echoed");
-  assert.ok(body.validated_at, "validated_at present");
-  assert.equal(body.delivery_attempt, "1", "first attempt marker");
-});
-
-test("delivery without server receipt sends validation_receipt none (bypass guard)", async () => {
-  await sleep(900);
-  const turnstile = makeTurnstileMock();
-  const env = installGlobals({
-    turnstile,
-    fetchImpl: [okResponse],
-  });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-  await walkToContactStep(dom);
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  turnstile.emitToken("token-1");
-  await tick();
-  await sleep(50);
-  const body = JSON.parse(web3Posts(env)[0].body);
-  assert.equal(body.validation_receipt, "none", "missing receipt falls back to none");
-});
-
-test("Web3Forms success: delivery_attempt is 1 and submission_id stable (plan 025)", async () => {
-  await sleep(900);
-  const turnstile = makeTurnstileMock();
-  const env = installGlobals({ turnstile, fetchImpl: [okResponse] });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-  await walkToContactStep(dom);
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  turnstile.emitToken("token-1");
-  await tick();
-  await sleep(50);
-  const posts = web3Posts(env);
-  assert.equal(posts.length, 1);
-  const body = JSON.parse(posts[0].body);
-  assert.equal(body.delivery_attempt, "1");
-  assert.equal(body.submission_id, env.auditCalls[0].submission_id);
-  assert.equal(body.delivery_attempt, "1");
-});
-
-test("Web3Forms bounded retry: second attempt has delivery_attempt 2", async () => {
-  await sleep(900);
-  const turnstile = makeTurnstileMock();
-  const env = installGlobals({ turnstile, fetchImpl: [okResponse], web3formsMode: "throw" });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-  await walkToContactStep(dom);
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  turnstile.emitToken("token-1");
-  await tick();
-  await sleep(50);
-  assert.equal(web3Posts(env).length, 2, "two attempts");
-  const second = JSON.parse(web3Posts(env)[1].body);
-  assert.equal(second.delivery_attempt, "2");
-});
-
-test("rapid double-click does not double-deliver (plan 025 submitting guard)", async () => {
-  await sleep(900);
-  const turnstile = makeTurnstileMock();
-  let resolveAudit;
-  const env = installGlobals({
-    turnstile,
-    fetchImpl: [
-      () =>
-        new Promise((resolve) => {
-          resolveAudit = () => resolve(okResponse());
-        }),
-    ],
-  });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-  await walkToContactStep(dom);
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  turnstile.emitToken("token-1");
-  await tick();
-  // While audit fetch is still pending (submitting = true), click again
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  // Now resolve the first audit call
-  resolveAudit();
-  await tick();
-  await sleep(50);
-  assert.equal(env.auditCalls.length, 1, "guard holds — only one /api/audit request");
-  assert.equal(web3Posts(env).length, 1, "only one Web3Forms delivery");
-});
-
-test("createDraft falls back when crypto.randomUUID is unavailable (getRandomValues path)", async () => {
-  await sleep(900);
-  const orig = globalThis.crypto.randomUUID;
-  try {
-    Object.defineProperty(globalThis.crypto, "randomUUID", {
-      value: undefined,
-      configurable: true,
-      writable: true,
-    });
-    const turnstile = makeTurnstileMock();
-    const env = installGlobals({ turnstile, fetchImpl: [okResponse] });
-    const dom = buildAuditDom();
-    globalThis.document = dom.document;
-    initAudit({
-      turnstileSiteKey: "test-site-key",
-      web3formsKey: "wf-test-key",
-      web3formsUrl: "https://api.web3forms.com/submit",
-    });
-    await walkToContactStep(dom);
-    dom.getElementById("audit-next").dispatchEvent("click");
-    await tick();
-    turnstile.emitToken("token-fallback");
-    await tick();
-    await sleep(50);
-    const sid = env.auditCalls[0].submission_id;
-    assert.match(
-      sid,
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-      "fallback UUID must match pattern",
-    );
-    assert.match(sid, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i, "v4 variant");
-  } finally {
-    Object.defineProperty(globalThis.crypto, "randomUUID", {
-      value: orig,
-      configurable: true,
-      writable: true,
-    });
-  }
-});
-
-test("createDraft falls back to Math.random when getRandomValues unavailable", async () => {
-  await sleep(900);
-  const origRandom = globalThis.crypto.randomUUID;
-  const origGetRandom = globalThis.crypto.getRandomValues;
-  try {
-    Object.defineProperty(globalThis.crypto, "randomUUID", {
-      value: undefined,
-      configurable: true,
-      writable: true,
-    });
-    Object.defineProperty(globalThis.crypto, "getRandomValues", {
-      value: undefined,
-      configurable: true,
-      writable: true,
-    });
-    const turnstile = makeTurnstileMock();
-    const env = installGlobals({ turnstile, fetchImpl: [okResponse] });
-    const dom = buildAuditDom();
-    globalThis.document = dom.document;
-    initAudit({
-      turnstileSiteKey: "test-site-key",
-      web3formsKey: "wf-test-key",
-      web3formsUrl: "https://api.web3forms.com/submit",
-    });
-    await walkToContactStep(dom);
-    dom.getElementById("audit-next").dispatchEvent("click");
-    await tick();
-    turnstile.emitToken("token-math");
-    await tick();
-    await sleep(50);
-    const sid = env.auditCalls[0].submission_id;
-    assert.match(
-      sid,
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-      "Math.random fallback must be UUID-shaped",
-    );
-  } finally {
-    Object.defineProperty(globalThis.crypto, "randomUUID", {
-      value: origRandom,
-      configurable: true,
-      writable: true,
-    });
-    Object.defineProperty(globalThis.crypto, "getRandomValues", {
-      value: origGetRandom,
-      configurable: true,
-      writable: true,
-    });
-  }
-});
-
-test("the Turnstile container is visible on the one-screen form and renders exactly once", async () => {
-  // Regression guard: the widget is rendered without await while the
-  // visitor may already be submitting. Concurrent ensureRendered() calls
-  // must share one render, never create a second widget.
-  const turnstile = makeTurnstileMock();
-  const env = installGlobals({ turnstile, fetchImpl: [okResponse], web3formsMode: "ok" });
-  const dom = buildAuditDom();
-  globalThis.document = dom.document;
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-
-  const container = dom.getElementById("turnstile-container");
-  assert.equal(container.hidden, false, "the widget is visible on the only screen of the form");
+  initAudit({ ...OK_CONFIG });
 
   await fillLeadForm(dom);
-  assert.equal(turnstile.renders, 1, "a fast submit must not render a second widget");
-  turnstile.emitToken("token-1");
-  await tick();
-  assert.equal(env.auditCalls.length, 1, "the submission proceeds normally");
-  assert.equal(turnstile.renders, 1, "still exactly one widget after submission");
+  await sleep(10);
+
+  assert.equal(bannerBlock(dom, "delivery").hidden, false);
+  assert.equal(env.nav.length, 0, "an API-level rejection must not navigate");
+  assert.ok(env.session.has("noveno:audit:draft"));
 });
 
-test("captureAttributionNow clamps landing_page to LIMITS.landingPage", async () => {
-  const { captureAttributionNow } = await import("../src/scripts/audit/draft.ts");
-  const { LIMITS } = await import("../functions/lib/contract.ts");
-  const longSearch = "?" + "x".repeat(600);
-  const origLocation = globalThis.location;
-  const origDocument = globalThis.document;
-  try {
-    globalThis.location = { pathname: "/audit", search: longSearch };
-    globalThis.document = { referrer: "https://example.com/" + "y".repeat(600) };
-    const attribution = captureAttributionNow();
-    assert.ok(
-      attribution.landing_page.length <= LIMITS.landingPage,
-      `landing_page length ${attribution.landing_page.length} must be <= ${LIMITS.landingPage}`,
-    );
-    assert.ok(
-      attribution.referrer.length <= LIMITS.referrer,
-      `referrer length ${attribution.referrer.length} must be <= ${LIMITS.referrer}`,
-    );
-    // UTM clamping
-    globalThis.location = { pathname: "/", search: "?utm_source=" + "z".repeat(500) };
-    globalThis.document = { referrer: "" };
-    const attr2 = captureAttributionNow();
-    assert.ok((attr2.utm_source ?? "").length <= LIMITS.utm, "utm_source clamped");
-  } finally {
-    globalThis.location = origLocation;
-    globalThis.document = origDocument;
-  }
-});
-
-test("turnstile expiry mid-wait shows banner and retry recovers with fresh token", async () => {
-  await sleep(900);
-  const turnstile = makeTurnstileMock();
-  const env = installGlobals({ turnstile, fetchImpl: [okResponse] });
+test("rate limit shows the rate banner and keeps the lead recoverable", async () => {
+  const env = installGlobals({ web3formsMode: "rate" });
   const dom = buildAuditDom();
   globalThis.document = dom.document;
-  initAudit({
-    turnstileSiteKey: "test-site-key",
-    web3formsKey: "wf-test-key",
-    web3formsUrl: "https://api.web3forms.com/submit",
-  });
-  await walkToContactStep(dom);
-  // Trigger submit — getToken will reset and wait
-  dom.getElementById("audit-next").dispatchEvent("click");
-  await tick();
-  // Simulate expiry before token arrives
-  turnstile.expire();
-  await tick();
+  initAudit({ ...OK_CONFIG });
+
+  await fillLeadForm(dom);
   await sleep(10);
-  // Should show turnstile banner, no audit request yet
-  assert.equal(bannerBlock(dom, "turnstile").hidden, false, "expiry should show turnstile banner");
-  assert.equal(env.auditCalls.length, 0, "no audit request on expiry");
-  assert.equal(dom.getElementById("audit-next").disabled, false, "not stuck");
-  // Retry should reset and accept fresh token
-  const retryButton = dom.document.querySelector("[data-retry]");
-  retryButton.dispatchEvent("click");
-  await tick();
-  // After retry, a new wait is started; emit fresh token
-  turnstile.emitToken("fresh-after-expiry");
-  await tick();
-  await sleep(50);
-  assert.equal(env.auditCalls.length, 1, "retry emits fresh audit request");
-  assert.equal(env.auditCalls[0].cf_turnstile_token, "fresh-after-expiry");
-  assert.equal(env.nav[0], "/audit/thank-you", "recovers to thank-you");
-  assert.ok(turnstile.resets >= 1, "widget was reset");
+
+  assert.equal(bannerBlock(dom, "rate").hidden, false);
+  assert.equal(env.nav.length, 0);
+  assert.ok(env.session.has("noveno:audit:draft"));
+});
+
+test("network failure is reported as a delivery failure after the bounded retry", async () => {
+  const env = installGlobals({ web3formsMode: "throw" });
+  const dom = buildAuditDom();
+  globalThis.document = dom.document;
+  initAudit({ ...OK_CONFIG });
+
+  await fillLeadForm(dom);
+  await sleep(10);
+
+  assert.equal(web3Posts(env).length, 2, "one initial attempt plus one retry, never more");
+  assert.equal(bannerBlock(dom, "delivery").hidden, false);
+  assert.equal(env.nav.length, 0);
+});
+
+test("unconfigured build explains itself instead of pretending to send", async () => {
+  const env = installGlobals();
+  const dom = buildAuditDom();
+  globalThis.document = dom.document;
+  initAudit({ web3formsKey: "", web3formsUrl: "https://api.web3forms.com/submit" });
+
+  await fillLeadForm(dom);
+  await sleep(10);
+
+  assert.equal(env.externalCalls.length, 0, "no request without an access key");
+  assert.equal(bannerBlock(dom, "unconfigured").hidden, false);
+  assert.equal(env.nav.length, 0);
+});
+
+test("a filled honeypot is dropped silently: no delivery, no banner, no navigation", async () => {
+  const env = installGlobals();
+  const dom = buildAuditDom();
+  globalThis.document = dom.document;
+  initAudit({ ...OK_CONFIG });
+  dom.getElementById("audit-form").querySelector("[data-honeypot]").value = "https://spam.example";
+
+  await fillLeadForm(dom);
+  await sleep(10);
+
+  assert.equal(env.externalCalls.length, 0, "bots get no delivery");
+  assert.equal(env.nav.length, 0, "bots never reach thank-you");
+  assert.equal(env.beacons.length, 0, "bots never fire audit_submitted");
 });

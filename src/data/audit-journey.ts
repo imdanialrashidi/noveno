@@ -7,7 +7,7 @@
  * state machine's observable statuses. The page markup renders field
  * definitions from this module (never hand-writes ids), the DOM
  * controller drives journey phases from it, and the tests cross the same
- * seam — draft persistence, Turnstile bridging, and delivery adapters
+ * seam — draft persistence, payload shaping, and delivery adapters
  * stay internal seams of this journey, reached only through it.
  */
 
@@ -179,7 +179,7 @@ export function validateJourneyField(fieldId: string, value: string): string {
 }
 
 /* ------------------------------------------------------------------ */
-/* Payload shaping — what leaves the browser for /api/audit            */
+/* Payload shaping — what leaves the browser for Web3Forms              */
 /* ------------------------------------------------------------------ */
 
 export interface JourneyValues {
@@ -198,15 +198,15 @@ export interface JourneyAttribution {
 }
 
 /**
- * Build the /api/audit payload from draft values. Deeper qualification
- * (channels, requested service, preferred contact, customer value) is
- * not asked on the first-contact form: it is OMITTED, never guessed —
- * the server treats those fields as optional.
+ * Build the lead payload from draft values. Static hosting means there is
+ * no server boundary: this object is validated client-side and then sent
+ * straight to Web3Forms by `deliverLead`. Deeper qualification (channels,
+ * requested service, preferred contact, customer value) is not asked on
+ * the first-contact form: it is OMITTED, never guessed.
  */
 export function buildJourneyPayload(
   values: JourneyValues,
   submissionId: string,
-  token: string,
   honeypot: string,
   attribution: JourneyAttribution,
 ): Record<string, unknown> {
@@ -232,7 +232,6 @@ export function buildJourneyPayload(
     primary_problem: String(values.primary_problem ?? ""),
     requested_service: optional("requested_service"),
     customer_value_range: optional("customer_value_range"),
-    cf_turnstile_token: token,
     attribution: {
       landing_page: attribution.landing_page,
       referrer: attribution.referrer,
@@ -254,29 +253,12 @@ export type JourneyPhase =
   | "idle"
   | "unconfigured"
   | "validating"
-  | "turnstile"
-  | "delivering"
   | "rate"
   | "validation"
   | "network"
   | "offline"
   | "delivery"
   | "done";
-
-/**
- * Map an /api/audit response to the next phase. The success invariant
- * lives here, not in call order: only a confirmed Web3Forms delivery
- * reaches `done` — a 200 `validated` alone stays in `delivering`.
- */
-export function phaseAfterServerResponse(status: number, bodyStatus?: string): JourneyPhase {
-  if (status === 200) {
-    return bodyStatus === "validated" || bodyStatus === "sent" ? "delivering" : "network";
-  }
-  if (status === 403) return "turnstile";
-  if (status === 429) return "rate";
-  if (status === 400) return "validation";
-  return "network";
-}
 
 /** Map a failed delivery attempt to its banner phase. */
 export function phaseAfterDelivery(rateLimited: boolean): JourneyPhase {

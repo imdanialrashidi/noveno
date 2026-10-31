@@ -27,7 +27,7 @@ const DOC_CONTRACTS = {
     ],
   },
   "docs/ARCHITECTURE.md": {
-    require: ["Astro", "TypeScript", "Cloudflare Pages", "Web3Forms", "static"],
+    require: ["Astro", "TypeScript", "GitHub Pages", "Web3Forms", "static"],
     forbid: [/^- Runtime\/platform:\s*$/m, /^- Main modules:\s*$/m],
   },
   "docs/PLAN.md": {

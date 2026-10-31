@@ -64,18 +64,18 @@ test("robots.txt allows crawling and disallows the post-submission page", () => 
   assert.ok(robots.includes("Sitemap:"), "robots must reference the sitemap");
 });
 
-test("_headers ships baseline security headers and the pragmatic CSP", () => {
-  const headers = fs.readFileSync(path.join(root, "public", "_headers"), "utf8");
-  assert.match(headers, /\/fonts\/\*/);
-  assert.match(headers, /Cache-Control: public, max-age=31536000, immutable/);
-  assert.match(headers, /X-Content-Type-Options: nosniff/);
-  assert.match(headers, /X-Frame-Options: DENY/);
-  assert.match(headers, /Referrer-Policy: strict-origin-when-cross-origin/);
-  assert.match(headers, /Content-Security-Policy:/);
-  // the CSP must allow the only third parties the site uses
-  assert.match(headers, /challenges\.cloudflare\.com/);
-  assert.match(headers, /api\.web3forms\.com/);
-  assert.match(headers, /object-src 'none'/);
+test("GitHub Pages artifact: no server-only config, custom 404 present", () => {
+  assert.equal(
+    fs.existsSync(path.join(dist, "_headers")),
+    false,
+    "_headers cannot be honored on GitHub Pages",
+  );
+  assert.equal(
+    fs.existsSync(path.join(dist, "_redirects")),
+    false,
+    "_redirects cannot be honored on GitHub Pages",
+  );
+  assert.ok(fs.existsSync(path.join(dist, "404.html")), "GitHub Pages needs a built 404.html");
 });
 
 test("every built page carries Organization + WebSite structured data", () => {
@@ -137,15 +137,12 @@ test("per-page social cards exist and are referenced with correct metadata", () 
   expectCard("about/index.html", "/og/about.png");
 });
 
-test("insights → blog migration: permanent redirects and no duplicate indexable routes", () => {
-  const redirects = fs.readFileSync(path.join(root, "public", "_redirects"), "utf8");
-  assert.match(
-    redirects,
-    /^\/insights\/\*\s+\/blog\/:splat\s+301$/m,
-    "article slug redirect must be 301 and 1:1",
-  );
-  assert.match(redirects, /^\/insights\s+\/blog\s+301$/m, "index redirect must be 301");
-  // canonical article path is /blog/[slug]; nothing indexable may remain under /insights
+test("insights → blog migration: no duplicate routes, visitor-side fallback on 404", () => {
+  // GitHub Pages cannot issue a 301. The built 404 page preserves the legacy
+  // URL shape for humans; crawlers get the honest 404 instead of a false 301.
+  const notFound = fs.readFileSync(path.join(dist, "404.html"), "utf8");
+  assert.match(notFound, /\^\\\/insights/, "404.html must match the legacy /insights path");
+  assert.match(notFound, /location\.replace\("\/blog\//, "404.html must forward visitors to /blog/");
   assert.ok(!fs.existsSync(path.join(dist, "insights")), "no /insights pages may be built");
   assert.ok(
     fs.existsSync(path.join(dist, "blog", "instagram-lead-tracking", "index.html")),
@@ -238,8 +235,8 @@ test("published blog article ships Article schema, breadcrumbs, canonical and fa
 test("built audit page leaks no secret env names or placeholder keys", () => {
   const html = fs.readFileSync(path.join(dist, "audit", "index.html"), "utf8");
   for (const marker of [
-    "TURNSTILE_SECRET_KEY",
-    "1x00000000000000000000AA", // official test sitekey must never ship
+    "1x00000000000000000000AA", // official Turnstile test sitekey must never ship again
+    "TURNSTILE_SECRET_KEY", // no server secret exists on static hosting
   ]) {
     assert.ok(!html.includes(marker), `audit page leaks ${marker}`);
   }
@@ -276,8 +273,8 @@ test("thank-you page ships the pre-paint guard script (reviewer MAJOR)", () => {
  * while five published case studies linked to `https://noveno.ir/portfolio/`
  * on every build. Nothing in the suite asserted link targets.
  *
- * External links are out of scope: client sites, Instagram, messaging apps,
- * and the Cloudflare Turnstile script are not ours to resolve.
+ * External links are out of scope: client sites, Instagram, and messaging
+ * apps are not ours to resolve.
  */
 test("every same-origin link in built HTML resolves to a built route or asset", () => {
   const files = walk(dist);

@@ -70,7 +70,7 @@ Locally rendered PNGs (1200×630) via `npm run generate:og` (`scripts/generate-o
 | `public/og/blog.png`        | `/blog` index           | Wordmark + «وبلاگ نوونو» title + typographic card                                                                                   |
 | `public/og/blog/{slug}.png` | `/blog/{slug}`          | Wordmark + article title + category chip (per-article typographic card)                                                             |
 
-Rendered locally with `npm run generate:og` (`scripts/generate-og-images.py` — Python + Pillow + raqm; Noto Sans Arabic, brand tokens from docs/DESIGN.md §6) and **committed** under `public/og/`. The production build never renders cards (Cloudflare Pages has no image-generation tooling): `prebuild` runs `scripts/validate-og-assets.mjs`, a dependency-free Node check that fails the build if any required committed card is missing or not a 1200×630 PNG. Page metadata references them via `og:image` (BaseLayout `ogImage` prop); `public/_headers` serves `/og/*` with short-lived caching so social crawlers re-fetch after content changes.
+Rendered locally with `npm run generate:og` (`scripts/generate-og-images.py` — Python + Pillow + raqm; Noto Sans Arabic, brand tokens from docs/DESIGN.md §6) and **committed** under `public/og/`. The production build never renders cards (the GitHub Pages runner has no image-generation tooling): `prebuild` runs `scripts/validate-og-assets.mjs`, a dependency-free Node check that fails the build if any required committed card is missing or not a 1200×630 PNG. Page metadata references them via `og:image` (BaseLayout `ogImage` prop).
 
 ## Replacing product screenshots (founder workflow)
 

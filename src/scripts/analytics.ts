@@ -11,9 +11,11 @@
  *   `data-event-payload` JSON) plus an imperative `track()` for the
  *   audit journey. Payloads carry only event metadata (page, section,
  *   step, service, slug, channel) — never name/phone/email.
- * - Delivery: queued, flushed via sendBeacon (fallback fetch keepalive)
- *   on idle and pagehide; every call is wrapped so analytics can never
- *   throw into UI handlers.
+ * - Delivery: queued and flushed on idle/pagehide. GitHub Pages has no
+ *   ingest endpoint, so EVENT_URL stays empty and nothing leaves the
+ *   browser. Turning analytics back on is a one-line change here (or a
+ *   PUBLIC_* endpoint plumbed through the build), and every call site
+ *   keeps working. No call can ever throw into UI handlers.
  */
 
 import { serializeTelemetryEvent, TELEMETRY_NAMES } from "../data/telemetry-contract.ts";
@@ -37,7 +39,9 @@ export interface Attribution {
 }
 
 const ATTRIBUTION_KEY = "noveno:attribution";
-const EVENT_URL = "/api/events";
+// No ingest endpoint exists on GitHub Pages; an empty URL means the queue
+// drains locally instead of firing a request that can only 404.
+const EVENT_URL = "";
 
 /* ------------------------------------------------------------------ */
 /* Attribution capture (session-scoped, first page wins)               */
@@ -86,6 +90,7 @@ const pending: { name: EventName; payload: EventPayload }[] = [];
 let timer: number | undefined;
 
 function send(event: { name: EventName; payload: EventPayload }): void {
+  if (!EVENT_URL) return;
   try {
     const body = new Blob([JSON.stringify(event)], { type: "application/json" });
     if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {

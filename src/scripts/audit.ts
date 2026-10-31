@@ -1,6 +1,6 @@
-/** Barrel — preserves import path `../scripts/audit` after god-module split (plan 023).
- * Re-exports validation_receipt + delivery_attempt seams (plans 021, 025) via ./audit/delivery.ts.
- * Web3Forms client delivery (email-only) lives in ./audit/delivery.ts — grep web3forms still hits via barrel.
+/** Barrel — preserves the `../scripts/audit` import path after the module split.
+ * Web3Forms browser delivery (the only delivery boundary) lives in
+ * ./audit/delivery.ts; the journey state machine lives in ./audit/index.ts.
  */
 export { initAudit } from "./audit/index.ts";
 export type { AuditConfig } from "./audit/index.ts";

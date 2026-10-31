@@ -24,11 +24,6 @@ const socialImage = new URL(ogImage, site).toString();
 // otherwise the brand is appended once at the end (never duplicated).
 const htmlTitle = title.includes("نوونو") ? title : `${title} — نوونو`;
 
-// Build-time public values (names only in .env.example; no secrets).
-// The Web Analytics token is public by design and only injects the
-// beacon when a real token is configured.
-const cfAnalyticsToken = import.meta.env.PUBLIC_CF_ANALYTICS_TOKEN ?? "";
-
 // Structured data (Spec §43) — genuinely appropriate launch scope:
 // Organization (identity + contact point) and WebSite identity.
 const organizationJsonLd = JSON.stringify({
@@ -91,28 +86,6 @@ const websiteJsonLd = JSON.stringify({
     <!-- Structured data: Organization + WebSite identity (Spec §43) -->
     <script type="application/ld+json" set:html={organizationJsonLd}></script>
     <script type="application/ld+json" set:html={websiteJsonLd}></script>
-
-    {cfAnalyticsToken !== "" && (
-      <script is:inline data-cf-token={cfAnalyticsToken}>
-        (function () {
-          var t = document.currentScript.getAttribute("data-cf-token");
-          if (!t) return;
-          function load() {
-            var s = document.createElement("script");
-            s.defer = true;
-            s.src = "https://static.cloudflareinsights.com/beacon.min.js";
-            s.setAttribute("data-cf-beacon", JSON.stringify({ token: t }));
-            s.onerror = function () { s.remove(); };
-            document.head.appendChild(s);
-          }
-          if ("requestIdleCallback" in window) {
-            requestIdleCallback(load, { timeout: 4000 });
-          } else {
-            window.addEventListener("load", function () { setTimeout(load, 2000); }, { once: true });
-          }
-        })();
-      </script>
-    )}
 
     <!-- No wrong-theme flash (DESIGN §7.3): read the persisted override
          before first paint; no stored value = media-query default. -->

@@ -10,19 +10,18 @@
  * - Attribution: read from the session-scoped capture (`noveno:attribution`,
  *   first page of the session) at journey start, falling back to a local
  *   capture — independent of analytics delivery.
- * - Turnstile: explicit render (theme follows the site theme), token
- *   required before submit, reset on retry after a consumed/expired token.
- * - Submit: single in-flight guard; POST /api/audit is the server trust
- *   boundary (validation + anti-abuse) but does NOT complete the journey —
- *   a 200 `validated` only means the server accepted the payload. The
- *   journey completes only when the browser's Web3Forms delivery confirms
- *   success ({ success: true }): then and only then → audit_submitted →
- *   draft cleared → done marker → /audit/thank-you.
+ * - Submit: single in-flight guard; the browser validates the values and
+ *   posts the sanitized payload straight to Web3Forms (GitHub Pages is
+ *   static — there is no server boundary). The journey completes only
+ *   when Web3Forms confirms success ({ success: true }): then and only
+ *   then → audit_submitted → draft cleared → done marker →
+ *   /audit/thank-you.
  * - Delivery failure (network/timeout/non-2xx/success:false/429): stay on
  *   /audit, keep the draft + submission_id, show a truthful recoverable
- *   banner (with direct-contact fallback), allow retry with a fresh
- *   Turnstile token. Never present a false success.
- * - Client validation is UX-only; the function is authoritative.
+ *   banner (with direct-contact fallback), allow retry. Never present a
+ *   false success.
+ * - Client validation is the only validation; Web3Forms delivery is the
+ *   completion gate.
  */
 
 import {
@@ -30,7 +29,6 @@ import {
   MAX_CLIENT_CHANNELS,
   errorCopyFor,
   phaseAfterDelivery,
-  phaseAfterServerResponse,
   requiredFieldsForStep,
   validateJourneyField,
   buildJourneyPayload,
@@ -48,11 +46,9 @@ import {
   writeDraft,
 } from "./draft.ts";
 import type { Draft } from "./draft.ts";
-import { TurnstileBridge } from "./turnstile.ts";
 import { deliverLead } from "./delivery.ts";
 
 export interface AuditConfig {
-  turnstileSiteKey: string;
   web3formsKey: string;
   web3formsUrl: string;
 }
@@ -75,7 +71,6 @@ interface Handles {
   bannerBlocks: Record<string, HTMLElement>;
   back: HTMLButtonElement | null;
   next: HTMLButtonElement | null;
-  turnstileContainer: HTMLElement | null;
   summary: HTMLElement | null;
 }
 
@@ -111,7 +106,6 @@ export function initAudit(config: AuditConfig): void {
     ),
     back: document.getElementById("audit-back") as HTMLButtonElement | null,
     next: document.getElementById("audit-next") as HTMLButtonElement | null,
-    turnstileContainer: document.getElementById("turnstile-container"),
     summary: document.getElementById("audit-summary"),
   };
 
@@ -120,7 +114,6 @@ export function initAudit(config: AuditConfig): void {
   let currentStep = draft?.step ?? 1;
   let renderedStep = currentStep;
   let submitting = false;
-  let bridge: TurnstileBridge | null = null;
 
   function ensureDraft(): Draft {
     if (!draft) {
@@ -206,18 +199,6 @@ export function initAudit(config: AuditConfig): void {
       handles.next.setAttribute("data-last", last ? "true" : "false");
     }
 
-    const onContactStep = current === totalSteps;
-    if (handles.turnstileContainer) {
-      // The widget lives outside the step sections: hide it whenever the user
-      // is not on the contact step (rendered lazily on first arrival; token is
-      // still consumed at submit time only).
-      handles.turnstileContainer.hidden = !onContactStep;
-    }
-    if (onContactStep && config.turnstileSiteKey && handles.turnstileContainer) {
-      bridge ??= new TurnstileBridge(config.turnstileSiteKey, handles.turnstileContainer);
-      void bridge.ensureRendered();
-    }
-
     const heading = document.getElementById(`step-${JOURNEY_STEPS[current - 1]?.id}-title`);
     if (heading && renderedStep !== current) {
       (heading as HTMLElement).focus({ preventScroll: true });
@@ -280,7 +261,7 @@ export function initAudit(config: AuditConfig): void {
         showFieldError(fieldId, "required");
         valid = false;
       } else if (fieldId === "acquisition_channels" && multi.length > MAX_CLIENT_CHANNELS) {
-        // Mirrors functions/lib/contract.ts LIMITS.maxChannels — server is authoritative.
+        // Mirrors the lead-contract channel cap, with no server to re-check it.
         showFieldError(fieldId, "too_long");
         valid = false;
       } else {
@@ -344,7 +325,7 @@ export function initAudit(config: AuditConfig): void {
     renderStep();
   }
 
-  function buildPayload(token: string): Record<string, unknown> {
+  function buildPayload(): Record<string, unknown> {
     const d = ensureDraft();
     const values = d.values as Record<string, string | string[]>;
     const attribution = d.attribution ?? captureAttributionNow();
@@ -352,7 +333,6 @@ export function initAudit(config: AuditConfig): void {
     return buildJourneyPayload(
       values,
       d.submission_id,
-      token,
       honeypot?.value ?? "",
       attribution as unknown as Record<string, string>,
     );
@@ -373,12 +353,15 @@ export function initAudit(config: AuditConfig): void {
   }
 
   async function submit(): Promise<void> {
-    // Double-submit guard: covers the entire validation fetch → Web3Forms
-    // delivery window (setSubmitting(true) before fetch, cleared only on
-    // failure paths; onSuccess navigates away). A second click while
-    // deliverLead is in-flight is a no-op — bounded 2-attempt loop is the retry contract.
+    // Double-submit guard covers the whole delivery window (setSubmitting
+    // before the request, cleared only on failure paths; onSuccess navigates
+    // away). A second click while `deliverLead` is in-flight is a no-op —
+    // its bounded 2-attempt loop is the retry contract.
     if (submitting) return;
-    if (!config.turnstileSiteKey || !config.web3formsKey) {
+    // Honeypot: a filled hidden field means a script, not a person. Drop it
+    // silently (no banner, no delivery) so the bot gets no feedback.
+    if (root.querySelector<HTMLInputElement>("[data-honeypot]")?.value.trim()) return;
+    if (!config.web3formsKey) {
       showBanner("unconfigured");
       return;
     }
@@ -388,100 +371,14 @@ export function initAudit(config: AuditConfig): void {
     showBanner(null);
     setSubmitting(true);
     try {
-      bridge ??=
-        handles.turnstileContainer && config.turnstileSiteKey
-          ? new TurnstileBridge(config.turnstileSiteKey, handles.turnstileContainer)
-          : null;
-      const token = bridge ? await bridge.getToken() : null;
-      if (!token) {
-        showBanner("turnstile");
+      const payload = buildPayload();
+      const delivered = await deliverLead(payload, config);
+      if (!delivered.ok) {
+        showBanner(phaseAfterDelivery(delivered.rateLimited === true));
         setSubmitting(false);
         return;
       }
-
-      const payload = buildPayload(token);
-      let response: Response;
-      try {
-        response = await fetch("/api/audit", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify(payload),
-          signal: AbortSignal.timeout(10_000),
-        });
-      } catch {
-        showBanner(navigator.onLine === false ? "offline" : "network");
-        setSubmitting(false);
-        return;
-      }
-
-      if (response.ok) {
-        let validated = true;
-        let receipt: string | null = null;
-        let validatedAt: string | null = null;
-        try {
-          const body = (await response.json()) as {
-            status?: string;
-            receipt?: string;
-            validated_at?: string;
-          };
-          // D-01 transition (spike §4): accept both statuses while Web3Forms
-          // delivery still runs client-side. After cutover this narrows to "sent".
-          validated = phaseAfterServerResponse(200, body.status) === "delivering";
-          if (typeof body.receipt === "string" && body.receipt.length > 0) receipt = body.receipt;
-          if (typeof body.validated_at === "string" && body.validated_at.length > 0)
-            validatedAt = body.validated_at;
-        } catch {
-          /* unreadable body — the server contract still holds */
-        }
-        if (!validated) {
-          bridge?.invalidate();
-          showBanner(navigator.onLine === false ? "offline" : "network");
-          setSubmitting(false);
-          return;
-        }
-        const delivered = await deliverLead(payload, config, receipt, validatedAt);
-        if (!delivered.ok) {
-          bridge?.invalidate();
-          showBanner(phaseAfterDelivery(delivered.rateLimited === true));
-          setSubmitting(false);
-          return;
-        }
-        await onSuccess(payload);
-        return;
-      }
-
-      let code = "";
-      let fields: Record<string, string> = {};
-      try {
-        const body = (await response.json()) as {
-          error?: { code?: string; fields?: Record<string, string> };
-        };
-        code = body.error?.code ?? "";
-        fields = body.error?.fields ?? {};
-      } catch {
-        /* non-JSON error body — treat as server error */
-      }
-
-      if (response.status === 403 || code === "turnstile_failed") {
-        bridge?.invalidate();
-        showBanner("turnstile");
-      } else if (response.status === 429) {
-        showBanner("rate");
-      } else if (response.status === 400 || code === "validation") {
-        let firstInvalid: HTMLElement | null = null;
-        for (const [fieldId, key] of Object.entries(fields)) {
-          const input = document.getElementById(fieldId) as HTMLElement | null;
-          if (!input) continue;
-          showFieldError(fieldId, key);
-          if (!firstInvalid) firstInvalid = input;
-        }
-        if (firstInvalid) firstInvalid.focus();
-        showBanner("validation");
-      } else {
-        bridge?.invalidate();
-        showBanner(navigator.onLine === false ? "offline" : "network");
-      }
-      setSubmitting(false);
+      await onSuccess(payload);
     } catch {
       showBanner(navigator.onLine === false ? "offline" : "network");
       setSubmitting(false);
@@ -592,7 +489,6 @@ export function initAudit(config: AuditConfig): void {
 
   for (const retry of document.querySelectorAll<HTMLButtonElement>("[data-retry]")) {
     retry.addEventListener("click", () => {
-      bridge?.retry();
       showBanner(null);
       void submit();
     });
@@ -604,11 +500,6 @@ export function initAudit(config: AuditConfig): void {
   window.addEventListener("online", () => {
     if (handles.bannerBlocks.offline && !handles.bannerBlocks.offline.hidden) showBanner(null);
   });
-
-  const themeObserver = new MutationObserver(() => {
-    bridge?.syncTheme();
-  });
-  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
   if (draft) {
     applyDraftToDom(draft, root);

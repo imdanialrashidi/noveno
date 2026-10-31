@@ -206,10 +206,11 @@ test("contextual business photography is gone from the production path (2026-09 
 });
 
 test("every /images/ reference in built pages is content-hashed and exists on disk", () => {
-  // Caching contract: /images/* is `immutable` in _headers, which is
-  // only safe because every referenced image URL is content-addressed.
-  // A hard-coded unhashed path would break cache correctness on
-  // founder image replacement — this test makes that a build failure.
+  // Caching contract: every referenced image URL is content-addressed so a
+  // founder image replacement can never serve a stale cached path (GitHub
+  // Pages fixes its own cache headers; hashing is what keeps them correct).
+  // A hard-coded unhashed path would break that — this test makes it a
+  // build failure.
   const pages = walk(dist).filter((f) => f.endsWith(".html"));
   const refs = new Set();
   for (const file of pages) {
@@ -329,23 +330,14 @@ test("no secrets or real-looking env values in built output", () => {
   }
 });
 
-test("security headers include HSTS and upgrade-insecure-requests", () => {
-  const headers = fs.readFileSync(path.join(root, "public", "_headers"), "utf8");
-  assert.match(headers, /Strict-Transport-Security: max-age=31536000; includeSubDomains/);
-  assert.match(headers, /upgrade-insecure-requests/);
-});
-
-test("CSP connect-src includes the Web3Forms origin (plan 024)", () => {
-  const headers = fs.readFileSync(path.join(root, "public", "_headers"), "utf8");
-  const fallback = "https://api.web3forms.com";
-  const envOrigin = process.env.PUBLIC_WEB3FORMS_URL
-    ? new URL(process.env.PUBLIC_WEB3FORMS_URL).origin
-    : fallback;
-  assert.ok(headers.includes(envOrigin), `public/_headers connect-src must include ${envOrigin}`);
-  assert.ok(
-    !headers.includes("connect-src *") && !headers.includes("connect-src https:"),
-    "connect-src must not contain wildcards",
-  );
+test("GitHub Pages artifact carries no Cloudflare-only config", () => {
+  for (const name of ["_headers", "_redirects"]) {
+    assert.equal(
+      fs.existsSync(path.join(dist, name)),
+      false,
+      `${name} is Cloudflare Pages config; it must not ship to GitHub Pages`,
+    );
+  }
 });
 
 // Convenience: run the canonical build from the test (used by verify.sh flow).

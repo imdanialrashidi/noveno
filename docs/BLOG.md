@@ -167,14 +167,14 @@ reader sees is always the current one.
 4. **Build and publish**:
 
    A new article gets its social card rendered **locally** (Python + Pillow
-   — see below) before the build; Cloudflare Pages never renders cards:
+   — see below) before the build; the GitHub Pages build never renders cards:
 
    ```bash
    npm run generate:og   # render social cards for NEW/changed articles (local)
    npm run build         # validates content + committed OG cards; regenerates sitemap, image hashes
    git add src/content/blog/my-article.md public/og/blog/my-article.png
    git commit -m "feat(blog): publish …"
-   git push              # Cloudflare Pages deploys automatically
+   git push              # the quality workflow builds and deploys to GitHub Pages
    ```
 
    First time on a machine? Run `python3 -m pip install -r requirements-og.txt`; `generate:og` preflights everything else.
@@ -190,18 +190,18 @@ reader sees is always the current one.
    > `prebuild` **validates** the committed cards
    > (`scripts/validate-og-assets.mjs`, Node — no extra dependencies) and
    > fails the build if a required card is missing or not a 1200×630 PNG.
-   > Cloudflare Pages does **not** regenerate OG cards — it deploys the
+   > The GitHub Pages build does **not** regenerate OG cards — it deploys the
    > committed ones. A draft article (`draft: true`) never needs a card.
 
 ## What happens automatically on every build
 
-| Step          | What runs                                                                                                                                                                                                                                                                                                                             |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `prebuild`    | image manifest (hashed URLs), **validation of the committed social cards** (`scripts/validate-og-assets.mjs` — every published article must have a 1200×630 PNG card; drafts are excluded), **sitemap** (`scripts/generate-sitemap.mjs` — drafts excluded). Cards themselves are **not** rendered on Cloudflare — see the note above. |
-| `astro build` | static pages; drafts are never generated; RSS feed `/rss.xml` rebuilt                                                                                                                                                                                                                                                                 |
-| Feed          | `https://noveno.ir/rss.xml` — rebuilt with `npm run build`; draft articles excluded                                                                                                                                                                                                                                                   |
-| article page  | canonical `/blog/[slug]`, `og:type=article`, Article JSON-LD (title, dates, author, publisher), breadcrumbs (خانه / وبلاگ / عنوان), related-by-category + previous/next navigation, contextual audit CTA                                                                                                                              |
-| `/blog`       | newest article featured first; chronological list; index updates automatically                                                                                                                                                                                                                                                        |
+| Step          | What runs                                                                                                                                                                                                                                                                                                                                |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `prebuild`    | image manifest (hashed URLs), **validation of the committed social cards** (`scripts/validate-og-assets.mjs` — every published article must have a 1200×630 PNG card; drafts are excluded), **sitemap** (`scripts/generate-sitemap.mjs` — drafts excluded). Cards themselves are **not** rendered during the build — see the note above. |
+| `astro build` | static pages; drafts are never generated; RSS feed `/rss.xml` rebuilt                                                                                                                                                                                                                                                                    |
+| Feed          | `https://noveno.ir/rss.xml` — rebuilt with `npm run build`; draft articles excluded                                                                                                                                                                                                                                                      |
+| article page  | canonical `/blog/[slug]`, `og:type=article`, Article JSON-LD (title, dates, author, publisher), breadcrumbs (خانه / وبلاگ / عنوان), related-by-category + previous/next navigation, contextual audit CTA                                                                                                                                 |
+| `/blog`       | newest article featured first; chronological list; index updates automatically                                                                                                                                                                                                                                                           |
 
 ## Editing an existing article
 

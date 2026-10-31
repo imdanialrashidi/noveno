@@ -14,13 +14,13 @@ Durable source of truth for what the product must do. Sources: `docs/Noveno_Webs
 
 - Measurable outcome: **qualified audit requests** ("درخواست بررسی مسیر جذب") — the single primary conversion; not pageviews (Spec §6.1, §69.1).
 - Riskiest product assumption: an SMB owner who lands on the site will complete a short multi-step audit form to start a conversation (rather than only calling/messaging). _Assumed, not yet validated._
-- Smallest experiment that tests it: launch site → measure audit starts, audit completion rate, and primary CTA click rate via Cloudflare analytics (Spec §6.2–6.3).
+- Smallest experiment that tests it: launch site → measure audit starts, audit completion rate, and primary CTA click rate from Web3Forms lead emails and manual review (no analytics backend on GitHub Pages).
 - Deadline / hard constraints: none accepted yet. Launch scope is intentionally constrained (Spec §73): `/`, `/services`, `/work`, `/work/{case}`, `/process`, `/about`, `/audit`, `/audit/thank-you`, `/contact`, `/privacy`, `/terms`.
 - Supported platforms and environments: modern mobile-first browsers, Persian (fa) RTL, light+dark themes; performance must hold on slower mobile connections (Spec §50).
 
 ## Must-have user flows
 
-1. **Audit conversion (primary):** understand → qualify → start audit (`/audit`) → submit form → `/api/audit` validates → browser delivers the lead to **Web3Forms email** → `/audit/thank-you` with next steps (thank-you only after confirmed email acceptance). Attribution (landing page, referrer, UTM) rides in the lead email (Spec §31–33).
+1. **Audit conversion (primary):** understand → qualify → start audit (`/audit`) → submit form → the browser validates and delivers the lead to **Web3Forms email** → `/audit/thank-you` with next steps (thank-you only after confirmed email acceptance). Attribution (landing page, referrer, UTM) rides in the lead email (Spec §31–33).
 2. **Direct contact fallback:** phone, WhatsApp, Telegram, email always reachable; contact redundancy is a resilience requirement, not an afterthought (Spec §64.1). Contact facts: 09102256986 (WhatsApp/Telegram/phone), imdanialrashidi@gmail.com, Instagram @noveno_ir.
 3. **Proof journey:** `/work` with case studies/projects/concepts; every claim traceable, every demo labeled (Spec §18–19).
 4. **Qualification:** explicit good-fit / bad-fit section reduces bad leads (Spec §23).
@@ -49,8 +49,8 @@ Pre-launch acceptance per Spec §74 (condensed):
 ## Security, privacy, and compliance constraints
 
 - Data classification: lead data (name, phone, business info, attribution) is business-critical and personal; never exposed publicly or in logs.
-- Critical access rules: server-side validation at the form boundary; no client-trusted state; secrets only in Cloudflare Pages Function environment (never in the repository); rate limiting/abuse mitigation on submission.
-- External/payment providers: Web3Forms (lead email delivery — the sole lead destination; no database), Cloudflare Turnstile/Web Analytics/Analytics Engine. No payment processing.
+- Critical access rules: browser-side validation only (GitHub Pages is static — there is no server boundary to enforce); the Web3Forms access key is public by design and is not a secret; abuse mitigation is the hidden honeypot plus Web3Forms spam filtering, and the inbox is reviewed by a human.
+- External/payment providers: Web3Forms (lead email delivery — the sole lead destination; no database). No payment processing.
 - Retention/deletion requirements: privacy page must explain collected data, purpose, and correction/deletion path (Spec §63); legal text must be reviewed for Iranian legal requirements before launch.
 
 ## Performance and UX budgets
@@ -67,7 +67,7 @@ Pre-launch acceptance per Spec §74 (condensed):
 
 - Activation / success event: `audit_submitted` (qualified audit request) — Spec §36 event model.
 - Guardrail metrics: audit completion rate, primary CTA click rate, phone/messaging clicks, lead source visibility; funnel from visitors → CTA → audit start → submission → qualified lead (Spec §6.3).
-- Required product telemetry: Cloudflare Web Analytics (traffic/performance baseline) + Cloudflare Zaraz for custom acquisition events; attribution persisted with the lead record (accepted bootstrap override).
+- Required product telemetry: none shipped. The event queue has no endpoint on GitHub Pages; attribution (landing page/referrer/UTM) is delivered with the lead email. Adding an analytics destination is an explicit future decision, not a hidden dependency.
 - Support / recovery expectation: contact redundancy (form, phone, WhatsApp/Telegram, email); form must never silently fail (Spec §61).
 
 ## Open product decisions

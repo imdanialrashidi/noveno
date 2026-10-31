@@ -7,25 +7,24 @@ Product-level path from idea to production. Task-level, multi-session execution 
 - Product outcome: a Persian-first, RTL, mobile-first marketing site that converts qualified SMB visitors into **audit requests** (primary conversion) and demonstrates Noveno's own philosophy: clear, measured, simple, transparent.
 - Measurable success: qualified audit requests generated; audit completion rate and CTA click rate improving; every submission persisted + notified (Spec §6).
 - Explicit non-goals: no client portal/auth/CMS/SSR/backend beyond the audit-form function; `/blog` is a small Markdown-first editorial surface (shipped, per `docs/BLOG.md` content policy); no industry pages at launch; no fabricated proof; no infrastructure for hypothetical scale.
-- Deadline / capital / compliance constraints: none accepted; Cloudflare free-tier-compatible where practical; Iranian network realities are product requirements, not afterthoughts.
+- Deadline / capital / compliance constraints: none accepted; free-tier-compatible (GitHub Pages + Web3Forms) where practical; Iranian network realities are product requirements, not afterthoughts.
 - Current stage: **Slices 1–2 shipped and verified** (flagship site; acquisition flow & production integration), plus the 2026-08-14 founder-directed redesign and the 2026-09 product-led and 2026-10 brand passes — all committed and verified per README "Repository state". Launch awaits founder provisioning (`docs/ops/setup-checklist.md`) and a preview-deploy smoke.
 
 ## Evidence ledger
 
-| Claim or assumption                                                                                                                           | Status               | Evidence                                                                  | Next test / decision                                                                  |
-| --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Master Spec v1.0 is the product source of truth                                                                                               | confirmed            | `docs/Noveno_Website_Master_Spec.md` (84 sections)                        | Keep current                                                                          |
-| Business DNA v1.1 is the identity source                                                                                                      | confirmed            | `docs/Noveno Business DNA.md`                                             | Keep current                                                                          |
-| Brand anchors: light/dark palettes, contact facts, assets under `branding_assests/`                                                           | confirmed            | Accepted bootstrap prompt; asset files present                            | design token development                                                              |
-| Astro + TS + static Cloudflare Pages, no client framework, email-only lead delivery via Web3Forms + validation function, Cloudflare analytics | confirmed (accepted) | Bootstrap prompt overrides (2026-10: Supabase removed — email-only)       | First build validates practicality                                                    |
-| SMB owners complete a multi-step audit form                                                                                                   | assumed              | None yet                                                                  | Launch → measure audit completion rate                                                |
-| Web Analytics (baseline) + Analytics Engine via `/api/events` satisfy acquisition measurement; Zaraz deferred                                 | confirmed (shipped)  | `functions/api/events.ts`, `src/scripts/analytics.ts`, event tests        | Measure field events after launch                                                     |
-| Self-hosted licensed Persian font is feasible on Cloudflare free tier                                                                         | confirmed            | DESIGN §5.4 (≈165 KB measured) + npm packages verified                    | Slice 1 font pipeline proof                                                           |
-| Two-slice launch plan maps the accepted scope                                                                                                 | confirmed            | `docs/exec-plans/active/noveno-launch.md` (A1)                            | Execute Slices 1–2                                                                    |
-| Web3Forms free tier requires client-side submission                                                                                           | confirmed            | docs.web3forms.com API reference (server-side = paid plan + IP whitelist) | Done — client-side delivery shipped; Web3Forms acceptance is the only completion gate |
-| Web Analytics lacks custom events; Analytics Engine is the Cloudflare-native store                                                            | confirmed            | Web Analytics FAQ + Pages Functions binding docs                          | Slice 2 `/api/events`                                                                 |
-| Audit free-vs-paid policy                                                                                                                     | deferred             | —                                                                         | Business decision (Spec §15)                                                          |
-| Prices on site                                                                                                                                | deferred             | —                                                                         | Business decision (Spec §39)                                                          |
+| Claim or assumption                                                                                                                      | Status                       | Evidence                                                                  | Next test / decision                                                                  |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Master Spec v1.0 is the product source of truth                                                                                          | confirmed                    | `docs/Noveno_Website_Master_Spec.md` (84 sections)                        | Keep current                                                                          |
+| Business DNA v1.1 is the identity source                                                                                                 | confirmed                    | `docs/Noveno Business DNA.md`                                             | Keep current                                                                          |
+| Brand anchors: light/dark palettes, contact facts, assets under `branding_assests/`                                                      | confirmed                    | Accepted bootstrap prompt; asset files present                            | design token development                                                              |
+| Astro + TS static site on GitHub Pages, no client framework, email-only lead delivery via Web3Forms (browser-side), no analytics backend | confirmed (accepted 2026-10) | Bootstrap prompt overrides (2026-10: Supabase removed — email-only)       | First build validates practicality                                                    |
+| SMB owners complete a multi-step audit form                                                                                              | assumed                      | None yet                                                                  | Launch → measure audit completion rate                                                |
+| Acquisition measurement comes from Web3Forms lead emails; the event queue has no ingest endpoint                                         | superseded (2026-10)         | `src/scripts/analytics.ts` (EVENT_URL empty)                              | Choose an analytics destination                                                       |
+| Self-hosted licensed Persian font stays inside the static asset budget                                                                   | confirmed                    | DESIGN §5.4 (≈165 KB measured) + npm packages verified                    | Slice 1 font pipeline proof                                                           |
+| Two-slice launch plan maps the accepted scope                                                                                            | confirmed                    | `docs/exec-plans/active/noveno-launch.md` (A1)                            | Execute Slices 1–2                                                                    |
+| Web3Forms free tier requires client-side submission                                                                                      | confirmed                    | docs.web3forms.com API reference (server-side = paid plan + IP whitelist) | Done — client-side delivery shipped; Web3Forms acceptance is the only completion gate |
+| Audit free-vs-paid policy                                                                                                                | deferred                     | —                                                                         | Business decision (Spec §15)                                                          |
+| Prices on site                                                                                                                           | deferred                     | —                                                                         | Business decision (Spec §39)                                                          |
 
 ## Stage gates
 
@@ -43,9 +42,9 @@ Product-level path from idea to production. Task-level, multi-session execution 
 
 ### 2. Walking skeleton ✔ DONE (code shipped and verified; staging browser proof deferred to launch)
 
-- Scope: one deployable end-to-end path: static site shell on Cloudflare Pages + audit validation function + Web3Forms email delivery, with analytics tags.
+- Scope: one deployable end-to-end path: static site shell on GitHub Pages + browser validation + Web3Forms email delivery.
 - Exit evidence: canonical install/start/test path works (`npm install`/`npm run dev`/`npm run build`/`npm run test`), `scripts/verify.sh` green, function exercised in a real browser with a test lead (staging — pending founder provisioning, `docs/ops/setup-checklist.md`), rollback = redeploy previous commit.
-- Verification: `/verify` affected/feature lanes cover `src/**` and `functions/**`; full gate `bash scripts/verify.sh`.
+- Verification: `/verify` affected/feature lanes cover `src/**`; full gate `bash scripts/verify.sh`.
 
 ### 3. Vertical MVP ✔ DONE (shipped; live-provider evidence pending launch)
 
@@ -85,13 +84,12 @@ Product-level path from idea to production. Task-level, multi-session execution 
 
 ## Critical path and risks
 
-| Risk / dependency                             | Control or experiment                                                 | Owner          | Decision date / trigger |
-| --------------------------------------------- | --------------------------------------------------------------------- | -------------- | ----------------------- |
-| Audit-form conversion unproven                | Measure starts/completion from launch; keep form short                | founder        | 30 days after launch    |
-| Email deliverability in Iran                  | Choose replaceable providers; contact redundancy on site (Spec §64.1) | founder        | implementation          |
-| Persian font licensing/performance            | Design-pass selection of licensed self-hosted font; performance proof | design         | design stage            |
-| Cloudflare Pages function limits on free tier | One narrow function; static by default                                | design + build | build stage             |
-| Fabricated-proof drift in content             | Proof policy (Spec §19) enforced in QUALITY + copy review             | review         | every content change    |
+| Risk / dependency                  | Control or experiment                                                 | Owner   | Decision date / trigger |
+| ---------------------------------- | --------------------------------------------------------------------- | ------- | ----------------------- |
+| Audit-form conversion unproven     | Measure starts/completion from launch; keep form short                | founder | 30 days after launch    |
+| Email deliverability in Iran       | Choose replaceable providers; contact redundancy on site (Spec §64.1) | founder | implementation          |
+| Persian font licensing/performance | Design-pass selection of licensed self-hosted font; performance proof | design  | design stage            |
+| Fabricated-proof drift in content  | Proof policy (Spec §19) enforced in QUALITY + copy review             | review  | every content change    |
 
 ## Next step (launch gate)
 

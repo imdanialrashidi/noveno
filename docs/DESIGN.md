@@ -190,7 +190,7 @@ Stack: `"Estedad", "Estedad Fallback", "Vazirmatn", "Noto Sans Arabic", "Segoe U
 
 ### 5.4 Performance (measured, unchanged)
 
-Four variable woff2 subsets ≈ **165 KB total**; budget **≤ 200 KB**. Served from `public/fonts/` with `Cache-Control: immutable` via Cloudflare Pages.
+Four variable woff2 subsets ≈ **165 KB total**; budget **≤ 200 KB**. Served from `public/fonts/` (GitHub Pages controls its own cache headers; the filenames are stable and preloaded).
 
 ## 6. Semantic tokens
 
@@ -309,7 +309,7 @@ Rule: **the primary button carries dark ink on green** (`#06130d` on `#679e86`/`
 - Submitting: primary button → inline progress («در حال ارسال…»), disabled, double-submit guarded.
 - Success → `/audit/thank-you` with a **numbered «what happens next» sequence (1/2/3/4, NextStepsRail)** and always-visible contact fallback; no route diagram, no «شما اینجا هستید» marker.
 - Recoverable error: inline banner «ارسال نشد؛ اتصال را بررسی کنید و دوباره تلاش کنید» + تلاش دوباره; offline variant emphasizes contact fallback; field values preserved; never silent failure.
-- Turnstile renders inside the contact step; re-renders on theme change; resets on retry.
+- A hidden honeypot field sits outside the visible flow; a filled value is dropped silently (static hosting has no captcha verifier).
 
 ## 12. Motion — the small reusable system (5 behaviors, site-wide)
 
@@ -364,7 +364,7 @@ Lighthouse's _simulated_ throttling adds a discrete ~76 ms step to FCP/Speed Ind
 ## 14. Quality budgets (design constraints, unchanged)
 
 - **Accessibility:** WCAG 2.2 AA — all token pairs verified ≥4.5:1 text / ≥3:1 large + non-text; keyboard + visible focus everywhere; labels on every input; errors linked to fields; reduced-motion honored; no color-only meaning; reflow at 320px; usable at 200% zoom; tap targets ≥44px.
-- **Performance:** fonts ≤ 200KB (≈165KB measured); interactive JS ≤ 15KB gzip (measured 2026-08-21 post-email-only: 10147 bytes gzip — `tests/structural.test.mjs` baseline, audit 7269 gzip, total 27119 raw); images AVIF/WebP + `srcset` + lazy below fold; third-party = Cloudflare Web Analytics only; self-hosted fonts/scripts. CWV targets: LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1 (p75), lab budget accepted at build (QUALITY).
+- **Performance:** fonts ≤ 200KB (≈165KB measured); interactive JS ≤ 15KB gzip (measured 2026-08-21 post-email-only: 10147 bytes gzip — `tests/structural.test.mjs` baseline, audit 7269 gzip, total 27119 raw); images AVIF/WebP + `srcset` + lazy below fold; third-party = Web3Forms (submit only, no page-load script); self-hosted fonts/scripts. CWV targets: LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1 (p75), lab budget accepted at build (QUALITY).
 - **Themes:** fully token-driven; theme switch ≤150ms, no flash, persisted explicit override only.
 
 ## 15. Screen-level acceptance — what build/review must prove

@@ -27,8 +27,12 @@ import { captureAttribution, readAttribution, track, initAnalytics } from "../sr
 import { initThemeToggle } from "../src/scripts/theme.ts";
 import { initMobileMenu } from "../src/scripts/menu.ts";
 import { initReveal, initHeroParallax } from "../src/scripts/motion.ts";
-import { TurnstileBridge } from "../src/scripts/audit/turnstile.ts";
-import { EVENT_NAMES, EVENT_PAYLOAD_KEYS } from "../functions/lib/contract.ts";
+import {
+  TELEMETRY_NAMES as EVENT_NAMES,
+  TELEMETRY_PAYLOAD_KEYS as EVENT_PAYLOAD_KEYS,
+  serializeTelemetryEvent,
+  validateTelemetryEvent,
+} from "../src/data/telemetry-contract.ts";
 
 /* ------------------------------------------------------------------ */
 /* Minimal fake DOM (attribute + tag selectors, comma unions)          */
@@ -357,41 +361,17 @@ test("analytics: corrupt stored attribution returns null instead of throwing", (
   assert.equal(readAttribution(), null, "a record without landing_page/first_seen_at must read as null");
 });
 
-test("analytics: track queues and flushes via sendBeacon on pagehide", async () => {
+test("analytics: no ingest endpoint on GitHub Pages — nothing leaves the browser", async () => {
   await drainAnalytics();
   const env = installClientGlobals({ pathname: "/audit" });
   initAnalytics();
   track("audit_started", { section: "hero" });
   env.win.dispatchEvent("pagehide", {});
-  assert.equal(env.sendBeacon.calls.length, 1, "one beacon after the pagehide flush");
-  const [beacon] = env.sendBeacon.calls;
-  assert.equal(beacon.url, "/api/events", "beacon must target the events endpoint");
-  const event = JSON.parse(await beacon.body.text());
-  assert.deepEqual(
-    event,
-    { name: "audit_started", payload: { section: "hero", page: "/audit" } },
-    "the beacon body carries the event name and its payload with the page",
-  );
+  assert.equal(env.sendBeacon.calls.length, 0, "no beacon without an ingest endpoint");
+  assert.equal(env.fetchCalls.length, 0, "no fetch fallback without an ingest endpoint");
 });
 
-test("analytics: falls back to fetch keepalive when sendBeacon is missing", async () => {
-  await drainAnalytics();
-  const env = installClientGlobals({ pathname: "/audit" });
-  globalThis.navigator.sendBeacon = undefined;
-  initAnalytics();
-  track("phone_click");
-  env.win.dispatchEvent("pagehide", {});
-  assert.equal(env.fetchCalls.length, 1, "the fallback must use fetch exactly once");
-  const [call] = env.fetchCalls;
-  assert.equal(call.url, "/api/events");
-  assert.equal(call.opts.method, "POST");
-  assert.equal(call.opts.keepalive, true, "the fallback must keep the request alive across navigation");
-  const event = JSON.parse(await call.opts.body.text());
-  assert.equal(event.name, "phone_click");
-  assert.deepEqual(event.payload, { page: "/audit" });
-});
-
-test("analytics: declarative data-event clicks are tracked through closest()", async () => {
+test("analytics: declarative data-event clicks are wired without network side effects", async () => {
   await drainAnalytics();
   const env = installClientGlobals({ pathname: "/audit" });
   initAnalytics();
@@ -399,35 +379,20 @@ test("analytics: declarative data-event clicks are tracked through closest()", a
     "data-event": "phone_click",
     "data-event-payload": '{"section":"contact"}',
   });
-  env.doc.dispatchEvent("click", { target: link });
+  assert.doesNotThrow(() => env.doc.dispatchEvent("click", { target: link }));
   env.win.dispatchEvent("pagehide", {});
-  assert.equal(env.sendBeacon.calls.length, 1, "the click must produce exactly one beacon");
-  const event = JSON.parse(await env.sendBeacon.calls[0].body.text());
-  assert.equal(event.name, "phone_click");
-  assert.deepEqual(event.payload, { section: "contact", page: "/audit" });
+  assert.equal(env.sendBeacon.calls.length, 0);
 });
 
-test("analytics: PII-free payload contract — beacon keys stay within the whitelist", async () => {
-  await drainAnalytics();
-  const env = installClientGlobals({ pathname: "/audit" });
-  initAnalytics();
-  track("audit_started");
-  track("audit_step_completed", { step: "1" });
-  track("phone_click", { section: "hero" });
-  track("service_opened", { service: "landing", slug: "growth" });
-  env.win.dispatchEvent("pagehide", {});
-
-  const events = [];
-  for (const beacon of env.sendBeacon.calls) {
-    events.push(JSON.parse(await beacon.body.text()));
-  }
-  assert.ok(events.length >= 4, "every tracked event must be delivered");
-  for (const event of events) {
-    assert.deepEqual(
-      Object.keys(event).sort(),
-      ["name", "payload"],
-      "beacon bodies are exactly { name, payload }",
-    );
+test("analytics: the serialized event contract stays PII-free and whitelisted", () => {
+  const samples = [
+    serializeTelemetryEvent("audit_started", {}, "/audit"),
+    serializeTelemetryEvent("audit_step_completed", { step: "1" }, "/audit"),
+    serializeTelemetryEvent("phone_click", { section: "hero" }, "/audit"),
+    serializeTelemetryEvent("service_opened", { service: "landing", slug: "growth" }, "/audit"),
+  ];
+  for (const event of samples) {
+    assert.deepEqual(Object.keys(event).sort(), ["name", "payload"]);
     assert.ok(EVENT_NAMES.includes(event.name), `event name ${event.name} must be a known event`);
     for (const key of Object.keys(event.payload)) {
       assert.ok(
@@ -439,6 +404,11 @@ test("analytics: PII-free payload contract — beacon keys stay within the white
       assert.ok(!(banned in event.payload), `payload must never carry "${banned}" (PII-free invariant)`);
     }
   }
+  const rejected = validateTelemetryEvent(
+    { name: "phone_click", payload: { phone: "09120000000" } },
+    { step: ["1"], service: ["landing"], channel: ["instagram"] },
+  );
+  assert.equal(rejected.ok, false, "the event contract rejects any PII key");
 });
 
 /* ================================================================== */
@@ -653,155 +623,6 @@ test("motion: initReveal observes below-fold targets and reveals above-fold ones
     "already-visible targets render in their final state",
   );
   assert.equal(above.classList.contains("reveal-init"), false);
-});
-
-/* ================================================================== */
-/* TurnstileBridge lifecycle (plan 005)                                 */
-/* ================================================================== */
-
-function makeTurnstileMock() {
-  const mock = {
-    renders: 0,
-    resets: 0,
-    removes: 0,
-    widgetId: "w-bridge",
-    options: null,
-    render(_container, options) {
-      this.renders += 1;
-      this.options = options;
-      return this.widgetId;
-    },
-    reset() {
-      this.resets += 1;
-    },
-    remove() {
-      this.removes += 1;
-    },
-    emitToken(value) {
-      this.options.callback(value);
-    },
-    expire() {
-      this.options["expired-callback"]();
-    },
-    fail() {
-      this.options["error-callback"]();
-    },
-  };
-  return mock;
-}
-
-function installBridgeGlobals({ theme = "light", turnstile } = {}) {
-  const container = new FakeEl("div");
-  const head = new FakeEl("head");
-  const docEl = new FakeEl("html", { "data-theme": theme });
-  const doc = {
-    createElement: (tag) => new FakeEl(tag),
-    head,
-    documentElement: docEl,
-    getElementById: () => null,
-  };
-  globalThis.document = doc;
-  globalThis.window = globalThis;
-  globalThis.window.turnstile = turnstile;
-  globalThis.matchMedia = (query) => ({
-    matches: query === "(prefers-color-scheme: dark)" ? theme === "dark" : false,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-  });
-  // Make effectiveTheme() see the attribute
-  docEl.getAttribute = (k) => (k === "data-theme" ? theme : null);
-  return { container, docEl };
-}
-
-test("turnstile: happy token reuse without reset", async () => {
-  const mock = makeTurnstileMock();
-  const { container } = installBridgeGlobals({ turnstile: mock, theme: "light" });
-  const bridge = new TurnstileBridge("test-key", container);
-  await bridge.ensureRendered();
-  assert.equal(mock.renders, 1);
-  mock.emitToken("t1");
-  const token = await bridge.getToken();
-  assert.equal(token, "t1");
-  assert.equal(mock.resets, 0, "fresh token must not reset widget");
-});
-
-test("turnstile: stale token beyond TTL triggers reset and waits for fresh", async () => {
-  const mock = makeTurnstileMock();
-  const { container } = installBridgeGlobals({ turnstile: mock, theme: "light" });
-  const bridge = new TurnstileBridge("test-key", container);
-  await bridge.ensureRendered();
-  mock.emitToken("t1");
-  // Fresh within TTL
-  let token = await bridge.getToken();
-  assert.equal(token, "t1");
-  assert.equal(mock.resets, 0);
-  // Make token stale by moving its timestamp back beyond TTL
-  bridge["tokenAt"] = Date.now() - 5 * 60_000;
-  const pending = bridge.getToken();
-  // Allow the async reset to run before asserting
-  await new Promise((r) => setTimeout(r, 0));
-  assert.equal(mock.resets, 1, "stale token must trigger reset");
-  setTimeout(() => mock.emitToken("t2"), 10);
-  token = await pending;
-  assert.equal(token, "t2");
-});
-
-test("turnstile: expired-callback clears token and notifies waiters with null", async () => {
-  const mock = makeTurnstileMock();
-  const { container } = installBridgeGlobals({ turnstile: mock, theme: "light" });
-  const bridge = new TurnstileBridge("test-key", container);
-  await bridge.ensureRendered();
-  // Start getToken with no token — it will reset and wait
-  const pending = bridge.getToken();
-  // Allow the async waiter registration to complete before firing expiry
-  await new Promise((r) => setTimeout(r, 0));
-  mock.expire();
-  const token = await pending;
-  assert.equal(token, null, "expiry should resolve with null");
-});
-
-test("turnstile: invalidate clears token; retry clears scriptFailed", async () => {
-  const mock = makeTurnstileMock();
-  const { container } = installBridgeGlobals({ turnstile: mock, theme: "light" });
-  const bridge = new TurnstileBridge("test-key", container);
-  await bridge.ensureRendered();
-  mock.emitToken("t1");
-  assert.equal(await bridge.getToken(), "t1");
-  bridge.invalidate();
-  // After invalidate, getToken should reset
-  const pending = bridge.getToken();
-  await new Promise((r) => setTimeout(r, 0));
-  assert.equal(mock.resets, 1, "invalidate must force reset on next getToken");
-  // Resolve the pending wait with a fresh token
-  setTimeout(() => mock.emitToken("t2"), 0);
-  assert.equal(await pending, "t2");
-  // Retry clears scriptFailed flag (verify by forcing a failure then retry)
-  bridge["scriptFailed"] = true;
-  bridge.retry();
-  assert.equal(bridge["scriptFailed"], false, "retry must clear scriptFailed");
-  assert.equal(bridge["token"], null, "retry must clear token");
-});
-
-test("turnstile: syncTheme re-renders with other theme", async () => {
-  const mock = makeTurnstileMock();
-  const { container, docEl } = installBridgeGlobals({ turnstile: mock, theme: "light" });
-  // Override effectiveTheme behavior by toggling attribute and mock
-  const bridge = new TurnstileBridge("test-key", container);
-  await bridge.ensureRendered();
-  mock.emitToken("t1");
-  assert.equal(mock.renders, 1);
-  // Switch theme to dark
-  docEl.setAttribute("data-theme", "dark");
-  globalThis.matchMedia = (q) => ({
-    matches: q === "(prefers-color-scheme: dark)" ? true : false,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-  });
-  bridge.syncTheme();
-  // Allow ensureRendered microtask to run
-  await new Promise((r) => setTimeout(r, 10));
-  assert.equal(mock.removes, 1, "syncTheme must remove old widget");
-  assert.equal(mock.renders, 2, "syncTheme must re-render with new theme");
 });
 
 test("motion: hero parallax is gated on reduced motion and fine pointer", () => {
