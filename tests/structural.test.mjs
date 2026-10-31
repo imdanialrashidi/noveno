@@ -206,6 +206,7 @@ test("contextual business photography is gone from the production path (2026-09 
 });
 
 test("every /images/ reference in built pages is content-hashed and exists on disk", () => {
+  // References may be local (/images/...) or jsDelivr CDN URLs (mapped back).
   // Caching contract: every referenced image URL is content-addressed so a
   // founder image replacement can never serve a stale cached path (GitHub
   // Pages fixes its own cache headers; hashing is what keeps them correct).
@@ -217,7 +218,11 @@ test("every /images/ reference in built pages is content-hashed and exists on di
     const html = fs.readFileSync(file, "utf8");
     for (const m of html.matchAll(/(?:src|srcset|href|imagesrcset)="([^"]*\/images\/[^"]+)"/g)) {
       for (const candidate of m[1].split(",")) {
-        const url = candidate.trim().split(/\s+/)[0];
+        const raw = candidate.trim().split(/\s+/)[0];
+        // Page images are served from jsDelivr (pinned to the deployed
+        // commit) because the custom domain stalls subresource requests on
+        // some networks; map the CDN URL back to the built file for the check.
+        const url = raw.replace(/^https:\/\/cdn\.jsdelivr\.net\/gh\/[^/]+\/[^/]+@[^/]+\/public/, "");
         if (url.startsWith("/images/")) refs.add(url);
       }
     }

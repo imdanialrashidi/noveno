@@ -26,6 +26,16 @@ import { build } from "esbuild";
 
 const DIST = path.resolve(import.meta.dirname, "..", "dist");
 
+// The custom domain stalls subresource requests on some networks while the
+// HTML document loads fine (observed 2026-10-31). Fonts and page images are
+// therefore served from jsDelivr, pinned to the deployed commit; the HTML
+// itself still comes from GitHub Pages.
+const REPO = "imdanialrashidi/noveno";
+const REF = process.env.GITHUB_SHA || "main";
+const IMAGE_BASE = `https://cdn.jsdelivr.net/gh/${REPO}@${REF}/public`;
+const FONT_BASE = (family, file) =>
+  `https://cdn.jsdelivr.net/npm/@fontsource-variable/${family.toLowerCase()}@5.3.0/files/${file}`;
+
 function walkHtml(dir) {
   const out = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -57,13 +67,20 @@ function extractFonts(css) {
 
 function fontLoader(fonts) {
   if (fonts.length === 0) return "";
-  const spec = JSON.stringify(fonts);
+  const spec = JSON.stringify(
+    fonts.map((font) => ({
+      ...font,
+      url: font.url.startsWith("/fonts/")
+        ? FONT_BASE(font.family, font.url.slice("/fonts/".length))
+        : font.url,
+    })),
+  );
   return `<script type="module">
     (function () {
       var fonts = ${spec};
       function load() {
         var controller = new AbortController();
-        var timer = setTimeout(function () { controller.abort(); }, 1500);
+        var timer = setTimeout(function () { controller.abort(); }, 2500);
         Promise.all(fonts.map(function (f) {
           return fetch(f.url, { signal: controller.signal })
             .then(function (res) { return res.ok ? res.arrayBuffer() : null; })
@@ -77,8 +94,7 @@ function fontLoader(fonts) {
             .catch(function () {});
         })).finally(function () { clearTimeout(timer); });
       }
-      if (document.readyState === "complete") setTimeout(load, 300);
-      else window.addEventListener("load", function () { setTimeout(load, 300); }, { once: true });
+      load();
     })();
   </script>`;
 }
@@ -106,6 +122,7 @@ let pages = 0;
 let styles = 0;
 let scripts = 0;
 let preloads = 0;
+let images = 0;
 
 for (const file of walkHtml(DIST)) {
   let html = fs.readFileSync(file, "utf8");
@@ -150,6 +167,14 @@ for (const file of walkHtml(DIST)) {
     touched = true;
   }
 
+  if (html.includes('"/images/')) {
+    html = html.replaceAll('"/images/', `"${IMAGE_BASE}/images/`);
+    html = html.replaceAll("(/images/", `(${IMAGE_BASE}/images/`);
+    html = html.replaceAll(", /images/", `, ${IMAGE_BASE}/images/`);
+    images += 1;
+    touched = true;
+  }
+
   if (touched) {
     fs.writeFileSync(file, html);
     pages += 1;
@@ -157,5 +182,5 @@ for (const file of walkHtml(DIST)) {
 }
 
 console.log(
-  `inline-critical: ${pages} pages — ${styles} stylesheets, ${scripts} scripts, ${preloads} font preloads removed.`,
+  `inline-critical: ${pages} pages — ${styles} stylesheets, ${scripts} scripts, ${preloads} font preloads removed, ${images} pages with CDN images.`,
 );
