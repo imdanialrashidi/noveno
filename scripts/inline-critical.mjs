@@ -167,6 +167,11 @@ for (const file of walkHtml(DIST)) {
     touched = true;
   }
 
+  if (html.includes('href="/favicon.svg"')) {
+    html = html.replaceAll('href="/favicon.svg"', `href="${IMAGE_BASE}/favicon.svg"`);
+    touched = true;
+  }
+
   if (html.includes('"/images/')) {
     html = html.replaceAll('"/images/', `"${IMAGE_BASE}/images/`);
     html = html.replaceAll("(/images/", `(${IMAGE_BASE}/images/`);
