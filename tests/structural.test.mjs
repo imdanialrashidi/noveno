@@ -236,33 +236,41 @@ test("every /images/ reference in built pages is content-hashed and exists on di
   }
 });
 
-test("interactive JS ≤ 15 KB gzip and no client framework runtime", () => {
-  // Baselines 2026-08-21 post-email-only (plan 026): audit 21.6K raw → 7269 gzip, total 10147 gzip (budget 15360); fonts 165KB raw (budget 200KB)
-  const jsFiles = walk(path.join(dist, "_astro")).filter((f) => f.endsWith(".js"));
-  // Astro inlines small page-scoped modules; measure them too.
-  const inlineModules = [];
-  for (const file of walk(dist).filter((f) => f.endsWith(".html"))) {
+test("interactive JS ≤ 15 KB gzip per page and no client framework runtime", () => {
+  // Baselines 2026-08-21 post-email-only (plan 026): audit 21.6K raw → 7269 gzip,
+  // total 10147 gzip (budget 15360). Pages are now self-contained (CSS/JS
+  // inlined so a single document request renders), so the budget is measured
+  // per page: what one visitor actually downloads.
+  const pages = walk(dist).filter((f) => f.endsWith(".html"));
+  let maxPage = { file: "", bytes: 0 };
+  const allCode = [];
+  for (const file of pages) {
     const html = fs.readFileSync(file, "utf8");
-    for (const m of html.matchAll(/<script type="module">([\s\S]*?)<\/script>/g)) {
-      inlineModules.push(m[1]);
+    const external = [...html.matchAll(/<script\b[^>]*\btype="module"[^>]*\bsrc="([^"]+)"/g)].map(
+      (m) => m[1],
+    );
+    const inline = [...html.matchAll(/<script type="module">([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+    let bytes = 0;
+    for (const src of external) {
+      const asset = path.join(dist, src);
+      if (!fs.existsSync(asset)) continue;
+      const code = fs.readFileSync(asset, "utf8");
+      bytes += gzipSync(code).length;
+      allCode.push(code);
     }
-  }
-  const total =
-    jsFiles.reduce((sum, f) => sum + gzipSync(fs.readFileSync(f)).length, 0) +
-    gzipSync(inlineModules.join("\n")).length;
-  assert.ok(total <= 15 * 1024, `interactive JS ${total} bytes gzip exceeds 15 KB`);
-  // Diagnostic: per-file gzip breakdown (useful when the next feature adds JS)
-  if (process.env.VERBOSE || process.env.CI) {
-    for (const f of jsFiles) {
-      console.log(`  ${path.basename(f)}: ${gzipSync(fs.readFileSync(f)).length} gzip`);
+    if (inline.length > 0) {
+      const joined = inline.join("\n");
+      bytes += gzipSync(joined).length;
+      allCode.push(joined);
     }
-    console.log(`  inline modules: ${gzipSync(inlineModules.join("\n")).length} gzip`);
-    console.log(`  total: ${total} gzip (budget ${15 * 1024})`);
+    if (bytes > maxPage.bytes) maxPage = { file: path.relative(dist, file), bytes };
   }
-  const all = jsFiles.map((f) => fs.readFileSync(f, "utf8")).join("") + inlineModules.join("\n");
-  for (const marker of ["__fragment_registry__", "React.createElement", "createApp("]) {
-    assert.ok(!all.includes(marker), `client framework marker found: ${marker}`);
-  }
+  assert.ok(
+    maxPage.bytes <= 15 * 1024,
+    `interactive JS on ${maxPage.file} is ${maxPage.bytes} bytes gzip (budget 15 KB)`,
+  );
+  const all = allCode.join("\n");
+  assert.ok(!/react|preact|vue|svelte|solid-js|angular/i.test(all), "no client framework runtime may ship");
 });
 
 test("primary CTA flows to /audit in Slice 2 (launch contract), contact fallback intact", () => {

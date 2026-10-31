@@ -9,6 +9,7 @@ Durable constraints and accepted decisions only. Where the Master Spec (Spec §5
 - **Data stores:** **none.** Audit leads are delivered as **email via Web3Forms** (client-side) and are not durably stored anywhere by this site (2026-10 founder decision: no lead database for v1).
 - **External services:** Web3Forms client-side lead email delivery on audit submission (shipped; the free tier requires client-side posting). **Cloudflare is not part of the stack** (2026-10 static-only migration): no Turnstile, no Web Analytics beacon, no Analytics Engine, no `functions/`. WhatsApp/Telegram (09102256986) and email (imdanialrashidi@gmail.com) are contact channels only.
 - **Deployment topology:** static assets on GitHub Pages built and uploaded by `.github/workflows/quality.yml` after the canonical gate. Nothing executes server-side; GitHub Pages cannot set response headers or 301 redirects.
+- **Single-request pages:** `scripts/inline-critical.mjs` (postbuild) inlines CSS and bundled module JS into each page and removes the font preload. Reason: on some networks every subresource request to the custom domain stalls while the document still loads (observed 2026-10-31), so a page that needs a stylesheet never renders. Fonts remain progressive (`font-display: swap`).
 
 ## Trust boundaries and critical data flows
 

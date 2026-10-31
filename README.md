@@ -69,6 +69,7 @@ The repository is the **Noveno production website project**: Slice 1 (flagship s
 
 - **Astro 7 + TypeScript**, statically rendered. Output deploys to **GitHub Pages** with no server runtime. No SSR.
 - **No client UI framework** (no React/Vue/Svelte); interactivity via Astro components and small framework-free TypeScript modules (`src/scripts/`).
+- **One request per page:** `postbuild` (`scripts/inline-critical.mjs`) inlines the stylesheet and module scripts into every built HTML and drops the font preload, so a page renders even when a network stalls subresource requests to the domain (observed on some Iranian ISPs). The webfont stays progressive via `font-display: swap`.
 - **No backend/auth/CMS/CRM/client portal.** The audit form validates in the browser and posts the sanitized lead to **Web3Forms**; the journey completes only when Web3Forms confirms acceptance. Abuse protection is the hidden honeypot + Web3Forms spam filtering (a static host has no server-side trust boundary). **No database** — nothing is durably stored by the site.
 - Analytics: the event queue exists but has no ingest endpoint on GitHub Pages (`EVENT_URL` is empty, so nothing leaves the browser). UTM/referrer/landing-page attribution rides in the Web3Forms lead email, not a database.
 - **Persian-first, RTL-first**; light + dark themes (system default, persisted override, no theme flash); Estedad + Vazirmatn self-hosted fonts; token system in `src/styles/global.css`.

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Noveno (نوونو) — Persian-first flagship website. Static Astro site, no client UI framework.",
+  "description": "Noveno (\u0646\u0648\u0648\u0646\u0648) \u2014 Persian-first flagship website. Static Astro site, no client UI framework.",
   "engines": {
     "node": ">=22.19"
   },
@@ -20,7 +20,8 @@
     "format:check": "prettier --check .",
     "ci": "npm run check && npm run build && npm run test",
     "test": "node --test tests/*.test.mjs",
-    "test:full": "RUN_NETWORK_TESTS=1 node --test tests/*.test.mjs"
+    "test:full": "RUN_NETWORK_TESTS=1 node --test tests/*.test.mjs",
+    "postbuild": "node scripts/inline-critical.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
@@ -32,6 +33,7 @@
     "@fontsource-variable/estedad": "5.3.0",
     "@fontsource-variable/vazirmatn": "5.3.0",
     "@tailwindcss/vite": "4.3.3",
+    "esbuild": "0.28.2",
     "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
     "tailwindcss": "4.3.3",
