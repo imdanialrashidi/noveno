@@ -29,6 +29,11 @@ vendor/
 # Build, test, browser, and framework output
 dist/
 build/
+# `.dsh/skills/build` is a workflow skill directory, not build output. The
+# canonical gate requires every core skill to be tracked (verify-template.sh);
+# without this negation the required SKILL.md is invisible to CI and every
+# main push fails before the Pages deploy job.
+!/.dsh/skills/build/
 coverage/
 target/
 .next/
