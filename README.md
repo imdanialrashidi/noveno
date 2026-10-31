@@ -15,7 +15,7 @@ npm run check        # astro check (types + content schema validation)
 npm run build        # production build → dist/
 npm run preview      # serve the built site locally
 npm test             # project test suite (node --test tests/*.test.mjs)
-bash scripts/verify.sh   # canonical full gate (template checks + build + project contract + tests)
+bash scripts/verify.sh   # canonical full gate (workflow checks + build + project contract + tests)
 ```
 
 Environment variables are **names only** in `.env.example` — copy it to `.env` for local development and fill values; real secrets live in the Cloudflare Pages project settings, never in the repository:
@@ -61,6 +61,9 @@ The repository is the **Noveno production website project**: Slice 1 (flagship s
 | `docs/IMAGERY.md`                    | Image asset registry (sources, licenses, processing)                                                                           |
 | `docs/PLAN.md`                       | Roadmap, stage gates, deferred decisions                                                                                       |
 | `docs/QUALITY.md`                    | Evaluator-facing quality contract + project invariants                                                                         |
+| `docs/WORKFLOW.md`                   | Agent execution model: DSH skills, routing, verification, review, delivery                                                     |
+| `docs/HARNESS.md`                    | Execution mechanics: DSH tools, context, recovery, delivery                                                                    |
+| `.dsh/skills/`                       | DSH-discovered project procedures (`/quick-fix`, `/build`, `/verify`, `/review`, and domain skills)                            |
 | `docs/BLOG.md`                       | **Founder publishing guide for the Blog** (Markdown workflow, content policy, automation; `/insights` → `/blog` route history) |
 | `branding_assests/`                  | Brand assets — reuse these; do not recreate the logo                                                                           |
 
@@ -315,19 +318,23 @@ Then look at `/work`, `/work/<slug>`, and the homepage proof section in the brow
 
 ---
 
+## Agent workflow
+
+DSH is the agent runtime. Project skills live in `.dsh/skills/` and are loaded on demand with the `skill` tool or a `/name` invocation; `AGENTS.md` is the entry point and `docs/WORKFLOW.md` owns routing. No global workflow install is required, and a same-name project skill shadows a user-level one. No legacy agent config, command pack, or workflow package is used.
+
 ## Verification lanes
 
-- **Tiny low-risk fix:** `/skill:quick-fix` — inspect → change → targeted check → diff review; no plan, todo, subagent, or broad gate.
-- **Targeted/affected:** `/skill:verify` affected lane — exact new test first, then nearest existing tests via `lsp` references; unmatched files use the feature lane or the full gate.
+- **Tiny low-risk fix:** `/quick-fix` — inspect → change → targeted check → diff review; no plan, todo, subagent, or broad gate.
+- **Targeted/affected:** `/verify` affected lane — exact new test first, then nearest existing tests by code reference; unmatched files use the feature lane or the full gate.
 - **Feature:** once after a bounded change: project contract + relevant tests + build.
-- **Full:** `bash scripts/verify.sh` — omp template self-checks + secret scan, builds the project (fresh `dist/` for structural tests), then runs `scripts/project-verify.sh` (Noveno doc/branding/env contract), `npm run check`, and `npm test`. CI mirrors this in `.github/workflows/quality.yml`.
+- **Full:** `bash scripts/verify.sh` — DSH workflow self-checks + secret scan, builds the project (fresh `dist/` for structural tests), then runs `scripts/project-verify.sh` (Noveno doc/branding/env contract), `npm run check`, and `npm test`. CI mirrors this in `.github/workflows/quality.yml`.
 - **Formatting:** `npm run format:check` (also enforced in CI) — formatting is mechanical; never hand-fix format-only feedback.
 
 Structural tests (run inside the gate) also pin the design contract: the flowchart grammar classes are banned from built output, the homepage LCP is the headline text (no hero image preload, no eager images, brand artwork is an inline SVG, below-fold screenshots stay lazy), every `/images/` reference must be content-hashed and exist on disk, fonts ≤ 200 KB (four subsets), interactive JS ≤ 15 KB gzip, every page `fa` + `dir="rtl"`, theme anchors present, no dead links, no env names leaked, and security headers/CSP are present.
 
-## Browser QA
+## Browser QA (when available)
 
-Native `browser` tool (no MCP setup); accessibility snapshots and DOM/console/network evidence first, screenshots under `.artifacts/` as reproducible artifacts. Deterministic browser tests stay separate from interactive exploration. Slice-2 trust-boundary states can be exercised locally with `node scripts/slice2-test-server.mjs [--mode ok|web3forms-down|turnstile-fail] [--port 8788]`.
+The runtime's browser capability, when configured (no MCP setup); accessibility snapshots and DOM/console/network evidence first, screenshots under `.artifacts/` as reproducible artifacts. If no browser capability is available, mark appearance/interaction criteria `UNPROVEN`. Deterministic browser tests stay separate from interactive exploration. Slice-2 trust-boundary states can be exercised locally with `node scripts/slice2-test-server.mjs [--mode ok|web3forms-down|turnstile-fail] [--port 8788]`.
 
 ## Contact / facts
 

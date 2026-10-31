@@ -16,7 +16,7 @@ Product-level path from idea to production. Task-level, multi-session execution 
 | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | Master Spec v1.0 is the product source of truth                                                                                               | confirmed            | `docs/Noveno_Website_Master_Spec.md` (84 sections)                        | Keep current                                                                          |
 | Business DNA v1.1 is the identity source                                                                                                      | confirmed            | `docs/Noveno Business DNA.md`                                             | Keep current                                                                          |
-| Brand anchors: light/dark palettes, contact facts, assets under `branding_assests/`                                                           | confirmed            | Accepted bootstrap prompt; asset files present                            | /design token development                                                             |
+| Brand anchors: light/dark palettes, contact facts, assets under `branding_assests/`                                                           | confirmed            | Accepted bootstrap prompt; asset files present                            | design token development                                                              |
 | Astro + TS + static Cloudflare Pages, no client framework, email-only lead delivery via Web3Forms + validation function, Cloudflare analytics | confirmed (accepted) | Bootstrap prompt overrides (2026-10: Supabase removed — email-only)       | First build validates practicality                                                    |
 | SMB owners complete a multi-step audit form                                                                                                   | assumed              | None yet                                                                  | Launch → measure audit completion rate                                                |
 | Web Analytics (baseline) + Analytics Engine via `/api/events` satisfy acquisition measurement; Zaraz deferred                                 | confirmed (shipped)  | `functions/api/events.ts`, `src/scripts/analytics.ts`, event tests        | Measure field events after launch                                                     |
@@ -39,13 +39,13 @@ Product-level path from idea to production. Task-level, multi-session execution 
 
 - Scope: critical journey (understand → qualify → audit), IA (Spec §8.1), brand character, visual thesis, theme tokens, typography (licensed Persian font), RTL/mobile composition, light/dark mechanics.
 - Exit evidence: accepted `docs/DESIGN.md`; critical states and desktop/mobile proof plan defined.
-- Decision owner: `/design` run, evaluated against `docs/QUALITY.md` + `frontend-design` gates.
+- Decision owner: design pass, evaluated against `docs/QUALITY.md` + design-quality gates.
 
 ### 2. Walking skeleton ✔ DONE (code shipped and verified; staging browser proof deferred to launch)
 
 - Scope: one deployable end-to-end path: static site shell on Cloudflare Pages + audit validation function + Web3Forms email delivery, with analytics tags.
 - Exit evidence: canonical install/start/test path works (`npm install`/`npm run dev`/`npm run build`/`npm run test`), `scripts/verify.sh` green, function exercised in a real browser with a test lead (staging — pending founder provisioning, `docs/ops/setup-checklist.md`), rollback = redeploy previous commit.
-- Verification: `/skill:verify` affected/feature lanes cover `src/**` and `functions/**`; full gate `bash scripts/verify.sh`.
+- Verification: `/verify` affected/feature lanes cover `src/**` and `functions/**`; full gate `bash scripts/verify.sh`.
 
 ### 3. Vertical MVP ✔ DONE (shipped; live-provider evidence pending launch)
 
@@ -67,7 +67,7 @@ Product-level path from idea to production. Task-level, multi-session execution 
 
 ### 6. Release candidate
 
-- Scope: frozen launch scope; security review of the form boundary (focused risk review in `docs/QUALITY.md` + `security-auditor`); performance lab budget; accessibility pass; `/ship` READY.
+- Scope: frozen launch scope; security-focused `/review` of the form boundary (focused risk review in `docs/QUALITY.md`); performance lab budget; accessibility pass; `/ship` READY.
 - Exit evidence: no unresolved BLOCKER/MAJOR; recovery/rollback and runbook proven.
 - Sign-off owners: founder.
 
@@ -85,13 +85,13 @@ Product-level path from idea to production. Task-level, multi-session execution 
 
 ## Critical path and risks
 
-| Risk / dependency                             | Control or experiment                                                 | Owner         | Decision date / trigger |
-| --------------------------------------------- | --------------------------------------------------------------------- | ------------- | ----------------------- |
-| Audit-form conversion unproven                | Measure starts/completion from launch; keep form short                | founder       | 30 days after launch    |
-| Email deliverability in Iran                  | Choose replaceable providers; contact redundancy on site (Spec §64.1) | founder       | implementation          |
-| Persian font licensing/performance            | /design selection of licensed self-hosted font; performance proof     | /design       | design stage            |
-| Cloudflare Pages function limits on free tier | One narrow function; static by default                                | /design+build | build stage             |
-| Fabricated-proof drift in content             | Proof policy (Spec §19) enforced in QUALITY + copy review             | review agents | every content change    |
+| Risk / dependency                             | Control or experiment                                                 | Owner          | Decision date / trigger |
+| --------------------------------------------- | --------------------------------------------------------------------- | -------------- | ----------------------- |
+| Audit-form conversion unproven                | Measure starts/completion from launch; keep form short                | founder        | 30 days after launch    |
+| Email deliverability in Iran                  | Choose replaceable providers; contact redundancy on site (Spec §64.1) | founder        | implementation          |
+| Persian font licensing/performance            | Design-pass selection of licensed self-hosted font; performance proof | design         | design stage            |
+| Cloudflare Pages function limits on free tier | One narrow function; static by default                                | design + build | build stage             |
+| Fabricated-proof drift in content             | Proof policy (Spec §19) enforced in QUALITY + copy review             | review         | every content change    |
 
 ## Next step (launch gate)
 
@@ -101,8 +101,8 @@ Product-level path from idea to production. Task-level, multi-session execution 
 
 ## Deferred decisions
 
-- Full visual system, tokens beyond the accepted anchors, typography, motion, media direction → `/design`.
-- Astro project scaffolding details, package manager (npm/pnpm), Tailwind config → `/plan` (first build).
-- Email transport provider (Web3Forms — pinned), function route shape → `/plan` (with risk review).
+- Full visual system, tokens beyond the accepted anchors, typography, motion, media direction → design pass.
+- Astro project scaffolding details, package manager (npm/pnpm), Tailwind config → planning pass (first build).
+- Email transport provider (Web3Forms — pinned), function route shape → planning pass (with risk review).
 - Prices, audit pricing policy, headline copy, hero visual → business decisions (see `docs/PRODUCT.md` open decisions).
 - A larger editorial operation, industry pages, productized platform (Spec §72 Phases 3–5) → only after real evidence; the blog stays focused (`docs/BLOG.md` content policy).

@@ -6,7 +6,7 @@ description: Verify indexable public routes when content, metadata, URLs, render
 # Technical SEO
 
 Audit the built/public artifact and the server behavior that search crawlers
-actually receive. Use direct file reads and the native `browser` tool plus the repository's existing
+actually receive. Use direct file reads and the runtime's browser capability, when available, plus the repository's existing
 build, crawl, or HTTP test commands; do not install an SEO crawler or claim
 Search Console data that was not supplied.
 

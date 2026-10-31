@@ -73,6 +73,15 @@ export function previewFor(id: string): WorkPreview {
     };
   }
 
+  if (id === "gym-log") {
+    return {
+      type: "image",
+      src: imageUrl("work/gym-log-hero.webp"),
+      srcset: webpSrcset("gym-log-hero"),
+      alt: "اسکرین‌شات صفحه‌ی اصلی Gym Log — عنوان «باشگاه، بدون دفترچه» کنار پیش‌نمایش رابط تمرین و دکمه‌ی دانلود APK",
+    };
+  }
+
   const isClinic = id === "clinic-acquisition-concept";
   return {
     type: "concept",

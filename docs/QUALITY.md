@@ -28,7 +28,7 @@ For accepted scope:
 - A new regression test should demonstrably fail on pre-fix behavior (or a safe focused mutation) when practical, then pass after the fix.
 - Generated checks must build, pass reliably, add a distinct behavioral signal, and isolate relevant state; line coverage alone is not acceptance evidence.
 
-`/skill:test-design` owns the Test Value Gate — apply it before adding or materially changing tests. `No new test` is acceptable for behavior-neutral changes or behavior the suite already proves.
+`/test-design` owns the Test Value Gate — apply it before adding or materially changing tests. `No new test` is acceptable for behavior-neutral changes or behavior the suite already proves.
 
 ## Security and data integrity
 
@@ -46,7 +46,7 @@ At minimum:
 
 Review only the accepted scope and actual diff. Trace changed trust boundaries, input-to-sink data flows, state transitions, public contracts, dependencies, and operational behavior; check the actual controls and checks before reporting a finding.
 
-Check only relevant failure paths: authorization/tenant isolation, injection and unsafe files/URLs, credential/session handling, payment/replay/idempotency, races and partial writes, timeout/cancellation/recovery, unbounded work, inaccessible/error states, dependency/CI mismatch, migration rollback. For High-risk scopes prefer a `/review` reviewer pass (plus `/advisor on` — second model, extra cost); otherwise a direct evidence-focused pass.
+Check only relevant failure paths: authorization/tenant isolation, injection and unsafe files/URLs, credential/session handling, payment/replay/idempotency, races and partial writes, timeout/cancellation/recovery, unbounded work, inaccessible/error states, dependency/CI mismatch, migration rollback. For High-risk scopes prefer `/review` with a fresh-context `subagent` when available; otherwise perform a direct evidence-focused pass and record independent review as unexecuted.
 
 For each evidence-backed finding give severity, exact `file:line` or symbol, a concrete failure/attack scenario, the impact if triggered, why the current control is insufficient, whether it is a regression introduced by this diff or `Pre-existing`, the smallest safe fix, and a proof check. Suppress speculative findings (no concrete scenario), duplicates, and purely stylistic findings. Prefer a few actionable findings over speculative checklist output.
 
@@ -61,7 +61,7 @@ Return the acceptance evidence and one verdict: `PASS`, `PASS WITH FIXES`, or `B
 
 For rendered interfaces:
 
-- exercise the critical journey in the real application with the `browser` tool when browser behavior matters;
+- exercise the critical journey in the real application with the runtime's browser capability when browser behavior matters and the capability is available;
 - preserve keyboard access, visible focus, semantic controls, labels, contrast, touch targets, and reduced-motion behavior;
 - check realistic data, long text, localization/RTL when relevant, and at least one narrow viewport for mobile-facing surfaces;
 - follow the accepted `docs/DESIGN.md`; reuse existing design tokens/components when sound, change deliberately when the direction requires it;
@@ -88,7 +88,7 @@ For production web surfaces without accepted product-specific field budgets, tar
 - Keep public interfaces small and backward-compatible unless a breaking change is accepted.
 - Keep business rules separable from presentation/transport when the existing architecture supports it.
 - New abstractions should solve more than one real current use case or remove a demonstrated risk/duplication.
-- New dependencies require a concrete benefit over existing/platform capabilities — omp already ships LSP, eval runtimes, browser, search, and subagents; adding a package that duplicates them needs justification.
+- New dependencies require a concrete benefit over existing/platform capabilities — DSH already provides repository search, shell execution, web access, skills, and optional subagents; adding a package that duplicates them needs justification.
 - Architecture invariants that matter repeatedly should be enforced mechanically with types, lint rules, structural tests, schemas, or CI rather than prose alone.
 
 ## Evidence hierarchy
@@ -96,8 +96,8 @@ For production web surfaces without accepted product-specific field budgets, tar
 Prefer stronger evidence when practical:
 
 1. deterministic automated check of the accepted behavior;
-2. real `eval`/`bash` run or `browser`-tool exercise of the relevant journey;
-3. `lsp` diagnostics/references, type/lint/structural analysis for invariant classes;
+2. real `bash`/test run, or browser exercise of the relevant journey when the runtime provides a browser capability;
+3. type/lint/structural analysis and code inspection for invariant classes;
 4. reproducible measurement for performance/reliability claims;
 5. focused independent-evaluator inspection (`/review`) for aspects that cannot be automated economically.
 
@@ -123,18 +123,18 @@ Confirmed rules for this project (source: `docs/PRODUCT.md`, `docs/ARCHITECTURE.
 3. **No fabricated proof.** Case studies/projects must be real; results evidence-backed (Spec §19, §21.7); demo/concept content must be visibly labeled; no fake testimonials/logos; no sales guarantees in copy. Check: content review step in `/review` plus copy fixtures in tests when content lands.
 4. **Audit form is business-critical.** Server-side validation, abuse mitigation, no silent failure, no false success, attribution preserved; every accepted submission is delivered as **email via Web3Forms**, and the visitor sees success only after Web3Forms confirms acceptance (no database — 2026-10 email-only architecture, Spec §61–62 adapted). Check: function-level tests at implementation (defect-sensitive: must fail on pre-fix behavior) + client journey tests proving thank-you requires confirmed delivery.
 5. **Secrets stay out of the repository.** `.env*` ignored except `.env.example` (names only, never values); credentials only in Cloudflare Pages secrets. Check: `bash scripts/verify.sh` secret scan + `scripts/check-project-contract.mjs` `.env.example` value scan (exists, run via `scripts/project-verify.sh`).
-6. **Light/dark themes with system default, persisted override, no incorrect-theme flash; tokens from the accepted anchors in `docs/DESIGN.md`.** Check: browser theme-flash/contrast evidence via the native `browser` tool at design/build.
+6. **Light/dark themes with system default, persisted override, no incorrect-theme flash; tokens from the accepted anchors in `docs/DESIGN.md`.** Check: browser theme-flash/contrast evidence via the runtime's browser capability when available.
 7. **Accessibility baseline WCAG 2.2 AA** (keyboard, focus, labels, contrast 4.5:1/3:1, reduced motion, no color-only meaning) and **mobile-first** (320px reflow, tap targets, click-to-call). Check: browser QA gates.
 8. **Performance is a product requirement**: static rendering, minimal JS, optimized self-hosted assets; CWV `good` targets pending an accepted lab budget. Check: lab measurement at build, RUM via Cloudflare Web Analytics after launch.
 9. **No speculative infrastructure**: new dependencies/services need a concrete current benefit; Cloudflare free-tier compatibility where practical. Check: dependency review in `/review`.
 
 Canonical commands:
 
-- Full canonical gate: `bash scripts/verify.sh` (omp template self-checks + secret scan, builds the project so structural tests run against a fresh `dist/`, then runs `scripts/project-verify.sh`, `npm run check`, and `npm test`; CI mirrors this in `.github/workflows/quality.yml`).
+- Full canonical gate: `bash scripts/verify.sh` (DSH workflow self-checks + secret scan, builds the project so structural tests run against a fresh `dist/`, then runs `scripts/project-verify.sh`, `npm run check`, and `npm test`; CI mirrors this in `.github/workflows/quality.yml`).
 - Project doc/branding/contract checks: `bash scripts/project-verify.sh` (fast, static).
-- Affected/feature lanes: `/skill:verify` (exact new test first, then nearest existing tests via `lsp` references; unmatched files use the feature lane or the full gate).
+- Affected/feature lanes: `/verify` (exact new test first, then nearest existing tests by code reference; unmatched files use the feature lane or the full gate).
 - Contract tests: `node --test tests/*.test.mjs` (project suite; structural tests assert a fresh `dist/` — run the full gate, not bare `npm test`, on a clean checkout).
-- Workflow runtime: `omp` (single binary, `curl -fsSL https://omp.sh/install | sh`); no packages, MCP servers, or launcher. Project config lives in `.omp/`.
-- Browser QA: native `browser` tool; accessibility snapshots and DOM/console/network evidence first, screenshots under `.artifacts/` as reproducible artifacts. Deterministic browser tests stay separate from interactive exploration.
+- Workflow runtime: DSH, with project skills in `.dsh/skills/`; no workflow plugin, command pack, or extra package. Project instructions live in `AGENTS.md`; the execution model is `docs/WORKFLOW.md`.
+- Browser QA: the runtime's browser capability when available; accessibility snapshots and DOM/console/network evidence first, screenshots under `.artifacts/` as reproducible artifacts. Deterministic browser tests stay separate from interactive exploration.
 
 Do not invent quality targets that the product or repository has not accepted.

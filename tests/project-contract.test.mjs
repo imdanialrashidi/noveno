@@ -2,8 +2,8 @@
 //
 // Defect sensitivity: the checker must fail (red) when a bootstrap document
 // reverts to the template placeholder, loses a Noveno identity marker,
-// carries a real value in .env.example, breaks the omp workflow structure,
-// or reintroduces legacy Pi workflow remnants — and pass (green) on the
+// carries a real value in .env.example, breaks the DSH workflow structure,
+// or reintroduces legacy omp/Pi workflow remnants — and pass (green) on the
 // real migrated tree. Fixtures are hermetic copies under a temp directory
 // so the tests never mutate repository files.
 
@@ -35,16 +35,16 @@ function buildFixture() {
   fs.rmSync(fixtureRoot, { recursive: true, force: true });
   fs.mkdirSync(path.join(fixtureRoot, "docs"), { recursive: true });
   fs.mkdirSync(path.join(fixtureRoot, "branding_assests"), { recursive: true });
-  fs.mkdirSync(path.join(fixtureRoot, ".omp"), { recursive: true });
+  fs.mkdirSync(path.join(fixtureRoot, ".dsh"), { recursive: true });
   fs.mkdirSync(path.join(fixtureRoot, "scripts"), { recursive: true });
 
   fs.cpSync(path.join(repositoryRoot, "docs"), path.join(fixtureRoot, "docs"), { recursive: true });
   fs.copyFileSync(path.join(repositoryRoot, ".env.example"), path.join(fixtureRoot, ".env.example"));
   fs.copyFileSync(path.join(repositoryRoot, "README.md"), path.join(fixtureRoot, "README.md"));
-  fs.cpSync(path.join(repositoryRoot, ".omp"), path.join(fixtureRoot, ".omp"), { recursive: true });
+  fs.cpSync(path.join(repositoryRoot, ".dsh"), path.join(fixtureRoot, ".dsh"), { recursive: true });
   fs.copyFileSync(
-    path.join(repositoryRoot, "scripts", "omp-pr.mjs"),
-    path.join(fixtureRoot, "scripts", "omp-pr.mjs"),
+    path.join(repositoryRoot, "scripts", "deliver-pr.mjs"),
+    path.join(fixtureRoot, "scripts", "deliver-pr.mjs"),
   );
   // Mirror the actual asset files in branding_assests/ (see check-project-contract.mjs).
   const assetFiles = [
@@ -119,14 +119,35 @@ test("red: .env.example carrying a real-looking value is rejected", () => {
   buildFixture();
 });
 
-test("red: an omp command with missing description is rejected", () => {
-  const ship = fs.readFileSync(path.join(fixtureRoot, ".omp", "commands", "ship.md"), "utf8");
+test("red: a DSH skill with missing description is rejected", () => {
+  const ship = fs.readFileSync(path.join(fixtureRoot, ".dsh", "skills", "ship", "SKILL.md"), "utf8");
   assert.match(ship, /^description: .+/m);
-  writeFixtureFile(".omp/commands/ship.md", ship.replace("description:", "x-description:"));
+  writeFixtureFile(".dsh/skills/ship/SKILL.md", ship.replace("description:", "x-description:"));
   const errors = checkProjectContract(fixtureRoot);
   assert.ok(
-    errors.some((error) => error.includes(".omp/commands/ship.md") && error.includes("description")),
+    errors.some((error) => error.includes(".dsh/skills/ship/SKILL.md") && error.includes("description")),
     `expected missing-description failure, got: ${JSON.stringify(errors)}`,
+  );
+  buildFixture();
+});
+
+test("red: a legacy omp workflow path is rejected", () => {
+  fs.mkdirSync(path.join(fixtureRoot, ".omp"), { recursive: true });
+  writeFixtureFile(".omp/config.yml", "legacy: true\n");
+  const errors = checkProjectContract(fixtureRoot);
+  assert.ok(
+    errors.some((error) => error.includes(".omp") && error.includes("legacy workflow")),
+    `expected legacy-omp failure, got: ${JSON.stringify(errors)}`,
+  );
+  buildFixture();
+});
+
+test("red: a legacy omp delivery helper is rejected", () => {
+  writeFixtureFile("scripts/omp-pr.mjs", "// replaced by deliver-pr.mjs\n");
+  const errors = checkProjectContract(fixtureRoot);
+  assert.ok(
+    errors.some((error) => error.includes("scripts/omp-pr.mjs") && error.includes("legacy workflow")),
+    `expected legacy-helper failure, got: ${JSON.stringify(errors)}`,
   );
   buildFixture();
 });
@@ -136,7 +157,7 @@ test("red: legacy Pi workflow remnants are rejected", () => {
   writeFixtureFile(".pi/verification.json", "{}");
   const errors = checkProjectContract(fixtureRoot);
   assert.ok(
-    errors.some((error) => error.includes(".pi") && error.includes("legacy Pi workflow")),
+    errors.some((error) => error.includes(".pi") && error.includes("legacy workflow")),
     `expected legacy-remnant failure, got: ${JSON.stringify(errors)}`,
   );
   buildFixture();

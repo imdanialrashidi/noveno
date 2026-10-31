@@ -5,15 +5,15 @@ description: Audit a user-facing route or journey for WCAG 2.2 AA keyboard, focu
 
 # Accessibility audit
 
-Use this as a focused evidence pass, not as a replacement for the native
-`browser` tool, reviewer pass, or test tooling. Keep the scope to the changed
+Use this as a focused evidence pass, not as a replacement for the runtime's
+browser capability, reviewer pass, or test tooling. Keep the scope to the changed
 route/journey and the acceptance criteria that could regress.
 
 ## Procedure
 
 1. Read the accepted product/design/quality contract and identify the route,
    critical journey, supported input modes, locales, and required states.
-2. Inspect semantics and interaction with the native `browser` tool
+2. Inspect semantics and interaction with the runtime's browser capability when it is available
    (accessibility snapshots, DOM query, keyboard interaction, focus state,
    console/network evidence). Use
    the repository's existing browser test framework when it already exists; do

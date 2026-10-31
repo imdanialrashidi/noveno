@@ -5,11 +5,13 @@ Updated: 2026-10
 
 > **Status (2026-10, architecture change):** **Supabase has been removed entirely.** The founder decided v1 needs no persistent lead store. The audit function (`/api/audit`) now **validates only** (returns `{ ok: true, status: "validated" }`); **Web3Forms email delivery is the sole lead destination and the only completion gate** — the visitor reaches `/audit/thank-you` only after Web3Forms confirms `{ success: true }`; `audit_submitted`, the draft clear, and the done marker all fire only then. There is no database, no migration, no `SUPABASE_*` env, no `@supabase/supabase-js`, no `supabase/` directory, and no backup step. Setup is Turnstile keys + Web3Forms access key + Pages project only (`docs/ops/setup-checklist.md`).
 
-> **Status (2026-08, reconciled):** both slices are committed and verified — the app exists (`src/`, `functions/`, `tests/`); `.pi/verification.json` has an `app` route. Launch awaits founder provisioning (`docs/ops/setup-checklist.md`). The steps below document the accepted plan; see README "Repository state" for the shipped reality.
+> **Status (2026-08, reconciled):** both slices are committed and verified — the app exists (`src/`, `functions/`, `tests/`). Launch awaits founder provisioning (`docs/ops/setup-checklist.md`). The steps below document the accepted plan; see README "Repository state" for the shipped reality.
+
+> **Workflow (2026-10):** the agent workflow is DSH — `AGENTS.md`, `.dsh/skills/`, `docs/WORKFLOW.md`, `docs/HARNESS.md`, and `scripts/verify.sh`. References below to `.pi`, `.omp`, `browser-qa`, `security-auditor`, `reviewer`, `/design`, `/plan`, or `/design-review` name historical roles, commands, or evidence from the previous runtime unless a current document explicitly says otherwise.
 
 > **Founder override (2026-08-14, second review): the flowchart/route visual language is removed from the public design.** The Journey Line / route-band / station-rail grammar (JourneyLine, BeforeAfterJourney, ChannelMap, LeadStatusStrip, SystemArchitectureDiagram, ProofRow, scatter fields, StepperLine station rail, footer mini route, 404 route motif, dashed wireframe concept previews, line-style ProofTag codes, section node markers) is **rejected as a visual concept** and must not be reintroduced. The accepted replacement is the image-led editorial system — Typography + Photography + Real Product Screens + Editorial Numbers — recorded in `docs/DESIGN.md` §3 (thesis), §4 (signature), §9 (media), §15 (screen matrix), §16 (decision log). The word «مسیر» survives only as product copy (fixed CTA «درخواست بررسی مسیر جذب»), never as a drawn route. All acceptance criteria and in-scope items below that name the old grammar are superseded by the 2026-08-14 thesis; audit progress is «مرحله X از ۶» + progress bar, thank-you is a numbered next-steps sequence, work previews are large real screenshots (projects) and labeled designed mocks (concepts).
 > Source of truth: `AGENTS.md` (order of precedence), `docs/DESIGN.md` (visual contract), `docs/PRODUCT.md` (product contract), `docs/ARCHITECTURE.md` (invariants), `docs/QUALITY.md` (quality contract), Master Spec v1.0 (full reference), `docs/PLAN.md` (roadmap).
-> Use: `/resume docs/exec-plans/active/noveno-launch.md` for any fresh context that continues this work.
+> Use: resume from `docs/exec-plans/active/noveno-launch.md` in any fresh session that continues this work.
 
 ## Slice 2 evidence (recorded at completion)
 
@@ -60,7 +62,7 @@ Updated: 2026-10
 ### Confirmed repository state
 
 - Bootstrap + `/design` were complete at plan time; the app did not yet exist then — both slices shipped since (status note above). Docs are the accepted contracts; `branding_assests/` holds the logo SVGs (legacy purple fill, embedded Tahoma «NOVENO» in `Logo_Website_SVG.svg`).
-- Verification system: `.pi/verification.json` routes, `scripts/verify-affected.mjs`, `scripts/verify.sh` (pi-doctor + project-contract), `node --test tests/*.test.mjs`, CI `.github/workflows/quality.yml` (Node 22.23.2). The `src/**` evidence routes promised then are delivered — `.pi/verification.json` has an `app` route (status note above).
+- Verification system: DSH workflow (`AGENTS.md`, `.dsh/skills/`), `scripts/verify.sh` (workflow self-checks + project contract), `node --test tests/*.test.mjs`, CI `.github/workflows/quality.yml` (Node 22.23.2). The `src/**` evidence routes promised then are delivered by the current project gate (status note above).
 - Env contract at plan time: `.env.example` documented only `APP_ENV=development`; it now documents all required names (build-time publics + server-side secrets — values never committed). Node ≥ 22.19 pinned.
 - DESIGN.md records measured font sizes (≈165 KB total, 2026-08-11) and verified AA token contrast; anchors `#679e86`/`#619881` are mechanically asserted by `check-project-contract.mjs`.
 
@@ -96,7 +98,7 @@ Updated: 2026-10
 - `docs/ARCHITECTURE.md` — invariants, trust boundaries, chosen patterns table.
 - `docs/QUALITY.md` — project invariants (RTL, no client framework, no fabricated proof, business-critical form, secrets, themes, a11y, performance, no speculative infra) + evidence hierarchy.
 - Master Spec — §8.1 IA, §10 homepage sequence, §18–19 proof policy, §21 case-study template, §23 qualification, §24 process, §31–33 audit form + attribution + post-submission, §35 lead model, §36 event model, §39 pricing framing, §43 SEO, §50–51 performance/a11y, §57 component list, §61–63 reliability/security/privacy, §64 Iran resilience, §65–66 content/metrics models, §73–74 launch scope/acceptance.
-- Repository workflow: `.pi/verification.json`, `scripts/verify-affected.mjs`, `scripts/verify.sh`, `scripts/check-project-contract.mjs` (markers `#679e86`, `#619881`, "Astro", "Cloudflare Pages", "Web3Forms", "static", "RTL", "WCAG 2.2 AA" must stay intact), `tests/*.test.mjs` conventions (node:test), browser-qa/verification-routing/test-design/frontend-design skills + focused risk review in `docs/QUALITY.md`.
+- Repository workflow: `AGENTS.md`, `docs/WORKFLOW.md`, `.dsh/skills/`, `scripts/verify.sh`, `scripts/check-project-contract.mjs` (markers `#679e86`, `#619881`, "Astro", "Cloudflare Pages", "Web3Forms", "static", "RTL", "WCAG 2.2 AA" must stay intact), `tests/*.test.mjs` conventions (node:test), the `/test-design` and `/review` skills + focused risk review in `docs/QUALITY.md`.
 
 ## 5. Smallest viable architecture (resolved decisions)
 
@@ -276,11 +278,11 @@ Invariants: 200 `validated` never means delivery. Thank-you ⇔ Web3Forms confir
 
 ## 10. Verification / evaluator strategy
 
-- Use the **existing repository verification system**; no parallel workflow. Extend `.pi/verification.json` in Slice 1 step 1: `src/**` → `astro check` + `astro build` + structural tests; `functions/**` → function tests + build; `docs/**`/`package.json`/config → existing routes; unmatched → full fallback.
+- Use the **existing repository verification system**; no parallel workflow. Keep the lane order in `scripts/lib/verify-lane.mjs` and the documented commands: `src/**` → `astro check` + `astro build` + structural tests; `functions/**` → function tests + build; `docs/**`/`package.json`/config → existing checks; unmatched → full fallback.
 - Structural tests (node:test, repo convention): every built HTML page has `lang="fa" dir="rtl"` and no LTR leakage; `package.json` dependency assertion (no react/vue/svelte); font budget ≤ 200 KB; token values from DESIGN §6 present in built CSS; content schema rejects fabricated-metric shapes (metrics require `source` + `verified`).
 - Function tests: pure-module unit tests with defect sensitivity (fail on pre-fix behavior — e.g., Persian-digit normalization, whitelist bypass, missing Turnstile, validate-only response contract); Turnstile official test keys (always-pass/always-fail/duplicate) in test env only.
-- Browser QA (`browser-qa` skill, lazy Playwright MCP): accessibility snapshots and DOM/console/network evidence first; screenshots under `.artifacts/playwright/` with state provenance (route, viewport 1440/390/320, theme, fa-RTL); reduced-motion check; theme no-flash test; keyboard + aria snapshot of the audit flow; network panel evidence for events.
-- Evaluators: `reviewer` at each slice exit; `frontend-design` flagship gates on Slice 1 (avg ≥ 3.25, no dimension < 3, signature ≥ 3/4 on specificity/execution — per DESIGN §15); `security-auditor` + focused risk review in `docs/QUALITY.md` on the Slice 2 trust boundary (unresolved BLOCKER/MAJOR blocks completion). Max two evidence-driven repair rounds per gate.
+- Browser QA (runtime browser capability when available): accessibility snapshots and DOM/console/network evidence first; screenshots under `.artifacts/playwright/` with state provenance (route, viewport 1440/390/320, theme, fa-RTL); reduced-motion check; theme no-flash test; keyboard + aria snapshot of the audit flow; network panel evidence for events.
+- Evaluators: `/review` at each slice exit (fresh-context `subagent` when available); `frontend-design` flagship gates on Slice 1 (avg ≥ 3.25, no dimension < 3, signature ≥ 3/4 on specificity/execution — per DESIGN §15); focused security review in `docs/QUALITY.md` on the Slice 2 trust boundary (unresolved BLOCKER/MAJOR blocks completion). Max two evidence-driven repair rounds per gate.
 - Gates per slice: targeted during work → feature once per vertical step → full (`bash scripts/verify.sh`) at slice exit and final delivery. Lab CWV (throttled) in Slice 2 with the recorded baseline; field data comes later via Web Analytics RUM — lab results are not presented as field proof.
 
 ## 11. Decisions intentionally deferred (founder-owned; isolated so they never block build)
@@ -296,10 +298,10 @@ Invariants: 200 `validated` never means delivery. Thank-you ⇔ Web3Forms confir
 
 ## 12. Handoff-ready current state and first action
 
-**Current state.** See the status note above — both slices are committed and verified; the app exists (`src/`, `functions/`, `tests/`) and `.pi/verification.json` has an `app` route. Launch awaits founder provisioning (`docs/ops/setup-checklist.md`) and a preview-deploy smoke. CI runs `scripts/verify.sh` + package integrity.
+**Current state.** See the status note above — both slices are committed and verified; the app exists (`src/`, `functions/`, `tests/`) and the DSH workflow in `.dsh/skills/` is active. Launch awaits founder provisioning (`docs/ops/setup-checklist.md`) and a preview-deploy smoke. CI runs `scripts/verify.sh` + package integrity.
 
-**Smallest first implementation action (Slice 1, step 1):** scaffold the Astro + TypeScript + Tailwind v4 app at the repo root (`npm create astro` with strict TS), wire `astro.config.mjs` + `tsconfig`, add `@astrojs/check`, confirm `npm run build`/`npm run dev`/`npm run check` work on the repo's Node ≥ 22.19 baseline, then extend `.pi/verification.json` with `src/**` and `functions/**` routes and the CI app job. Stop when `astro build` + `astro check` + `scripts/verify.sh` are all green.
+**Smallest first implementation action (Slice 1, step 1):** scaffold the Astro + TypeScript + Tailwind v4 app at the repo root (`npm create astro` with strict TS), wire `astro.config.mjs` + `tsconfig`, add `@astrojs/check`, confirm `npm run build`/`npm run dev`/`npm run check` work on the repo's Node ≥ 22.19 baseline, then use the existing DSH verification workflow (`AGENTS.md`, `.dsh/skills/`) and the CI app job. Stop when `astro build` + `astro check` + `scripts/verify.sh` are all green.
 
 **Must not be overwritten:** `AGENTS.md`, `docs/DESIGN.md` (accepted contract), `docs/ARCHITECTURE.md` invariants, `branding_assests/` (reuse geometry; no recreation), `scripts/*` verification system, `.env.example` (names only).
 
-**Handoff note.** Update this plan's Status/Evidence sections before any `/handoff` or context reset; keep it factual, not a transcript. The working tree and tests remain authoritative if this plan becomes stale.
+**Handoff note.** Update this plan's Status/Evidence sections before any session handoff or context reset; keep it factual, not a transcript. The working tree and tests remain authoritative if this plan becomes stale.

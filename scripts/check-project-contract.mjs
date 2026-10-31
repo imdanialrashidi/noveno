@@ -14,7 +14,7 @@ import path from "node:path";
 const SOURCE_DOCS = ["docs/Noveno_Website_Master_Spec.md", "docs/Noveno Business DNA.md"];
 
 // Per-document identity requirements and template-placeholder forbiddens.
-// Keep markers durable: they must survive legitimate /design and /plan edits.
+// Keep markers durable: they must survive legitimate design and planning edits.
 const DOC_CONTRACTS = {
   "docs/PRODUCT.md": {
     require: ["Noveno", "Persian", "RTL", "audit", "qualified audit requests"],
@@ -136,35 +136,27 @@ function checkEnvExample(root) {
   return errors;
 }
 
-// omp workflow structure: the canonical commands and skills exist with valid
-// discovery frontmatter, the scoped PR helper exists, and no legacy Pi
-// workflow remnants remain.
-const OMP_COMMANDS = ["spec", "build", "review", "ship"];
+// DSH workflow structure: project skills live in .dsh/skills with valid
+// discovery frontmatter, the execution model and delivery helper exist, and
+// no legacy omp or Pi workflow paths remain.
+const DSH_CORE_SKILLS = ["quick-fix", "spec", "build", "verify", "review", "test-design", "ship"];
 
-function checkOmpWorkflow(root) {
+function checkDshWorkflow(root) {
   const errors = [];
-  for (const command of OMP_COMMANDS) {
-    const relative = `.omp/commands/${command}.md`;
-    let content;
-    try {
-      content = readText(root, relative);
-    } catch {
-      errors.push(`${relative}: missing`);
-      continue;
-    }
-    if (!/^description: .+/m.test(content)) {
-      errors.push(`${relative}: missing frontmatter description`);
-    }
-  }
+  const skillRoot = path.join(root, ".dsh", "skills");
   let skills;
   try {
-    skills = fs.readdirSync(path.join(root, ".omp", "skills"));
+    skills = fs.readdirSync(skillRoot, { withFileTypes: true });
   } catch {
-    return [...errors, ".omp/skills: missing"];
+    return [".dsh/skills: missing"];
   }
-  if (skills.length === 0) errors.push(".omp/skills: empty");
-  for (const skill of skills) {
-    const relative = `.omp/skills/${skill}/SKILL.md`;
+
+  const discovered = new Set();
+  for (const entry of skills) {
+    if (!entry.isDirectory()) continue;
+    const skill = entry.name;
+    discovered.add(skill);
+    const relative = `.dsh/skills/${skill}/SKILL.md`;
     let content;
     try {
       content = readText(root, relative);
@@ -172,20 +164,44 @@ function checkOmpWorkflow(root) {
       errors.push(`${relative}: missing`);
       continue;
     }
-    if (!/^name: .+/m.test(content)) errors.push(`${relative}: missing frontmatter name`);
-    if (!/^description: .+/m.test(content)) {
+    const frontmatter = content.match(/^---\n([\s\S]*?)\n---/);
+    if (!frontmatter) {
+      errors.push(`${relative}: missing YAML frontmatter`);
+      continue;
+    }
+    const name = frontmatter[1].match(/^name:\s*"?([a-z0-9-]+)"?\s*$/m)?.[1];
+    if (name !== skill) {
+      errors.push(`${relative}: frontmatter name must match the directory`);
+    }
+    if (!/^description:\s*\S/m.test(frontmatter[1])) {
       errors.push(`${relative}: missing frontmatter description`);
     }
+    if (content.slice(frontmatter[0].length).trim().length === 0) {
+      errors.push(`${relative}: empty skill body`);
+    }
   }
+  for (const skill of DSH_CORE_SKILLS) {
+    if (!discovered.has(skill)) errors.push(`.dsh/skills/${skill}: missing core workflow skill`);
+  }
+
   try {
-    readText(root, "scripts/omp-pr.mjs");
+    if (readText(root, "docs/WORKFLOW.md").trim().length === 0) {
+      errors.push("docs/WORKFLOW.md: empty");
+    }
   } catch {
-    errors.push("scripts/omp-pr.mjs: missing");
+    errors.push("docs/WORKFLOW.md: missing");
   }
-  for (const relative of [".pi", "scripts/ai-pr.mjs", "Dockerfile.pi", "p"]) {
+
+  try {
+    readText(root, "scripts/deliver-pr.mjs");
+  } catch {
+    errors.push("scripts/deliver-pr.mjs: missing");
+  }
+
+  for (const relative of [".omp", ".pi", "scripts/omp-pr.mjs", "scripts/ai-pr.mjs", "Dockerfile.pi", "p"]) {
     try {
       fs.statSync(path.join(root, relative));
-      errors.push(`${relative}: legacy Pi workflow file must be removed`);
+      errors.push(`${relative}: legacy workflow path must be removed`);
     } catch {
       // Absent is the expected state.
     }
@@ -224,7 +240,7 @@ export function checkProjectContract(root) {
   }
   errors.push(...checkSpecRouteHistory(root, "docs/Noveno_Website_Master_Spec.md"));
   errors.push(...checkEnvExample(root));
-  errors.push(...checkOmpWorkflow(root));
+  errors.push(...checkDshWorkflow(root));
   errors.push(...checkBranding(root));
   return errors;
 }

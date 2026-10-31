@@ -7,6 +7,8 @@
 export const imageManifest: Readonly<Record<string, string>> = {
   "work/elsa-hamrah-hero-800.webp": "/images/work/elsa-hamrah-hero-800.72905b76.webp",
   "work/elsa-hamrah-hero.webp": "/images/work/elsa-hamrah-hero.82efe0d6.webp",
+  "work/gym-log-hero-800.webp": "/images/work/gym-log-hero-800.01422168.webp",
+  "work/gym-log-hero.webp": "/images/work/gym-log-hero.e62b1313.webp",
   "work/isbatab-hero-800.webp": "/images/work/isbatab-hero-800.cd747fc0.webp",
   "work/isbatab-hero.webp": "/images/work/isbatab-hero.859510be.webp",
   "work/mobile-khorsandi-hero-800.webp": "/images/work/mobile-khorsandi-hero-800.3df9d259.webp",

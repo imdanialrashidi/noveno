@@ -357,7 +357,7 @@ Lighthouse's _simulated_ throttling adds a discrete ~76 ms step to FCP/Speed Ind
 
 ## 15. Screen-level acceptance — what build/review must prove
 
-Evidence per the native `browser` tool + the visual-quality rubric: screenshots with state provenance (route, viewport, theme, locale fa-RTL), accessibility snapshots, reduced-motion check, network panel, lab CWV on a throttled profile. Flagship bar: average craft ≥ 3.25, no dimension < 3.
+Evidence per the runtime's browser capability when available + the visual-quality rubric: screenshots with state provenance (route, viewport, theme, locale fa-RTL), accessibility snapshots, reduced-motion check, network panel, lab CWV on a throttled profile. Flagship bar: average craft ≥ 3.25, no dimension < 3.
 
 Post-photography hero/proof expectations: the homepage hero shows the **brand artwork** (fourth review) with the headline dominant; the problem section is typographic; the final CTA is brand-led with logo geometry; no photograph appears in the primary visual path (browser + network evidence).
 

@@ -75,6 +75,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://noveno.ir/work/gym-log</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://noveno.ir/work/isbatab</loc>
     <lastmod>2026-08-13</lastmod>
     <changefreq>yearly</changefreq>

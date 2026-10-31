@@ -4,6 +4,8 @@ Status: active — **improvement pass built and verified 2026-10** (slices 1–4
 Updated: 2026-10
 Type: analysis → implemented vertical slices. Design contract updated first (`docs/DESIGN.md` §0 + §16.1).
 
+> **Workflow (2026-10):** the project workflow is DSH — `AGENTS.md`, `.dsh/skills/`, `docs/WORKFLOW.md`, and `docs/HARNESS.md`. References below to `.pi`, `verify-affected.mjs`, `browser-qa`, or `accessibility-audit` name historical tooling or current project skills; use the current lanes in `docs/QUALITY.md`.
+
 ## 1. Goal and non-goals
 
 **Goal.** Raise the public site's UI/UX quality where evidence shows a real user-visible
@@ -102,7 +104,7 @@ unmeasurable pre-launch; must be argued on principle, not data.
 (`src/scripts/motion.ts`); `ChannelLink` as the single contact-link contract;
 `tests/structural.test.mjs` budgets; `tests/seo-contract.test.mjs`, `content.test.mjs`,
 `site-data.test.mjs`; `docs/DESIGN.md` §15 screen matrix as the proof checklist;
-`docs/VISUAL_REVIEW.md` as the scoring contract; `.pi/verification.json` affected routing.
+`docs/VISUAL_REVIEW.md` as the scoring contract; the affected/test lanes in `docs/QUALITY.md`.
 
 ## 5. Smallest viable design and data/control flow
 
@@ -177,10 +179,10 @@ client script. A1 and A2 touch markup/CSS/structure; A3 touches layout classes o
 
 ## 8. Verification and evaluator strategy
 
-- **Cheapest lane first:** `node scripts/verify-affected.mjs --file <path>` for each touched
-  file; full `bash scripts/verify.sh` once per slice before delivery (it rebuilds `dist/`,
-  which the structural assertions read).
-- **Browser evidence (`browser-qa`):** settled-state screenshots with provenance, keyboard
+- **Cheapest lane first:** the focused `node --test tests/<file>.test.mjs` for each touched
+  surface, then the feature lane; full `bash scripts/verify.sh` once per slice before delivery
+  (it rebuilds `dist/`, which the structural assertions read).
+- **Browser evidence (runtime browser capability when available):** settled-state screenshots with provenance, keyboard
   journey through header → menu → `/audit` → submit-failure → retry, focus-visible
   snapshots, reduced-motion run, no-JS run for A1, network panel showing no failed requests
   and no new requests. Geometry claims come from DOM measurement, not eyeballing.

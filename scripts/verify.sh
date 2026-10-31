@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Canonical verification gate for this repository.
-# omp template self-checks first, then the Noveno project gate.
+# DSH workflow self-checks first, then the Noveno project gate.
 #
 # The build runs BEFORE the test suite: structural tests assert production
 # output under dist/ (built HTML, compiled theme tokens, JS budget, links,
@@ -26,7 +26,7 @@ fail=0
 note() { printf '%s\n' "$1"; }
 bad() { printf 'FAIL: %s\n' "$1" >&2; fail=1; }
 
-bash scripts/verify-template.sh || bad "template self-checks failed."
+bash scripts/verify-template.sh || bad "workflow self-checks failed."
 bash scripts/verify-secrets.sh || bad "secret scan failed."
 
 # Build first so structural tests assert a fresh dist/.

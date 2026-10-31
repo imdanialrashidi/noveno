@@ -5,7 +5,7 @@ description: Measure and improve a web route when a change affects loading, inte
 
 # Web performance
 
-Use the native `browser` tool and the repository's existing performance/build tools.
+Use the runtime's browser capability when available and the repository's existing performance/build tools.
 This skill defines an evidence contract; it does not add Lighthouse, a RUM
 vendor, or a profiling dependency when the project has no such tool.
 

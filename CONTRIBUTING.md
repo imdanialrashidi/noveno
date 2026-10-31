@@ -5,8 +5,8 @@ Contributions should improve representative task outcomes, reduce risk/cost, or 
 ## Setup
 
 1. Use Node.js 22.19.0 or newer.
-2. Install `omp` (single binary, `curl -fsSL https://omp.sh/install | sh`); no packages, MCP servers, or launcher. Project config lives in `.omp/` and loads automatically.
-3. Review project-local skills and commands before trusting the repository.
+2. Use DeepSeek Harness (DSH), for example `npx @deepseek-ai/dsh web`. No workflow plugin, command pack, MCP server, or extra project package is required. DSH loads `AGENTS.md` and the project skills in `.dsh/skills/` automatically.
+3. Review `.dsh/skills/` and `scripts/` before trusting the repository.
 4. Run `bash scripts/verify.sh` before and after a workflow change.
 
 ## Change contract
@@ -23,7 +23,7 @@ Preserve unrelated work and keep one primary writer. Do not add dependencies wit
 
 ## Workflow-policy changes
 
-Workflow maintenance is allowed in the default autonomous mode. Keep it explicitly scoped, update all affected source-of-truth documents and doctor assertions, and rely on the tested diff/CI evidence rather than a startup flag.
+Workflow maintenance is allowed in the default autonomous mode. Keep it explicitly scoped, update `AGENTS.md`, `docs/WORKFLOW.md`, `docs/HARNESS.md`, the affected `.dsh/skills/` files, and the drift checks together, then rely on the tested diff/CI evidence rather than a startup flag.
 
 Run:
 

@@ -1,8 +1,8 @@
 # Visual Quality Rubric
 
-This is a repository acceptance rubric, not a workflow skill or tool. Use the accepted `docs/DESIGN.md` direction for UI implementation/refinement, an independent `/review` pass for independent code review, and the native `browser` tool for rendered evidence.
+This is a repository acceptance rubric, not a workflow skill or tool. Use the accepted `docs/DESIGN.md` direction for UI implementation/refinement, an independent `/review` pass for independent code review, and the runtime's browser capability when available for rendered evidence.
 
-Use this rubric for `design-review`, final frontend evaluation, or a substantial redesign. Judge the rendered interface against the accepted product/design contract, not personal taste or trend conformity.
+Use this rubric for a design review, final frontend evaluation, or a substantial redesign. Judge the rendered interface against the accepted product/design contract, not personal taste or trend conformity.
 
 ## Evidence set
 

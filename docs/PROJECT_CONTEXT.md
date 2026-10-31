@@ -1,7 +1,7 @@
 # Project context readiness
 
-The repository ships durable contract templates so omp can begin safely without
-inventing product facts. Before a real product implementation, run:
+The repository ships durable contract templates so a DSH session can begin safely
+without inventing product facts. Before a real product implementation, run:
 
 ```bash
 node scripts/validate-project-context.mjs --static
@@ -25,7 +25,7 @@ project has actually been bootstrapped.
 ## Domain skill routing
 
 Four optional project skills add focused evidence contracts without duplicating
-omp-native tools:
+DSH-native tools:
 
 - `accessibility-audit` — WCAG keyboard, semantics, focus, contrast, reflow,
   target-size, motion and error-state evidence;
@@ -35,7 +35,7 @@ omp-native tools:
   canonical, sitemap and structured-data checks;
 - `rtl-i18n` — direction, bidi, formatting and long-string behavior.
 
-omp should load these only when their descriptions match the accepted scope.
+DSH should load these from `.dsh/skills/` only when their descriptions match the accepted scope.
 Use `evals/skill-cases.json` and `node scripts/validate-skill-evals.mjs` as the
 positive/negative routing contract. The manifest proves coverage of routing
 fixtures, not that a model has achieved a quality lift; run matched model

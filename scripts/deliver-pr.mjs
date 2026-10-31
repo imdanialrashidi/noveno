@@ -19,8 +19,8 @@ import { pathToFileURL } from "node:url";
 const HEAD = "ai-changes";
 const BASE = "main";
 const REMOTE = "origin";
-const BEGIN = "<!-- omp-pr:begin -->";
-const END = "<!-- omp-pr:end -->";
+const BEGIN = "<!-- deliver-pr:begin -->";
+const END = "<!-- deliver-pr:end -->";
 const SHA = /^[0-9a-f]{40}$/;
 const blockedPath =
   /(?:^|\/)(?:\.git|\.artifacts|node_modules|\.ssh|\.aws|\.kube|\.gnupg|\.npmrc|\.netrc|\.pypirc|credentials\.json)(?:\/|$)|(?:^|\/)\.env(?:\.|$)|\.(?:pem|key|p12|pfx|jks|keystore)$|(?:^|\/)storageState.*\.json$/i;
@@ -146,8 +146,9 @@ function readSafe(file, cwd, maxBytes) {
 
 export function runDelivery(argv, { cwd = process.cwd(), env = process.env, run = spawnSync } = {}) {
   const options = parseOptions(argv);
+  const deliveryOptOut = env.DSH_PR_DELIVERY ?? env.OMP_PR_DELIVERY;
   requireThat(
-    (env.OMP_PR_DELIVERY ?? "on") === "on",
+    (deliveryOptOut ?? "on") === "on",
     "Automatic PR delivery is disabled in this local-only or evaluation session.",
   );
   for (const key of ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_CONFIG_COUNT"]) {
@@ -184,14 +185,14 @@ export function runDelivery(argv, { cwd = process.cwd(), env = process.env, run 
   if (existsSync(artifacts))
     requireThat(!lstatSync(artifacts).isSymbolicLink(), "The artifact directory must not be a symlink.");
   mkdirSync(artifacts, { recursive: true });
-  const lock = path.join(artifacts, "omp-pr.lock");
-  const receiptPath = path.join(artifacts, "omp-pr-receipt.json");
+  const lock = path.join(artifacts, "deliver-pr.lock");
+  const receiptPath = path.join(artifacts, "deliver-pr-receipt.json");
   let lockFd;
   try {
     lockFd = openSync(lock, "wx");
   } catch {
     throw new Error(
-      "Another delivery may be active. Inspect .artifacts/omp-pr.lock; never clear a live writer's lock.",
+      "Another delivery may be active. Inspect .artifacts/deliver-pr.lock; never clear a live writer's lock.",
     );
   }
   try {
@@ -418,7 +419,7 @@ export function runDelivery(argv, { cwd = process.cwd(), env = process.env, run 
         existsSync(receiptPath) && !lstatSync(receiptPath).isSymbolicLink(),
         "No matching helper delivery receipt; unknown commits cannot be resumed.",
       );
-      const receipt = JSON.parse(readSafe(".artifacts/omp-pr-receipt.json", cwd, 64 * 1024));
+      const receipt = JSON.parse(readSafe(".artifacts/deliver-pr-receipt.json", cwd, 64 * 1024));
       requireThat(
         receipt.repository === repo &&
           receipt.branch === HEAD &&
@@ -528,7 +529,7 @@ export function runDelivery(argv, { cwd = process.cwd(), env = process.env, run 
       );
       // Never PATCH a stale PR body/title: append evidence so concurrent owner notes survive.
       const marker =
-        "<!-- omp-pr-evidence:" +
+        "<!-- deliver-pr-evidence:" +
         commit +
         ":" +
         createHash("sha256").update(body).digest("hex").slice(0, 16) +
@@ -607,7 +608,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     process.stdout.write(JSON.stringify(runDelivery(process.argv.slice(2))) + "\n");
   } catch (error) {
     process.stderr.write(
-      "omp-pr: " +
+      "deliver-pr: " +
         error.message +
         "\nLocal changes/commits are preserved. Inspect git status and the remote before resuming; never force, reset, or auto-merge.\n",
     );

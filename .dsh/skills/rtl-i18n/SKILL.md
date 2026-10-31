@@ -6,7 +6,7 @@ description: Design, implement, or audit localized UI for Persian, Arabic, Hebre
 # RTL and internationalization
 
 Treat direction, language, content length, and formatting as behavior. Use the
-project's existing localization system and the native `browser` tool; do not add a
+project's existing localization system and the runtime's browser capability when available; do not add a
 translation framework or pseudo-locale dependency to a template that does not
 already use one.
 

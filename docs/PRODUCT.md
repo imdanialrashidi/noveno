@@ -59,7 +59,7 @@ Pre-launch acceptance per Spec §74 (condensed):
 - Supported device/network baseline: mobile-first, slow/unstable Iranian networks; AVIF/WebP, responsive images, lazy non-critical media, self-hosted essential assets (Spec §50, §64.2).
 - Accessibility target: WCAG 2.2 AA (Spec §51).
 - Brand character (`x, not y`): clear and systematic, not flashy; measured and honest, not hyped; business-first, not tech-first; calm and precise, not generic (Spec §45, §82, §83).
-- Visual ambition: flagship (per accepted bootstrap prompt), but the visual thesis itself is intentionally deferred to `/design`.
+- Visual ambition: flagship (per accepted bootstrap prompt), but the visual thesis itself is intentionally deferred to the design pass.
 - Required locales and directions: Persian (fa), **RTL-first**; light and dark themes with system default and persisted override.
 - Link to accepted visual contract: `docs/DESIGN.md`
 
