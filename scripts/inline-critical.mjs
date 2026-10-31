@@ -10,9 +10,11 @@
  * Making each page self-contained (one request) removes that failure mode:
  *   - stylesheets become an inline <style>
  *   - module scripts are bundled with esbuild and inlined
- *   - the webfont <link rel=preload> is dropped so a stalling font can never
- *     compete with the document; the font itself stays progressive through
- *     `font-display: swap` in the CSS
+ *   - the webfont <link rel=preload> is dropped, and the self-hosted
+ *     @font-face rules are moved out of the CSS into a deferred loader: fonts
+ *     are fetched only after `load`, with a short abort timeout, so a network
+ *     that stalls font downloads can never keep the page "loading" (the CSS
+ *     fallback stack renders immediately either way)
  *
  * The original files stay on disk: they are the source for the inlining and
  * the structural tests read them from `dist/_astro`.
@@ -32,6 +34,53 @@ function walkHtml(dir) {
     else if (entry.name.endsWith(".html")) out.push(full);
   }
   return out;
+}
+
+const FONT_BLOCK = /@font-face\{[^}]*src:url\((\/fonts\/[^)]+)\)[^}]*\}/g;
+
+/**
+ * Split self-hosted @font-face rules out of the CSS and turn them into a
+ * deferred loader spec. Local fallback faces (src:local(...)) stay in CSS.
+ */
+function extractFonts(css) {
+  const fonts = [];
+  const stripped = css.replace(FONT_BLOCK, (block, url) => {
+    const family = /font-family:([^;]+);/.exec(block)?.[1]?.trim();
+    const weight = /font-weight:([^;]+);/.exec(block)?.[1]?.trim() ?? "400";
+    const style = /font-style:([^;]+);/.exec(block)?.[1]?.trim() ?? "normal";
+    const range = /unicode-range:([^;}]+)/.exec(block)?.[1]?.trim() ?? "";
+    if (family && url) fonts.push({ family, weight, style, range, url });
+    return "";
+  });
+  return { css: stripped, fonts };
+}
+
+function fontLoader(fonts) {
+  if (fonts.length === 0) return "";
+  const spec = JSON.stringify(fonts);
+  return `<script type="module">
+    (function () {
+      var fonts = ${spec};
+      function load() {
+        var controller = new AbortController();
+        var timer = setTimeout(function () { controller.abort(); }, 1500);
+        Promise.all(fonts.map(function (f) {
+          return fetch(f.url, { signal: controller.signal })
+            .then(function (res) { return res.ok ? res.arrayBuffer() : null; })
+            .then(function (buffer) {
+              if (!buffer) return null;
+              var face = new FontFace(f.family, buffer, {
+                weight: f.weight, style: f.style, display: "swap", unicodeRange: f.range
+              });
+              return face.load().then(function (loaded) { document.fonts.add(loaded); });
+            })
+            .catch(function () {});
+        })).finally(function () { clearTimeout(timer); });
+      }
+      if (document.readyState === "complete") setTimeout(load, 300);
+      else window.addEventListener("load", function () { setTimeout(load, 300); }, { once: true });
+    })();
+  </script>`;
 }
 
 const scriptCache = new Map();
@@ -69,8 +118,15 @@ for (const file of walkHtml(DIST)) {
     if (!href) continue;
     const cssPath = path.join(DIST, href);
     if (!fs.existsSync(cssPath)) continue;
-    const css = fs.readFileSync(cssPath, "utf8").replaceAll("</style", "<\\/style");
+    const extracted = extractFonts(fs.readFileSync(cssPath, "utf8"));
+    const css = extracted.css.replaceAll("</style", "<\\/style");
     html = html.replace(tag, `<style>${css}</style>`);
+    if (extracted.fonts.length > 0 && !html.includes("data-font-loader")) {
+      html = html.replace(
+        "</body>",
+        `${fontLoader(extracted.fonts).replace("<script", "<script data-font-loader")}</body>`,
+      );
+    }
     styles += 1;
     touched = true;
   }
